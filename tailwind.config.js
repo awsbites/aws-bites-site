@@ -1,7 +1,7 @@
 module.exports = {
   mode: 'jit',
   purge: {
-    content: ['_site/**/*.html'],
+    content: ['./src/**/*.html', './src/**/*.njk'],
     options: {
       safelist: []
     }

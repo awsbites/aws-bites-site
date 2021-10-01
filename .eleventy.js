@@ -1,13 +1,37 @@
 'use strict'
 
 const htmlmin = require('html-minifier')
+const Image = require("@11ty/eleventy-img")
 
 const now = String(Date.now())
+
+
+async function imageShortcode (src, alt, sizes, widths = [300, 600], attrs = {}) {
+  let metadata = await Image(src, {
+    widths,
+    formats: ["avif", "jpeg"],
+    outputDir: './dist/img/'
+  });
+
+  let imageAttributes = {
+    alt,
+    sizes,
+    loading: "lazy",
+    decoding: "async",
+    ...attrs
+  };
+
+  return Image.generateHTML(metadata, imageAttributes, {
+    whitespaceMode: "inline"
+  });
+}
 
 module.exports = function (eleventyConfig) {
   eleventyConfig.addWatchTarget('./src/_includes/styles/tailwind.config.js')
   eleventyConfig.addWatchTarget('./src/_includes/styles/tailwind.css')
-  eleventyConfig.addPassthroughCopy({ './src/_includes/_tmp/style.css': './style.css' })
+
+  eleventyConfig.addNunjucksAsyncShortcode("image", imageShortcode);
+
 
   // minify html pages
   eleventyConfig.addTransform('htmlmin', function (content, outputPath) {

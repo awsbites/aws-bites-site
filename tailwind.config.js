@@ -1,7 +1,8 @@
 module.exports = {
   mode: 'jit',
+  darkMode: 'media',
   purge: {
-    content: ['./src/**/*.html', './src/**/*.njk'],
+    content: ['./src/**/*.html', './src/**/*.njk', './src/**/*.svg'],
     options: {
       safelist: []
     }
@@ -14,5 +15,7 @@ module.exports = {
     }
   },
   variants: {},
-  plugins: []
+  plugins: [
+    require('@tailwindcss/typography')
+  ]
 }

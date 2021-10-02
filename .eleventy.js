@@ -29,6 +29,7 @@ async function imageShortcode (src, alt, sizes, widths = [300, 600], attrs = {})
 module.exports = function (eleventyConfig) {
   eleventyConfig.addWatchTarget('./src/_includes/styles/tailwind.config.js')
   eleventyConfig.addWatchTarget('./src/_includes/styles/tailwind.css')
+  eleventyConfig.addPassthroughCopy({ './src/_includes/static/**': './' })
 
   eleventyConfig.addNunjucksAsyncShortcode("image", imageShortcode);
 

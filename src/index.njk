@@ -1,3 +1,8 @@
+---
+layout: base.njk
+data: collections.episodes
+---
+
 {% extends 'base.njk' %}
 
 {% block body_content %}
@@ -27,11 +32,11 @@
         <h2 class="text-gray-900 dark:text-gray-100 text-4xl lg:text-5xl font-bold leading-normal">
           Quick bites of AWS
         </h2>
-        <ul>
+        {# <ul>
           {% for episode in episodes %}
           <li>{{ episode.title}}</li>
           {% endfor %}
-        </ul>
+        </ul> #}
 
         <h3 class="text-primary-500 dark:text-secondary-400  text-3xl lg:text-4xl font-bold leading-normal lg:leading-loose">
           every week!
@@ -65,6 +70,44 @@
           </li>
         </ul>
       </div>
+
+      <div class="px-10 py-10">
+  <div class="overflow-y-auto">
+    <ul class="grid grid-cols-1 gap-4 grid-rows-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 md:gap-8 grid-flow-row">
+    {% for episode in collections.episodes.reverse() %}
+      <li class="bg-purple-100 rounded-lg shadow-xl border-8 border-purple-400 text-gray-900 dark:text-gray-100">
+          <a class="text-primary-500 w-10 font-bold hover:bg-gray-300
+          " href="{{episode.url}}"><br>{{episode.data.title}} <br></a>
+          <span class="flex-1 text-gray-700 text-center">
+            {# {{post.templateContent | striptags(true) | truncate(50) }} #}
+            {{post.data.description | striptags(true) | truncate(100)}}
+          </span>
+        <br>
+        <strong>
+        <a href="{{episode.url}}">Find more on</a>
+        </strong>
+      </li>
+    {% endfor %}
+  </ul>
+  </div>
+  <div class="text-primary-500 flex place-items-end justify-end ">
+            {% if pagination.href.previous %}
+              <a href="{{ pagination.href.previous }}" class="mr-5">Previous</a>
+            {% endif %}
+
+            {% for href in pagination.hrefs %}
+              {%if loop.index0 !== pagination.pageNumber %}
+              <a href="{{href}}" class="mr-5">Page {{ loop.index }}</a>
+              {% endif %}
+            {% endfor %}  
+
+            {% if pagination.href.next %}
+              <a href="{{ pagination.href.next }}" class="mr-5" >Next</a>
+            {% endif %} 
+        </ul>
+  </div>
+
+</div>
     </main>
     <footer class="text-sm text-gray-500">
       © 2021 AWS Bites. All rights reserved.

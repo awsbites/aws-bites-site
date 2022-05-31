@@ -2,6 +2,7 @@
 
 const htmlmin = require('html-minifier')
 const Image = require("@11ty/eleventy-img")
+const embedYouTube = require("eleventy-plugin-youtube-embed")
 
 const now = String(Date.now())
 
@@ -31,6 +32,8 @@ module.exports = function (eleventyConfig) {
   eleventyConfig.addPassthroughCopy({ './src/_includes/static/**': './' })
 
   eleventyConfig.addNunjucksAsyncShortcode("image", imageShortcode);
+
+  eleventyConfig.addPlugin(embedYouTube);
 
 
   // minify html pages

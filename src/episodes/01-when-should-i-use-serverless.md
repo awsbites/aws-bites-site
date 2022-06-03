@@ -11,10 +11,4 @@ anchor_fm_link: https://anchor.fm/aws-bites/episodes/01--When-should-I-use-serve
 rss_link: https://anchor.fm/s/6a3312a0/podcast/rss
 ---
 
-{% block episodes_content %}
-  <div>
-    <p>
-      In this episode Eoin and Luciano talk about what it means to adopt serverless, when you should use AWS Lambda, and when you should not use serverless.
-    </p>
-  </div>
-{% endblock episodes_content %}
+In this episode Eoin and Luciano talk about what it means to adopt serverless, when you should use AWS Lambda, and when you should not use serverless.

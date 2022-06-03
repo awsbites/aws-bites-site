@@ -77,10 +77,17 @@ module.exports = function (eleventyConfig) {
 
   eleventyConfig.addNunjucksAsyncFilter('youtubePreview', function (id, cb) {
     (async () => {
+      const folderDest = path.join('dist', this.ctx.page.url)
       const dest = path.join('dist', this.ctx.page.url, 'og_image.jpg')
       const exists = await fs.stat(dest).then(() => true).catch(() => false)
 
       if (!exists) {
+        const folderExists = await fs.stat(folderDest).then(() => true).catch(() => false)
+
+        if (!folderExists) {
+          await fs.mkdir(folderDest)
+        }
+
         const url = `https://i.ytimg.com/vi/${id}/maxresdefault.jpg`
         const image = await axios.get(url, { responseType: 'stream' })
         const transform = sharp().resize({ width: 1200, height: 630, fit: sharp.fit.cover })

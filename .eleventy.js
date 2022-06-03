@@ -2,6 +2,7 @@
 
 const htmlmin = require('html-minifier')
 const Image = require("@11ty/eleventy-img")
+const embedYouTube = require("eleventy-plugin-youtube-embed")
 
 const now = String(Date.now())
 
@@ -27,11 +28,12 @@ async function imageShortcode (src, alt, sizes, widths = [300, 600], attrs = {})
 }
 
 module.exports = function (eleventyConfig) {
-  eleventyConfig.addWatchTarget('./src/_includes/styles/tailwind.config.js')
   eleventyConfig.addWatchTarget('./src/_includes/styles/tailwind.css')
   eleventyConfig.addPassthroughCopy({ './src/_includes/static/**': './' })
 
   eleventyConfig.addNunjucksAsyncShortcode("image", imageShortcode);
+
+  eleventyConfig.addPlugin(embedYouTube);
 
 
   // minify html pages

@@ -1,0 +1,28 @@
+---
+id:  15-Is-serverless-good-for-startups
+title: 15-Is serverless good for startups?
+layout: episodes_layout.njk
+youtube_img_id: I8lxFKcuCmI
+youtube_link: https://www.youtube.com/watch?v=I8lxFKcuCmI&t=12s
+spotify_link: https://open.spotify.com/episode/6IUzcvZgGEZI0TJ5ccGH4d
+podcasts_apple_link: https://podcasts.apple.com/us/podcast/15-is-serverless-good-for-startups/id1585489017?i=1000545223727
+podcasts_google_link: https://podcasts.google.com/feed/aHR0cHM6Ly9hbmNob3IuZm0vcy82YTMzMTJhMC9wb2RjYXN0L3Jzcw/episode/MzA4MjQwZGEtZjcwOS00ODgxLTlmN2EtMGRmNjdhZTZiNjJm?sa=X&ved=0CAUQkfYCahcKEwjQ4fnhqPX3AhUAAAAAHQAAAAAQAQ
+anchor_fm_link: https://anchor.fm/aws-bites/episodes/15--Is-serverless-good-for-startups-e1bp795
+rss_link: https://anchor.fm/s/6a3312a0/podcast/rss
+---
+
+
+In this extended episode, Luciano and Eoin try to cover a recurring topic around Serverless: is it a good or bad idea for startups?
+
+We start by giving a brief description of the different definitions and perspectives on serverless. Then, we try to explore some cases in which we believe serverless might not be the best fit for a startup. We follow on by revisiting some cases where instead we believe serverless can actually be a great fit. We finish by discussing some suggestions on how a startup (or even a more established company) could start approaching serverless in a more cautious and incremental way.
+
+In this episode we mentioned the following resources:
+
+  - [Auth0](https://auth0.com/) 
+  - [Algolia](https://www.algolia.com/)
+  - [Firebase](https://firebase.google.com/)
+  - [Laravel](https://laravel.com/)
+  - [Django](https://www.djangoproject.com/) 
+  - [Express](https://expressjs.com/)
+  - [AWS Amplify](https://aws.amazon.com/amplify/)
+  - [Our previous episode on Amplify](https://www.youtube.com/watch?v=W9ZTYIVQWjQ&t=0s)

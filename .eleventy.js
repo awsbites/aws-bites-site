@@ -17,7 +17,7 @@ function extractExcerpt (content) {
   let excerpt = null
 
   excerpt = striptags(content)
-    .substring(0, 200) // Cap at 200 characters
+    .substring(0, 160)
     .replace(/^\s+|\s+$|\s+(?=\s)/g, '')
     .trim()
     .concat('...')

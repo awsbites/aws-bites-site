@@ -3,12 +3,12 @@
 module.exports = {
   mode: 'jit',
   darkMode: 'class',
-  purge: {
-    content: ['./src/**/*.html', './src/**/*.njk', './src/**/*.svg'],
-    options: {
-      safelist: []
-    }
-  },
+  content: [
+    './src/**/*.html',
+    './src/**/*.njk',
+    './src/**/*.svg',
+    './src/**/*.md'
+  ],
   theme: {
     extend: {
       colors: {
@@ -59,6 +59,9 @@ module.exports = {
               },
               'ul > li::before': {
                 backgroundColor: theme('colors.primary.100')
+              },
+              'h1, h2, h3, h4, h5, h6': {
+                color: theme('colors.accent.100')
               }
             }
           ]

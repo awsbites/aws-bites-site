@@ -54,6 +54,11 @@ module.exports = function (eleventyConfig) {
   eleventyConfig.addPlugin(embedYouTube)
   eleventyConfig.addShortcode('excerpt', (article) => extractExcerpt(article))
 
+  eleventyConfig.addCollection('publishedEpisodes', function (collectionApi) {
+    // get unsorted items
+    return collectionApi.getFilteredByTag('episode').filter((item) => item.data.publish_date <= now)
+  })
+
   // minify html pages
   eleventyConfig.addTransform('htmlmin', function (content, outputPath) {
     if (

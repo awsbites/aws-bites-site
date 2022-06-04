@@ -1,14 +1,12 @@
 ---
-id: 37-How-do-you-migrate-a-monolith-to-AWS-without-the-drama
-title: 37-How do you migrate a monolith to AWS without the drama?
-layout: episodes_layout.njk
+episode: 37
+title: How do you migrate a monolith to AWS without the drama?
 youtube_img_id: GYa2RkYDfBQ
 youtube_link: https://www.youtube.com/watch?v=GYa2RkYDfBQ
 spotify_link: https://open.spotify.com/episode/3gr9biebospPt3xCZhYGTQ
 podcasts_apple_link: https://podcasts.apple.com/us/podcast/37-how-do-you-migrate-a-monolith-to-aws-without-the-drama/id1585489017?i=1000562666501 
 podcasts_google_link: https://podcasts.google.com/feed/aHR0cHM6Ly9hbmNob3IuZm0vcy82YTMzMTJhMC9wb2RjYXN0L3Jzcw/episode/MmZmYWY2OGMtNjk4Zi00NDVjLTlmYWYtNDUyODUyNDRhMmEy?sa=X&ved=0CAUQkfYCahcKEwi4n82V7vX3AhUAAAAAHQAAAAAQAQ
 anchor_fm_link: https://anchor.fm/aws-bites/episodes/37--How-do-you-migrate-a-monolith-to-AWS-without-the-drama-e1ilt8s
-rss_link: https://anchor.fm/s/6a3312a0/podcast/rss
 ---
 
 

@@ -1,14 +1,12 @@
 ---
-id: 19-Is-the-serverless-DX-still-immature
-title: 19-Is the serverless DX still immature?
-layout: episodes_layout.njk
+episode: 19
+title: Is the serverless DX still immature?
 youtube_img_id: WF701W3akKw
 youtube_link: https://www.youtube.com/watch?v=WF701W3akKw
 spotify_link: https://open.spotify.com/episode/0fp50j1G65sr70AXV5Yo1T
 podcasts_apple_link: https://podcasts.apple.com/us/podcast/19-is-the-serverless-dx-still-immature/id1585489017?i=1000547834833
 podcasts_google_link: https://podcasts.google.com/feed/aHR0cHM6Ly9hbmNob3IuZm0vcy82YTMzMTJhMC9wb2RjYXN0L3Jzcw/episode/YTgxZDU0NWQtNzBjNC00NWRlLTgyYjItZGM1ZTI4ZWQ2MWZk?sa=X&ved=0CAUQkfYCahcKEwi4n82V7vX3AhUAAAAAHQAAAAAQAQ
 anchor_fm_link: https://anchor.fm/aws-bites/episodes/19--Is-the-serverless-DX-still-immature-e1ct76d
-rss_link: https://anchor.fm/s/6a3312a0/podcast/rss
 ---
 
 In this episode of AWS Bites podcast, Luciano and Eoin talk about what the serverless Developer Experience (DX) is like and whether we should consider it still immature or not.

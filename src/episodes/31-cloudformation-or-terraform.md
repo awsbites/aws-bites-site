@@ -1,14 +1,12 @@
 ---
-id: 31-CloudFormation-or-Terraform
-title: 31-CloudFormation or Terraform?
-layout: episodes_layout.njk
+episode: 31
+title: CloudFormation or Terraform?
 youtube_img_id: mLkOH2I0rX8
 youtube_link: https://www.youtube.com/watch?v=mLkOH2I0rX8 
 spotify_link: https://open.spotify.com/episode/7J5nVoWwSkQlLYhsK30aHI
 podcasts_apple_link: https://podcasts.apple.com/us/podcast/31-cloudformation-or-terraform/id1585489017?i=1000556672551
 podcasts_google_link: https://podcasts.google.com/feed/aHR0cHM6Ly9hbmNob3IuZm0vcy82YTMzMTJhMC9wb2RjYXN0L3Jzcw/episode/ZDIzMGNiZjUtNGJjZC00NzRiLWFlM2MtNjdhOTljYjAzMTEw?sa=X&ved=0CAUQkfYCahcKEwi4n82V7vX3AhUAAAAAHQAAAAAQAQ
 anchor_fm_link: https://anchor.fm/aws-bites/episodes/31--CloudFormation-or-Terraform-e1gr87b
-rss_link: https://anchor.fm/s/6a3312a0/podcast/rss
 ---
 
 

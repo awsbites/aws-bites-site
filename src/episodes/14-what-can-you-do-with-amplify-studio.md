@@ -1,14 +1,12 @@
 ---
-id: 14-What-can-you-do-with-Amplify-Studio
-title: 14-What can you do with Amplify Studio?
-layout: episodes_layout.njk
+episode: 14
+title: What can you do with Amplify Studio?
 youtube_img_id: W9ZTYIVQWjQ
 youtube_link: https://www.youtube.com/watch?v=W9ZTYIVQWjQ&t=229s
 spotify_link: https://open.spotify.com/episode/63Pbfetz7HL0Qy1mKuJo2d
 podcasts_apple_link: https://podcasts.apple.com/us/podcast/14-what-can-you-do-with-amplify-studio/id1585489017?i=1000544497569
 podcasts_google_link: https://podcasts.google.com/feed/aHR0cHM6Ly9hbmNob3IuZm0vcy82YTMzMTJhMC9wb2RjYXN0L3Jzcw/episode/NTM2N2RlOGItMGM3Zi00ZmFkLTlhZWMtMzYzMGFlMjVlY2E1?sa=X&ved=0CAUQkfYCahcKEwjQ4fnhqPX3AhUAAAAAHQAAAAAQAQ
 anchor_fm_link: https://anchor.fm/aws-bites/episodes/14--What-can-you-do-with-Amplify-Studio-e1bg4gg
-rss_link: https://anchor.fm/s/6a3312a0/podcast/rss
 ---
 
 In this extended episode, Eoin and Luciano talk about Amplify with a particular focus on Amplify Studio, a new visual way to manage Amplify applications announced during the recent re:Invent event during Werner Vogels’ keynote.

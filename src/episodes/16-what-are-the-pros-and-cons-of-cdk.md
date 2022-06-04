@@ -1,15 +1,13 @@
 ---
 
-id: 16-What-are-the-pros-and-cons-of-CDK
-title: 16-What are the pros and cons of CDK?
-layout: episodes_layout.njk
+episode: 16
+title: What are the pros and cons of CDK?
 youtube_img_id: jjyNTNQdW2s
 youtube_link: https://www.youtube.com/watch?v=jjyNTNQdW2s
 spotify_link: https://open.spotify.com/episode/6UszkpVUAJhRMkcWNIjDKF
 podcasts_apple_link: https://podcasts.apple.com/us/podcast/16-what-are-the-pros-and-cons-of-cdk/id1585489017?i=1000545985343 
 podcasts_google_link: https://podcasts.google.com/feed/aHR0cHM6Ly9hbmNob3IuZm0vcy82YTMzMTJhMC9wb2RjYXN0L3Jzcw/episode/ZjU2YjljNDgtN2M5NC00ZDJhLWE2NDMtZTU2NWVlZDU0ZWNi?sa=X&ved=0CAUQkfYCahcKEwi4n82V7vX3AhUAAAAAHQAAAAAQAQ
 anchor_fm_link: https://anchor.fm/aws-bites/episodes/16--What-are-the-pros-and-cons-of-CDK-e1btcpa
-rss_link: https://anchor.fm/s/6a3312a0/podcast/rss
 ---
 
 In this episode, Eoin and Luciano explore the various pros and cons of AWS Cloud Development Kit (CDK).

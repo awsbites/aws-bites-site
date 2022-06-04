@@ -1,14 +1,13 @@
 ---
-id: 13.1-Whats-on-your-re-invent-2021-wish-list
-title: 13-What’s on your re:Invent 2021 wish list?
-layout: episodes_layout.njk
+is_special: true
+episode: 13.1
+title: What’s on your re:Invent 2021 wish list?
 youtube_img_id: NY03iwbOkzk
 youtube_link: https://www.youtube.com/watch?v=NY03iwbOkzk&t=16s
 spotify_link: https://open.spotify.com/episode/1YMGVM2emsPwO9NCS4rezj
 podcasts_apple_link: https://podcasts.apple.com/us/podcast/13-whats-on-your-re-invent-2021-wish-list/id1585489017?i=1000543242181
 podcasts_google_link: https://podcasts.google.com/feed/aHR0cHM6Ly9hbmNob3IuZm0vcy82YTMzMTJhMC9wb2RjYXN0L3Jzcw/episode/ZGM1ZTBkNWEtMWUwNC00YWRjLTgyN2YtNGZkZjIwZTRjMTk3?sa=X&ved=0CAUQkfYCahcKEwjQ4fnhqPX3AhUAAAAAHQAAAAAQAQ
 anchor_fm_link: https://anchor.fm/aws-bites/episodes/13--Whats-on-your-reInvent-2021-wish-list-e1at0s2
-rss_link: https://anchor.fm/s/6a3312a0/podcast/rss
 ---
 
 

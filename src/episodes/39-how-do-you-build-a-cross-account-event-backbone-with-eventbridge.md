@@ -1,14 +1,12 @@
 ---
-id: 39-How-do-you-build-a-cross-account-event-backbone-with-EventBridge
-title: 39-How do you build a cross-account event backbone with EventBridge?
-layout: episodes_layout.njk
-youtube_img_id: 8zxVwApwgKM
-youtube_link: https://www.youtube.com/watch?v=8zxVwApwgKM
+episode: 39
+title: How do you build a cross-account event backbone with EventBridge?
+youtube_id: 8zxVwApwgKM
 spotify_link: https://open.spotify.com/episode/42pWqiyLYyTGfWfPkVwCJz
 podcasts_apple_link: https://podcasts.apple.com/us/podcast/39-how-do-you-build-a-cross-account-event-backbone/id1585489017?i=1000565056125
 podcasts_google_link: https://podcasts.google.com/feed/aHR0cHM6Ly9hbmNob3IuZm0vcy82YTMzMTJhMC9wb2RjYXN0L3Jzcw/episode/YjI4MzlmY2EtNWVhNi00YjkzLTkyN2UtNWVjMzExY2Y0Y2Zm?sa=X&ved=0CAUQkfYCahcKEwjAnNX9-JD4AhUAAAAAHQAAAAAQAQ
 anchor_fm_link: https://anchor.fm/aws-bites/episodes/39--How-do-you-build-a-cross-account-event-backbone-with-EventBridge-e1jd97n
-rss_link: https://anchor.fm/s/6a3312a0/podcast/rss
+publish_date: 2022-06-03
 ---
 
 

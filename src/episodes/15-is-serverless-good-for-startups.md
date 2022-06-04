@@ -1,14 +1,12 @@
 ---
-id:  15-Is-serverless-good-for-startups
-title: 15-Is serverless good for startups?
-layout: episodes_layout.njk
-youtube_img_id: I8lxFKcuCmI
-youtube_link: https://www.youtube.com/watch?v=I8lxFKcuCmI&t=12s
+episode: 15
+title: Is serverless good for startups?
+youtube_id: I8lxFKcuCmI
 spotify_link: https://open.spotify.com/episode/6IUzcvZgGEZI0TJ5ccGH4d
 podcasts_apple_link: https://podcasts.apple.com/us/podcast/15-is-serverless-good-for-startups/id1585489017?i=1000545223727
 podcasts_google_link: https://podcasts.google.com/feed/aHR0cHM6Ly9hbmNob3IuZm0vcy82YTMzMTJhMC9wb2RjYXN0L3Jzcw/episode/MzA4MjQwZGEtZjcwOS00ODgxLTlmN2EtMGRmNjdhZTZiNjJm?sa=X&ved=0CAUQkfYCahcKEwjQ4fnhqPX3AhUAAAAAHQAAAAAQAQ
 anchor_fm_link: https://anchor.fm/aws-bites/episodes/15--Is-serverless-good-for-startups-e1bp795
-rss_link: https://anchor.fm/s/6a3312a0/podcast/rss
+publish_date: 2021-12-16
 ---
 
 

@@ -1,14 +1,12 @@
 ---
-id: 01-When-should-I-use-serverless
-title: 01-When should I use serverless?
-layout: episodes_layout.njk
-youtube_img_id: UiXAKbPSVsE
-youtube_link: https://www.youtube.com/watch?v=UiXAKbPSVsE 
+episode: 1
+title: When should I use serverless?
+youtube_id: UiXAKbPSVsE
 spotify_link: https://open.spotify.com/episode/2nubJ5zyAigH2TYblDku4u
-podcasts_apple_link: https://podcasts.apple.com/us/podcast/01-when-should-i-use-serverless/id1585489017?i=1000535005038 
-podcasts_google_link: https://podcasts.google.com/feed/aHR0cHM6Ly9hbmNob3IuZm0vcy82YTMzMTJhMC9wb2RjYXN0L3Jzcw/episode/MjBhYWE3MjQtNGU4Yy00Y2EwLTg2MjAtNTA4MzU0N2UyODQ0?sa=X&ved=0CAUQkfYCahcKEwj4k6e-7-P3AhUAAAAAHQAAAAAQAQ 
+podcasts_apple_link: https://podcasts.apple.com/us/podcast/01-when-should-i-use-serverless/id1585489017?i=1000535005038
+podcasts_google_link: https://podcasts.google.com/feed/aHR0cHM6Ly9hbmNob3IuZm0vcy82YTMzMTJhMC9wb2RjYXN0L3Jzcw/episode/MjBhYWE3MjQtNGU4Yy00Y2EwLTg2MjAtNTA4MzU0N2UyODQ0?sa=X&ved=0CAUQkfYCahcKEwj4k6e-7-P3AhUAAAAAHQAAAAAQAQ
 anchor_fm_link: https://anchor.fm/aws-bites/episodes/01--When-should-I-use-serverless-e16s7td
-rss_link: https://anchor.fm/s/6a3312a0/podcast/rss
+publish_date: 2021-09-09
 ---
 
 In this episode Eoin and Luciano talk about what it means to adopt serverless, when you should use AWS Lambda, and when you should not use serverless.

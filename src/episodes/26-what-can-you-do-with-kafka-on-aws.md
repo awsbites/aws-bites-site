@@ -1,14 +1,12 @@
 ---
-id: 26-What-can-you-do-with-Kafka-on-AWS
+episode: 26
 title: 26-What can you do with Kafka on AWS?
-layout: episodes_layout.njk
-youtube_img_id: nH03_bnr_xA
-youtube_link: https://www.youtube.com/watch?v=nH03_bnr_xA&t=227s 
+youtube_id: nH03_bnr_xA
 spotify_link: https://open.spotify.com/episode/1Vg1H4CYcnTnD5xIuLWfut
 podcasts_apple_link: https://podcasts.apple.com/us/podcast/26-what-can-you-do-with-kafka-on-aws/id1585489017?i=1000552874778
-podcasts_google_link: https://podcasts.google.com/feed/aHR0cHM6Ly9hbmNob3IuZm0vcy82YTMzMTJhMC9wb2RjYXN0L3Jzcw/episode/M2Y2OGUzYjItNGJhOS00ZmY3LTk3YjUtZDlmZTFhNjNkYzFj?sa=X&ved=0CAUQkfYCahcKEwi4n82V7vX3AhUAAAAAHQAAAAAQAQ 
+podcasts_google_link: https://podcasts.google.com/feed/aHR0cHM6Ly9hbmNob3IuZm0vcy82YTMzMTJhMC9wb2RjYXN0L3Jzcw/episode/M2Y2OGUzYjItNGJhOS00ZmY3LTk3YjUtZDlmZTFhNjNkYzFj?sa=X&ved=0CAUQkfYCahcKEwi4n82V7vX3AhUAAAAAHQAAAAAQAQ
 anchor_fm_link: https://anchor.fm/aws-bites/episodes/26--What-can-you-do-with-Kafka-on-AWS-e1f58mk
-rss_link: https://anchor.fm/s/6a3312a0/podcast/rss
+publish_date: 2022-03-03
 ---
 
 

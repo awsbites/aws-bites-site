@@ -1,12 +1,12 @@
 ---
 episode: 34
 title: How to get the most out of CloudWatch Alarms?
-youtube_img_id: rk4QMJf6R4U
-youtube_link: https://www.youtube.com/watch?v=rk4QMJf6R4U&t=10s
+youtube_id: rk4QMJf6R4U
 spotify_link: https://open.spotify.com/episode/2nubJ5zyAigH2TYblDku4u
-podcasts_apple_link: https://podcasts.apple.com/us/podcast/34-how-to-get-the-most-out-of-cloudwatch-alarms/id1585489017?i=1000559037973 
-podcasts_google_link: https://podcasts.google.com/feed/aHR0cHM6Ly9hbmNob3IuZm0vcy82YTMzMTJhMC9wb2RjYXN0L3Jzcw/episode/N2JhOTgwMzAtY2MxYS00ODUxLTkyNTEtMjk5ZGE0YTk1N2E4?sa=X&ved=0CAUQkfYCahcKEwi4n82V7vX3AhUAAAAAHQAAAAAQAQ 
+podcasts_apple_link: https://podcasts.apple.com/us/podcast/34-how-to-get-the-most-out-of-cloudwatch-alarms/id1585489017?i=1000559037973
+podcasts_google_link: https://podcasts.google.com/feed/aHR0cHM6Ly9hbmNob3IuZm0vcy82YTMzMTJhMC9wb2RjYXN0L3Jzcw/episode/N2JhOTgwMzAtY2MxYS00ODUxLTkyNTEtMjk5ZGE0YTk1N2E4?sa=X&ved=0CAUQkfYCahcKEwi4n82V7vX3AhUAAAAAHQAAAAAQAQ
 anchor_fm_link: https://anchor.fm/aws-bites/episodes/34--How-to-get-the-most-out-of-CloudWatch-Alarms-e1hodou
+publish_date: 2022-04-28
 ---
 
 

@@ -1,12 +1,12 @@
 ---
 episode: 17
 title: How do you keep up with AWS in 2022?
-youtube_img_id: sc2B5g_wJx0
-youtube_link: https://www.youtube.com/watch?v=sc2B5g_wJx0&t=34s
+youtube_id: sc2B5g_wJx0
 spotify_link: https://open.spotify.com/episode/21NhEpz8nfkVKessrlmOmx
 podcasts_apple_link: https://podcasts.apple.com/us/podcast/17-how-do-you-keep-up-with-aws-in-2022/id1585489017?i=1000546542521
 podcasts_google_link: https://podcasts.google.com/feed/aHR0cHM6Ly9hbmNob3IuZm0vcy82YTMzMTJhMC9wb2RjYXN0L3Jzcw/episode/MzUwMGIzZmMtY2ZkYi00YTNjLWI0NzgtMjI5OWJiOGVmYjRk?sa=X&ved=0CAUQkfYCahcKEwi4n82V7vX3AhUAAAAAHQAAAAAQAQ
 anchor_fm_link: https://anchor.fm/aws-bites/episodes/17--How-do-you-keep-up-with-AWS-in-2022-e1c4ask
+publish_date: 2021-12-30
 ---
 
 

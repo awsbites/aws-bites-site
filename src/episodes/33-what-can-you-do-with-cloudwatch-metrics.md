@@ -1,12 +1,12 @@
 ---
 episode: 33
 title: What can you do with CloudWatch metrics?
-youtube_img_id: vwo2jXfyooQ
-youtube_link: https://www.youtube.com/watch?v=vwo2jXfyooQ&t=236s
+youtube_id: vwo2jXfyooQ
 spotify_link: https://open.spotify.com/episode/07X4eD4hn5lMvJiEvjFLil
 podcasts_apple_link: https://podcasts.apple.com/us/podcast/33-what-can-you-do-with-cloudwatch-metrics/id1585489017?i=1000558323260
-podcasts_google_link: https://podcasts.google.com/feed/aHR0cHM6Ly9hbmNob3IuZm0vcy82YTMzMTJhMC9wb2RjYXN0L3Jzcw/episode/OTFiOGI2YzUtNTdkZC00ZjIyLWEzZjktMTg2YWZkYjY0YThm?sa=X&ved=0CAUQkfYCahcKEwi4n82V7vX3AhUAAAAAHQAAAAAQAQ 
+podcasts_google_link: https://podcasts.google.com/feed/aHR0cHM6Ly9hbmNob3IuZm0vcy82YTMzMTJhMC9wb2RjYXN0L3Jzcw/episode/OTFiOGI2YzUtNTdkZC00ZjIyLWEzZjktMTg2YWZkYjY0YThm?sa=X&ved=0CAUQkfYCahcKEwi4n82V7vX3AhUAAAAAHQAAAAAQAQ
 anchor_fm_link: https://anchor.fm/aws-bites/episodes/33--What-can-you-do-with-CloudWatch-metrics-e1hentr
+publish_date: 2022-04-21
 ---
 
 

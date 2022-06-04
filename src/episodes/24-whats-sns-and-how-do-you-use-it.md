@@ -1,12 +1,12 @@
 ---
 episode: 24
 title: What's SNS and how do you use it?
-youtube_img_id: 9uzQVr7fFIQ
-youtube_link: https://www.youtube.com/watch?v=9uzQVr7fFIQ
+youtube_id: 9uzQVr7fFIQ
 spotify_link: https://open.spotify.com/episode/20IweHWadGpqbNqN2zmNcW
-podcasts_apple_link: https://podcasts.apple.com/us/podcast/24-whats-sns-and-how-do-you-use-it/id1585489017?i=1000551446644 
-podcasts_google_link: https://podcasts.google.com/feed/aHR0cHM6Ly9hbmNob3IuZm0vcy82YTMzMTJhMC9wb2RjYXN0L3Jzcw/episode/NzlmZTBiNmUtZWYzYS00YjIyLTlkYzctNzIyNTUxMzI5OWJh?sa=X&ved=0CAUQkfYCahcKEwi4n82V7vX3AhUAAAAAHQAAAAAQAQ 
+podcasts_apple_link: https://podcasts.apple.com/us/podcast/24-whats-sns-and-how-do-you-use-it/id1585489017?i=1000551446644
+podcasts_google_link: https://podcasts.google.com/feed/aHR0cHM6Ly9hbmNob3IuZm0vcy82YTMzMTJhMC9wb2RjYXN0L3Jzcw/episode/NzlmZTBiNmUtZWYzYS00YjIyLTlkYzctNzIyNTUxMzI5OWJh?sa=X&ved=0CAUQkfYCahcKEwi4n82V7vX3AhUAAAAAHQAAAAAQAQ
 anchor_fm_link: https://anchor.fm/aws-bites/episodes/24--Whats-SNS-and-how-do-you-use-it-e1ed1h7
+publish_date: 2022-02-17
 ---
 
 

@@ -1,12 +1,12 @@
 ---
 episode: 10
 title: Lambda or Fargate for containers?
-youtube_img_id: a57pXpcA_Bs
-youtube_link: https://www.youtube.com/watch?v=a57pXpcA_Bs&t=14s
+youtube_id: a57pXpcA_Bs
 spotify_link: https://open.spotify.com/episode/6acs1nd1nzUOaytf38T1K7
 podcasts_apple_link: https://podcasts.apple.com/us/podcast/10-lambda-or-fargate-for-containers/id1585489017?i=1000541550298
 podcasts_google_link: https://podcasts.google.com/feed/aHR0cHM6Ly9hbmNob3IuZm0vcy82YTMzMTJhMC9wb2RjYXN0L3Jzcw/episode/MmMwZjNmYzctNjVkNS00NmI1LTgzOTEtYWIyNWVjZTg1MDBj?sa=X&ved=0CAUQkfYCahcKEwjQ4fnhqPX3AhUAAAAAHQAAAAAQAQ
 anchor_fm_link: https://anchor.fm/aws-bites/episodes/10--Lambda-or-Fargate-for-containers-e19gjq8
+publish_date: 2021-11-11
 ---
 
 

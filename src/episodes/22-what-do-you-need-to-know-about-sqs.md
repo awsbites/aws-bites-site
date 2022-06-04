@@ -1,12 +1,12 @@
 ---
 episode: 22
 title: What do you need to know about SQS?
-youtube_img_id: svoA-ds8-8c
-youtube_link: https://www.youtube.com/watch?v=svoA-ds8-8c 
+youtube_id: svoA-ds8-8c
 spotify_link: https://open.spotify.com/episode/27Ficin9rHzIdRxVMzK5Ea
 podcasts_apple_link: https://podcasts.apple.com/us/podcast/22-what-do-you-need-to-know-about-sqs/id1585489017?i=1000550017624
-podcasts_google_link: https://podcasts.google.com/feed/aHR0cHM6Ly9hbmNob3IuZm0vcy82YTMzMTJhMC9wb2RjYXN0L3Jzcw/episode/MGVlNGViNmQtNTdlZC00MDZkLTlkYzctYjNiZWNhZjRiMDQz?sa=X&ved=0CAUQkfYCahcKEwi4n82V7vX3AhUAAAAAHQAAAAAQAQ 
+podcasts_google_link: https://podcasts.google.com/feed/aHR0cHM6Ly9hbmNob3IuZm0vcy82YTMzMTJhMC9wb2RjYXN0L3Jzcw/episode/MGVlNGViNmQtNTdlZC00MDZkLTlkYzctYjNiZWNhZjRiMDQz?sa=X&ved=0CAUQkfYCahcKEwi4n82V7vX3AhUAAAAAHQAAAAAQAQ
 anchor_fm_link: https://anchor.fm/aws-bites/episodes/22--What-do-you-need-to-know-about-SQS-e1dge30
+publish_date: 2022-02-03
 ---
 
 

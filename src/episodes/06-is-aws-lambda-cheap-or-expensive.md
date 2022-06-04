@@ -1,12 +1,12 @@
 ---
 episode: 6
 title: Is AWS Lambda cheap or expensive?
-youtube_img_id: XHxXcsvKGFA
-youtube_link: https://www.youtube.com/watch?v=XHxXcsvKGFA&t=1s
+youtube_id: XHxXcsvKGFA
 spotify_link: https://open.spotify.com/episode/44vjqnUHf3u92g6yBhFwYx
 podcasts_apple_link: https://podcasts.apple.com/us/podcast/06-is-aws-lambda-cheap-or-expensive/id1585489017?i=1000538653186
 podcasts_google_link: https://podcasts.google.com/feed/aHR0cHM6Ly9hbmNob3IuZm0vcy82YTMzMTJhMC9wb2RjYXN0L3Jzcw/episode/MjIxODIwOTEtYzEwZi00NTBiLWI5MTktYzZmZjAyY2JmMmIw?sa=X&ved=0CAUQkfYCahcKEwjQ4fnhqPX3AhUAAAAAHQAAAAAQAQ
 anchor_fm_link: https://anchor.fm/aws-bites/episodes/06--Is-AWS-Lambda-cheap-or-expensive-e17ocg4
+publish_date: 2021-10-14
 ---
 
 

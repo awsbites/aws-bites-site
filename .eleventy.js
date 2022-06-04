@@ -10,6 +10,7 @@ const embedYouTube = require('eleventy-plugin-youtube-embed')
 const axios = require('axios')
 const sharp = require('sharp')
 const striptags = require('striptags')
+const { DateTime } = require('luxon')
 
 const now = String(Date.now())
 
@@ -98,6 +99,14 @@ module.exports = function (eleventyConfig) {
 
       return `https://awsbites.com${path.join(this.ctx.page.url, 'og_image.jpg')}`
     })().then((url) => cb(null, url)).catch(cb)
+  })
+
+  eleventyConfig.addFilter('youtubeLink', function (id) {
+    return `https://www.youtube.com/watch?v=${id}`
+  })
+
+  eleventyConfig.addFilter('formatDate', (dateObj) => {
+    return DateTime.fromJSDate(dateObj).toFormat('yyyy-MM-dd')
   })
 
   return {

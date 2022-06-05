@@ -1,4 +1,5 @@
 module.exports = {
+  now: new Date(),
   website: 'https://awsbites.com',
   rss_link: 'https://anchor.fm/s/6a3312a0/podcast/rss',
   analytics_id: 'G-LZHZ86B8SZ',

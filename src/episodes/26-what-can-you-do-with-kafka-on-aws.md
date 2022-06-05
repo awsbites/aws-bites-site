@@ -1,6 +1,6 @@
 ---
 episode: 26
-title: 26-What can you do with Kafka on AWS?
+title: What can you do with Kafka on AWS?
 youtube_id: nH03_bnr_xA
 spotify_link: https://open.spotify.com/episode/1Vg1H4CYcnTnD5xIuLWfut
 podcasts_apple_link: https://podcasts.apple.com/us/podcast/26-what-can-you-do-with-kafka-on-aws/id1585489017?i=1000552874778

@@ -2,9 +2,6 @@
 episode: 23
 title: What’s the big deal with EventBridge?
 youtube_id: UjIE5qp-v8w
-spotify_link: https://open.spotify.com/episode/0h1S8tN33unpMEfkNtClQ4
-podcasts_apple_link: https://podcasts.apple.com/us/podcast/23-whats-the-big-deal-with-eventbridge/id1585489017?i=1000550740864
-podcasts_google_link: https://podcasts.google.com/feed/aHR0cHM6Ly9hbmNob3IuZm0vcy82YTMzMTJhMC9wb2RjYXN0L3Jzcw/episode/MTY5MDk5NGYtMTdkOC00NzVmLTlhZDYtN2U0MzNlM2E4OTll?sa=X&ved=0CAUQkfYCahcKEwi4n82V7vX3AhUAAAAAHQAAAAAQAQ
 anchor_fm_link: https://anchor.fm/aws-bites/episodes/23--Whats-the-big-deal-with-EventBridge-e1e66j1
 publish_date: 2022-02-10
 ---

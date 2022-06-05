@@ -2,9 +2,6 @@
 episode: 30
 title: What can you do with 10GB of Lambda storage?
 youtube_id: KahJlwJTyMQ
-spotify_link: https://open.spotify.com/episode/2asBmZ4JVwPUyPG06q62no
-podcasts_apple_link: https://podcasts.apple.com/us/podcast/30-what-can-you-do-with-10gb-of-lambda-storage/id1585489017?i=1000555887353
-podcasts_google_link: https://podcasts.google.com/feed/aHR0cHM6Ly9hbmNob3IuZm0vcy82YTMzMTJhMC9wb2RjYXN0L3Jzcw/episode/ZDA3ZTkyNjgtZGE1YS00ZDUxLWFhMGQtZTQ2YjRkZjI0Yzdl?sa=X&ved=0CAUQkfYCahcKEwi4n82V7vX3AhUAAAAAHQAAAAAQAQ
 anchor_fm_link: https://anchor.fm/aws-bites/episodes/30--What-can-you-do-with-10GB-of-Lambda-storage-e1gi23r
 publish_date: 2022-03-31
 ---

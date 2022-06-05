@@ -2,9 +2,6 @@
 episode: 7
 title: When do you use Step Functions?
 youtube_id: nNskWnmozaE
-spotify_link: https://open.spotify.com/episode/369aRSDukPlpkQ0p86i3Gf
-podcasts_apple_link: https://podcasts.apple.com/us/podcast/07-when-do-you-use-step-functions/id1585489017?i=1000539340522
-podcasts_google_link: https://podcasts.google.com/feed/aHR0cHM6Ly9hbmNob3IuZm0vcy82YTMzMTJhMC9wb2RjYXN0L3Jzcw/episode/MjI4ZDRmY2QtNWY0ZS00YjliLTkwYTItMGVkYzdlMmYxNDFi?sa=X&ved=0CAUQkfYCahcKEwjQ4fnhqPX3AhUAAAAAHQAAAAAQAQ
 anchor_fm_link: https://anchor.fm/aws-bites/episodes/07--When-do-you-use-Step-Functions-e18qtqg
 publish_date: 2021-10-22
 ---

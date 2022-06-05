@@ -2,9 +2,6 @@
 episode: 21
 title: What services should I use for events?
 youtube_id: CG7uhkKftoY
-spotify_link: https://open.spotify.com/episode/5OtXZUjx1A10Exe25GXM6C
-podcasts_apple_link: https://podcasts.apple.com/us/podcast/21-what-services-should-i-use-for-events/id1585489017?i=1000549222877
-podcasts_google_link: https://podcasts.google.com/feed/aHR0cHM6Ly9hbmNob3IuZm0vcy82YTMzMTJhMC9wb2RjYXN0L3Jzcw/episode/Mjk5MmM1MDItZGMwMi00MWE4LWEwZWYtMDRlNmU0MzYyNTYw?sa=X&ved=0CAUQkfYCahcKEwi4n82V7vX3AhUAAAAAHQAAAAAQAQ
 anchor_fm_link: https://anchor.fm/aws-bites/episodes/21--What-services-should-I-use-for-events-e1daih1
 publish_date: 2022-01-27
 ---

@@ -2,9 +2,6 @@
 episode: 32
 title: What are the benefits of tags?
 youtube_id: qh0BlnGRAog
-spotify_link: https://open.spotify.com/episode/4xHpwJaoKPytTyLwtG4m1l
-podcasts_apple_link: https://podcasts.apple.com/us/podcast/32-what-are-the-benefits-of-tags/id1585489017?i=1000557656478
-podcasts_google_link: https://podcasts.google.com/feed/aHR0cHM6Ly9hbmNob3IuZm0vcy82YTMzMTJhMC9wb2RjYXN0L3Jzcw/episode/MzAzOGU0MmMtNWQ5MS00NDI2LWJmMWMtNGE1ZjRjNTVhN2Q4?sa=X&ved=0CAUQkfYCahcKEwi4n82V7vX3AhUAAAAAHQAAAAAQAQ
 anchor_fm_link: https://anchor.fm/aws-bites/episodes/32--What-are-the-benefits-of-tags-e1h246h
 publish_date: 2022-04-14
 ---

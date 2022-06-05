@@ -3,9 +3,6 @@ is_special: true
 episode: 13.2
 title: AWS Bites special re:Invent 2021 day 1
 youtube_id: N6U12v67IKE
-spotify_link: https://open.spotify.com/episode/0eoZv6luMjOAlhpWtoXkkG
-podcasts_apple_link: https://podcasts.apple.com/us/podcast/aws-re-invent-day-one-special/id1585489017?i=1000543519484
-podcasts_google_link: https://podcasts.google.com/feed/aHR0cHM6Ly9hbmNob3IuZm0vcy82YTMzMTJhMC9wb2RjYXN0L3Jzcw/episode/YTFhYmZlZjctNDRmYy00YzBhLWE1YjItYWRkMTBhYmRjZmVi?sa=X&ved=0CAUQkfYCahcKEwjQ4fnhqPX3AhUAAAAAHQAAAAAQAQ
 anchor_fm_link: https://anchor.fm/aws-bites/episodes/AWS-reInvent-Day-One-Special-e1b1k8d
 publish_date: 2021-11-30
 ---

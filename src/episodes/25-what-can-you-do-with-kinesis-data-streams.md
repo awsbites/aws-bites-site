@@ -2,9 +2,6 @@
 episode: 25
 title: What can you do with Kinesis Data Streams?
 youtube_id: u_nR6up4Kvs
-spotify_link: https://open.spotify.com/episode/2k739QYtVL3wRQybEDoVJj
-podcasts_apple_link: https://podcasts.apple.com/us/podcast/25-what-can-you-do-with-kinesis-data-streams/id1585489017?i=1000552169058
-podcasts_google_link: https://podcasts.google.com/feed/aHR0cHM6Ly9hbmNob3IuZm0vcy82YTMzMTJhMC9wb2RjYXN0L3Jzcw/episode/ZjhhOTY3NjYtYTA1Yy00MDQxLWIzYzEtNTk1YjNiMTViMTRk?sa=X&ved=0CAUQkfYCahcKEwi4n82V7vX3AhUAAAAAHQAAAAAQAQ
 anchor_fm_link: https://anchor.fm/aws-bites/episodes/25--What-can-you-do-with-Kinesis-Data-Streams-e1emi6q
 publish_date: 2022-02-24
 ---

@@ -2,9 +2,6 @@
 episode: 36
 title: What’s new for JavaScript developers on AWS?
 youtube_id: KXBPMvPhHCo
-spotify_link: https://open.spotify.com/episode/2AstYhPjiPfJCFYx5TYT5A
-podcasts_apple_link: https://podcasts.apple.com/us/podcast/36-whats-new-for-javascript-developers-on-aws/id1585489017?i=1000560871608
-podcasts_google_link: https://podcasts.google.com/feed/aHR0cHM6Ly9hbmNob3IuZm0vcy82YTMzMTJhMC9wb2RjYXN0L3Jzcw/episode/Yzc4NTg4ZmQtOTc1ZC00MDAxLTkwMDktMjU5NTYyNjgzZTI3?sa=X&ved=0CAUQkfYCahcKEwi4n82V7vX3AhUAAAAAHQAAAAAQAQ
 anchor_fm_link: https://anchor.fm/aws-bites/episodes/36--Whats-new-for-JavaScript-developers-on-AWS-e1ie3mj
 publish_date: 2022-05-12
 ---

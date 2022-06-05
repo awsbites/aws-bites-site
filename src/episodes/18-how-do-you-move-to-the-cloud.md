@@ -2,9 +2,6 @@
 episode: 18
 title: How do you move to the cloud?
 youtube_id: IDh4eQzbvyg
-spotify_link: https://open.spotify.com/episode/1hvQHl8VJFdHtLoWMQSer5
-podcasts_apple_link: https://podcasts.apple.com/us/podcast/18-how-do-you-move-to-the-cloud/id1585489017?i=1000547150251
-podcasts_google_link: https://podcasts.google.com/feed/aHR0cHM6Ly9hbmNob3IuZm0vcy82YTMzMTJhMC9wb2RjYXN0L3Jzcw/episode/ZTA5YjUwODYtMjk1NC00NWNlLTg2ZjktOGM5MDI4M2E1NGNj?sa=X&ved=0CAUQkfYCahcKEwi4n82V7vX3AhUAAAAAHQAAAAAQAQ
 anchor_fm_link: https://anchor.fm/aws-bites/episodes/18--How-do-you-move-to-the-cloud-e1c4ojd
 publish_date: 2022-01-06
 ---

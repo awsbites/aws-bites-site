@@ -2,9 +2,6 @@
 episode: 20
 title: Should I get an AWS certification?
 youtube_id: qf0CuUOtPEI
-spotify_link: https://open.spotify.com/episode/3ShkNXy7eOcAk1Xfv36spv
-podcasts_apple_link: https://podcasts.apple.com/us/podcast/20-should-i-get-an-aws-certification/id1585489017?i=1000548530635
-podcasts_google_link: https://podcasts.google.com/feed/aHR0cHM6Ly9hbmNob3IuZm0vcy82YTMzMTJhMC9wb2RjYXN0L3Jzcw/episode/OWM0NDlhODUtZGJkYS00NjRiLWFiNzUtYjllOGM0M2FhMzY3?sa=X&ved=0CAUQkfYCahcKEwi4n82V7vX3AhUAAAAAHQAAAAAQAQ
 anchor_fm_link: https://anchor.fm/aws-bites/episodes/20--Should-I-get-an-AWS-certification-e1d4j31
 publish_date: 2022-01-20
 ---

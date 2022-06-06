@@ -1,4 +1,4 @@
-module.exports = {
+const settings = {
   now: new Date(),
   website: 'https://awsbites.com',
   rss_link: 'https://anchor.fm/s/6a3312a0/podcast/rss',
@@ -15,3 +15,11 @@ module.exports = {
     { name: 'Amazon Podcasts', href: 'https://music.amazon.com/podcasts/5c10087d-658a-48c1-a9da-ddc8503d4edc/aws-bites' }
   ]
 }
+
+settings.links_by_name = settings.links.reduce((acc, curr) => {
+  console.log(acc, curr)
+  acc[curr.name] = curr
+  return acc
+}, {})
+
+module.exports = settings

@@ -17,7 +17,6 @@ const settings = {
 }
 
 settings.links_by_name = settings.links.reduce((acc, curr) => {
-  console.log(acc, curr)
   acc[curr.name] = curr
   return acc
 }, {})

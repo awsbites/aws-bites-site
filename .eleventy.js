@@ -3,7 +3,7 @@
 const path = require('path')
 const fs = require('fs/promises')
 const { pipeline } = require('stream/promises')
-const { createWriteStream } = require('fs')
+const { createWriteStream, createReadStream } = require('fs')
 const htmlmin = require('html-minifier')
 const Image = require('@11ty/eleventy-img')
 const embedYouTube = require('eleventy-plugin-youtube-embed')
@@ -94,11 +94,19 @@ module.exports = function (eleventyConfig) {
           await fs.mkdir(folderDest)
         }
 
-        const url = `https://i.ytimg.com/vi/${id}/maxresdefault.jpg`
-        const image = await axios.get(url, { responseType: 'stream' })
+        let imageStream = createReadStream(path.join(__dirname, 'src', 'static', 'awsbites-og.png'))
+
+        try {
+          // trying to dowload this image from youtube before the video is actually published will give us
+          // a 404. If that's the case we don't want to break the build, in this case we will use a default image
+          const url = `https://i.ytimg.com/vi/${id}/maxresdefault.jpg`
+          const response = await axios.get(url, { responseType: 'stream' })
+          imageStream = response
+        } catch (_) {}
+
         const transform = sharp().resize({ width: 1200, height: 630, fit: sharp.fit.cover })
         const destFile = createWriteStream(dest)
-        await pipeline(image.data, transform, destFile)
+        await pipeline(imageStream.data, transform, destFile)
         console.log(`Created ${dest}`)
       }
 

@@ -2,7 +2,7 @@
 episode: 43
 title: When is it OK to cheat on AWS?
 youtube_id: HTPtVIhIf2s
-anchor_fm_link: https://anchor.fm/aws-bites/
+anchor_fm_link: https://anchor.fm/aws-bites/episodes/43--When-is-it-OK-to-cheat-on-AWS-e1k9ktc
 publish_date: 2022-07-01
 ---
 

@@ -4,6 +4,16 @@ title: What are our favourite AWS services and why?
 youtube_id: IxC-ZYoUifY
 anchor_fm_link: https://anchor.fm/aws-bites/episodes/05--What-are-our-favourite-AWS-services-and-why-e17nm17
 publish_date: 2021-10-07
+tags:
+  - EventBridge
+  - Lambda
+  - CloudFormation
+  - CDK
+  - S3
+  - ECS
+  - Fargate
+  - CloudWatch
+  - IAM
 ---
 
 

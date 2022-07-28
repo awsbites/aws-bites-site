@@ -1,8 +1,8 @@
 ---
 episode: 47
-title: Preview: How to build a File Transfer application - live!
-youtube_id: Uw6SLI-uUvU
-anchor_fm_link: https://anchor.fm/aws-bites/episodes/47--Preview-How-to-build-a-File-Transfer-application---live-e1lp6qu
+title: Preview: "How to build a File Transfer application - live!"
+youtube_id: "Uw6SLI-uUvU"
+anchor_fm_link: "https://anchor.fm/aws-bites/episodes/47--Preview-How-to-build-a-File-Transfer-application---live-e1lp6qu"
 publish_date: 2022-07-29
 ---
 

@@ -62,6 +62,12 @@ module.exports = {
               },
               'h1, h2, h3, h4, h5, h6': {
                 color: theme('colors.accent.100')
+              },
+              code: {
+                color: theme('colors.secondary.400')
+              },
+              'a:hover code': {
+                color: theme('colors.primary.100')
               }
             }
           ]

@@ -53,5 +53,5 @@ Deployment happen automatically through GitHub Actions.
 There are 3 different ways to trigger a deployment:
 
   - **On push**: Every time a new push to the `main` branch is made a deployment is started.
-  - **On schedule**: A new build and deployment of the current `main` branch is done automatically **every Friday at 00:01.
+  - **On schedule**: A new build and deployment of the current `main` branch is done automatically **every Friday at 00:01**.
   - **On demand**: You can trigger the [`deploy` workflow](https://github.com/awsbites/aws-bites-site/actions/workflows/deploy.yml) manually.

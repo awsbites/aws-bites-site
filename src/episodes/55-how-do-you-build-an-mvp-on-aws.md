@@ -1,5 +1,5 @@
 ---
-episode: 54
+episode: 55
 title: "How do you build an MVP on AWS?"
 youtube_id: "s-ItwHScf-c"
 anchor_fm_link: "https://anchor.fm/aws-bites/episodes/55--How-do-you-build-an-MVP-on-AWS-e1pcqsm"

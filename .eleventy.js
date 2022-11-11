@@ -118,8 +118,12 @@ module.exports = function (eleventyConfig) {
     return `https://www.youtube.com/watch?v=${id}`
   })
 
-  eleventyConfig.addFilter('formatDate', (dateObj) => {
-    return DateTime.fromJSDate(dateObj).toFormat('yyyy-MM-dd')
+  eleventyConfig.addFilter('formatDate', (dateObj, format = 'yyyy-MM-dd') => {
+    return DateTime.fromJSDate(dateObj).toFormat(format)
+  })
+
+  eleventyConfig.addFilter('formatDateISO', (dateObj) => {
+    return DateTime.fromJSDate(dateObj).toISO()
   })
 
   return {

@@ -16,6 +16,7 @@ By the end of this episode, you’ll have heard our thoughts and predictions on 
 
 Some of the resources we mentioned:
 
+- The [SLIC Watch project for automated observability best practices](https://github.com/fourTheorem/slic-watch)
 - [Serverless cloud](https://www.serverless.com/cloud)
 - [SST (Serverless Stack)](https://sst.dev/)
 - [Darklang](https://darklang.com/)

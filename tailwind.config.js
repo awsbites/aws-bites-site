@@ -68,6 +68,9 @@ module.exports = {
               },
               'a:hover code': {
                 color: theme('colors.primary.100')
+              },
+              blockquote: {
+                color: theme('colors.gray.100')
               }
             }
           ]
@@ -90,6 +93,9 @@ module.exports = {
               },
               'ul > li::before': {
                 backgroundColor: theme('colors.secondary.500')
+              },
+              blockquote: {
+                borderLeftColor: theme('colors.secondary.500')
               }
             }
           ]

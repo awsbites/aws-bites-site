@@ -12,9 +12,10 @@ Ok, you are probably wondering where kitties come into the equation here. Every 
 
 We can learn stuff and have some fun too!
 
+> AWS Bites is sponsored by [fourTheorem](https://fourtheorem.com/), an AWS Consulting Partner offering training, cloud migration, and modern application architecture.
+
 Some of the resources we mentioned:
 
-- Our lovely sponsor, [fourTheorem](https://fourtheorem.com/)
 - The [Cat Detector workshop](https://github.com/fourTheorem/workshops/tree/master/cat-detector) 
 - [AI as a Service](https://www.manning.com/books/ai-as-a-service) (book by Peter Elger and Eoin Shanaghy) 
 - Kaggle [cat vs dog dataset](https://www.kaggle.com/datasets/shaunthesheep/microsoft-catsvsdogs-dataset)

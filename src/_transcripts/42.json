@@ -1,0 +1,1862 @@
+{
+ "speakers": {
+  "spk_0": "spk_0",
+  "spk_1": "spk_1"
+ },
+ "segments": [
+  {
+   "speakerLabel": "spk_0",
+   "start": 0,
+   "end": 4.04,
+   "text": " A couple of episodes back, we talked about the process of migrating a monolithic application"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 4.04,
+   "end": 8.88,
+   "text": " to AWS using EC2 load balancers, S3 and RDS."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 8.88,
+   "end": 12.26,
+   "text": " Today we want to talk about a slightly different approach where we're going to use containers"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 12.26,
+   "end": 15.84,
+   "text": " instead of EC2 and we want to deploy them into Fargate."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 15.84,
+   "end": 19.400000000000002,
+   "text": " So we're going to cover all the components you need in that architecture, why you choose"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 19.400000000000002,
+   "end": 24.900000000000002,
+   "text": " Fargate over some of the alternatives and some CDK tricks to help you get started faster."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 24.9,
+   "end": 36.32,
+   "text": " My name is Eoin, I'm here with Luciano and this is the AWS Bites podcast."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 36.32,
+   "end": 40.64,
+   "text": " In episode 37, we talked about migrating a monolithic application to AWS."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 40.64,
+   "end": 45.4,
+   "text": " And in that case, we talked about how you'd choose EC2 because adopting containers was"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 45.4,
+   "end": 48.12,
+   "text": " a step too far for the team."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 48.12,
+   "end": 51.36,
+   "text": " The team was already having to learn a lot of new skills approaching AWS for the first"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 51.36,
+   "end": 52.72,
+   "text": " time."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 52.72,
+   "end": 56.4,
+   "text": " But what about if we do have an appetite to move to containers and you've already got"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 56.4,
+   "end": 58.019999999999996,
+   "text": " some of those skills?"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 58.019999999999996,
+   "end": 62.6,
+   "text": " So we're going to talk about that example where we take something like an API backend"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 62.6,
+   "end": 65.84,
+   "text": " written in Python that can run in a container."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 65.84,
+   "end": 69.16,
+   "text": " What are the simplest ways of getting it to run in a scalable and a reliable way using"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 69.16,
+   "end": 71.92,
+   "text": " containers when you're moving into the cloud?"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 71.92,
+   "end": 75.68,
+   "text": " So there's a lot of ways to run containers in AWS."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 75.68,
+   "end": 77.84,
+   "text": " Why would we go for Fargate, Luciano?"
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 77.84,
+   "end": 83.72,
+   "text": " Yeah, I think another one would be AppRunner, which is probably the simpler that I've seen"
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 83.72,
+   "end": 86.68,
+   "text": " so far, or at least that's the way it's presented."
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 86.68,
+   "end": 90.84,
+   "text": " But it's still very new and that probably deserves its own dedicated episode when we"
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 90.84,
+   "end": 94.52000000000001,
+   "text": " have some more time to actually play with it and see how it feels like."
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 94.52000000000001,
+   "end": 100.62,
+   "text": " So Fargate so far seems kind of the default choice to me because, well, I had some experience"
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 100.62,
+   "end": 103.64,
+   "text": " with it and it's basically built on top of ECS."
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 103.64,
+   "end": 108.24,
+   "text": " So all the concepts are the same if you're familiar with ECS, which stands for Elastic"
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 108.24,
+   "end": 109.84,
+   "text": " Container Service."
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 109.84,
+   "end": 114.68,
+   "text": " And just to summarize what are the main reasons, it's basically very simple to set up."
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 114.68,
+   "end": 118.56,
+   "text": " It doesn't require you to manage instances as in EC2 instances."
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 118.56,
+   "end": 119.96000000000001,
+   "text": " It's kind of serverless that way."
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 119.96000000000001,
+   "end": 125.08,
+   "text": " You just say, run this container for me and it will figure out some hidden instance where"
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 125.08,
+   "end": 127.1,
+   "text": " to run it for you."
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 127.1,
+   "end": 132.4,
+   "text": " It supports autoscaling and also integrates very well with Elastic Load Balancers, but"
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 132.4,
+   "end": 133.8,
+   "text": " also with CodeDeploy."
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 133.8,
+   "end": 138.88,
+   "text": " So you get autoscalability through Elastic Load Balancer and through multiple containers"
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 138.88,
+   "end": 140.3,
+   "text": " running in a cluster."
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 140.3,
+   "end": 145.84,
+   "text": " But also you can fine-tune your pipeline with CodeDeploy to actually build and deploy your"
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 145.84,
+   "end": 149.1,
+   "text": " containers."
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 149.1,
+   "end": 154.44,
+   "text": " You mentioned, though, that it's interesting to go through all the different components"
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 154.44,
+   "end": 158.1,
+   "text": " that an architecture like this actually will require under the hood."
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 158.1,
+   "end": 160.04000000000002,
+   "text": " Should we describe what are those components?"
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 160.04000000000002,
+   "end": 161.04000000000002,
+   "text": " Yeah."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 161.04,
+   "end": 164.98,
+   "text": " I mean, I went through a lot of detail in episode 37 and a lot of them will be the same"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 164.98,
+   "end": 165.98,
+   "text": " here."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 165.98,
+   "end": 168.48,
+   "text": " It's just the compute layer that we're switching out from EC2."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 168.48,
+   "end": 170.68,
+   "text": " We're going for Fargate ECS instead."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 170.68,
+   "end": 173.12,
+   "text": " So the VPC will be similar."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 173.12,
+   "end": 174.95999999999998,
+   "text": " You've got a public and private subnet."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 174.95999999999998,
+   "end": 178.16,
+   "text": " You've got the NAT gateway, your internet gateway, so that you've got outbound internet"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 178.16,
+   "end": 179.32,
+   "text": " access."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 179.32,
+   "end": 184,
+   "text": " You've got your routing tables, the VPC security groups."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 184,
+   "end": 185.84,
+   "text": " So that's your networking foundations really."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 185.84,
+   "end": 188.72,
+   "text": " And then you'll have an application load balancer on top."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 188.72,
+   "end": 192.68,
+   "text": " The difference between our EC2 approach and the Fargate approach is that the targets in"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 192.68,
+   "end": 197.72,
+   "text": " your target groups within the application load balancer will be different."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 197.72,
+   "end": 203.68,
+   "text": " And yeah, we'll assume, again, we're using HTTP ES, so we'll have a Route 53 hosted zone"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 203.68,
+   "end": 208.84,
+   "text": " for the DNS and we'll have a certificate using certificates manager."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 208.84,
+   "end": 210.82,
+   "text": " So that's the similarity."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 210.82,
+   "end": 214.64,
+   "text": " And then the different parts are around ECS and Fargate."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 214.64,
+   "end": 217.9,
+   "text": " And when you're working with Fargate, there's a few different resource types you need to"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 217.9,
+   "end": 218.9,
+   "text": " create."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 218.9,
+   "end": 223.08,
+   "text": " So you've got your task definition, which is like the defining the container image and"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 223.08,
+   "end": 229.24,
+   "text": " all of the container configuration like environment variables, what ports are you exposing, how"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 229.24,
+   "end": 236.88,
+   "text": " much memory and CPU does your container need, and any volume mappings as well, volume mounts."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 236.88,
+   "end": 239.04000000000002,
+   "text": " So that's your task definition."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 239.04000000000002,
+   "end": 243.12,
+   "text": " You'll also have the ECS cluster itself, which is kind of like a boundary that all of your"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 243.12,
+   "end": 245.32,
+   "text": " Fargate services will run in."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 245.32,
+   "end": 247.20000000000002,
+   "text": " And that's where you'd basically just specify the VPC."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 247.2,
+   "end": 251.64,
+   "text": " So you don't have to configure any EC2 instances because it's Fargate."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 251.64,
+   "end": 254.39999999999998,
+   "text": " All of that is taken to care of for you."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 254.39999999999998,
+   "end": 257.59999999999997,
+   "text": " So then the last and probably the most important thing you need to create is the Fargate service"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 257.59999999999997,
+   "end": 259,
+   "text": " itself."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 259,
+   "end": 263.03999999999996,
+   "text": " And that's where you specify, okay, how many of those tasks that I've outlined in my task"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 263.03999999999996,
+   "end": 265.59999999999997,
+   "text": " definition, how many of them do you want to run?"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 265.59999999999997,
+   "end": 267.52,
+   "text": " How do you scale it?"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 267.52,
+   "end": 271.06,
+   "text": " And the Fargate service is the bit that integrates well with the other pieces."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 271.06,
+   "end": 273.76,
+   "text": " So it integrates well with our application load balancer."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 273.76,
+   "end": 278.15999999999997,
+   "text": " So when you start a task, it will register the IP address of that container in the target"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 278.15999999999997,
+   "end": 286.09999999999997,
+   "text": " group so that traffic can start to be directed to that container."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 286.09999999999997,
+   "end": 290.42,
+   "text": " It also will maintain a desired level of healthy containers."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 290.42,
+   "end": 295.71999999999997,
+   "text": " So you can specify in your service what the minimum healthy percentage is, how many containers"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 295.71999999999997,
+   "end": 300.44,
+   "text": " you're desiring to run, your desired count, and your maximum count as well."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 300.44,
+   "end": 303.32,
+   "text": " And then you can specify your auto scaling configuration."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 303.32,
+   "end": 309.02,
+   "text": " And this is what makes it, I suppose, very advantageous moving to this container based"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 309.02,
+   "end": 314.68,
+   "text": " approach because based on whatever criteria you specify, you can choose to scale up and"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 314.68,
+   "end": 315.68,
+   "text": " down those containers."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 315.68,
+   "end": 317.08,
+   "text": " So that could be based on a schedule."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 317.08,
+   "end": 322.76,
+   "text": " If you know that all your traffic happens on, I don't know, Monday to Friday at 9 AM,"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 322.76,
+   "end": 327.52,
+   "text": " or if you're based, you can base it on the API request count, but like auto scaling groups"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 327.52,
+   "end": 330.34,
+   "text": " with EC2, you can also base it on any metric."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 330.34,
+   "end": 335,
+   "text": " So the CPU of your containers, memory utilization of your containers, or actually any other"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 335,
+   "end": 336,
+   "text": " metric."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 336,
+   "end": 342,
+   "text": " It could be a custom metric even that you're generating within the containers themselves."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 342,
+   "end": 345.76,
+   "text": " So there's lots of different triggers you could use to say, this is when to scale up,"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 345.76,
+   "end": 349.35999999999996,
+   "text": " this is when to scale down, and there's a lot of advanced configuration there."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 349.35999999999996,
+   "end": 351.35999999999996,
+   "text": " So there's quite a lot there, right?"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 351.35999999999996,
+   "end": 352.35999999999996,
+   "text": ""
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 352.35999999999996,
+   "end": 356.59999999999997,
+   "text": " But- Yeah, one interesting detail that maybe it's worth mentioning for people that are more"
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 356.6,
+   "end": 360.92,
+   "text": " skilled with, I don't know, something like Kubernetes, is that a task is probably a little"
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 360.92,
+   "end": 365.96000000000004,
+   "text": " bit closer to the concept of pod in the Kubernetes world."
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 365.96000000000004,
+   "end": 369.92,
+   "text": " Because it's not necessarily like one-to-one with a container image or a container definition,"
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 369.92,
+   "end": 374.52000000000004,
+   "text": " whatever you want to call it, but it's more, it could even contain multiple containers,"
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 374.52000000000004,
+   "end": 379.36,
+   "text": " like the idea of you could run a main application and a sidecar container."
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 379.36,
+   "end": 383.68,
+   "text": " So that is just an interesting thing that I wasn't really aware at the beginning."
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 383.68,
+   "end": 388.28000000000003,
+   "text": " The task is kind of a higher level concept than just one container, but it could be multiple"
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 388.28000000000003,
+   "end": 390.48,
+   "text": " containers that need to run together."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 390.48,
+   "end": 391.48,
+   "text": " That's true."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 391.48,
+   "end": 396.32,
+   "text": " And if you want to run the CloudWatch agent, for example, which you normally you run EC2,"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 396.32,
+   "end": 400.2,
+   "text": " but sometimes you won't need to run it with containers if you want to get the EMF metrics"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 400.2,
+   "end": 401.48,
+   "text": " out and stuff."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 401.48,
+   "end": 405.34000000000003,
+   "text": " That's one application for that, where you would run an application with the CloudWatch"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 405.34000000000003,
+   "end": 406.72,
+   "text": " agent as a sidecar."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 406.72,
+   "end": 411.38,
+   "text": " So this is, for people who are used to ECS, this is probably okay."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 411.38,
+   "end": 415.15999999999997,
+   "text": " But if you're thinking, okay, I was expecting to hear about a simple way to get started"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 415.15999999999997,
+   "end": 416.92,
+   "text": " with containers on AWS."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 416.92,
+   "end": 420.68,
+   "text": " And if you've never heard of any of this before, it probably doesn't sound very simple."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 420.68,
+   "end": 422.88,
+   "text": " So what do you think?"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 422.88,
+   "end": 426.88,
+   "text": " Would you recommend any kind of templates or tutorials out there?"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 426.88,
+   "end": 428.44,
+   "text": " What's the best way to get started easily?"
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 428.44,
+   "end": 431.71999999999997,
+   "text": " Yeah, there is one particular way that I used."
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 431.71999999999997,
+   "end": 433.96,
+   "text": " This was about one year ago, I think."
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 433.96,
+   "end": 437.52,
+   "text": " So my view of this thing might be a little bit obsolete right now, but I'm going to try"
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 437.52,
+   "end": 441.82,
+   "text": " to describe the experience I got about one year ago anyway, and you can challenge me"
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 441.82,
+   "end": 443.94,
+   "text": " if you had a more recent experience."
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 443.94,
+   "end": 449,
+   "text": " So there is something as part of CDK, it's like a set of patterns that are maintained"
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 449,
+   "end": 452.65999999999997,
+   "text": " as higher level constructs by AWS itself."
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 452.65999999999997,
+   "end": 458.15999999999997,
+   "text": " So you just install them from AWS and this ECS patterns with CDK, what they do is they"
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 458.15999999999997,
+   "end": 463,
+   "text": " basically allow you to define how, basically where the source code of your application"
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 463,
+   "end": 468.92,
+   "text": " is and more or less few configuration toggles that you can just play around with to say,"
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 468.92,
+   "end": 469.92,
+   "text": " okay, do you need volumes?"
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 469.92,
+   "end": 472.54,
+   "text": " Do you want to associate a domain name?"
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 472.54,
+   "end": 474.6,
+   "text": " Is it going to use a load balancer?"
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 474.6,
+   "end": 479.68,
+   "text": " And it literally, you end up writing 10 lines of code and it's code as in configuration"
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 479.68,
+   "end": 482.8,
+   "text": " code, you copy paste and you change a few things."
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 482.8,
+   "end": 488.08,
+   "text": " And later you just do CDK deploy, it takes maybe around 10 minutes and it will provision"
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 488.08,
+   "end": 490,
+   "text": " almost everything for you."
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 490,
+   "end": 494.72,
+   "text": " And it will, the magic thing is that you basically just connect to that domain that you specified"
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 494.72,
+   "end": 498.42,
+   "text": " and your application is working, which feels a little bit magic that you with 10 lines"
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 498.42,
+   "end": 503.52,
+   "text": " of code, if you're used to AWS where it takes you to really deep dive to do anything, it"
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 503.52,
+   "end": 507.64,
+   "text": " feels like, okay, this is still a different experience that you're not used to when dealing"
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 507.64,
+   "end": 509.22,
+   "text": " with AWS."
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 509.22,
+   "end": 512.68,
+   "text": " And this can have of course, pros and cons because on one side you get started very,"
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 512.68,
+   "end": 517.66,
+   "text": " very quickly, but it might give you a false sense of confidence that basically you know"
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 517.66,
+   "end": 522.48,
+   "text": " what you're doing while in reality there is a lot of stuff that is being hidden from you."
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 522.48,
+   "end": 526.24,
+   "text": " And I think if you are building a serious application, eventually you might want to"
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 526.24,
+   "end": 528.64,
+   "text": " know what's happening behind the scenes."
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 528.64,
+   "end": 532.92,
+   "text": " And when I actually did that about one year ago, I was surprised because I was trying"
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 532.92,
+   "end": 538.86,
+   "text": " to run, it was kind of a microservice project with, I think it was something like about"
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 538.86,
+   "end": 544.5,
+   "text": " five application runnings on different domains, but those applications would be related with"
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 544.5,
+   "end": 545.5,
+   "text": " each other."
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 545.5,
+   "end": 549.44,
+   "text": " Each user will log in as one experience and jump into different domains, depending which"
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 549.44,
+   "end": 553.28,
+   "text": " parts of the application the user was trying to use."
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 553.28,
+   "end": 557.58,
+   "text": " So it was like, okay, we deploy them together as part of the same cluster."
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 557.58,
+   "end": 563.16,
+   "text": " And I realized, and they will be using five different subdomains on the same main domain."
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 563.16,
+   "end": 568.88,
+   "text": " And I realized at some point that this thing was provisioning five different load balancers"
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 568.88,
+   "end": 573.16,
+   "text": " rather than just creating rules on the same load balancer and divided the traffic that"
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 573.16,
+   "end": 574.2,
+   "text": " way."
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 574.2,
+   "end": 577.76,
+   "text": " Maybe someday it could be fine tuned if you're willing to spend more time and starting at"
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 577.76,
+   "end": 581.5600000000001,
+   "text": " the configuration, maybe there are ways to actually reuse the same load balancer."
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 581.5600000000001,
+   "end": 585.8000000000001,
+   "text": " But it was something that I only figured out deep down the road when I was starting to"
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 585.8000000000001,
+   "end": 591.24,
+   "text": " look back at all the resources like, okay, this is going to be expensive and for no reason"
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 591.24,
+   "end": 595.1600000000001,
+   "text": " because you are provisioning five load balancers when you might use just one and route the"
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 595.1600000000001,
+   "end": 599,
+   "text": " traffic in a more, I don't know, efficient way, I guess."
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 599,
+   "end": 600.08,
+   "text": " So that's the caveat."
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 600.08,
+   "end": 605.0400000000001,
+   "text": " Just be careful that with CDK, that is kind of a golden rule anyway, that when you use"
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 605.0400000000001,
+   "end": 608.6800000000001,
+   "text": " higher level constructs, they can do so much stuff that you're not aware."
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 608.6800000000001,
+   "end": 612,
+   "text": " So it's always good to kind of have a look at some point and make sure you really understand"
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 612,
+   "end": 613,
+   "text": " what's going on."
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 613,
+   "end": 617.64,
+   "text": " And probably there are opportunities to fine tune a few things for your actual use case."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 617.64,
+   "end": 622.5200000000001,
+   "text": " I've had another similar kind of a shock with the CDK patterns because the first one I ever"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 622.5200000000001,
+   "end": 626.1600000000001,
+   "text": " used was not the application load balancer one, but there's another one that is more"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 626.1600000000001,
+   "end": 628.24,
+   "text": " designed for background processing."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 628.24,
+   "end": 631.36,
+   "text": " It's called the queue processing Fargate service."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 631.36,
+   "end": 636.24,
+   "text": " And you can specify an SQS queue and it will create all the infrastructure you need to"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 636.24,
+   "end": 640.16,
+   "text": " scale up and down the number of workers based on the number of messages in the queue."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 640.16,
+   "end": 642.2,
+   "text": " And it was really easy to get started with."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 642.2,
+   "end": 647.48,
+   "text": " That's sometimes a very misleading sense of security, like you say, because it was not"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 647.48,
+   "end": 651.48,
+   "text": " later that I realized it had created the NAT gateway as well because it created the whole"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 651.48,
+   "end": 652.48,
+   "text": " VPC."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 652.48,
+   "end": 655.44,
+   "text": " You don't want to necessarily create a VPC for every single thing you deploy, right?"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 655.44,
+   "end": 659.7600000000001,
+   "text": " You probably want to think about your VPC design a little bit more carefully."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 659.7600000000001,
+   "end": 663.96,
+   "text": " And you can specify your own VPC in these services, but it's always definitely worth"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 663.96,
+   "end": 667.9200000000001,
+   "text": " a while to do a CDK synth before you deploy and actually look at all the resources that"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 667.9200000000001,
+   "end": 668.9200000000001,
+   "text": " are being deployed."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 668.9200000000001,
+   "end": 674.1600000000001,
+   "text": " Because in our case, we ended up with S3 traffic going through that NAT gateway where we would"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 674.1600000000001,
+   "end": 676.82,
+   "text": " have just preferred a VPC endpoint."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 676.82,
+   "end": 682.5200000000001,
+   "text": " And we ended up with a, it wasn't a massive bit of bill shock, but some unexpected cost"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 682.5200000000001,
+   "end": 683.6400000000001,
+   "text": " there for sure."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 683.64,
+   "end": 686.08,
+   "text": " So I think it's a really good thing, right?"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 686.08,
+   "end": 692.08,
+   "text": " Because I've been using them recently as well with this API load balancer service."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 692.08,
+   "end": 697.42,
+   "text": " And I think I'm still impressed when you can create those 10 lines of code, wire it through"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 697.42,
+   "end": 699.22,
+   "text": " to route 53."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 699.22,
+   "end": 703.08,
+   "text": " You don't have to configure the certificate resource, the load balancer resource, all"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 703.08,
+   "end": 705.4,
+   "text": " the VPC resources, it's all done for you."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 705.4,
+   "end": 708.56,
+   "text": " So it really, and you can just as well point it at your Docker file."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 708.56,
+   "end": 712.62,
+   "text": " You don't even have to push a container anywhere and CDK will manage all of that for you."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 712.62,
+   "end": 715.76,
+   "text": " So it's really good for getting started, but then also think about, okay, now that I've"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 715.76,
+   "end": 718.26,
+   "text": " got started, how do I want to keep going?"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 718.26,
+   "end": 722.5600000000001,
+   "text": " Do I want to continue using this pattern or is this just like a learning experience where"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 722.5600000000001,
+   "end": 726.08,
+   "text": " I can see all the things that's generated and then I'm going to pick and choose the"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 726.08,
+   "end": 732.34,
+   "text": " pieces, understand them and kind of replicate that in a more with lower level constructs"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 732.34,
+   "end": 735.3,
+   "text": " in CDK or with CloudFormation or Terraform."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 735.3,
+   "end": 739.14,
+   "text": " So I think CDK is sometimes a neat trick for getting started and figuring out how everything"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 739.14,
+   "end": 741.74,
+   "text": " should fit together, but you don't necessarily have to keep going with it."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 741.74,
+   "end": 746.8,
+   "text": " Maybe it's worthwhile talking about the deployment then because with containers, you have to"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 746.8,
+   "end": 749.96,
+   "text": " think about, okay, you've got the repository, you need to deploy that."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 749.96,
+   "end": 755.08,
+   "text": " Then you've got the cluster itself and the service, and then you've got your load balancer"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 755.08,
+   "end": 756.08,
+   "text": " in front."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 756.08,
+   "end": 758.74,
+   "text": " What happens when I've got a new version of the image and I want to deploy it?"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 758.74,
+   "end": 760.2,
+   "text": " What happens to my current connections?"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 760.2,
+   "end": 762.54,
+   "text": " What happens to existing users?"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 762.54,
+   "end": 766.1,
+   "text": " What happens if I deploy a container that's got a bug in it?"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 766.1,
+   "end": 767.2,
+   "text": " How do we manage this?"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 767.2,
+   "end": 769.96,
+   "text": " What do you, how will we break this down?"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 769.96,
+   "end": 771.86,
+   "text": " How does the first CDK pattern manage it actually?"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 771.86,
+   "end": 772.86,
+   "text": " Do you want to talk about that?"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 772.86,
+   "end": 776.7800000000001,
+   "text": " Yeah, I can try to explain what I remember from my previous experience."
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 776.7800000000001,
+   "end": 781.58,
+   "text": " I hope it's still up to date and relevant, but I think in broad strokes it should be"
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 781.58,
+   "end": 783.52,
+   "text": " still the way it works today."
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 783.52,
+   "end": 784.52,
+   "text": " And it's very convenient."
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 784.52,
+   "end": 789.82,
+   "text": " As you said, you just literally in your CDK code, you literally say, this is where my"
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 789.82,
+   "end": 790.82,
+   "text": " Docker file is."
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 790.82,
+   "end": 792.82,
+   "text": " You literally give it a relative path."
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 792.82,
+   "end": 797.9200000000001,
+   "text": " So you probably have your Docker file in the same folder where you have your CDK code and"
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 797.92,
+   "end": 800.24,
+   "text": " magically it's going to do a lot of stuff for you."
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 800.24,
+   "end": 804.8,
+   "text": " And that magically means that when you do CDK deploy, basically it's going to, the same"
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 804.8,
+   "end": 808.66,
+   "text": " CDK deploy process is going to spin up a Docker build process in the background."
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 808.66,
+   "end": 811.74,
+   "text": " It's going to wait for the container to build."
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 811.74,
+   "end": 818.14,
+   "text": " And then in the bootstrap phase, CDKs also create an ECR repository for you."
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 818.14,
+   "end": 821.9399999999999,
+   "text": " So basically at that point, it's built the container, finishes to build the container"
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 821.9399999999999,
+   "end": 823.98,
+   "text": " already as a repository."
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 823.98,
+   "end": 827.16,
+   "text": " So it's going to push a new version of that image."
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 827.16,
+   "end": 830.88,
+   "text": " And then at that point you have everything ready to start a new deployment because your"
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 830.88,
+   "end": 836.14,
+   "text": " image is up and you can just say, okay, now I want to switch over all my containers to"
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 836.14,
+   "end": 837.9399999999999,
+   "text": " the new version."
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 837.9399999999999,
+   "end": 841.78,
+   "text": " And that's interesting as well because we know that there might be a lot of complexity"
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 841.78,
+   "end": 844.26,
+   "text": " there, but you don't get to see it with CDK."
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 844.26,
+   "end": 848.02,
+   "text": " And if I understand correctly what's going on, it does kind of a blue green deployment"
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 848.02,
+   "end": 854.02,
+   "text": " where it's basically provisioning a new version of the container as a new service."
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 854.02,
+   "end": 858.46,
+   "text": " I don't know if it's the right terminology, but basically you get a copy of the previous"
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 858.46,
+   "end": 862.68,
+   "text": " version that is still running and the new version that starts to spin up."
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 862.68,
+   "end": 866.38,
+   "text": " It doesn't kill the old version until the new version is up and running and all the"
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 866.38,
+   "end": 867.9399999999999,
+   "text": " health check pass."
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 867.9399999999999,
+   "end": 871.22,
+   "text": " And it registered that as a new target in the load balancer."
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 871.22,
+   "end": 875.4399999999999,
+   "text": " Then it starts to drain the connection from the previous version, move the connection"
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 875.4399999999999,
+   "end": 879.78,
+   "text": " to the new version and eventually start to destroy all the old containers."
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 879.78,
+   "end": 881.24,
+   "text": " And of course there are health checks."
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 881.24,
+   "end": 887.26,
+   "text": " So if your new version of the container cannot really run and receive connection correctly,"
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 887.26,
+   "end": 888.26,
+   "text": " it will kind of roll back."
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 888.26,
+   "end": 893.26,
+   "text": " It will just kill the new containers and say, okay, this deployment failed."
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 893.26,
+   "end": 895.66,
+   "text": " It wasn't able to pass the health checks."
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 895.66,
+   "end": 899.22,
+   "text": " The only issue I had with this process at the time, and again, I was trying to run five"
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 899.22,
+   "end": 903.82,
+   "text": " different applications, is that the steps were very sequential."
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 903.82,
+   "end": 911.9000000000001,
+   "text": " So I had to go through five, not parallel, but sequential times building the same thing."
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 911.9000000000001,
+   "end": 915.38,
+   "text": " So okay, building container one takes a few minutes."
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 915.38,
+   "end": 920.7,
+   "text": " Then provision container one takes up to 15, 30 minutes, depending on the case, because"
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 920.7,
+   "end": 925.9000000000001,
+   "text": " yeah, all the time of draining connections and uploading everything, health checks and"
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 925.9000000000001,
+   "end": 926.9000000000001,
+   "text": " so on."
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 926.9000000000001,
+   "end": 929.62,
+   "text": " And then it goes with the second container, third container, fourth container."
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 929.62,
+   "end": 932.4200000000001,
+   "text": " So it might take a long time to do that."
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 932.42,
+   "end": 937.66,
+   "text": " And there is actually an article we're going to link in the show notes that gives you ideas"
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 937.66,
+   "end": 942.0999999999999,
+   "text": " on how you can tweak the configuration of health checks to speed up the process."
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 942.0999999999999,
+   "end": 945.9,
+   "text": " So if you have containers that can come up very fast and they can prove that they are"
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 945.9,
+   "end": 951.0999999999999,
+   "text": " healthy very, very quickly, you can kind of fine tune some of these configurations."
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 951.0999999999999,
+   "end": 957.6999999999999,
+   "text": " And then you have much shorter times to tell, okay, this container is already good to go,"
+  },
+  {
+   "speakerLabel": "spk_1",
+   "start": 957.6999999999999,
+   "end": 958.6999999999999,
+   "text": " start to swap them out."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 958.7,
+   "end": 963.74,
+   "text": " Yeah, I think that's a good way to, I guess, get started with the deployments."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 963.74,
+   "end": 966.0200000000001,
+   "text": " You can use that workflow."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 966.0200000000001,
+   "end": 968.38,
+   "text": " If you have to wait so long, it's going to be a little bit awkward."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 968.38,
+   "end": 973.74,
+   "text": " And I'd also recommend kind of thinking about your long-term deployment strategy, because"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 973.74,
+   "end": 976.86,
+   "text": " we mentioned at the start that code deploy integrates well with Fargate."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 976.86,
+   "end": 981.94,
+   "text": " And that's another way to manage shifting traffic over to a new version of the container"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 981.94,
+   "end": 982.94,
+   "text": " image."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 982.94,
+   "end": 987.98,
+   "text": " So you could think of your CDK stack as managing the infrastructure for this service, then"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 987.98,
+   "end": 991.5,
+   "text": " the container image updates could be done with code deploy."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 991.5,
+   "end": 996.46,
+   "text": " And that's a really nice set of features, I think, what code deploy gives you, because"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 996.46,
+   "end": 1001.34,
+   "text": " it allows you to trigger code deploy deployment, and it requires two target groups with your"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 1001.34,
+   "end": 1002.34,
+   "text": " load balancer."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 1002.34,
+   "end": 1009.58,
+   "text": " So you could do like a blue-green deployment strategy, in which case it will start creating"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 1009.58,
+   "end": 1014.04,
+   "text": " a new target group and starting new versions of the task, but putting them in the different"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 1014.04,
+   "end": 1015.04,
+   "text": " target group."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 1015.04,
+   "end": 1018.66,
+   "text": " And then it can use the traffic shifting features of the load balancers."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 1018.66,
+   "end": 1024.32,
+   "text": " So it can start the waiting of the traffics between the two target groups can be adjusted"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 1024.32,
+   "end": 1025.44,
+   "text": " over time."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 1025.44,
+   "end": 1029.82,
+   "text": " So it can start shifting some of the requests over to the new version of the image."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 1029.82,
+   "end": 1032.22,
+   "text": " And then there's all sorts of advanced health checks you can do."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 1032.22,
+   "end": 1037.46,
+   "text": " So you can just use your load balancer health check, but you can also put in like hooks"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 1037.46,
+   "end": 1043.32,
+   "text": " into the deployment so that it will check that all of the expected business logic is"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 1043.32,
+   "end": 1048.06,
+   "text": " working as well as you want it to, or you can check for alarms, and then you can gradually"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 1048.06,
+   "end": 1050.78,
+   "text": " shift traffic over to the new version."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 1050.78,
+   "end": 1054.78,
+   "text": " And if anything is detected, any kind of failed health check or alarm, it will revert back"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 1054.78,
+   "end": 1055.78,
+   "text": " to the old version."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 1055.78,
+   "end": 1061.26,
+   "text": " So you can get much safer deployment strategies and it decouples the, I guess, the creation"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 1061.26,
+   "end": 1065.9399999999998,
+   "text": " of the cluster and the service and all that stuff from the deployment of the software"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 1065.9399999999998,
+   "end": 1066.9399999999998,
+   "text": " on it."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 1066.9399999999998,
+   "end": 1069.08,
+   "text": " So I think it's definitely worthwhile."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 1069.08,
+   "end": 1072.46,
+   "text": " And you can integrate it into CodePipeline, or you can integrate it into whatever else"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 1072.46,
+   "end": 1077.3,
+   "text": " you're using to deploy, be it like GitLab or Bitbucket or GitHub actions, say."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 1077.3,
+   "end": 1083.1000000000001,
+   "text": " Given that we've talked about everything from the foundations to setting up all of the resources"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 1083.1000000000001,
+   "end": 1086.52,
+   "text": " with CDK patterns and then deployment with CodePipeline, that's probably a good place"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 1086.52,
+   "end": 1087.66,
+   "text": " to wrap it up."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 1087.66,
+   "end": 1092.38,
+   "text": " What we'll do is we can give a link to that ECS pattern in the show notes, and we'll also"
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 1092.38,
+   "end": 1097.52,
+   "text": " give a link to episode 37, where we talked about migrating to the cloud with EC2."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 1097.52,
+   "end": 1098.52,
+   "text": " Thank you very much for listening."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 1098.52,
+   "end": 1099.52,
+   "text": " We'll see you in the next episode."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 1099.52,
+   "end": 1103,
+   "text": " Have a great day."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 1103,
+   "end": 1110.34,
+   "text": " We'll see you in the next OneOG video and, of course, soon in grassroots media."
+  },
+  {
+   "speakerLabel": "spk_0",
+   "start": 1110.34,
+   "end": 1112.3999999999999,
+   "text": " you"
+  }
+ ]
+}

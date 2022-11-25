@@ -30,7 +30,19 @@
     </div>
   </div>
   <main>
-    <div class="my-8 px-4 prose prose-sm md:prose-lg lg:prose-xl dark:prose-dark mx-auto">
+    {% if transcripts[episode] %}
+      <div id="tabs" class="my-8 px-4 md:text-[1.25rem] md:leading-[1.8] sm:text-[0.875rem] sm:leading-[1.7142857] max-w-[65ch] mx-auto text-center text-gray-500 border-b border-gray-200 dark:text-gray-400 dark:border-gray-700">
+        <ul class="flex flex-wrap -mb-px">
+          <li class="mr-2">
+            <a class="tab-button inline-block p-4 rounded-t-lg border-b-2 border-transparent hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300" href="#description">Description</a>
+          </li>
+          <li class="mr-2">
+            <a class="tab-button inline-block p-4 rounded-t-lg border-b-2 border-transparent hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300" href="#transcript">Transcript</a>
+          </li>
+        </ul>
+      </div>
+    {% endif %}
+    <div id="description" class="my-8 px-4 prose prose-sm md:prose-lg lg:prose-xl dark:prose-dark mx-auto">
       {{ content | safe }}
 
       <div class="py-12">
@@ -43,9 +55,7 @@
 </div>
 
 {% if transcripts[episode] %}
-  <div class="my-8 px-4 prose prose-sm md:prose-lg lg:prose-xl dark:prose-dark mx-auto">
-    <h2>Transcript</h2>
-
+  <div id="transcript" class="my-8 px-4 prose prose-sm md:prose-lg lg:prose-xl dark:prose-dark mx-auto">
     {% set currentSpeakerLabel = '' %}
     {% set content = '' %}
     {% set startTime = 0 %}
@@ -110,3 +120,50 @@
     </div>
   </div>
 {% endblock body_content %}
+
+{% block scripts %}
+  {{ super() }}
+  <script>
+    const tabClasses = 'inline-block p-4 rounded-t-lg border-b-2 border-transparent hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300'
+    const activeTabClasses = 'inline-block p-4 text-blue-600 rounded-t-lg border-b-2 border-blue-600 active dark:text-blue-500 dark:border-blue-500'
+    const tabbtns = document.querySelectorAll('.tab-button')
+    const allPanels = [...tabbtns].map(item => item.getAttribute('href'))
+    const initialTab = tabbtns[0].getAttribute('href')
+
+    function showTab(toShowSelector) {
+      const activeTabButton = [...tabbtns].find(item => item.getAttribute('href') === toShowSelector)
+      activeTabButton.setAttribute('class', activeTabClasses);
+
+      ([...tabbtns]).forEach(item => {
+        if (item !== activeTabButton) {
+          item.setAttribute('class', tabClasses)
+        }
+      })
+
+      const toHideSelectors = allPanels.filter(item => item !== toShowSelector)
+
+      toHideSelectors.forEach(item => {
+        document
+          .querySelector(item)
+          .style
+          .display = 'none'
+      })
+
+      document
+        .querySelector(toShowSelector)
+        .style
+        .display = 'block'
+    }
+    showTab(initialTab)
+
+    tabbtns.forEach((item) => item.addEventListener('click', evt => {
+      evt.preventDefault()
+
+      const toShowSelector = evt
+        .currentTarget
+        .getAttribute('href')
+
+      showTab(toShowSelector)
+    }))
+  </script>
+{% endblock %}

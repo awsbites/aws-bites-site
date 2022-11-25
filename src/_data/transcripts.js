@@ -2,7 +2,7 @@ const fs = require('fs/promises')
 const path = require('path')
 
 module.exports = async function transcripts () {
-  const transcriptsFolder = path.join(__dirname, '_transcripts')
+  const transcriptsFolder = path.join(__dirname, '..', '_transcripts')
   const transcriptFiles = await fs.readdir(transcriptsFolder)
 
   const transcripts = await Promise.all(transcriptFiles.map(async (filename) => {

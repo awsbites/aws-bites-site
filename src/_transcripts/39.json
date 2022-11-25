@@ -1,0 +1,890 @@
+{
+  "speakers": {
+    "spk_0": "spk_0",
+    "spk_1": "spk_1"
+  },
+  "segments": [
+    {
+      "speakerLabel": "spk_0",
+      "start": 0,
+      "end": 7,
+      "text": " There are two emerging best practices when it comes to building and deploying microservices applications on AWS."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 7,
+      "end": 11,
+      "text": " The first one is to use separate AWS accounts per application and per environment."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 11,
+      "end": 18,
+      "text": " And the second one is to decouple communication between separate systems using events instead of point-to-point communication."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 18,
+      "end": 23,
+      "text": " But what if we want to use both of these best practices together?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 23,
+      "end": 27,
+      "text": " We will need to find a way to pass messages between AWS accounts, basically."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 27,
+      "end": 36,
+      "text": " So in this episode, we will discuss how to do that, specifically using Event Breach as a cross-account event backbone."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 36,
+      "end": 42,
+      "text": " We will also learn what are the advantages of this approach, and we will discuss a case study and examples,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 42,
+      "end": 45,
+      "text": " and we will see an implementation of this pattern."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 45,
+      "end": 57,
+      "text": " My name is Luciano, and today I'm joined by Eoin, and this is AWS Bites podcast."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 57,
+      "end": 64,
+      "text": " So let's start with a quick recap. We just say that it is a good practice to have separate AWS accounts per application. Why is that?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 64,
+      "end": 68,
+      "text": " The goal is to keep accounts fairly small and clean and not have too much clutter in them."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 68,
+      "end": 72,
+      "text": " That's one of the things. But there's also some technical limitations as well."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 72,
+      "end": 78,
+      "text": " From a security perspective, you might want to actually define policies at an account level and make sure that an account is restricted"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 78,
+      "end": 82,
+      "text": " and what you can do with it, depending on the team who's using that account."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 82,
+      "end": 89,
+      "text": " So you can use things like service control policies to restrict at a high level what's going to happen within an account or a set of accounts."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 89,
+      "end": 94,
+      "text": " The other thing is around quotas, so the limits in different services that you can get."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 94,
+      "end": 96,
+      "text": " Normally, those are applied at account level."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 96,
+      "end": 110,
+      "text": " So if you've got lots of different workloads mixed in one account, you want to avoid the situation where one workload can starve another of available containers or EC2 instances or whatever else you need to rely on."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 110,
+      "end": 114,
+      "text": " There's also, I suppose, a trade off with this multi-account approach that's worth stating."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 114,
+      "end": 119,
+      "text": " So the potential disadvantage is that with more accounts, you'll have more account management overhead."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 119,
+      "end": 131,
+      "text": " So I think we discussed some of that in previous episodes, but it does require investing in some sort of tooling like org formation to make your life easier when deploying resources across these different accounts."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 131,
+      "end": 137,
+      "text": " Yeah, that makes a lot of sense. I think we also mentioned a few times, for instance, the example of total number of concurred Lambdas."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 137,
+      "end": 145,
+      "text": " So if you have workloads that tend to spin up thousands and thousands of Lambdas, they will effectively compete with each other and you'll be hit in the quota."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 145,
+      "end": 150,
+      "text": " And yeah, by separating accounts, I suppose you can kind of prevent all of that from happening."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 150,
+      "end": 155,
+      "text": " But we also say that it's a good idea to decouple communication between systems using events."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 155,
+      "end": 157,
+      "text": " So basically that kind of asynchronous communication."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 157,
+      "end": 164,
+      "text": " What do we really mean by that and how is that really something that gives us an advantage or gives us a better architecture, I guess?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 164,
+      "end": 172,
+      "text": " Yeah, I mean, this is another trade off, but there's a lot of people talking about event driven architecture these days and the benefits of it."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 172,
+      "end": 176,
+      "text": " There is a couple of things that it solves as well as introducing a few challenges."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 176,
+      "end": 184,
+      "text": " But some of the things it solves are the fact that if you've got synchronous point to point communication between systems, you end up with two types of coupling."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 184,
+      "end": 190,
+      "text": " Typically, when you do that. So one is location coupling where one system needs to know the address of the other."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 190,
+      "end": 195,
+      "text": " So you can't really easily change that address. The other one is temporal coupling."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 195,
+      "end": 207,
+      "text": " When you have a synchronous request, the request processor needs to be available for at the same time that the request is being sent and the sender is being is actually waiting on the result."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 207,
+      "end": 220,
+      "text": " So the idea with asynchronous communication is to reduce both of these things, to allow teams to be able to maintain and scale these applications separately and minimize the amount of coordination they need to do."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 220,
+      "end": 236,
+      "text": " So you define your event communication mechanism and try to define some sort of a schema or a way in which those messages can be structured, but avoiding too much of a tightly bound contract and certainly an address in the middle."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 236,
+      "end": 244,
+      "text": " And what you end up with then is a system where you can scale each component independently. We talked about that in some of our previous episodes."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 244,
+      "end": 249,
+      "text": " But it also allows teams just to develop in isolation and not be blocked by each other."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 249,
+      "end": 258,
+      "text": " So it solves those problems, but it also introduces some challenges. And you still have a need from time to time where you will say, OK, well, we've got two separate applications in our organization."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 258,
+      "end": 265,
+      "text": " Let's define a RESTful API with some JSON schemas and some Swagger open API documentation."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 265,
+      "end": 280,
+      "text": " And that's our interface. And that's still OK, but you just have to be prepared to solve the coupling concerns in a different way then and just be prepared to version those APIs and evolve them and communicate if you're going to change them, etc."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 280,
+      "end": 294,
+      "text": " Yeah, I like that you mentioned that it is a trade off. And I hope that with the examples we are going to be discussing in a moment, it will be more apparent what kind of trade off we are going to be talking about and where it becomes really an advantage and when it's not really worth doing."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 294,
+      "end": 305,
+      "text": " All this kind of stuff. But we mentioned that the solution to this problem, or at least one of the possible implementation for this particular idea, is to use an event backbone."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 305,
+      "end": 309,
+      "text": " What is really an event backbone? How do we define it?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 309,
+      "end": 325,
+      "text": " The event backbone terminology you often hear about in the context of Apache Kafka. And the idea is really that in the past you had service oriented architectures, the solar systems that led to enterprise service buses."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 325,
+      "end": 336,
+      "text": " And the vision of the enterprise service bus was that you would be able to integrate all of the disparate systems in your organization through one piece of foundational technology that everyone could access."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 336,
+      "end": 351,
+      "text": " And this could work in some cases, but again, enterprise service bus, because the goal was often to include a lot of integration and routing logic and sometimes some business logic in there, that it could become a big single point of failure in your system."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 351,
+      "end": 355,
+      "text": " And you end up just introducing the coupling in one location."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 355,
+      "end": 380,
+      "text": " So the idea with an event backbone is to simplify that ideal and have a simple piece of very scalable technology that can be used for high level communication of events throughout the business. And you try to avoid any business logic there and just instead focus on reliability, durability of messages, and ensure that it scales very well so you don't have to worry about single points of failure in your system."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 380,
+      "end": 400,
+      "text": " Yeah, actually, funny story. I once built a customer service bus in a company, mostly inspired by Apache Camel. And I do remember how painful it was to provide all the building blocks, like if statements, switch conditions, mapping of data to allow people to actually be able to put all that business logic into the enterprise service bus."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 400,
+      "end": 415,
+      "text": " I definitely agree that an ESP is something like really stateful and powerful, but that comes, of course, with a cost that all that integration is like, all the logic lives in the integration, which maybe not always a good idea."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 415,
+      "end": 434,
+      "text": " So I guess the next question I have is, is this something we should do all the time for any kind of distributed application? Or maybe there are some examples where it could be worth it and other cases where it's much more clear that it's not really worth the effort of setting up something like that."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 434,
+      "end": 437,
+      "text": " Do we have many examples worth discussing?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 437,
+      "end": 453,
+      "text": " Yeah, I guess it's probably worthwhile saying that we're talking about a specific level of event-based communication here. We're not talking about having one event technology that every single event-centered consumer uses across the whole organization."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 453,
+      "end": 472,
+      "text": " It's really about high-level inter-system communication. So communication in separate domains in the business, in separate applications, maybe even between services or microservices if they're sufficiently complex. But it's up to you really to pick where you would use this, but I would avoid saying this is a one-size-fits-all solution for all eventing needs."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 472,
+      "end": 484,
+      "text": " Okay, so you can still have an event backbone and then within each team's application they can use different event technologies for internal communication that don't necessarily have anything to do with the event backbone."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 484,
+      "end": 502,
+      "text": " So maybe some examples. If we've got, say, a video streaming service, right? We know many, but imagine that in their content ingestion workflow they've got two separate, completely distinct applications. One that's involved in ingesting all the video files and transcoding them and making them available."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 502,
+      "end": 517,
+      "text": " And another one is there to sort out the catalog so people can browse, see what to watch next, see details about programs. So you can imagine that it's pretty important as a business rule that a title should not appear in the catalog until all the videos have been processed."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 517,
+      "end": 540,
+      "text": " So maybe the ingestion service will eventually emit an event onto this event backbone and the catalog application would subscribe to a number of events across the system and once it knows everything is ready and the licensing of the title is in effect and all of the video files have been transcoded and published out to the CDN, then it knows it can set the catalog's entry to published."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 540,
+      "end": 542,
+      "text": " So that's one example."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 542,
+      "end": 571,
+      "text": " Maybe another one is in the kind of business application we talked about more in recent episodes. If you're performing lots of calculations like batch processing and producing a lot of data in a database, maybe at the end of that process you might publish an event to say all this data is ready, and then you have a downstream reporting application which is, again, completely distinct in terms of the application and its deployment, but is related in some way because it's consuming from the data that is generated by that first system."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 571,
+      "end": 577,
+      "text": " So I think a backbone is another good fit for that kind of high level intersystem business communication."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 577,
+      "end": 600,
+      "text": " Yeah, I suppose in general if you also expect your application to evolve a lot and get more kind of moving parts around it, probably there is another advantage there because in the case of the analytics you just mentioned, maybe eventually you want to have another process that knows when these files are published and at that point you can just create a new application, listen for the same event, and you don't have to change anything else."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 600,
+      "end": 607,
+      "text": " So the source application emitting events doesn't even know which other applications are listening for those events."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 607,
+      "end": 616,
+      "text": " Yep, that's a good call, and you might want to actually have just a standard in place that when you finish the business process you emit life cycle events about that."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 616,
+      "end": 625,
+      "text": " You know, when you start a process, when it's completed, when it's failed is also important. That might also be an interesting fact for some other systems to know about."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 625,
+      "end": 640,
+      "text": " So we mentioned that EventBridge is one of the possible services that we could use in AWS to build something like this, but why specifically EventBridge and not any of the other messaging services?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 640,
+      "end": 650,
+      "text": " And we have been talking about messaging services a lot, so I'm kind of curious why EventBridge is specifically a good choice for this use case rather than any of the others."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 650,
+      "end": 660,
+      "text": " Yeah, I think if you go back to those episodes, there's a couple of things that EventBridge really shines at, and the main one is simplicity, because there's very little to set up and I think that makes it a very good candidate."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 660,
+      "end": 673,
+      "text": " But also in real terms, it has a very large feature set. So one of the important ones in this context, since we're talking about separate applications and separate accounts, EventBridge has really good cross account support."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 673,
+      "end": 690,
+      "text": " It could be better, actually, so maybe we'll get onto that in a while, how it could be improved, but it is really good. And if you're building all these applications in AWS, and you're thinking, okay, how do I figure out the networking for all these applications to talk to my centralized event backbone?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 690,
+      "end": 700,
+      "text": " All of this complexity is taken away with EventBridge, really. It's also massively scalable. There's a very low investment for teams to get up and running with it."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 700,
+      "end": 715,
+      "text": " It integrates really well with lots of other AWS services. And it's also, that means you can adapt it to more complex use cases. So if you have needs where you need durability, you can add in SQS on the consumer side, and that makes it very, very easy to adapt."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 715,
+      "end": 730,
+      "text": " You can also decide that for specific cases, you could add in Kinesis, for example, or SNS. So it's the kind of investment that you can adapt really easily. You're not stuck with it."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 730,
+      "end": 740,
+      "text": " You could swap it out in very specific cases if you need something slightly different. And we covered a lot of those different advantages in the comparison episode when we talked about all the different event services."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 740,
+      "end": 752,
+      "text": " So I think it's a really good one to start with. You could also build on Kafka. We mentioned Kafka already, especially if you already have a lot of Kafka skills in-house and you've got a team who can work with that."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 752,
+      "end": 766,
+      "text": " Or you could build on SNS. SNS is actually another good service that you could use to build a backbone. But I think EventBridge will go into some of the details on how it works maybe. But I think it's definitely a good place to start if you're not sure."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 766,
+      "end": 783,
+      "text": " Yeah, I agree. EventBridge feels like the simplest and the most flexible option at the same time, which is really interesting. So if you don't really need that kind of extreme latency performance that you get with maybe something like SNS, probably you're going to be fine for most of the use cases."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 783,
+      "end": 804,
+      "text": " So now we talked about why it's good to have separated AWS accounts, why it's good to have something like an event backbone, why EventBridge can be a good solution to implement all of that. Can we maybe propose an actual somewhat realistic example and describe a little bit more in detail how we could implement all of this stuff?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 804,
+      "end": 818,
+      "text": " Yeah, let's do that. And there is an article actually, there's a blog post that details this architecture and the source code as well. So we'll link to that in the show notes if people want to explore it in more detail and deploy it for themselves and see the events flowing in front of their eyes."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 818,
+      "end": 822,
+      "text": " So let's go back to our typical example."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 822,
+      "end": 835,
+      "text": " I will caveat that it's not just an article, there is an entire repository attached to it so you get all the source code from like application code, infrastructure as code. So definitely try to have a look and deploy it yourself and play around with it."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 835,
+      "end": 848,
+      "text": " So we like ecommerce examples on AWS Bites. So let's talk about our canonical ecommerce example where we've got an, in this example we tried to simplify it as much as possible so you've got an order service and a delivery service."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 848,
+      "end": 859,
+      "text": " So one service deals with orders and more user facing. The other one is dealing with more fulfillment. And in our example code. These are very very simple applications."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 859,
+      "end": 867,
+      "text": " But remember that we said for an event backbone we're really talking about very, you know, sufficiently complex ones that would warrant their own teams and accounts to maintain them."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 867,
+      "end": 879,
+      "text": " And you can imagine for a major ecommerce vendor, your order service and your delivery service probably will have one or more teams maintaining each of them, they will be running in separate AWS accounts for each environment."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 879,
+      "end": 887,
+      "text": " So one of the workflows you can imagine here is that when an order is created. We want the delivery service to be able to react to that and handle it in some way."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 887,
+      "end": 895,
+      "text": " And correspondingly, when the deliveries are fulfilled, we might want to update the state of the order to reflect that."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 895,
+      "end": 907,
+      "text": " So each of those applications doesn't really have to know that the other order system exists, but they do understand that there is a concept of an order, a concept of a delivery, and each of them has a lifecycle where they transition between different states."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 907,
+      "end": 922,
+      "text": " So you would deploy those to separate AWS accounts. But in this example application we actually have three AWS accounts because we've decided to deploy the backbone itself as an event bridge global bus, that's what we're calling it, the global bus into its own account."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 922,
+      "end": 931,
+      "text": " So it's again, it's its own piece of functionality. And then each of these services, the order service and the delivery service will publish events to this global bus."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 931,
+      "end": 936,
+      "text": " There's probably a couple of questions that might be coming up in people's minds as they talk through this."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 936,
+      "end": 945,
+      "text": " So you might think, well, why do the services have to communicate with this global bus? Do they have to reach across an account in order to do anything?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 945,
+      "end": 956,
+      "text": " Well, there's a couple of, I suppose, fundamental principles with event bridge that you have to be aware of. And one is that if you want to have cross account rules, you can really only create rules that target another bus."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 956,
+      "end": 963,
+      "text": " You can't have a cross account rule that will target a Lambda function in another account or an SQS queue in another account."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 963,
+      "end": 977,
+      "text": " So if you want to, I suppose, propagate events from one account to another, you need to use, go from one bus to another bus, and then you can create the rules within an account to trigger resources in that same account."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 977,
+      "end": 983,
+      "text": " So what we're basically doing is building a routing mechanism here. So each application will have its own local bus."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 983,
+      "end": 990,
+      "text": " And there's a global bus that will essentially make sure that the right events are routed through to each local bus."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 990,
+      "end": 1000,
+      "text": " So it might take a little bit of time to kind of see how this all plays out. But if you have a look at the article and the repo, there's a diagram and there's the source code that will show it."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1000,
+      "end": 1005,
+      "text": " It's not a lot of AWS resources. It just means that you kind of have to understand what the limitations are here."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1005,
+      "end": 1013,
+      "text": " So if I'm getting this correct, we basically have three accounts, one for the global bus, where the only thing that lives there is this global bus."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1013,
+      "end": 1024,
+      "text": " And then in the other two accounts, they are dedicated individually for specific services. And in every account, you have all the service related stuff plus an event breach bus."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1024,
+      "end": 1033,
+      "text": " And basically when you want to dispatch a global event, you go directly to the global account. But when you want to listen for a global event, you listen from your local event bus."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1033,
+      "end": 1033,
+      "text": " Exactly."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1033,
+      "end": 1034,
+      "text": " Is that correct?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1034,
+      "end": 1035,
+      "text": " That's how it works. Yeah."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1035,
+      "end": 1036,
+      "text": " Perfect."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1036,
+      "end": 1044,
+      "text": " And I suppose it takes a lot of fun to configure all the policies so that the accounts are effectively allowed to read and write from all the different places, right?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1044,
+      "end": 1050,
+      "text": " Yeah. Because it's cross-account access, you need to authorize that interaction on both sides."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1050,
+      "end": 1057,
+      "text": " The code example there hopefully gives you a template that you can use to do this in your own application. It's a CDK application."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1057,
+      "end": 1068,
+      "text": " You could do it in CloudFormation or Terraform just as easily, but you just need to make sure that you have the policy in place every time you add a new application with its own account."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1068,
+      "end": 1079,
+      "text": " So I suppose one of the questions that might come up is also, so we talked about these three accounts, the global bus, I guess, makes sense, and the local bus makes sense for each account."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1079,
+      "end": 1088,
+      "text": " But you have to publish to the global bus and then you kind of react to rules on the local bus. So that might seem like it's an inconsistency."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1088,
+      "end": 1093,
+      "text": " The reason for that is that you might say, okay, well, let's just publish to our local bus and react to events from our local bus."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1093,
+      "end": 1099,
+      "text": " And we don't have to know about the global bus at all and then let the routing happen behind the scenes."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1099,
+      "end": 1108,
+      "text": " But there is actually a restriction in event bridge. That means you can't go and have a rule that goes from bus A to B to C."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1108,
+      "end": 1117,
+      "text": " You can only go from A to B basically. So you can only have one cross account event bridge rule to another bridge, to another bus."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1117,
+      "end": 1127,
+      "text": " You can't just keep hopping to another bus and then another bus. So that's why we basically say you publish the global bus and then that event can be distributed to all the local buses."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1127,
+      "end": 1135,
+      "text": " And that's how you react to them. So you could check out the architecture diagram and it might provide a bit of clarity on how all this works."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1135,
+      "end": 1142,
+      "text": " But that's just how we set it up from the beginning to make sure that this will work and scale to many, many applications."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1142,
+      "end": 1154,
+      "text": " Yeah."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1154,
+      "end": 1159,
+      "text": " The other thing I like about this is that you need to like the architecture kind of forces you to think what is a global event, like something you want to dispatch for other services and systems to consume, as opposed to something that is maybe a local event that makes sense only in the context of a specific service."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1159,
+      "end": 1168,
+      "text": " And you don't necessarily want to publish outside of your service. So that's another thing that I think this architecture forces you to think a little bit more about."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1168,
+      "end": 1179,
+      "text": " So I have another question. Is there any, I don't know, best practice or pitfall or something else to be aware when we implement and start to do something like this?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1179,
+      "end": 1189,
+      "text": " Yeah, I guess so. And I remember when we were talking about EventBridge specifically in the EventBridge episode, we talked about how do you troubleshoot? How do you get observability into what happens?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1189,
+      "end": 1198,
+      "text": " How do you find out where your missing event has gone? So one of the things this application example has is logging of all events on every bus."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1198,
+      "end": 1206,
+      "text": " So creating an event bus is easier. And as we know from that episode, you don't have to create one at all. You get a default one with every account."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1206,
+      "end": 1213,
+      "text": " But in this case, we were deciding to create specifically named buses in every account, just so it provides clarity and isolation."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1213,
+      "end": 1221,
+      "text": " We're also providing a log group, CloudWatch log group with every bus. And we're logging all events that come into a bus into the log group."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1221,
+      "end": 1226,
+      "text": " So if your rule isn't working, you can look in the log, see where the event is, see if what the pattern is like."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1226,
+      "end": 1232,
+      "text": " You can go into the AWS console and use the tool there for testing your event, checking the match."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1232,
+      "end": 1237,
+      "text": " So I think that's a really good practice and I'd recommend that. But there's plenty more."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1237,
+      "end": 1244,
+      "text": " If you're deploying this in an enterprise context, you'll also need to think about the structure of events and schemas as well."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1244,
+      "end": 1252,
+      "text": " And whether you want to enforce schema validation on events. I think there's a couple of resources that are worth pointing to on this."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1252,
+      "end": 1260,
+      "text": " Maybe we'll cover them at the end. But there are some really good talks and blogs out there that give good advice on how to construct those events"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1260,
+      "end": 1265,
+      "text": " and how to do validation and enforce more strictness if you need to."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1265,
+      "end": 1272,
+      "text": " All right. That sounds awesome."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1272,
+      "end": 1278,
+      "text": " So I think at this point, we're just going to give people more of these resources to check out if you want to know more about EventBridge in general and other similar services."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1278,
+      "end": 1283,
+      "text": " So the first one is that we have a blog post on the FortierM blog. You'll find the link in the description."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1283,
+      "end": 1290,
+      "text": " That basically is kind of a summary of all the main features and all the things you need to know to actually use EventBridge."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1290,
+      "end": 1302,
+      "text": " And then we have another blog post by Shin Breezels about how basically you could structure your payloads so that you get the best out of EventBridge."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1302,
+      "end": 1309,
+      "text": " We also have another blog post about SNS. So this will give you a very good comparison between SNS and EventBridge."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1309,
+      "end": 1315,
+      "text": " This is in the FortierM blog. And finally, actually other two resources."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1315,
+      "end": 1322,
+      "text": " Another one is a very good talk by Luc van Dorkins, I think, by PostNL."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1322,
+      "end": 1327,
+      "text": " And it explains how they use EventBridge and event-driven architectures to scale all that system."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1327,
+      "end": 1335,
+      "text": " And if all of that sounds confusing, the next step that you should be doing is going check out episode 23 of AWS Bites podcast,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1335,
+      "end": 1339,
+      "text": " where we give you all the details about EventBridge. So we'll leave you with that."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1339,
+      "end": 1365,
+      "text": " And thank you for following and we'll see you at the next one."
+    }
+  ]
+}

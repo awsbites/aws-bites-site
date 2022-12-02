@@ -1,0 +1,1118 @@
+{
+  "speakers": {
+    "spk_0": "spk_0",
+    "spk_1": "spk_1"
+  },
+  "segments": [
+    {
+      "speakerLabel": "spk_0",
+      "start": 0,
+      "end": 4.64,
+      "text": " Uploading and downloading files are some of the most common operations for web applications."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 4.64,
+      "end": 10.64,
+      "text": " But let's face it, as common as they are, they are still challenging features to implement in a reliable and scalable way."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 10.64,
+      "end": 18.64,
+      "text": " This is especially true when we talk about serverless environment, where you have strict limits in payload size and you cannot have long-running connections."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 18.64,
+      "end": 24.080000000000002,
+      "text": " So what is the solution? If you're using S3, presigned URLs can help you quite a bit."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 24.080000000000002,
+      "end": 26.96,
+      "text": " And in this episode, we're going to be talking about presigned URL."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 26.96,
+      "end": 33.28,
+      "text": " And if you stick until the very end of this episode, we're going to disclose an interesting and quite a known tip about presigned URLs."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 33.28,
+      "end": 37.28,
+      "text": " My name is Luciano and today I'm joined by Eoin and this is AWS Bites podcast."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 37.28,
+      "end": 56.08,
+      "text": " So Eoin, maybe we can start with describing some of the use cases, like what kind of operations do we generally do when we talk about upload and download in the context of web applications?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 56.08,
+      "end": 60.08,
+      "text": " Yeah, okay. Let's set some context here by talking about a few of the use cases."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 60.08,
+      "end": 67.04,
+      "text": " So let's say you're signing up in a mobile application for your service and you want people to take a photo so they've got their avatar."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 67.04,
+      "end": 73.12,
+      "text": " That would be an upload. Another one might be you're offering some digital download, like a software."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 73.12,
+      "end": 77.12,
+      "text": " People are paying for the software and then they want to download a large binary application."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 77.12,
+      "end": 81.36000000000001,
+      "text": " You might want to have a download facility that's scalable and fast there."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 81.36000000000001,
+      "end": 88.80000000000001,
+      "text": " Or a very typical one actually is if you're sending people a newsletter and you want them to be able to download a white paper using a link in the email."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 88.80000000000001,
+      "end": 92.64000000000001,
+      "text": " Or maybe, you know, they give you their signup details and then you give them a link in the email."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 92.64,
+      "end": 100.64,
+      "text": " You also have other things which are maybe less user-facing, but even between systems you might have two applications or two services talking to each other."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 100.64,
+      "end": 111.36,
+      "text": " They might have an API where they've got an event, but associated with that event is like a large file or an attachment, some like larger payloads that you don't want to put in every message."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 111.36,
+      "end": 118.4,
+      "text": " So instead you'll give a link in the message and that link will allow them to retrieve whatever large data that is."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 118.4,
+      "end": 125.04,
+      "text": " So those are the kind of use cases we're talking about. You said it's one of the challenging things that comes up is trying to upload and download files."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 125.04,
+      "end": 127.36000000000001,
+      "text": " So what are the challenges?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 127.36000000000001,
+      "end": 134.96,
+      "text": " Yeah, so first of all, when you talk about uploading and downloading, those are generally what we can call streaming operations."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 134.96,
+      "end": 140.88,
+      "text": " So you have a TCP connection and you will have to transfer bytes for a long enough period of time."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 140.88,
+      "end": 149.44,
+      "text": " And generally you don't want to put boundaries there because you might have a particular context where you are uploading or downloading very large files."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 149.44,
+      "end": 156.79999999999998,
+      "text": " Imagine, I don't know, videos or I don't know, like you mentioned big binaries because you are downloading an application."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 156.79999999999998,
+      "end": 161.84,
+      "text": " So you can imagine that you need to transfer a lot of data for a sustained period of time."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 161.84,
+      "end": 168.24,
+      "text": " And if you're using a serverless environment, this is a big challenge because we know serverless environment tends to have very strict limits."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 168.24,
+      "end": 174,
+      "text": " Like in Lambda you have, I think it's five megabytes, the maximum payload that you can receive in a request."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 174,
+      "end": 177.60000000000002,
+      "text": " And also the response that you can send from a Lambda is quite limited as well."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 177.60000000000002,
+      "end": 187.12,
+      "text": " So you can immediately see that if you want to implement this stuff straight in a Lambda, it's not really giving you a lot of amount of data that you can deal with."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 187.12,
+      "end": 195.76000000000002,
+      "text": " And another problem when we talk about downloads is that generally you want to keep all the data in a protected place."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 195.76,
+      "end": 200.72,
+      "text": " And then you only want to enable specific downloads after certain actions."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 200.72,
+      "end": 206,
+      "text": " Maybe the user is authenticated and you realize, okay, this particular user is actually authorized to view this resource."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 206,
+      "end": 210.32,
+      "text": " So I would like somehow to give only them the permission to download the file."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 210.95999999999998,
+      "end": 216.64,
+      "text": " So this is another challenge because of course if you think about S3 you might think, okay, I'm just going to make a bucket entirely public."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 216.64,
+      "end": 222.56,
+      "text": " But then anyone can, as soon as they discover the key and the bucket name, can download that particular file."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 222.56,
+      "end": 226.48,
+      "text": " So this is not really going to be a sustainable solution."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 226.48,
+      "end": 231.76,
+      "text": " And if you think, okay, I'm going to put a Lambda in front of that, then again you have the problem of payload size."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 231.76,
+      "end": 234,
+      "text": " So again, what's the solution?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 234,
+      "end": 241.68,
+      "text": " And thankfully if we use S3, there is a feature in S3 that is called Presigned URLs that can help us a lot in solving this particular kind of problems."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 242.48000000000002,
+      "end": 249.76,
+      "text": " The idea is that you can easily generate a URL that allows users to upload the content of an object directly into S3."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 249.76,
+      "end": 257.84,
+      "text": " This is the case of upload, but at the same time you can also do the same thing basically to generate URLs for downloading a file from S3."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 257.84,
+      "end": 265.68,
+      "text": " So again, every time you want to authorize either an upload or a download, you can generate in that particular moment a specific URL for the user."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 265.68,
+      "end": 270.71999999999997,
+      "text": " And the user can use that URL to either upload or download from or to S3."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 270.72,
+      "end": 279.6,
+      "text": " So the interesting thing is that why this is called Presigned, because it's basically the URL contains a lot of information."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 279.6,
+      "end": 286,
+      "text": " And some of this information, like if you ever look into Presigned URLs, is actually quite big URL with a lot of query string parameters."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 286,
+      "end": 288.88000000000005,
+      "text": " And some of these parameters are actually authentication parameters."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 288.88000000000005,
+      "end": 298.08000000000004,
+      "text": " So literally you have created a URL that has already built in the credentials that are needed for the user to either upload or download that particular resource."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 298.08,
+      "end": 306.64,
+      "text": " And at the end of the day, this is good because you are relying entirely on a managed service like S3, so you don't have to be worried about the infrastructure."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 306.64,
+      "end": 310.56,
+      "text": " Is it going to scale? Is it going to support all the data they need to support?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 310.56,
+      "end": 320.79999999999995,
+      "text": " So really you don't need any additional infrastructure or compute, you just need to make sure you generate the URLs at the right time before the user performs that particular action."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 321.76,
+      "end": 325.59999999999997,
+      "text": " So I suppose the next question is, how do we actually generate this kind of URLs?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 325.6,
+      "end": 334.08000000000004,
+      "text": " Yeah, like if you want to just generate one ad hoc for whatever reason without building it into the application, you can use the AWS CLI to do that."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 334.08000000000004,
+      "end": 337.44,
+      "text": " You can also use the S3 console in the AWS Management Console."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 338.8,
+      "end": 348.24,
+      "text": " And you also have like IDE integrations, so the AWS Explorer for Visual Studio, but also allows you to browse your bucket and right click and get a Presigned URL for it."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 348.24,
+      "end": 356.16,
+      "text": " So those examples, the console and Visual Studio, that only works for download, it doesn't allow you to do uploads."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 356.16,
+      "end": 365.04,
+      "text": " The more I suppose powerful, flexible way to do it is with the AWS API or the SDK where you can generate Presigned URLs for uploads and downloads."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 365.04,
+      "end": 368.48,
+      "text": " So then if we take those two cases, how do you do a download?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 368.48,
+      "end": 373.04,
+      "text": " Well, you need to specify, okay, what's the bucket and what's the key?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 373.04,
+      "end": 384.32,
+      "text": " You need to specify, okay, what's the bucket and what's the key? And then you can also specify some additional configuration, like some headers that are associated with the download or an expiry."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 384.32,
+      "end": 388.24,
+      "text": " So how long does this Presigned URL remain valid for?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 389.20000000000005,
+      "end": 396.32000000000005,
+      "text": " And once you do that, you will get this really big URL you mentioned with loads of query string parameters, and that will link to the file."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 396.32,
+      "end": 407.52,
+      "text": " So if user clicks on that or curls it, they will be able to download that file as long as they haven't changed the HTTP request anyway, that would invalidate the signature that's embedded in the URL."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 407.52,
+      "end": 411.92,
+      "text": " And as long as the expiry time has not elapsed."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 411.92,
+      "end": 416.4,
+      "text": " So that's the GET method and it works in a very similar way for uploads."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 416.4,
+      "end": 419.44,
+      "text": " With uploads, you actually got a couple of options."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 419.44,
+      "end": 422.71999999999997,
+      "text": " You can use a Presigned PUT, which works exactly the same way as the Presigned GET."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 422.72,
+      "end": 430.32000000000005,
+      "text": " Everything is in the URL and you can also put in the content type and the content length header that's required."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 430.32000000000005,
+      "end": 435.52000000000004,
+      "text": " And then basically you just put the body of your file into the HTTP request body."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 435.52000000000004,
+      "end": 438.16,
+      "text": " So that's how PUT works."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 438.16,
+      "end": 441.44000000000005,
+      "text": " Presigned POST is actually like a special feature."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 441.44000000000005,
+      "end": 444.8,
+      "text": " It's an additional kind, it's a different kind of a Presigned URL."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 444.8,
+      "end": 459.12,
+      "text": " And it uses form data, like HTTP form data instead of using like a normal post with an Octet stream or a binary payload."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 459.12,
+      "end": 471.52,
+      "text": " The Presigned POST, it comes with, you actually get a much shorter URL, but instead of having all of the data embedded in query string parameters, you get a set of fields back that you have to put into your form data."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 471.52,
+      "end": 478.71999999999997,
+      "text": " And a form data is basically like a multi-part body where you specify each field in the form."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 478.71999999999997,
+      "end": 484.15999999999997,
+      "text": " One of those, all of those fields that AWS tells you you have to provide in your Presigned POST response."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 484.15999999999997,
+      "end": 489.35999999999996,
+      "text": " And then one of them will also be the file content encoded in there too."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 489.35999999999996,
+      "end": 494.64,
+      "text": " And there is a really good post actually talking about how this is sometimes the best option to use."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 494.64,
+      "end": 497.44,
+      "text": " It's by Zach Charles and we'll link to that in the show notes."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 497.44,
+      "end": 500.4,
+      "text": " And it's a good guide to using the POST method."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 500.4,
+      "end": 507.12,
+      "text": " The real advantage with Presigned POST is that you can specify limits on the file size that's going to be uploaded."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 507.12,
+      "end": 519.36,
+      "text": " Nice. So I suppose another interesting point of conversation is generally if you're building an application and you receive a file from an upload, you are trying to do something with that file, right?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 519.36,
+      "end": 522.8,
+      "text": " There is some workflow that is intrinsically part of your application."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 522.8,
+      "end": 533.5999999999999,
+      "text": " Just to make an example, you upload a picture and maybe you want to process it with, I don't know, recognition to try to identify objects or text or something like that in that particular picture."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 533.5999999999999,
+      "end": 538.4,
+      "text": " And then maybe you can attach some metadata and store it somewhere and make it available to users."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 538.4,
+      "end": 541.28,
+      "text": " So how do you actually trigger the second part of the workflow?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 541.28,
+      "end": 547.1999999999999,
+      "text": " We know at this point how you can perform the upload, but what actually triggers is the rest of the workflow."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 547.1999999999999,
+      "end": 549.76,
+      "text": " And there are different ways that you can actually do that."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 549.76,
+      "end": 553.12,
+      "text": " Some are asynchronous and some can be synchronous."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 553.12,
+      "end": 555.76,
+      "text": " The asynchronous one is basically relying on notifications."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 555.76,
+      "end": 565.84,
+      "text": " You can either set up S3 object notifications or event breach notifications, and then you can listen to those notifications and trigger, for instance, a Lambda and then Lambda can orchestrate the rest of the workflow."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 565.84,
+      "end": 567.68,
+      "text": " Or maybe you can start a step function."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 567.68,
+      "end": 570.96,
+      "text": " There is really no limit in how you actually process it."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 570.96,
+      "end": 581.36,
+      "text": " The only thing you want to know is exactly the point where the file was completed, completely uploaded, and at that point you can receive the notification and decide how to process that notification."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 581.36,
+      "end": 595.0400000000001,
+      "text": " Another use case that I've seen is basically, for instance, I don't know, the case that you are uploading an avatar in a web application and then maybe you want to make sure your profile is actually updated to reflect the new avatar."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 595.0400000000001,
+      "end": 599.2800000000001,
+      "text": " So you can implement that in a slightly different way, for instance, rather than using events."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 599.28,
+      "end": 602.4,
+      "text": " What you could be doing, you could have two different API calls."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 602.4,
+      "end": 606,
+      "text": " The first API call is actually using the pre-signed URL to upload the file."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 606,
+      "end": 613.36,
+      "text": " And then there is a second API call where you say, update my profile with this key, which is going to be my new avatar."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 613.36,
+      "end": 619.76,
+      "text": " So it's a little bit up to the client to coordinate the two different requests, but it's another valid solution."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 619.76,
+      "end": 629.28,
+      "text": " The other point I was going to mention on the automated processing is that you might ask, is the new S3 object lambda feature something that will help us here?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 629.28,
+      "end": 641.2,
+      "text": " But the S3 object lambda is something that allows you to do lambda post-processing when you do a GET or a HEAD request, but it doesn't support any kind of automation on her post."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 641.2,
+      "end": 643.52,
+      "text": " So no joy here, at least yet."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 643.52,
+      "end": 652.96,
+      "text": " And if you don't know about this particular feature, we have a blog post by Eoin that describes how to use all of that and what are the limits."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 652.96,
+      "end": 656.64,
+      "text": " So we'll have it in the show notes."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 656.64,
+      "end": 657.92,
+      "text": " Excellent. Excellent."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 657.92,
+      "end": 662.24,
+      "text": " Now, I suppose it's also worth mentioning that pre-signed URLs, you don't always have to use them."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 662.24,
+      "end": 668,
+      "text": " So if you've got full control over the client application, you have some other options as well."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 668,
+      "end": 679.36,
+      "text": " So what you can do instead is just embed the whole AWS SDK S3 client in your front end web application or in your mobile application and just use the higher level APIs that the SDK give you."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 679.36,
+      "end": 688.08,
+      "text": " Sometimes there are some optimizations in there around large file uploads with multi-part that will be more beneficial if you just use the SDK directly."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 688.08,
+      "end": 693.92,
+      "text": " And all you need in order to be able to do that is some temporary IAM credentials that you can use in the client."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 693.92,
+      "end": 703.92,
+      "text": " So it's another way of doing it. So instead of signing the URL with IAM credentials on the server side, you basically just issue IAM credentials using like STS."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 703.92,
+      "end": 709.04,
+      "text": " You can also do use AWS Cognito with identity pools to do that."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 709.04,
+      "end": 715.52,
+      "text": " So if that's something that you're comfortable with, it's just another approach that you should probably be aware of and maybe think about whether that's best."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 715.52,
+      "end": 721.28,
+      "text": " The Amplify SDK also makes that whole thing a lot easier."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 721.28,
+      "end": 728.88,
+      "text": " So it allows you to, I think through its storage API, allows you to interact with S3 in a reasonably simple way."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 728.88,
+      "end": 731.36,
+      "text": " It's probably worthwhile just talking about some of the limitations."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 731.36,
+      "end": 738.0799999999999,
+      "text": " And we've already said that for a push upload, you need to know the file size in advance because you have to set that content length header."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 738.0799999999999,
+      "end": 745.04,
+      "text": " That's a bit unfortunate because it limits your ability to stream the content from an indeterminate source."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 745.04,
+      "end": 753.04,
+      "text": " So you can't really limit the amount of data you're uploading unless you do some really funky stuff like updating the policy of the bucket itself."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 753.04,
+      "end": 757.4399999999999,
+      "text": " So every bucket has a resource policy and you can put lots of restrictions in there."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 757.4399999999999,
+      "end": 762.4,
+      "text": " And even those restrictions can apply to certain object prefixes, key prefixes."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 762.4,
+      "end": 767.1999999999999,
+      "text": " But it's not the kind of thing that you want to be updating all the time for very specific user flows."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 767.1999999999999,
+      "end": 773.68,
+      "text": " So there's another blog post that we can put in the show notes from bobbyhads.com and that's worth a look."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 773.68,
+      "end": 777.68,
+      "text": " And of course, the maximum file size worth stating that it's five terabytes."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 777.68,
+      "end": 783.12,
+      "text": " But that applies on S3, whether you use presigned URLs or not."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 783.12,
+      "end": 789.28,
+      "text": " Worth restating again that if you use that special post presigned URL with the form data, you can overcome some of those limitations."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 789.28,
+      "end": 797.1999999999999,
+      "text": " You can, you don't need to specify the file size in advance and you can specify conditions that include what range of content sizes you support."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 797.1999999999999,
+      "end": 801.5999999999999,
+      "text": " And that includes a minimum and a maximum content length then."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 801.6,
+      "end": 806.5600000000001,
+      "text": " Presigned URLs, they do have an expiry time, so they have a limited time, but you cannot limit the number of downloads or uploads."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 806.5600000000001,
+      "end": 808.64,
+      "text": " There's no easy way to do that."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 808.64,
+      "end": 814.16,
+      "text": " And you can't also easily limit the number of downloads or the downloads based on IP address."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 814.16,
+      "end": 818.96,
+      "text": " You would again have to go and change the bucket policy to put in a source IP condition."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 818.96,
+      "end": 822.4,
+      "text": " But it's probably more work than you really want to do to maintain all of these policies."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 822.4,
+      "end": 830.72,
+      "text": " And you might end up incurring quotas for like adding so many specific user in specific rules into that policy."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 830.72,
+      "end": 839.12,
+      "text": " So those are the limitations. With that in mind, and given that we've explained what it is, how to use it, do we have any closing recommendations for people?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 839.12,
+      "end": 842.88,
+      "text": " You also gave a hint that you might have a secret tip."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 842.88,
+      "end": 848.08,
+      "text": " Yeah, I'll try to pay back everyone that is listening so far."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 848.08,
+      "end": 856.88,
+      "text": " So basically in terms of recommendations, one of the most common recommendations that you will find is to try to keep URLs, presigned URLs short lived."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 856.88,
+      "end": 861.68,
+      "text": " Because a presigned URL doesn't really expire after you use it."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 861.68,
+      "end": 866.48,
+      "text": " It only expires after the time, the expiry time is elapsed."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 866.48,
+      "end": 872.64,
+      "text": " So if a user has a presigned URL, nothing is stopping them from using it twice or even more."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 872.64,
+      "end": 875.52,
+      "text": " So they can re-upload, they can re-download the file."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 875.52,
+      "end": 881.2,
+      "text": " So the only real way that you can protect against that is to keep the expiry time as short as possible."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 881.2,
+      "end": 890.6400000000001,
+      "text": " But of course, don't keep it too short because some people have observed that if you keep it too short, there might be clock slightly off sync between servers."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 890.6400000000001,
+      "end": 896.6400000000001,
+      "text": " So if you keep it, for instance, in the order of a few seconds, the link, as soon as the user starts to use it, it's already expired."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 896.6400000000001,
+      "end": 901.6,
+      "text": " So probably slightly above one minute or two, it's probably fine for most use cases."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 902.72,
+      "end": 904.5600000000001,
+      "text": " Another tip is to enable cores."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 904.5600000000001,
+      "end": 910.24,
+      "text": " And I think this is especially important if you want to use it from the front end."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 910.24,
+      "end": 914.72,
+      "text": " If you want to use both presigned URLs, or I think that applies also if you use the SDK."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 914.72,
+      "end": 915.76,
+      "text": " Right, Eoin?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 915.76,
+      "end": 920.4,
+      "text": " You still need to enable cores in order to be able to do API calls from the front end."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 923.28,
+      "end": 925.28,
+      "text": " I'm not sure about that. I'd have to think about that."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 925.28,
+      "end": 925.52,
+      "text": " Okay."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 925.52,
+      "end": 926.5600000000001,
+      "text": " Cut me off guard."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 926.5600000000001,
+      "end": 929.6800000000001,
+      "text": " Worth verifying. If you know it, please leave it in the comments."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 930.32,
+      "end": 932.4,
+      "text": " But now let's get to the secret tip."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 932.4,
+      "end": 937.28,
+      "text": " And this is something that we actually discovered quite recently and we were quite impressed by it."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 937.28,
+      "end": 943.28,
+      "text": " So it turns out that presigned URLs are not only valid for uploads and downloads,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 943.28,
+      "end": 947.8399999999999,
+      "text": " but actually you can use them for any kind of S3 operation."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 947.8399999999999,
+      "end": 951.76,
+      "text": " And if you don't believe us, the simplest thing you can do to actually verify the statement"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 951.76,
+      "end": 956.56,
+      "text": " is to try to use the SDK to create a presigned URL for a least bagged operation."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 957.28,
+      "end": 959.68,
+      "text": " And then use that URL and see what's the response."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 960.56,
+      "end": 965.68,
+      "text": " And I'll give you another thing that you can try, which is actually a little bit more useful in practice, I believe."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 965.68,
+      "end": 970.9599999999999,
+      "text": " Which is, for instance, you can do a multi-part upload using presigned URLs."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 970.9599999999999,
+      "end": 975.1999999999999,
+      "text": " And the way you do that is basically you do the first operation of a multi-part upload."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 975.1999999999999,
+      "end": 978.2399999999999,
+      "text": " By the way, if you don't know what a multi-part upload is, it's basically"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 978.2399999999999,
+      "end": 982.3199999999999,
+      "text": " rather than uploading the file in sequence, like byte after byte,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 982.3199999999999,
+      "end": 986.4,
+      "text": " you can split that file into multiple parts and then you can upload all the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 986.4,
+      "end": 990.7199999999999,
+      "text": " bytes of every parts in parallel. So it's basically a way to try to speed up the upload."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 990.7199999999999,
+      "end": 993.5999999999999,
+      "text": " And the way it works is that you generally have to do two API calls."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 993.6,
+      "end": 997.44,
+      "text": " One to start the multi-part upload and one to finish."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 997.44,
+      "end": 1002.88,
+      "text": " And in between, you can create new parts. And when you create new parts, you can basically"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1002.88,
+      "end": 1009.0400000000001,
+      "text": " use the presigned URLs to do that. And at that point, you have URLs that you can use to trigger"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1009.0400000000001,
+      "end": 1012.32,
+      "text": " that upload without needing to have additional credentials."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1012.32,
+      "end": 1017.36,
+      "text": " And actually, this is something we figured out in a blog post by altoestra.com."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1017.36,
+      "end": 1020.4,
+      "text": " So we're going to have that blog post as well in the show notes."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1020.4,
+      "end": 1024,
+      "text": " And there are examples of code you can see there, which I think makes all of"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1024,
+      "end": 1028.8,
+      "text": " that thing a little bit more clear. So with that being said, I think we are"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1028.8,
+      "end": 1035.28,
+      "text": " at the end of these episodes and we are really curious to know if you knew about S3 present URLs"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1035.28,
+      "end": 1038.8,
+      "text": " and if you have been using them in production, what kind of use cases do you have?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1038.8,
+      "end": 1042.72,
+      "text": " And I don't know if this is your favorite S3 feature."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1042.72,
+      "end": 1045.28,
+      "text": " It kind of is my favorite S3 feature right now."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1045.28,
+      "end": 1049.36,
+      "text": " So if this is not your favorite S3 feature, please tell us in the comment, what is your"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1049.36,
+      "end": 1054.24,
+      "text": " actual S3 feature that you like the most? So with that being said, thank you very much"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1054.24,
+      "end": 1079.68,
+      "text": " for being with us. Remember to like and subscribe and we'll see you in the next episode."
+    }
+  ]
+}

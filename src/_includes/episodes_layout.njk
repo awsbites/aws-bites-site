@@ -52,21 +52,20 @@
 </div>
 
 {% if transcripts[episode] %}
-  <div id="transcript" class="my-8 px-4 prose prose-sm md:prose-lg lg:prose-xl dark:prose-dark mx-auto">
+  <div id="transcript" class="my-8 px-4 prose prose-sm md:prose-lg lg:prose-xl dark:prose-dark mx-auto font-serif">
     {% set currentSpeakerLabel = '' %}
-    {% set content = '' %}
-    {% set startTime = 0 %}
 
-    {% for segment in transcripts[episode].segments %}
-      {% if segment.speakerLabel != currentSpeakerLabel %}
-        {% if currentSpeakerLabel != '' %}
-        </p>
-      {% endif %}
-      {% set currentSpeakerLabel = segment.speakerLabel %}
-      <p data-start-time="{{ segment.start }}">
-        <span class="speaker-label font-bold text-primary-300 dark:text-secondary-200">{{ transcripts[episode].speakers[currentSpeakerLabel] }}</span>: 
-      {% endif %}
-      <span data-start-time="{{ segment.start }}">{{ segment.text }}</span>
+    {% for paragraph in transcripts[episode].paragraphs %}
+      <p>
+      {% for segment in paragraph %}
+        {% if segment.speakerLabel != currentSpeakerLabel %}
+          {% set currentSpeakerLabel = segment.speakerLabel %}
+          <p data-start-time="{{ segment.start }}">
+            <span class="speaker-label font-bold text-primary-300 dark:text-secondary-200">{{ transcripts[episode].speakers[currentSpeakerLabel] }}</span>: 
+        {% endif %}
+        <span data-start-time="{{ segment.start }}">{{ segment.text }}</span>
+      {% endfor %}
+      </p>
     {% endfor %}
   </div>
 {% endif %}

@@ -1,0 +1,2180 @@
+{
+  "speakers": {
+    "spk_0": "Luciano",
+    "spk_1": "Eoin"
+  },
+  "segments": [
+    {
+      "speakerLabel": "spk_0",
+      "start": 0,
+      "end": 4.8,
+      "text": " In the age of distributed systems, we produce tons and tons of logs."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 4.8,
+      "end": 8.16,
+      "text": " This is especially true for AWS when you use CloudWatch logs."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 8.72,
+      "end": 13.68,
+      "text": " So how do we make sense of all these logs and how can we find useful information in them?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 14.24,
+      "end": 18.56,
+      "text": " My name is Luciano and today I'm joined by Eoin and this is AWS Bites podcast."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 18.56,
+      "end": 32.239999999999995,
+      "text": " So if you use AWS, chances are that we have been using CloudWatch and you have probably seen that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 32.239999999999995,
+      "end": 37.36,
+      "text": " CloudWatch is a service that allows you to do a bunch of different things. In previous episodes,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 37.36,
+      "end": 42.56,
+      "text": " we have been talking about metrics and alarms and today we're going to focus on logs, which is the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 42.56,
+      "end": 50.32,
+      "text": " next big topics when you deal with CloudWatch. So an interesting thing is that for a long time,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 50.32,
+      "end": 57.84,
+      "text": " at least in my career, I was using third-party tools because my opinion, take it with a pinch"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 57.84,
+      "end": 62.400000000000006,
+      "text": " of salt, CloudWatch logs was a little bit underwhelming in terms of functionality,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 62.400000000000006,
+      "end": 67.44,
+      "text": " in terms of ability to actually make sense and use the log data. I don't know Eoin,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 67.44,
+      "end": 72.8,
+      "text": " if you share the same opinion. Definitely, especially when you want to read them."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 72.8,
+      "end": 77.12,
+      "text": " It was pretty good for storing logs, but the main challenge then is how do you get useful information"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 77.12,
+      "end": 80.16,
+      "text": " out of them? And for a long time, there was really nothing you could do there."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 80.8,
+      "end": 84.8,
+      "text": " Yeah, I think now this has changed a lot, especially in the last couple of years. So"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 84.8,
+      "end": 90.4,
+      "text": " in this episode, we're going to try to give you a few insights on how you can get the most out of"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 90.4,
+      "end": 95.68,
+      "text": " CloudWatch logs and maybe you don't need to use a third-party tool for logs anymore. So do we want"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 95.68,
+      "end": 101.12,
+      "text": " to start maybe by describing what are the main concepts when it comes to CloudWatch logs?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 101.12,
+      "end": 106.56,
+      "text": " Yeah, I can give that a go."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 106.56,
+      "end": 112.08000000000001,
+      "text": " With a lot of log aggregators, so you talk about third-party log aggregators, and when you send all your logs, people used to, it was pretty common that you'd"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 112.08000000000001,
+      "end": 116.16000000000001,
+      "text": " have log groups in CloudWatch, you'd send everything into Elasticsearch, for example, with"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 116.72,
+      "end": 121.52000000000001,
+      "text": " an ELK stack or Elastic stack where you funnel all your logs into one place. And then you've got a"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 121.52,
+      "end": 126.72,
+      "text": " big stream of all your logs from all your microservices, all your distributed applications."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 126.72,
+      "end": 132.24,
+      "text": " So it's just one thing, but CloudWatch, it's quite fragmented the way they're stored. So"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 132.24,
+      "end": 136.32,
+      "text": " there's a two-level structure. You've got these log groups, and that's like the primary folder"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 136.32,
+      "end": 141.76,
+      "text": " structure for logs from a given application usually, or a given Lambda function or a given"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 141.76,
+      "end": 148.4,
+      "text": " container. So that's a log group. Imagine that like a folder structure. And then within the log"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 148.4,
+      "end": 153.20000000000002,
+      "text": " group, you've got log streams. So the number of streams you have kind of depends on the service,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 153.20000000000002,
+      "end": 157.28,
+      "text": " but your log stream is like a file within that folder. When you're looking for logs,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 157.28,
+      "end": 161.36,
+      "text": " because you've got multiple files, you've got multiple folders with streams and log groups,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 161.36,
+      "end": 164.72,
+      "text": " you don't know where to look necessarily if you've just got those resources."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 165.44,
+      "end": 170.72,
+      "text": " One other thing that it might be worthwhile mentioning for log groups is that some services"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 170.72,
+      "end": 177.68,
+      "text": " allow you to log to log groups. For example, you can log step functions, state executions and state"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 177.68,
+      "end": 182.16,
+      "text": " changes to a log group. You have to make sure that the log group starts with a certain prefix."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 182.16,
+      "end": 186.08,
+      "text": " And this is something that isn't very clear in the documentation. So for Lambda, your function,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 186.08,
+      "end": 190.56,
+      "text": " your log group name should start with slash AWS slash Lambda. And for step functions,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 190.56,
+      "end": 195.84,
+      "text": " they should start with AWS slash states. And then for event bridge, it should be AWS slash events."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 196.64000000000001,
+      "end": 201.04000000000002,
+      "text": " Sometimes it lets you use something that has a different naming convention, but it doesn't tell"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 201.04000000000002,
+      "end": 206.8,
+      "text": " you why your logs aren't being written. So that's one thing I'd call out just in case it helps save"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 206.8,
+      "end": 210.96,
+      "text": " people some time. So then you've got log streams and log groups. So the question is, how do you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 210.96,
+      "end": 214.96,
+      "text": " view them? So maybe we can talk about what the case used to be like a couple of years ago, and"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 214.96,
+      "end": 217.60000000000002,
+      "text": " you didn't really have a lot of options. What would you use, Ligiana?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 217.60000000000002,
+      "end": 226.08,
+      "text": " Yeah, mostly AWS logs tailing from the CLI."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 226.08,
+      "end": 230.64000000000001,
+      "text": " That used to be one way, but to be honest, I was more in the camp, less in just everything in a big Elasticsearch cluster, because there"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 230.64000000000001,
+      "end": 235.36,
+      "text": " we can just keep BANA and that's a much nicer experience to use and find information that way."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 235.36,
+      "end": 242.08,
+      "text": " So I think that was my preferred way to operate when I was building any sensible application."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 245.60000000000002,
+      "end": 249.68,
+      "text": " For something like the serverless framework, when you deploy a Lambda function, you can use serverless framework to tell the logs in the console. That works pretty well."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 249.68,
+      "end": 254.56,
+      "text": " AWS CLI has AWS logs tail command, which also works. And that allows you to,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 255.12,
+      "end": 258.32,
+      "text": " saves you from going through the console and clicking through individual streams,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 258.32,
+      "end": 263.44,
+      "text": " looking for logs, which is just too painful. But I was always kind of, I always found it a little"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 263.44,
+      "end": 268.32,
+      "text": " bit of an effort to create that Elasticsearch cluster just so you could store your logs. It"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 268.32,
+      "end": 272.4,
+      "text": " seems like too much infrastructure for what you were trying to do. That kind of led me to try"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 272.4,
+      "end": 278.16,
+      "text": " different things like log entries or Splunk or many of the other solutions out there. There are,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 278.16,
+      "end": 282.88,
+      "text": " there's probably a hundred of them at this stage. And they're all pretty good in terms of user"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 282.88,
+      "end": 287.92,
+      "text": " interface. One of the things that stops people from using them sometimes I think is, well,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 287.92,
+      "end": 291.44,
+      "text": " there are probably two things actually. One is that people don't always feel comfortable with"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 291.44,
+      "end": 295.6,
+      "text": " putting all of their logs in a third party. Now that depends on what kind of logs you have and"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 295.6,
+      "end": 299.6,
+      "text": " what kind of data is in those logs. And the other thing is that sometimes there's just a propagation"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 299.6,
+      "end": 303.92,
+      "text": " delay from the time logs go into CloudWatch logs and then into your third party vendor before you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 303.92,
+      "end": 309.84,
+      "text": " can query them. And when you're in a production troubleshooting scenario, seconds matter."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 310.48,
+      "end": 310.88,
+      "text": " Absolutely."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 310.88,
+      "end": 316.08,
+      "text": " When it comes to the time for logs. So we were always on the lookout for ways you could"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 316.08,
+      "end": 322.15999999999997,
+      "text": " improve the experience with CloudWatch logs. So maybe before we get into the game-changing feature"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 322.15999999999997,
+      "end": 326.4,
+      "text": " that enabled that, should we talk about some of the other features that might be less commonly"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 326.4,
+      "end": 331.03999999999996,
+      "text": " used like metrics filters? It's not something I use very often, but it is pretty useful. Do you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 331.03999999999996,
+      "end": 331.91999999999996,
+      "text": " want to talk about that one?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 331.91999999999996,
+      "end": 336.79999999999995,
+      "text": " I'll try my best. There's also not a feature that I've been using a lot."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 336.79999999999995,
+      "end": 343.12,
+      "text": " So let me know if you think I'm missing anything important. But the idea is that you can basically define a filter that is"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 343.12,
+      "end": 349.76,
+      "text": " like an expression that is constantly analyzing logs coming in and trying to see if your filter"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 349.76,
+      "end": 355.12,
+      "text": " matches the log lines. And then you can create metrics better than it. For instance, an example"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 355.12,
+      "end": 361.6,
+      "text": " could be count the number of 404 errors just by looking at access logs, right? Doesn't have to be"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 361.6,
+      "end": 366.32,
+      "text": " an API gateway. Maybe you want to count from an NGINX instance that you are running on an EC2 or"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 366.32,
+      "end": 373.12,
+      "text": " a container. You could create your own custom metric filter and have metrics this way."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 373.12,
+      "end": 377.12,
+      "text": " Okay. So that's different to the last time we were talking about embedded metrics format, right?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 377.12,
+      "end": 378.64,
+      "text": " But this is not the same thing."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 378.64,
+      "end": 385.2,
+      "text": " It's not the same thing. Yeah, exactly."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 385.2,
+      "end": 390.32,
+      "text": " Embedded metrics format is basically when you create log lines that are a JSON object effectively. Like you are printing a JSON object that follows a"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 390.32,
+      "end": 397.52,
+      "text": " specific structure that AWS recognizes. And then AWS will use that particular structure to create"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 397.52,
+      "end": 402,
+      "text": " metrics for you. So you have in that structure all the information that is needed to actually"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 402,
+      "end": 408.56,
+      "text": " push a metric into CloudWatch metrics. And that is integrated well with Lambda. And we spoke about"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 408.56,
+      "end": 414.48,
+      "text": " ideas that you can basically use that to integrate it with containers. Or you can use the CloudWatch"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 414.48,
+      "end": 420.40000000000003,
+      "text": " agent, for instance, in an EC2 instance to ingest it from this kind of log ingest metrics into"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 420.40000000000003,
+      "end": 425.92,
+      "text": " CloudWatch. Yeah, there is a little bit of, I guess, terminology confusion there between filter"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 425.92,
+      "end": 430.72,
+      "text": " and EMF metrics. But at the end of the day, the idea is that you can use logs to also create"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 430.72,
+      "end": 436.8,
+      "text": " metrics for still in CloudWatch, but from logs, you also create custom metrics. As we think more"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 436.8,
+      "end": 442.48,
+      "text": " about now that I have logs and I understand the structure of the logs, how can we"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 442.48,
+      "end": 449.44,
+      "text": " use these logs in different types of processing logic?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 449.44,
+      "end": 454.88,
+      "text": " So you got the option to create subscriptions with CloudWatch log groups. So if you want to programmatically process them, send them"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 454.88,
+      "end": 458.64000000000004,
+      "text": " somewhere else, you can create subscriptions. It used to be that you could only have one subscription"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 458.64000000000004,
+      "end": 464.24,
+      "text": " for a log group, and then they increased that limit to two. So you can have two subscriptions."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 465.28000000000003,
+      "end": 470.16,
+      "text": " I think I've heard of people having that limit raised further still, so that might be worth a try."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 470.16,
+      "end": 475.12,
+      "text": " But the idea is that you can subscribe and then you can send all your logs to Lambda or to Kinesis"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 475.12,
+      "end": 480.16,
+      "text": " or to Kinesis Firehose. So Lambda is a good way you can process logs directly, but if you want to"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 480.16,
+      "end": 485.04,
+      "text": " batch things before you process them, it's a good idea to put them into a Kinesis data stream first."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 485.04,
+      "end": 489.36,
+      "text": " Then you can have lots of log entries in one message and process them in Lambda from that point."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 489.36,
+      "end": 492.88,
+      "text": " But you can also subscribe directly into Kinesis Firehose and Firehose will..."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 493.52000000000004,
+      "end": 497.20000000000005,
+      "text": " If you want to put your logs into an S3 bucket, the Firehose approach is a good way to do it."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 497.2,
+      "end": 501.76,
+      "text": " But Firehose can also go to Elasticsearch. So that's one way of going into Elasticsearch."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 501.76,
+      "end": 505.2,
+      "text": " And you can use Firehose to go to Splunk as well."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 505.2,
+      "end": 508.88,
+      "text": " So there's lots of options there. Depending on what you've got in your logs, you can use them"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 508.88,
+      "end": 513.4399999999999,
+      "text": " to create metrics. Like you say, you can use EMF metrics, but if you have your own metrics format,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 513.4399999999999,
+      "end": 517.12,
+      "text": " and people used to do this before EMF metrics existed, people would have a..."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 517.68,
+      "end": 522,
+      "text": " Use the StatsD format for metrics or custom format, and then you could use Lambda"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 522,
+      "end": 524.24,
+      "text": " to create the metrics with the CloudWatch API."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 524.24,
+      "end": 527.28,
+      "text": " That's the story when it comes to integrating with other services."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 527.28,
+      "end": 531.76,
+      "text": " We mentioned the game-changing feature for CloudWatch logs then."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 531.76,
+      "end": 538.08,
+      "text": " So a year or two ago, probably two years ago, the CloudWatch logs insights feature was announced."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 538.08,
+      "end": 540.4,
+      "text": " For me, this ended up being a big deal. What do you think?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 545.04,
+      "end": 550.32,
+      "text": " Yeah, I consider you a CloudWatch log insights ninja, because every time I have to search something CloudWatch, I struggle with the syntax,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 550.32,
+      "end": 555.0400000000001,
+      "text": " because of course it's a new syntax and you need to know all the different features."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 555.0400000000001,
+      "end": 558.5600000000001,
+      "text": " And Eoin already mastered all of that, so he's my reference."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 558.5600000000001,
+      "end": 562,
+      "text": " But yeah, other than that, I think it's a pretty powerful thing,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 562,
+      "end": 565.6,
+      "text": " because it really gives you effectively a query language that you can use to go"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 566.4000000000001,
+      "end": 571.36,
+      "text": " and search for stuff, not just in a log stream, but you can even look for things"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 571.36,
+      "end": 574.48,
+      "text": " in multiple log streams together. So it's very powerful, for instance,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 574.48,
+      "end": 577.0400000000001,
+      "text": " when you're trying to troubleshoot a problem,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 577.04,
+      "end": 581.04,
+      "text": " on a particular distributed system, maybe you have all sorts of different components,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 581.04,
+      "end": 586.24,
+      "text": " multiple lambdas, containers running, and you know more or less what's the time"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 586.24,
+      "end": 590.88,
+      "text": " where you are looking for particular evidence of an issue or try to understand the problem."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 590.88,
+      "end": 594.56,
+      "text": " You can construct queries using all sorts of different properties."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 594.56,
+      "end": 597.28,
+      "text": " We'll talk more about how to have structured logs."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 598,
+      "end": 603.28,
+      "text": " And with CloudWatch logs insight, you literally have all the power to do that from"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 603.28,
+      "end": 607.76,
+      "text": " a web interface and you get the results and you can use that to dig deeper"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 607.76,
+      "end": 611.1999999999999,
+      "text": " until you find the results you're looking for or the evidence you're looking for."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 615.1999999999999,
+      "end": 620.3199999999999,
+      "text": " You mentioned that the syntax you use for querying with CloudWatch logs insights, and I really like it actually. Maybe for a lot of people it would be nice if you could"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 620.3199999999999,
+      "end": 624.3199999999999,
+      "text": " use the Lucene syntax that people are familiar with from Elasticsearch and Kibana,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 624.88,
+      "end": 629.4399999999999,
+      "text": " but I never really got to grips with that fully. So I actually prefer this syntax"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 629.44,
+      "end": 634.08,
+      "text": " and it's pretty easy to remember once you have got to grips with some of the things you can do."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 634.08,
+      "end": 639.6800000000001,
+      "text": " So it's essentially like a Unix pipe format where you create different,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 639.6800000000001,
+      "end": 643.2800000000001,
+      "text": " it's like a pipeline for filtering and searching your logs. So you can say filter"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 644.1600000000001,
+      "end": 649.84,
+      "text": " a given field for a given string or a numeric value or Boolean operator or regex."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 650.72,
+      "end": 655.5200000000001,
+      "text": " And then you can extract fields, you can parse strings and actually,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 655.52,
+      "end": 661.6,
+      "text": " even if it's unstructured text, you can parse numbers, strings, or whatever from"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 661.6,
+      "end": 666.16,
+      "text": " an arbitrary piece of text, again using regular expressions. And then you can do statistics."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 666.16,
+      "end": 673.36,
+      "text": " So you can almost treat it like a metrics query engine then. So you can extract numbers and do,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 674.16,
+      "end": 678.24,
+      "text": " it's almost like SQL in that case. So you could find the number of users"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 678.24,
+      "end": 683.52,
+      "text": " who have logged into your system in five second buckets. And then you can do"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 683.52,
+      "end": 690.48,
+      "text": " five second buckets using this syntax. And then you can sort and you get the results back in the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 690.48,
+      "end": 695.92,
+      "text": " AWS console. You can use the API for this as well, but the API I find is a little bit cumbersome for"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 695.92,
+      "end": 702.16,
+      "text": " Dog Insights. But if you have some programmatic cases, you can give that a try as well."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 702.88,
+      "end": 710.16,
+      "text": " So I really like it actually. I only wish there were a few extra features that would really"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 710.16,
+      "end": 717.04,
+      "text": " make this as usable as all the third party systems out there. So I use this every day. I use this"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 717.04,
+      "end": 720.8,
+      "text": " multiple times a day across multiple different applications, but there are some limits and those"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 720.8,
+      "end": 728,
+      "text": " limits get to me. Yeah."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 728,
+      "end": 735.12,
+      "text": " One example that comes to mind when we just want to present a case where this was useful is in a project I worked on recently where in particular workflows, we write"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 735.12,
+      "end": 740.4,
+      "text": " a lot of files to S3. We needed to troubleshoot something related to the creation of these files."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 740.96,
+      "end": 746.5600000000001,
+      "text": " And one of the things we do, we have a common utility library that allows us to write all"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 746.5600000000001,
+      "end": 752.48,
+      "text": " these files in S3 in a consistent way. And this library also happens to write logs in a somewhat"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 752.48,
+      "end": 757.84,
+      "text": " structured way. There is always a line saying something like creating a file called blah in"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 757.84,
+      "end": 765.76,
+      "text": " this bucket called blah and the size of the file is this. And what we did, that was the easiest way"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 765.76,
+      "end": 769.76,
+      "text": " to find the results we were looking for was literally, okay, let's go to CloudWatch Insights."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 769.76,
+      "end": 775.0400000000001,
+      "text": " We know we produce all these logs consistently. We know that the time span we are trying to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 775.0400000000001,
+      "end": 779.84,
+      "text": " understand this particular problem. So let's just set CloudWatch logs inside this time span. Let's"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 779.84,
+      "end": 785.84,
+      "text": " just create a parse expression to find these particular lines and extrapolate the number"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 785.84,
+      "end": 790.8000000000001,
+      "text": " of kilobytes I think we were looking for. So we basically managed to build a query that way"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 790.8000000000001,
+      "end": 794.8000000000001,
+      "text": " and figure out, okay, we are creating this many files in this amount of time and this is the size"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 794.8000000000001,
+      "end": 799.36,
+      "text": " of files that we are creating. So this is just a random example of the kind of things you could do."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 799.9200000000001,
+      "end": 804.08,
+      "text": " And it's very flexible because in that case, we didn't even have structured logs, but we were able"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 804.08,
+      "end": 809.52,
+      "text": " to extrapolate information from text effectively by using the parse functionality."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 810.4000000000001,
+      "end": 814.8000000000001,
+      "text": " That's nice. We talked about these metric logs before."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 814.8,
+      "end": 820.4,
+      "text": " So we talked about EMF metrics and then other less structured ones or not JSON structured like StatsD format where you start with monitoring"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 820.4,
+      "end": 825.5999999999999,
+      "text": " pipe, the metric name pipe, the unit pipe value. So you could use CloudWatch logs insights to parse"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 825.5999999999999,
+      "end": 830.24,
+      "text": " that, extracted all the fields, extracted the metric, the value of the unit, and then say,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 830.24,
+      "end": 838.9599999999999,
+      "text": " give me the maximum metric value for a five minute value and group by the time segment, but also"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 838.96,
+      "end": 846.32,
+      "text": " the user's country code. And that kind of stuff works really well. You can do with EMF metrics."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 846.32,
+      "end": 850.48,
+      "text": " And if we go back to our metrics episode, we were talking about how CloudWatch metrics"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 851.36,
+      "end": 855.2,
+      "text": " only gives you like one minute aggregations. Usually you can't get any finer grain than"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 855.2,
+      "end": 859.6800000000001,
+      "text": " that unless you have high cardinality custom metrics. But once you've got those metrics"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 859.6800000000001,
+      "end": 866,
+      "text": " in your logs, you can query and do really powerful things with this interface, CloudWatch logs insights."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 866,
+      "end": 868.24,
+      "text": " So some of the limitations... Sorry, go ahead, Lucio."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 874.24,
+      "end": 879.84,
+      "text": " Before we go into the limitation, another useful feature is the fact that you can save the queries persistently. And one of the things we did with one of our customers is that we have an operational"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 879.84,
+      "end": 886.24,
+      "text": " playbook for some of the alarms that we have created. And when those alarms fire, we go in"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 886.24,
+      "end": 891.68,
+      "text": " kind of an incident mode where we need to try to troubleshoot and resolve the particular problem."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 891.68,
+      "end": 897.5999999999999,
+      "text": " And we have in this playbook links to the CloudWatch logs inside page that point specifically"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 897.5999999999999,
+      "end": 903.8399999999999,
+      "text": " to particular queries where we have effectively some placeholders that we can fill to try to find"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 903.8399999999999,
+      "end": 909.5999999999999,
+      "text": " the answers on what's actually going on for that incident. So that's another very useful feature."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 909.5999999999999,
+      "end": 914,
+      "text": " It's something that you can do also, for instance, in Kibana. So it's not like an innovation in the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 914,
+      "end": 919.12,
+      "text": " market, but again, it kind of remarks the point that now that the reason for using a third party"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 919.12,
+      "end": 924.48,
+      "text": " system is becoming less and less relevant, right? Because you can do all these things natively in"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 924.48,
+      "end": 929.44,
+      "text": " AWS. Yeah, I agree. That's a useful one."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 929.44,
+      "end": 935.76,
+      "text": " And another useful feature worth mentioning is that you can export the data. So you can export it right now. Interestingly enough, exporting it"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 935.76,
+      "end": 941.28,
+      "text": " log lines, you can export to CSV or Markdown. And I don't know why these are the first two chosen"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 941.28,
+      "end": 948,
+      "text": " options. A text file would have been the immediate first option I'd prefer because I end up like"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 948,
+      "end": 956.16,
+      "text": " downloading the CSV and turning the CSV into a text file. So maybe this brings us onto some of"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 956.16,
+      "end": 961.76,
+      "text": " the gaps and the limitations of CloudWatch logs insights. So in terms of limitations, one of the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 961.76,
+      "end": 967.12,
+      "text": " ones people cite often saying that it's kind of a barrier for the adoption is the limit of 20 log"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 967.12,
+      "end": 970.64,
+      "text": " groups. As you mentioned, it's good that you can query across multiple log groups in a distributed"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 970.64,
+      "end": 977.44,
+      "text": " system, but why is the limit 20? I personally find that it doesn't cause me a problem often because"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 977.44,
+      "end": 982,
+      "text": " 20 log groups is generally quite a broad area. But if you compare it to something like Cabana where"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 982,
+      "end": 986.8800000000001,
+      "text": " all of your logs are in one place, then it's a difference, right? So you have to be more selective."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 988.8000000000001,
+      "end": 994,
+      "text": " So it would be good to see the limit raised on that. And it would also be good if you could kind"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 994,
+      "end": 998.8000000000001,
+      "text": " of save those groups of logs. So you can run multiple... You could have say a collection of"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 998.8000000000001,
+      "end": 1004,
+      "text": " log groups that related to part of your application. And then you can run different"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1004,
+      "end": 1007.52,
+      "text": " queries against that collection of log groups. So another kind of safe feature."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1008.08,
+      "end": 1012.88,
+      "text": " And the other limitation that you can run into sometimes is that the results you're limited to"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1013.52,
+      "end": 1020.96,
+      "text": " 10,000 log entries, 9,999 to be precise. But I mean, that's okay if you're browsing in the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1020.96,
+      "end": 1024.96,
+      "text": " console, that's more than you generally want to read. But if you wanted to programmatically"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1024.96,
+      "end": 1030.24,
+      "text": " extract a large volume, then once you hit that limit, you end up having to try and use time"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1030.24,
+      "end": 1037.52,
+      "text": " ranges to extend it to another page. There's not an inbuilt support for pagination across"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1037.52,
+      "end": 1042.32,
+      "text": " volumes greater than 10,000, which is a pity. Yeah."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1042.32,
+      "end": 1047.52,
+      "text": " And that's, I think, something a little bit confusing when combined with the export data functionality, because it's not obvious that you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1047.52,
+      "end": 1053.6,
+      "text": " are exporting only that much as a maximum bound. So sometimes you feel like, okay, this is just"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1053.6,
+      "end": 1059.36,
+      "text": " generating a big file. It gave me all the data. Now be careful, you might have missed some data."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1059.36,
+      "end": 1062.8,
+      "text": " If you hit that limit, it's not going to go more than that particular limit."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1069.28,
+      "end": 1073.36,
+      "text": " So in the user interface, one of the things I miss is when you find some error, for example, often what you want to do and what you can do with some of the third parties is find nearby"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1073.36,
+      "end": 1077.9199999999998,
+      "text": " related logs. So if you can imagine you're searching across 20 log groups and you found"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1077.9199999999998,
+      "end": 1082.3999999999999,
+      "text": " an error, then you got a stack trace, but you're only seeing the errors at that point. So immediately"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1082.3999999999999,
+      "end": 1087.36,
+      "text": " you want to say, okay, well, I want to see all the other messages related to that request in that"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1087.36,
+      "end": 1092.6399999999999,
+      "text": " Lambda function five seconds before and five seconds afterwards. And the only way to do that"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1092.6399999999999,
+      "end": 1099.12,
+      "text": " right now is to find the request ID and put it into a new query and to continually start editing"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1099.12,
+      "end": 1105.52,
+      "text": " your query to do drill downs from an error back to related logs and then into another log stream."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1105.52,
+      "end": 1109.4399999999998,
+      "text": " So it would be nice to have a little bit more of a user experience improvement where you could"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1111.04,
+      "end": 1114.3999999999999,
+      "text": " click on a request and find your via related logs very quickly, for example."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1114.4,
+      "end": 1120.0800000000002,
+      "text": " Yeah, that would be very useful. I think I had a few occasions where I wished I had that feature."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1120.0800000000002,
+      "end": 1125.76,
+      "text": " One thing that I want to remark is that because we mentioned a few times that this is something"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1125.76,
+      "end": 1130.16,
+      "text": " that can give you capabilities that are very close to metrics because you can get this kind"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1130.16,
+      "end": 1136,
+      "text": " of information. But one thing to really understand is that the model of storing this information"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1136,
+      "end": 1140.16,
+      "text": " and receiving the data is entirely different when you are using CloudWatch logs inside"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1140.16,
+      "end": 1144.8000000000002,
+      "text": " and when you're using metrics. Metrics are already highly optimized for quick retrieval"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1144.8000000000002,
+      "end": 1149.44,
+      "text": " and quick aggregation, just the way that this data is stored. Logs are effectively not. You"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1149.44,
+      "end": 1153.68,
+      "text": " can imagine them as being text files somewhere. And every time you run a query, you are literally"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1153.68,
+      "end": 1158.64,
+      "text": " scanning through all these text files. I know that AWS is probably very, very smart because"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1158.64,
+      "end": 1163.28,
+      "text": " you get results in pretty reasonable time. So probably they parallelize this data in some very"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1163.28,
+      "end": 1168.48,
+      "text": " efficient way. But nonetheless, you are scanning through large amounts of data. And actually,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1168.48,
+      "end": 1173.28,
+      "text": " interesting enough, from the UI, you can see how much data you are actually scanning for every"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1173.28,
+      "end": 1178.56,
+      "text": " single query you run. And the reason why I wanted to remark this point, which is maybe not so"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1178.56,
+      "end": 1183.84,
+      "text": " obvious, because of course, this has a direct impact on cost because of course, every query"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1183.84,
+      "end": 1187.44,
+      "text": " is not necessarily cheap depending on how much data you are scanning."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1191.52,
+      "end": 1198.08,
+      "text": " Yeah, it's actually one of the few areas in the AWS console where you can see the billing units update in real time because the volume of data scanned is being updated multiple times."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1198.08,
+      "end": 1200.96,
+      "text": " Multiple times per second as the query is running."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1206,
+      "end": 1211.9199999999998,
+      "text": " Yeah, one thing actually I found myself doing very often is when I'm building a new query, of course, I'm not confident in my log insight skills as you probably are. So it takes me a while,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1211.9199999999998,
+      "end": 1215.6,
+      "text": " a little bit of trial and error before I fine tune my query to do what I want to do."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1215.6,
+      "end": 1220.08,
+      "text": " So I just run a very generic query, but then I try to stop it as soon as I see some results."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1220.08,
+      "end": 1224.24,
+      "text": " Because of course, it doesn't make sense to keep it going for a large amount of time if I know this"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1224.24,
+      "end": 1229.1200000000001,
+      "text": " is not going to be my final query. So I kind of progress in small increments and I found it very"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1229.1200000000001,
+      "end": 1233.76,
+      "text": " nice that you can stop the queries before you actually keep scanning gigabytes and gigabytes"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1233.76,
+      "end": 1240.96,
+      "text": " of logs. So that's a neat trick and it's good to see that indicator going up that reminds you,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1240.96,
+      "end": 1245.1200000000001,
+      "text": " you maybe don't want to pay for this query if you don't have your final query right there."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1246.48,
+      "end": 1251.52,
+      "text": " Yeah, and the queries can run for up to 15 minutes, right? So that gives an idea of the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1251.52,
+      "end": 1256.6399999999999,
+      "text": " volumes it can process, but also the potential cost. So maybe that's a good segue into the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1256.6399999999999,
+      "end": 1262.72,
+      "text": " pricing topic. I know that you can scan up to five gigabytes of data for free in the free tier."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1263.28,
+      "end": 1269.04,
+      "text": " After that, we're looking at 57 cents for ingestion of data into CloudWatch logs, right?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1269.04,
+      "end": 1275.84,
+      "text": " So this is, sorry, this is storage, right? So storage and ingestion, over 50 cents to ingest,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1275.84,
+      "end": 1282.24,
+      "text": " and then 3 cents per gigabyte per for storing your logs. So you can compare that to your third"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1282.24,
+      "end": 1288.48,
+      "text": " party log aggregator and see how the cost compares. Then when it comes to log insights queries,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1288.48,
+      "end": 1294.72,
+      "text": " there's a price per gigabyte scanned, which is like just over half a cent per gigabyte."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1294.72,
+      "end": 1300.8799999999999,
+      "text": " So you can imagine terabytes that starts to escalate. It kind of scared me a little bit when"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1300.8799999999999,
+      "end": 1304.32,
+      "text": " I saw this first and when I started running queries at log insights for the first time,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1304.32,
+      "end": 1308.08,
+      "text": " the fact that all of a sudden you start running queries, you can run into big bills."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1308.08,
+      "end": 1314,
+      "text": " It hasn't materialized in any kind of bill shock yet. I found that the cost, especially compared"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1314,
+      "end": 1316.8799999999999,
+      "text": " to the value when you're troubleshooting and looking for insights with issues,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1316.8799999999999,
+      "end": 1321.6799999999998,
+      "text": " I found this to be a good value for money feature personally. It's one of the areas where I wouldn't"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1321.6799999999998,
+      "end": 1326.3999999999999,
+      "text": " gripe too much about the pricing."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1326.3999999999999,
+      "end": 1331.52,
+      "text": " Yeah, especially if you already have done your work in terms of structuring metrics and alarms, or you already have other indicators for what you're looking for,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1331.52,
+      "end": 1335.44,
+      "text": " you can probably just be very selective, for instance, with the time ranges."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1336,
+      "end": 1340.4,
+      "text": " And that will limit the amount of logs you're going to be scanning every time you run a query."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1341.04,
+      "end": 1346.8799999999999,
+      "text": " Yeah, yeah, absolutely. Yeah. And I would say compare it to the third party options out there."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1346.8799999999999,
+      "end": 1350.32,
+      "text": " Some of them may offer a much cheaper option depending on your usage, because it would be down"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1350.32,
+      "end": 1356.48,
+      "text": " to volume ingested, volume storage, the retention, and then also other third party options might be"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1356.48,
+      "end": 1360.4,
+      "text": " related to the number of users you have on the system as well. So there's different dimensions"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1360.4,
+      "end": 1365.92,
+      "text": " to consider. And here might as well vary."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1365.92,
+      "end": 1371.2800000000002,
+      "text": " Yeah, maybe one final topic before we wrap up this episode is to discuss, I don't know, suggestions or tips that we might have in terms of"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1371.8400000000001,
+      "end": 1376.88,
+      "text": " when you produce your logs, is there anything you might do that will make your life easier"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1376.88,
+      "end": 1380.5600000000002,
+      "text": " in the future? Right? Do you have any recommendation in that sense?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1382.16,
+      "end": 1386.8000000000002,
+      "text": " I would always start with using structured JSON logs."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1386.8,
+      "end": 1391.28,
+      "text": " And I think this has been a major improvement when it comes to being able to run queries. It means you don't have to parse"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1391.84,
+      "end": 1396.56,
+      "text": " logs yourself. So previously there used to be kind of a trade-off between human readable logs"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1396.56,
+      "end": 1402,
+      "text": " and structured logs. I think now people tend to favor structured logs because it's much easier"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1402,
+      "end": 1406,
+      "text": " to query and parse and programmatically interpret. And if you need to present them for human"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1406,
+      "end": 1411.44,
+      "text": " readability, you can process them. What do you think is that? Would you also agree that structured"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1411.44,
+      "end": 1416.6399999999999,
+      "text": " logs are the way to go? I would agree."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1416.64,
+      "end": 1421.0400000000002,
+      "text": " And for a long time, I've seen those Apache Access Log format standards, which I think is exactly what you described. It was a good compromise"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1421.0400000000002,
+      "end": 1426.16,
+      "text": " between readability, but also something that you can easily parse. But of course, that comes with"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1426.72,
+      "end": 1430.88,
+      "text": " the problem that once you have the kind of standard, the standard is very limited. There"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1430.88,
+      "end": 1435.5200000000002,
+      "text": " is only so many fields that the standard is giving you. While in real life, if you want to go outside"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1435.5200000000002,
+      "end": 1440.88,
+      "text": " the domain, for instance, of access logs, you probably want to log a lot more details in terms"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1440.88,
+      "end": 1447.2,
+      "text": " of fields and attributes and things that you care about for troubleshooting. So going with JSON is"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1447.2,
+      "end": 1452,
+      "text": " kind of an obvious strategy at that point, because we have total freedom of logging all sorts of"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1452,
+      "end": 1457.2800000000002,
+      "text": " different fields that might make sense for your application. And then, as you said, CloudWatch logs"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1457.2800000000002,
+      "end": 1462.24,
+      "text": " inside will already have parse every single field for you. And those fields are already available"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1462.24,
+      "end": 1468.48,
+      "text": " for you to query. So that's a great way. And I've seen even web frameworks starting to go in this"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1468.48,
+      "end": 1474.16,
+      "text": " direction. For instance, if you use loggers like Pino in the Node.js land, Pino will automatically"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1474.16,
+      "end": 1478.72,
+      "text": " give you JSON logging, but also has a bunch of utilities that allow you to pre-deprint those"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1478.72,
+      "end": 1483.6,
+      "text": " JSON logs. So they are kind of coming at the problem from the two different angles of let's"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1483.6,
+      "end": 1487.6,
+      "text": " make it useful and easy to process. But at the same time, if you need to read those logs, you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1487.6,
+      "end": 1494.48,
+      "text": " have all the tooling that allows you to do that. Yeah, I love Pino. It's a really good logger."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1494.48,
+      "end": 1499.1200000000001,
+      "text": " And I've used it a lot for things like Lambda functions. So I know that Pino allows you to say"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1499.68,
+      "end": 1506.08,
+      "text": " have nested loggers and to put contextual data into your logs as well. So what kind of"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1507.3600000000001,
+      "end": 1511.44,
+      "text": " additional data helps you to get better results when you start querying later?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1512.4,
+      "end": 1517.6,
+      "text": " Yeah, I think definitely given that in AWS, we are building more and more distributed systems."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1517.6,
+      "end": 1521.84,
+      "text": " One thing that you would definitely need to make sure you have is a correlation like this."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1521.84,
+      "end": 1528.1599999999999,
+      "text": " So for every log, if that log is something that you can consider part of a transaction in a way"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1528.1599999999999,
+      "end": 1533.1999999999998,
+      "text": " or a request from a user and you have a unique ID for that particular transaction or request,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1533.1999999999998,
+      "end": 1537.9199999999998,
+      "text": " make sure that it is propagated through all the different components that are trying to satisfy"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1537.9199999999998,
+      "end": 1542.8,
+      "text": " that particular request. Because at that point, if you have a correlation ID for something that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1542.8,
+      "end": 1548.56,
+      "text": " went wrong, maybe a specific request failed, you can easily query and get a unified view of all"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1548.56,
+      "end": 1553.52,
+      "text": " the logs with that particular correlation ID. And that's literally just one filter looking at one"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1553.52,
+      "end": 1559.2,
+      "text": " field where you know correlation ID equal a specific value. So that's something I found"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1559.2,
+      "end": 1563.76,
+      "text": " extremely useful, especially recently to troubleshoot particular issues."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1563.76,
+      "end": 1567.52,
+      "text": " It takes a little bit of diligence to make sure that you have that information is propagated"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1567.52,
+      "end": 1572.24,
+      "text": " correctly everywhere. But as you say, if you use loggers like Pino, they have built-in features"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1572.24,
+      "end": 1578.48,
+      "text": " that can help you to make sure that information is correctly propagated everywhere. Other things"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1578.48,
+      "end": 1586.08,
+      "text": " is similarly you can have trace IDs if you're using tracing like X-ray or maybe if you use"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1586.08,
+      "end": 1590.64,
+      "text": " open tracing, you can also put that trace information in your logs and that can help you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1590.64,
+      "end": 1597.1200000000001,
+      "text": " out to correlate logs with traces. I remember for instance, one thing I really liked from using"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1597.1200000000001,
+      "end": 1602.48,
+      "text": " data log in the past is that they push you to do that. And also when you look for traces,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1602.48,
+      "end": 1606.56,
+      "text": " for every single trace, you see like a window with all the logs that have the same trace ID."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1606.56,
+      "end": 1610.72,
+      "text": " And sometimes that can be very useful. So hopefully we'll have something similar eventually"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1610.72,
+      "end": 1614.08,
+      "text": " in CloudWatch. I don't know if it's already possible in some other way, but."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1621.6799999999998,
+      "end": 1626.72,
+      "text": " I know that the service lens part of the AWS console is a going in this direction, but I still, I haven't really played with it very extensively. So I know the idea is to show you all"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1626.72,
+      "end": 1631.36,
+      "text": " these things at the same time, but I don't know if it's up to the level of some of the third parties"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1631.36,
+      "end": 1636.48,
+      "text": " out there with a really slick responsive user interface for that. I still tend to do that."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1636.48,
+      "end": 1642.64,
+      "text": " Do things manually and dive from one tab to the other to correlate things."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1644,
+      "end": 1649.04,
+      "text": " Yeah."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1649.04,
+      "end": 1654.16,
+      "text": " One last thing to be aware about is that of course, when you log in a structured way, you might be very tempted to just log entire objects without even thinking like,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1654.16,
+      "end": 1659.2,
+      "text": " what are you actually printing? Right. Because it's like, okay, just, if something bad happens,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1659.2,
+      "end": 1663.52,
+      "text": " chances are, I want to see these entire objects. I think it's a reasonable way of thinking about"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1663.52,
+      "end": 1669.28,
+      "text": " logs, but be careful with that mindset because you might be end up logging sensitive information."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1669.28,
+      "end": 1673.92,
+      "text": " What happens if it's, I don't know, a payment lambda, and you might end up logging credit"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1673.92,
+      "end": 1680.4,
+      "text": " card details or personal information about the user. So there are ways, and again, it comes to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1680.4,
+      "end": 1685.68,
+      "text": " different libraries. There are ways that you can anonymize this data before it gets logged."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1685.68,
+      "end": 1692.56,
+      "text": " So just, I don't have like a silver bullet type of solution for you, but just be aware of the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1692.56,
+      "end": 1697.2,
+      "text": " problem and check out different libraries and what kind of support they give you and try to see if"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1697.2,
+      "end": 1703.28,
+      "text": " they can be applied to your use case."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1703.28,
+      "end": 1707.9199999999998,
+      "text": " Completely agree with investing some time in X-Ray and trying to get the trace IDs in there. Cause I really like the way X-Ray really kind of"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1707.9199999999998,
+      "end": 1712.32,
+      "text": " covers all the services now and gives you a very, very good view. Not only is it good for"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1712.32,
+      "end": 1718.48,
+      "text": " troubleshooting, but it's also in distributed world when you've got lots of tiny components"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1718.48,
+      "end": 1722.32,
+      "text": " running together and event-based communication with each other, it's sometimes very difficult"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1722.32,
+      "end": 1725.9199999999998,
+      "text": " to visualize your architecture and keep your architecture diagrams up to date. But X-Ray is"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1725.9199999999998,
+      "end": 1731.52,
+      "text": " actually good for that too, because it will almost, the diagrams emerge from your traces"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1731.52,
+      "end": 1736.48,
+      "text": " and then you can get very good performance data as well as troubleshooting for errors in X-Ray too."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1736.48,
+      "end": 1740.8799999999999,
+      "text": " And then if you link it to your logs, you've got a very, I would say high level of maturity when"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1740.8799999999999,
+      "end": 1746.3999999999999,
+      "text": " it comes to troubleshooting."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1746.3999999999999,
+      "end": 1752.08,
+      "text": " Yeah, I think the ideal goal is that if you imagine, like you are giving a user-facing experience, like somebody calling an API or loading a webpage, if you could"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1752.08,
+      "end": 1758.56,
+      "text": " kind of leave the same experience that you gave to your user, to your observability stack, I think"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1758.56,
+      "end": 1763.52,
+      "text": " that's the ultimate dream where you can literally say, okay, this is what was happening. And this"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1763.52,
+      "end": 1767.36,
+      "text": " was the speed and this was the components involved. And these are the logs for the component."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1767.36,
+      "end": 1771.1999999999998,
+      "text": " And then you see that the entire architecture respond into that request and everything that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1771.1999999999998,
+      "end": 1776.8799999999999,
+      "text": " happened. I think we are getting close. I think these days we have all the tooling, maybe takes"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1776.8799999999999,
+      "end": 1781.04,
+      "text": " a little bit of effort in configuring everything correctly, but I think that this kind of"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1781.04,
+      "end": 1785.76,
+      "text": " observability dream is not a dream anymore. It's something that it is achievable with a little bit"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1785.76,
+      "end": 1792.8,
+      "text": " of effort. So definitely something to look forward, especially for heavy user-facing products where"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1792.8,
+      "end": 1796.32,
+      "text": " you really want to make sure you are always giving the best possible user experience."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1796.32,
+      "end": 1802,
+      "text": " Exactly. And it is part of the well-architected framework to get this level of observability."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1802,
+      "end": 1808.08,
+      "text": " And it's probably the days of looking in a single access dot log with grep and awk are well behind"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1808.08,
+      "end": 1814,
+      "text": " us with a distributed serverless architecture or microservices architecture. So to address some of"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1814,
+      "end": 1818.8799999999999,
+      "text": " the complexity that these modern architectures give you, you have to fill that gap with good"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1818.8799999999999,
+      "end": 1824.3999999999999,
+      "text": " observability. So it is worth investing the time and probably upfront actually. So if you're"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1824.3999999999999,
+      "end": 1830.08,
+      "text": " starting a new project, adding X-ray, structured logs, metrics, the tools, the plugins we talked"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1830.08,
+      "end": 1835.84,
+      "text": " about in the previous episode, they're all there and it's pretty low barrier to entry to get going."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1835.84,
+      "end": 1841.1999999999998,
+      "text": " It takes more time if you're retrofitting it to an application you've already been running in"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1841.1999999999998,
+      "end": 1846.6399999999999,
+      "text": " production for a year or more. Yeah, I totally agree with that."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1846.6399999999999,
+      "end": 1853.6799999999998,
+      "text": " So yeah, I think with this, we have covered probably a lot. So this is probably a good point to try to summarize this"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1853.6799999999998,
+      "end": 1859.28,
+      "text": " episode and then finish up. I don't know if you're feeling that you are now closer to be a CloudWatch,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1859.28,
+      "end": 1864.32,
+      "text": " Log Insights Ninja or Log Ninja in general. Probably not, but nonetheless, I hope that we"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1864.32,
+      "end": 1869.4399999999998,
+      "text": " gave you a lot of good suggestions and that you can get value out of them. And by the way, as with"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1869.4399999999998,
+      "end": 1874.6399999999999,
+      "text": " any other episodes of this podcast, if you think that there are better ways to do the things that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1874.6399999999999,
+      "end": 1879.4399999999998,
+      "text": " we are recommending, definitely let us know in the chat or comments in whatever platform you're"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1879.4399999999998,
+      "end": 1883.9199999999998,
+      "text": " using or reach out to us on Twitter, because we'd be more than interested in having a conversation."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1883.9199999999998,
+      "end": 1890.08,
+      "text": " We are sure we can always learn a thing or two from our audience. So thank you very much for"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1890.08,
+      "end": 1894.48,
+      "text": " being with us. We definitely recommend you to check out the metrics episode if we haven't done"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1894.48,
+      "end": 1921.1200000000001,
+      "text": " it already and we'll see you at the next episode. Bye."
+    }
+  ]
+}

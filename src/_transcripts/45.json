@@ -1,0 +1,1778 @@
+{
+  "speakers": {
+    "spk_0": "spk_0",
+    "spk_1": "spk_1"
+  },
+  "segments": [
+    {
+      "speakerLabel": "spk_0",
+      "start": 0,
+      "end": 4.48,
+      "text": " If you're thinking of using an external CI/CD tool to deploy to AWS, you're probably wondering"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 4.48,
+      "end": 9.6,
+      "text": " how to securely connect your pipelines to an AWS account. You could create a user for your"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 9.6,
+      "end": 14.56,
+      "text": " CI/CD tool of choice and copy some hard-coded credentials into it. But let's face it,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 14.56,
+      "end": 18.72,
+      "text": " this one doesn't feel really the right way, or at least not the most secure approach."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 18.72,
+      "end": 23.36,
+      "text": " In the previous episode, we discussed how AWS and GitHub solved this problem by using OIDC"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 23.36,
+      "end": 27.6,
+      "text": " identity providers, and this seems to be a much better approach to this particular problem,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 27.6,
+      "end": 32.08,
+      "text": " or at least a much more secure approach. My name is Luciano, and today I'm joined by Eoin."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 32.08,
+      "end": 37.2,
+      "text": " In this episode of AWS Bites, we'll try to demystify the secrets of OIDC identity providers"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 37.2,
+      "end": 39.760000000000005,
+      "text": " and understand how they really work under the hood."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 47.84,
+      "end": 53.760000000000005,
+      "text": " Let's start by summarizing that use case again. We have some process running outside of AWS."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 53.76,
+      "end": 58.559999999999995,
+      "text": " For instance, we have a pipeline running on GitHub actions. This process needs to interact with"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 58.559999999999995,
+      "end": 64.08,
+      "text": " resources on AWS, like making API calls to AWS to create resources, so it needs some sort of"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 64.08,
+      "end": 70.24,
+      "text": " authentication. A classic way of doing that would be to create a user in IAM, create a role"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 70.24,
+      "end": 74.8,
+      "text": " associated with that user with the right permissions, and then you generate an access key,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 74.8,
+      "end": 79.75999999999999,
+      "text": " secret access key, and those are long-lived credentials. At this point, you could put those"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 79.76,
+      "end": 84.08000000000001,
+      "text": " credentials into your pipeline. A lot of people might have done this before. You put it in some"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 84.08000000000001,
+      "end": 89.36,
+      "text": " secret store, like GitHub actions secret store, and use those long-lived credentials to interact"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 89.36,
+      "end": 96.56,
+      "text": " with AWS with the CLI or one of the SDKs. Now, the problem with that approach, as we may know by now,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 96.56,
+      "end": 101.2,
+      "text": " is that long-lived credentials might easily be leaked, and then it's very hard to detect that"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 101.2,
+      "end": 106.48,
+      "text": " and really work against that sort of attack. So you can allow an attacker to impersonate your"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 106.48,
+      "end": 111.52000000000001,
+      "text": " pipeline and execute malicious code. Of course, pipelines can tend to have very extensive"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 111.52000000000001,
+      "end": 115.52000000000001,
+      "text": " permissions because they have to be able to create and delete important resources in your account"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 115.52000000000001,
+      "end": 121.92,
+      "text": " and update your code, so this is a really dangerous use case. So the better alternative"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 121.92,
+      "end": 127.28,
+      "text": " here is to use an OpenID Connect identity provider, so more specifically, configuring"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 127.28,
+      "end": 135.36,
+      "text": " AWS to trust GitHub as an identity provider using the OIDC protocol. Luciano, do you feel like you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 135.36,
+      "end": 141.84,
+      "text": " could describe how OIDC works in broad strokes?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 141.84,
+      "end": 146.32000000000002,
+      "text": " Yeah, I'll try my best to do that, but before I do that, there is a link that we are going to have in the show notes, which is actually the GitHub"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 146.32000000000002,
+      "end": 151.44000000000003,
+      "text": " documentation that explains really well how all of that works and there are illustrations. So if"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 151.44000000000003,
+      "end": 156,
+      "text": " everything we say today is not 100% clear, we really recommend to check out this particular"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 156,
+      "end": 161.60000000000002,
+      "text": " article. So the first thing to clarify is that there are two main entities here, and we are"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 161.6,
+      "end": 167.51999999999998,
+      "text": " talking about AWS itself and GitHub, so we need to figure out how to make them talk to each other and"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 167.51999999999998,
+      "end": 173.84,
+      "text": " how to create this kind of trust relationship. And in the OpenID Connect lingo, there are two"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 173.84,
+      "end": 179.12,
+      "text": " pieces of terminology, identity provider and service provider. In this case, GitHub is the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 179.12,
+      "end": 186.72,
+      "text": " identity provider and AWS is the service provider. So GitHub is kind of the one providing users,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 186.72,
+      "end": 191.92,
+      "text": " while AWS is the one providing a specific service to the user. And this is where I was a little bit"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 191.92,
+      "end": 197.68,
+      "text": " confused at first, because I don't think this is the most intuitive use case to understand this"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 197.68,
+      "end": 203.68,
+      "text": " difference. In fact, GitHub doesn't really have a concept of users for AWS itself. GitHub doesn't"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 203.68,
+      "end": 209.6,
+      "text": " really have a database, let's say, where there is a mapping between particular user names and"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 209.6,
+      "end": 214.96,
+      "text": " particular roles. All this stuff actually still lives in AWS. So we'll see how this can be a"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 214.96,
+      "end": 218.32000000000002,
+      "text": " little bit confusing and hopefully we'll try to explain that a little bit better."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 219.36,
+      "end": 225.68,
+      "text": " And another thing to keep in mind to really understand why there is this little bit of a"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 225.68,
+      "end": 231.20000000000002,
+      "text": " blurry definition between who is providing the users and who is providing the services"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 231.20000000000002,
+      "end": 236,
+      "text": " is because this is not like a user-facing integration, but it's more of a service-to-service"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 236,
+      "end": 240.88,
+      "text": " integration. So in a way, we are connecting two services and the definition of a user there"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 240.88,
+      "end": 247.84,
+      "text": " is not the canonical one, I would say. So in reality, the way we could see that is that AWS"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 247.84,
+      "end": 254.16,
+      "text": " is providing a particular role and AWS is basically trusting GitHub to generate some sort"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 254.16,
+      "end": 260.08,
+      "text": " of credential that will allow GitHub to assume that role. And we'll try to explain better how"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 260.08,
+      "end": 265.76,
+      "text": " all of that works. So yeah, the first thing that needs to happen in this particular scenario is"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 265.76,
+      "end": 271.44,
+      "text": " that we'll need to tell AWS to trust GitHub. So we need to create a trust relationship. And once"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 271.44,
+      "end": 277.59999999999997,
+      "text": " trust is established, again, GitHub can just say, okay, there is a token that proves that I am the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 277.59999999999997,
+      "end": 283.92,
+      "text": " thing you trusted before, now give me access to this particular role. And that access is safer"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 283.92,
+      "end": 289.36,
+      "text": " than the permanent credential scenario because that kind of access is using temporary credentials,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 289.36,
+      "end": 296.72,
+      "text": " using STS. So those credential will be short-lived and the chance of leaking them is much, I guess,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 296.72,
+      "end": 300.96000000000004,
+      "text": " is much harder to, even if they are leaked, is much harder to take advantage of these credentials,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 300.96000000000004,
+      "end": 306.56,
+      "text": " or at least not long-term. Okay. That sounds really good."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 306.56,
+      "end": 311.68,
+      "text": " So you've got the identity provider, you've got AWS as a service provider. We've mentioned STS and short-lived credentials,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 311.68,
+      "end": 315.52000000000004,
+      "text": " I think, a few times in various different episodes. So how do you start and how do you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 315.52,
+      "end": 321.84,
+      "text": " create the trust relationship between the identity provider and AWS as a service provider? What are"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 321.84,
+      "end": 325.59999999999997,
+      "text": " the steps there? Yeah, this is something that I've done only manually."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 325.59999999999997,
+      "end": 330.15999999999997,
+      "text": " I don't know if there is a way to actually automate that through Terraform or something else. Probably there is, I'm going to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 330.15999999999997,
+      "end": 336.64,
+      "text": " guess, but if you want to do it manually, it's kind of one-off type of thing for most, at least"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 336.64,
+      "end": 341.12,
+      "text": " for creating that first trust, then you can probably automate the creation of roles. But just"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 341.12,
+      "end": 345.68,
+      "text": " to do that, what you can do, you can just go to the IAM portal and there is a section there called"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 345.68,
+      "end": 351.28000000000003,
+      "text": " identity providers. And if you go in there, you can create a new identity provider. And once you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 351.28000000000003,
+      "end": 355.52,
+      "text": " go in that interface, it allows you to select different kinds of identity providers and one"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 355.52,
+      "end": 362.24,
+      "text": " of which is OIDC, OpenID Connect identity provider. And it gives you kind of a form and you need to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 362.24,
+      "end": 368.56,
+      "text": " fill that form with certain kind of information that allows AWS to recognize GitHub actions as an"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 368.56,
+      "end": 374.8,
+      "text": " identity provider. And the first thing that you need to provide is a URL. This is the OIDC URL."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 374.8,
+      "end": 379.6,
+      "text": " And this is actually an interesting thing. I don't know if anyone is familiar with OIDC."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 380.4,
+      "end": 387.2,
+      "text": " It's kind of an extension of OAuth2 that also specifies in a much stricter way how the URL"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 387.2,
+      "end": 393.36,
+      "text": " structure should be made, how the tokens should be created. While OAuth2 was much more liberal and"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 393.36,
+      "end": 398.96000000000004,
+      "text": " every OAuth2 provider could be implemented in a much different way, in OIDC, you literally just"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 398.96000000000004,
+      "end": 403.6,
+      "text": " need to know that one URL and everything else is standardized. So that's why we can here afford to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 403.6,
+      "end": 409.36,
+      "text": " specify only one particular URL. The other field that we need to populate in this form is something"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 409.36,
+      "end": 415.12,
+      "text": " called audience. And audience, I don't think it's extremely important here because I think GitHub"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 415.12,
+      "end": 420.72,
+      "text": " action can customize that audience on demand if you want to. But the standard convention that you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 420.72,
+      "end": 426.96000000000004,
+      "text": " find in the documentation is to set that to sts.amazonaws.com. And this is basically a value"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 426.96000000000004,
+      "end": 433.28000000000003,
+      "text": " that will be available in your tokens and that you need to check to make sure that GitHub generated"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 433.28000000000003,
+      "end": 439.20000000000005,
+      "text": " the token for the right application, in this case integration with AWS. And then the last thing that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 439.20000000000005,
+      "end": 446.24,
+      "text": " you need to do is to pass the time print of the TLS certificate. This is not really something that you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 446.24,
+      "end": 451.92,
+      "text": " need to copy paste, you just need to click a button in the UI and AWS will download the time"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 451.92,
+      "end": 457.44,
+      "text": " print of the TLS certificate of the connection to that URL that we specified as the OIDC identity"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 457.44,
+      "end": 462.88,
+      "text": " provider. And this is important because we need to make sure that in the future when AWS connects"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 462.88,
+      "end": 469.28000000000003,
+      "text": " again to GitHub actions, it's still connecting to the same server, so to speak, that the trust is"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 469.28000000000003,
+      "end": 474.88,
+      "text": " given by the TLS certificate. So if that TLS certificate changes, most likely we want to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 474.88,
+      "end": 479.68,
+      "text": " revisit the trust relationship and make sure we are still talking with the right provider at the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 479.68,
+      "end": 485.28,
+      "text": " other end of the line. Okay, so that's interesting to know."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 485.28,
+      "end": 490.64,
+      "text": " So this trust relationship can expire, so you need to have some process in place to make sure you're keeping on top of that and make sure"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 491.28,
+      "end": 497.12,
+      "text": " you renew before these things expire potentially. I did actually just check there if it was possible"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 497.12,
+      "end": 501.6,
+      "text": " to create all of this in CloudFormation and Terraform, and there's a Terraform plugin or"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 501.6,
+      "end": 505.84000000000003,
+      "text": " Terraform resource for this, and there's also a CloudFormation OIDC provider resource. So it"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 505.84000000000003,
+      "end": 509.84000000000003,
+      "text": " looks like everything that you just said is also possible there. I think you just have to figure"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 509.84000000000003,
+      "end": 513.36,
+      "text": " out then how are you going to get the thumb prints into your infrastructure as code template if you're"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 513.36,
+      "end": 518.48,
+      "text": " going to hard code those or do something maybe more dynamic. So you've now got this trust"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 518.48,
+      "end": 524.32,
+      "text": " relationship. So that's step one. How do we link that? What's the next step in linking that through"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 524.32,
+      "end": 532.24,
+      "text": " to permissions in AWS?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 532.24,
+      "end": 538.8000000000001,
+      "text": " So the next step is to create a trust policy in AWS, and that trust policy needs to have certain particular fields to make sure that you are kind of locking down"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 538.8000000000001,
+      "end": 543.6800000000001,
+      "text": " the security as much as possible. So you're not basically allowing anyone or anything to assume"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 543.6800000000001,
+      "end": 549.12,
+      "text": " the role. You just want GitHub action and maybe a specific workflow even to assume that particular"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 549.12,
+      "end": 554.32,
+      "text": " role. So I suppose at this point you should have in mind exactly the kind of pipeline you're going"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 554.32,
+      "end": 560.5600000000001,
+      "text": " to build in GitHub and what kind of permission that pipeline would require, and you create this"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 560.5600000000001,
+      "end": 566.5600000000001,
+      "text": " trust policy where you specify that the principal for the trust policy is the ARN of the AM identity"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 566.5600000000001,
+      "end": 573.44,
+      "text": " provider that we just created. Then the action is STS assume role with web identity, and then we can"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 573.44,
+      "end": 578.72,
+      "text": " specify a bunch of conditions. We want to check that the audience is actually the one we specified,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 578.72,
+      "end": 585.6,
+      "text": " STS, amazon.aws.com, but also if we want to lock down the role to a particular GitHub action"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 585.6,
+      "end": 591.36,
+      "text": " workflow, we can also specify another condition saying that the subject, which is going to be a"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 591.36,
+      "end": 597.6800000000001,
+      "text": " field in the token specifying exactly the workflow that triggered that particular execution, matches"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 597.6800000000001,
+      "end": 602.32,
+      "text": " exactly your expectation. So let's say that you have, I don't know, a project called e-commerce,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 602.32,
+      "end": 606.8000000000001,
+      "text": " and that project has a particular repository and a particular workflow in GitHub action called,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 606.8,
+      "end": 613.76,
+      "text": " I don't know, build and publish. You will have a way to say assume this role only if the pipeline"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 613.76,
+      "end": 622.4799999999999,
+      "text": " was the e-commerce and the workflow was build and deploy. So you can create a condition to limit"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 622.4799999999999,
+      "end": 628.8,
+      "text": " that kind of thing. At that point you have this trust policy and you can attach... that allows you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 628.8,
+      "end": 633.28,
+      "text": " to assume a role and that role can have specific permissions like, I don't know, you'll be able to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 633.28,
+      "end": 639.04,
+      "text": " create a bucket, you'll be able to deploy a lambda and all the things that you need to do for"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 639.04,
+      "end": 643.6,
+      "text": " deploying your application. We mentioned..."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 643.6,
+      "end": 648.9599999999999,
+      "text": " you've mentioned the token here and you mentioned things like the audience, the subject. Should we talk about the technology underpinning this, which"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 648.9599999999999,
+      "end": 655.12,
+      "text": " people may have covered before, various different authentication authorization flows? What is a JWT?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 655.12,
+      "end": 659.76,
+      "text": " What do we need to know about it in this context?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 659.76,
+      "end": 665.52,
+      "text": " Yeah, one of the things that we mentioned before is that OIDC standardizes also the format of a token. A token can really be anything,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 665.52,
+      "end": 670.88,
+      "text": " like any string that you can verify and make sure it is actually trustworthy because, I don't know,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 670.88,
+      "end": 676.88,
+      "text": " maybe you can do an API call and get that that token is reliable from the API call or the token"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 676.88,
+      "end": 683.4399999999999,
+      "text": " itself is somehow signed and you can trust that that signature gives you a guarantee that somebody"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 683.44,
+      "end": 690.08,
+      "text": " trustworthy generated that token. In the case of OIDC, this is kind of the choice. They went for"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 690.08,
+      "end": 697.36,
+      "text": " signed tokens and the technology of choice is JWT JSON web token. I have written an article a couple"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 697.36,
+      "end": 702.6400000000001,
+      "text": " of years ago with some illustration that tried to describe in brief what's the structure and how"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 703.44,
+      "end": 708,
+      "text": " they are generated, how they are validated. We'll have a link to that article if you want to go"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 708,
+      "end": 713.84,
+      "text": " deeper, but the summary of that is that a JWT token is a string made of three parts separated"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 713.84,
+      "end": 719.68,
+      "text": " by a dot and those three parts are a header, a payload, and a signature. They are all encoded"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 719.68,
+      "end": 728.08,
+      "text": " in base64url and if you basically split the three parts and do a base64url decode, the header and"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 728.08,
+      "end": 734.56,
+      "text": " the payload are actually two JSON objects, JSON encoded objects, and the payload can contain"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 734.56,
+      "end": 739.68,
+      "text": " properties that are generally called claims and those properties are... they can be whatever you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 739.68,
+      "end": 745.5999999999999,
+      "text": " want, but there are some standards. For instance, audience is one of those, AUD, and generally"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 745.5999999999999,
+      "end": 749.76,
+      "text": " represents the particular application for which the token was generated. So if you have an"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 749.76,
+      "end": 753.8399999999999,
+      "text": " identity provider that can generate tokens for multiple applications, you can use the audience"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 753.8399999999999,
+      "end": 758.4,
+      "text": " to make sure that you are receiving a token that is meant to be used in a particular application."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 758.9599999999999,
+      "end": 763.1199999999999,
+      "text": " Then there are other claims like time validity. Don't use this token before a certain date,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 763.12,
+      "end": 767.44,
+      "text": " don't use this token after a certain date, or there are information about the issuer."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 768,
+      "end": 773.68,
+      "text": " For instance, which identity provider created that token. And again, if you have an application"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 773.68,
+      "end": 778,
+      "text": " that accepts tokens from multiple identity providers, that's an important information because"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 778,
+      "end": 781.68,
+      "text": " it also tells you how to check the signature for that particular token."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 782.32,
+      "end": 787.52,
+      "text": " And if you want to check the signature, you also need to know which key was used to sign the token,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 787.52,
+      "end": 793.92,
+      "text": " so the ID of the key is another field that you will generally find in the payload. And in the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 793.92,
+      "end": 800.24,
+      "text": " case of GitHub Actions, there is also subject which is, in that case, will contain a reference"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 800.24,
+      "end": 804.64,
+      "text": " to the workflow that generated the token. So, other information that you can use and is the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 804.64,
+      "end": 811.12,
+      "text": " information we can use in our roles to limit the fact that only the particular workflow can assume"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 811.12,
+      "end": 815.6,
+      "text": " a particular role. One interesting thing is that you might wonder how the signature thing works"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 815.6,
+      "end": 820.96,
+      "text": " because it's a little bit magic if you never really looked under the hood, but it works by"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 820.96,
+      "end": 826.32,
+      "text": " using... Actually, JWT is a little bit open. You can use both symmetric and asymmetric encryption,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 826.32,
+      "end": 832.64,
+      "text": " so you could have either just a shared key to sign the token or you can have public and private key."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 833.6800000000001,
+      "end": 839.76,
+      "text": " Of course, in the case of OIDC, you want to have public and private key because you don't want to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 839.76,
+      "end": 846.24,
+      "text": " share a secret key between GitHub and AWS because then it means everyone will know that secret key"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 846.24,
+      "end": 850.8,
+      "text": " and everyone will be able to create signed tokens. Instead, when you use a model with"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 850.8,
+      "end": 855.68,
+      "text": " asymmetric keys, you will have a public key that allows you to validate tokens and that can be..."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 855.68,
+      "end": 861.68,
+      "text": " Anyone can read that. And the private key is only known to GitHub in this case and it means that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 861.68,
+      "end": 869.12,
+      "text": " only GitHub will be able to sign these tokens. So, in reality, you almost never want to use the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 869.12,
+      "end": 874.88,
+      "text": " symmetric key these days. You always go for public and private keys."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 874.88,
+      "end": 880.32,
+      "text": " Given that we've got this trust relationship and we've got the role created and we've set the trust policy in the role so that it"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 880.32,
+      "end": 887.44,
+      "text": " can only be assumed by principles coming from this identity provider, what's the next... How do we get"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 887.44,
+      "end": 895.2,
+      "text": " that identity provider being GitHub and specifically ours pipelines to get credentials? So, to assume"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 895.2,
+      "end": 900,
+      "text": " a role or whatever it is that allows us to enter the AWS world and make API calls."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 901.12,
+      "end": 906.8000000000001,
+      "text": " Yeah."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 906.8000000000001,
+      "end": 911.6,
+      "text": " So, in this part, I think there is a little bit of speculation because some parts are well known and well described and other ones, we can only assume what AWS is doing to actually validate"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 911.6,
+      "end": 917.12,
+      "text": " the token based on the OIDC standard. So, I'm going to try to come up with a narrative, but it"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 917.12,
+      "end": 923.6800000000001,
+      "text": " might not be 100% truthful to what AWS actually does. But basically, the point is that at some"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 923.68,
+      "end": 929.3599999999999,
+      "text": " point we start a workflow in GitHub Action. And GitHub is kind of an event based in that sense,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 929.3599999999999,
+      "end": 933.5999999999999,
+      "text": " saying that every time there is a new workflow, it's going to generate a token for that particular"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 933.5999999999999,
+      "end": 939.68,
+      "text": " workflow. And with that token, in your workflow, you might decide to use it or not. But of course,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 939.68,
+      "end": 944.9599999999999,
+      "text": " if you're going to interact with AWS, you might want to use that token and exchange it for AWS"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 944.9599999999999,
+      "end": 949.5999999999999,
+      "text": " temporary credentials. And that's something that can be done either manually, if you want to write"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 949.6,
+      "end": 954.72,
+      "text": " all that code with a CLI or an SDK, or if you want to make your life easier, there is an action that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 954.72,
+      "end": 959.76,
+      "text": " is provided by AWS and you can just import that action into your workflow and configure it to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 959.76,
+      "end": 966.4,
+      "text": " assume the particular role that you have in your AWS account. And what happens behind the scene in"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 966.4,
+      "end": 971.12,
+      "text": " that action is that it's basically fetching the token generated by the GitHub workflow"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 971.12,
+      "end": 976.96,
+      "text": " and then making an STS call, assume role with web identity and pass that token to AWS."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 976.96,
+      "end": 981.52,
+      "text": " Now, this is where it gets a little bit speculative because we'll need to imagine what"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 981.52,
+      "end": 987.0400000000001,
+      "text": " AWS will do to actually trust that particular token. Because the token, as we understood this"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 987.0400000000001,
+      "end": 991.52,
+      "text": " like a string, where you can do some decoding and get some information out of it, and then there is"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 991.52,
+      "end": 997.36,
+      "text": " a signature that gives some sort of trust that it was generated by a trusted source. So what AWS"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 997.36,
+      "end": 1001.52,
+      "text": " should do, in my opinion at least, is that first of all, it needs to check if the token is well"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1001.52,
+      "end": 1007.68,
+      "text": " formed. So is it a valid JWT? Can we decode it? And then are there three parts, a header, a payload,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1007.68,
+      "end": 1013.6,
+      "text": " and a signature? Can we read the claims inside the payload? And then when we read the claims,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1013.6,
+      "end": 1020.24,
+      "text": " is this token issued by an identity provider that we recognize? So this particular account did have"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1020.24,
+      "end": 1025.44,
+      "text": " a connection, a trusted relationship with this particular identity provider. If yes, then at that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1025.44,
+      "end": 1030.32,
+      "text": " point it needs to check the audience. Like, do we recognize the application for which this token"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1030.32,
+      "end": 1037.2,
+      "text": " was created? And in our example, we said we will just use the generic STS, AWS, something, I don't"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1037.2,
+      "end": 1041.2,
+      "text": " even remember. But you can keep that generic or you can customize it if you have different"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1041.2,
+      "end": 1045.9199999999998,
+      "text": " applications. And GitHub Actions can actually change that value for you when you create the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1045.9199999999998,
+      "end": 1051.84,
+      "text": " token. So that value is actually a little bit of a placeholder that you can configure. Either keep"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1051.84,
+      "end": 1056.24,
+      "text": " it standard if you have one particular use case, or you can customize it by application."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1056.24,
+      "end": 1060.56,
+      "text": " And then the next phase is, okay, once we have validated that the token is correct, that the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1060.56,
+      "end": 1065.1200000000001,
+      "text": " information in the token looks good and we understand it, we need to make sure that that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1065.1200000000001,
+      "end": 1070.24,
+      "text": " token is authentic. So it wasn't forged by a third party, but it needs to come really from GitHub"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1070.24,
+      "end": 1078,
+      "text": " Action. And the way that I assume AWS is going to verify that is by using OIDC. So it's going to see"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1078,
+      "end": 1085.6,
+      "text": " in the claims what is the key ID. It knows what's the URL of the token, what's the name of the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1085.6,
+      "end": 1093.6799999999998,
+      "text": " public key URL endpoint from the OIDC protocol. And it's going to use that to download that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1093.6799999999998,
+      "end": 1099.04,
+      "text": " particular key, the public key. And then at that point, it can actually check, okay, was it really"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1099.04,
+      "end": 1105.6799999999998,
+      "text": " this key, the one that signed the token? So there is kind of a double trust there. One is given by"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1105.6799999999998,
+      "end": 1111.28,
+      "text": " the fact that we created this trust relationship with that particular URL of the OIDC provider."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1111.28,
+      "end": 1116,
+      "text": " And the other one is given by the fact that AWS can download a public key from that URL,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1116,
+      "end": 1122,
+      "text": " and that public key actually can verify that the token was signed by that particular OIDC provider."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1122.96,
+      "end": 1127.68,
+      "text": " And at that point, if everything is good, STS will do its own thing. It will create temporary"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1127.68,
+      "end": 1134.6399999999999,
+      "text": " credentials, and it will return these temporary credentials that can be used to interact with AWS"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1134.6399999999999,
+      "end": 1140.56,
+      "text": " and will have the policy that is given to the particular role for those credentials."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1140.56,
+      "end": 1145.12,
+      "text": " Okay. What form, what does it, what do those credentials look like? What form do they take?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1145.12,
+      "end": 1149.9199999999998,
+      "text": " If I understand correctly, this is like the usual when you assume a role with STS."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1149.9199999999998,
+      "end": 1153.9199999999998,
+      "text": " So my understanding is that it will be like an access key, a secret access key, and also it will have"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1153.9199999999998,
+      "end": 1157.12,
+      "text": " a session token and an expiration field. Okay."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1157.12,
+      "end": 1160.56,
+      "text": " So yeah, temporary credentials that are linked to a particular role."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1161.2,
+      "end": 1167.28,
+      "text": " Okay. Yeah. So I guess this is kind of familiar in some ways if you've used SSO or some of the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1167.28,
+      "end": 1172.48,
+      "text": " Cognito flows where you're exchanging some third-party identity provider, you've got some"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1172.48,
+      "end": 1175.92,
+      "text": " credentials and you're exchanging it for temporary credentials, you get the exact same thing."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1176.56,
+      "end": 1182.56,
+      "text": " Okay. That sounds a little bit clearer now. How would you use this outside of GitHub? Is this"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1182.56,
+      "end": 1187.2,
+      "text": " really limited to GitHub for now? What if you've got other CD providers? What other things would"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1187.2,
+      "end": 1192.72,
+      "text": " you use OIDC providers for?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1192.72,
+      "end": 1199.1200000000001,
+      "text": " Yeah, this is something that got my curiosity because I was thinking, okay, how does AWS trust GitHub? And of course they made that generic. So if you can understand"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1199.1200000000001,
+      "end": 1206.88,
+      "text": " how that connection works, then you can create your own sources for allowing on a certain event"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1206.88,
+      "end": 1213.68,
+      "text": " to assume a particular role and you can kind of delegate to this particular source the idea of"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1213.68,
+      "end": 1216.88,
+      "text": " given that there is a trust relationship, I trusted when a particular event happens,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1216.88,
+      "end": 1219.68,
+      "text": " then I can assume a particular role with temporary credentials."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1219.68,
+      "end": 1224.0800000000002,
+      "text": " So I don't know if there are interesting examples outside the CI/CD world,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1224.64,
+      "end": 1228.96,
+      "text": " but for instance, if you have an on-premise Jenkins and you have your own OIDC provider,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1228.96,
+      "end": 1233.76,
+      "text": " you could build basically that integration pretty much the same way as we explained for GitHub"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1233.76,
+      "end": 1239.8400000000001,
+      "text": " Actions. AWS is just going to trust your own on-premise identity provider to basically"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1239.8400000000001,
+      "end": 1246.16,
+      "text": " generate tokens that then will give access to particular roles on AWS. But I was thinking also,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1246.16,
+      "end": 1251.0400000000002,
+      "text": " can you use this for other workflows? I don't know if it's the best way of doing this,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1251.0400000000002,
+      "end": 1258,
+      "text": " but technically you could use event-driven things if you want to basically, I don't know,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1258,
+      "end": 1263.1200000000001,
+      "text": " maybe a physical action in the real world triggers something in AWS. I'm thinking, I don't know,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1263.1200000000001,
+      "end": 1266.8000000000002,
+      "text": " maybe you have an application that every time you enter the office, you swipe your own card"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1266.8000000000002,
+      "end": 1272,
+      "text": " to track time or something like that. If there is, I don't know, I know OIDC provider connected"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1272,
+      "end": 1278.16,
+      "text": " there, that's OIDC provider. There could be an application that creates a token using that OIDC"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1278.16,
+      "end": 1283.68,
+      "text": " provider, assumes a role, and then maybe recording a DynamoDB table that, I don't know, somebody"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1283.68,
+      "end": 1289.36,
+      "text": " accesses the building at a certain point. So you could create this kind of, I suppose, actions"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1289.36,
+      "end": 1295.12,
+      "text": " where you have a source of authentication and you want to assume a role, but in a kind of"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1295.76,
+      "end": 1300.48,
+      "text": " time-limited fashion. Now, probably there are better ways to implement this kind of stuff,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1300.48,
+      "end": 1305.2,
+      "text": " but I was trying to stretch my imagination on once you understand this integration,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1305.2,
+      "end": 1310.16,
+      "text": " how much can you use it? How far can you go? All right."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1310.16,
+      "end": 1314.96,
+      "text": " It sounds like that this is applicable in any case where you've got a system to system interaction between a non-AWS environment and an"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1314.96,
+      "end": 1319.04,
+      "text": " AWS environment. So it could be used when you've got an on-prem Sys application that needs to talk"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1319.04,
+      "end": 1324.8,
+      "text": " to an AWS application, for example, and you don't want to have access keys configured. We know that"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1324.8,
+      "end": 1330,
+      "text": " in EC2 or in ECS, you've got like a profile you can associate with that resource. So you can"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1330,
+      "end": 1335.12,
+      "text": " use that resource. So you don't have to have secret keys, but outside of AWS, it has been"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1335.12,
+      "end": 1339.84,
+      "text": " very common for people to just use long-lived keys to perform that kind of interaction. So I"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1339.84,
+      "end": 1345.36,
+      "text": " guess this is one way of overcoming that. You just need to think about what is your OIDC provider"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1345.36,
+      "end": 1351.92,
+      "text": " and how are you going to issue those credentials? I know some people would maybe integrate it into"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1351.92,
+      "end": 1356.8,
+      "text": " Active Directory and have some sort of service credentials. So that might be another way of doing"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1356.8,
+      "end": 1362.32,
+      "text": " that. It might be worthwhile mentioning actually, as a slight segue, there was a very recent"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1362.32,
+      "end": 1367.36,
+      "text": " announcement for a new feature called IAM roles anywhere, and we can link to this announcement"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1367.36,
+      "end": 1372.3999999999999,
+      "text": " in the show loads, but it sounds like another way of doing this kind of system to system interaction"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1372.3999999999999,
+      "end": 1378.32,
+      "text": " where instead of having an OIDC provider, you use a public key infrastructure. So PKI,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1378.32,
+      "end": 1383.9199999999998,
+      "text": " you've got a root certificate authority yourself, or you can use AWS certificates manager,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1383.92,
+      "end": 1388.64,
+      "text": " and you can issue client certificates, and you actually set up a trust chain between your"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1390.24,
+      "end": 1396.8000000000002,
+      "text": " certificate authority and AWS, and then use client certificates as a means to exchange them for"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1396.8000000000002,
+      "end": 1402.88,
+      "text": " temporary credentials. So it's slightly tangent, but related, and it's a very recent announcement,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1402.88,
+      "end": 1408.24,
+      "text": " so I just thought I'd call it out there. But I guess what this is kind of saying to us is that"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1408.88,
+      "end": 1412.8000000000002,
+      "text": " all you need to do is to create something that follows the OIDC protocol,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1412.8,
+      "end": 1421.68,
+      "text": " and you can pretty much use it to exchange identities for credentials in AWS. So I guess"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1421.68,
+      "end": 1427.12,
+      "text": " that means it's potentially something that could cause security issues if you don't get it right."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1427.76,
+      "end": 1431.84,
+      "text": " Now you could create your own identity provider. You could use it to give administrator access"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1431.84,
+      "end": 1436.32,
+      "text": " to all of your accounts. So you need to understand exactly what the trust model is. Is it worthwhile"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1436.32,
+      "end": 1442.48,
+      "text": " maybe summarizing that? How would you describe the trust model for this OIDC relationship?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1442.48,
+      "end": 1446.32,
+      "text": " Yeah, so as we said, the first step is to create the trust relationship within"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1446.32,
+      "end": 1452.16,
+      "text": " AWS and GitHub Actions. In this case, we go to AWS IAM, and we create the OIDC provider connection."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1453.28,
+      "end": 1459.2,
+      "text": " At that point, GitHub Action can create tokens in the form of JWT, and these tokens are something"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1459.2,
+      "end": 1464.8,
+      "text": " that AWS should be able to trust and recognize. So with a token like that, GitHub Action can say,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1465.44,
+      "end": 1470.64,
+      "text": " assume a particular role, and it is basically exchanging that token that automatically generated"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1470.64,
+      "end": 1477.44,
+      "text": " with temporary credentials that are given by AWS for a particular role. So in summary, I suppose"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1477.44,
+      "end": 1484.48,
+      "text": " that we are basically creating a configuration where AWS trusts the signature of the IDC provider,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1484.48,
+      "end": 1488.8000000000002,
+      "text": " and with that trust comes the ability to assume a role with temporary credentials."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1489.5200000000002,
+      "end": 1493.2,
+      "text": " Okay, that makes sense. So it seems quite powerful, and it's nice the way it's using"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1493.2,
+      "end": 1498.88,
+      "text": " the standard, and it potentially opens up support for a lot of other OIDC providers."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1498.88,
+      "end": 1504.48,
+      "text": " I think we've covered it in quite a lot of detail, so you've given a lot of information there. From"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1504.48,
+      "end": 1508.48,
+      "text": " a developer point of view, if you're thinking, okay, that's all very well and good, I'm informed"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1508.48,
+      "end": 1513.3600000000001,
+      "text": " now, but as a developer, I've got a CD pipeline, or maybe I'm creating a new one, or maybe I've got"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1513.3600000000001,
+      "end": 1517.44,
+      "text": " one that already uses long-lived credentials, and I want to switch over to using short-lived"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1517.44,
+      "end": 1520.8000000000002,
+      "text": " credentials with this new way. What are the steps in summary?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1526.48,
+      "end": 1530.88,
+      "text": " Yeah, just make sure that you have configured the OIDC provider in AWS so that you have created that trust relationship, and we have explained extensively how to do that manually, but Eoin,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1530.88,
+      "end": 1534.88,
+      "text": " you also pointed out that you can do that programmatically using Terraform, or Cloud"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1534.88,
+      "end": 1540.8,
+      "text": " Formation, or CDK, or something like that. So make sure that that happens, first of all."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1540.8,
+      "end": 1545.2,
+      "text": " Then you need to create your own roles, so you can create a role for every single workflow."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1545.2,
+      "end": 1549.92,
+      "text": " If you want to be very strict, make sure to set up the right permissions for every role,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1549.92,
+      "end": 1556.64,
+      "text": " and at that point in your GitHub Action workflow, you can use the AWS Action, configure AWS"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1556.64,
+      "end": 1564.72,
+      "text": " credentials to basically have a step before you interact with any AWS resource to get the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1564.72,
+      "end": 1569.28,
+      "text": " temporary credentials. So at that point, you can remove all your hard-coded credentials and swap"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1569.28,
+      "end": 1576.96,
+      "text": " them with this particular step that uses the AWS Action to do this exchange of a JWT token for"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1576.96,
+      "end": 1582.32,
+      "text": " AWS temporary credentials."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1582.32,
+      "end": 1588.72,
+      "text": " Are there any other resources we should point people to who want to get started with this?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1588.72,
+      "end": 1593.68,
+      "text": " Yeah, so I was actually reading a very good post by Elias Branche that is kind of a tutorial that guides you step by step on how to do all the things we describe today,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1593.68,
+      "end": 1599.3600000000001,
+      "text": " and has very good examples, and also a lot of screenshots so that you can be sure that you are"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1599.3600000000001,
+      "end": 1602.72,
+      "text": " following and doing the right things. So I definitely recommend if you want to do this"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1602.72,
+      "end": 1607.92,
+      "text": " for the first time to use this tutorial as a reference to guide you through all the process,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1608.48,
+      "end": 1612.56,
+      "text": " and we're going to have a link in the show notes. But also if you haven't seen our previous episode"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1612.56,
+      "end": 1617.44,
+      "text": " where we discuss why you should consider using GitHub Actions rather than CodePipeline,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1617.44,
+      "end": 1622.4,
+      "text": " maybe that's a good one that you can check out after this one to make sure you really get all"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1622.4,
+      "end": 1627.52,
+      "text": " the context on why all this stuff might be interesting for you. That's all we have for"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1627.52,
+      "end": 1634.72,
+      "text": " today and we'll see you at the next episode. Thank you very much."
+    }
+  ]
+}

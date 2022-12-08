@@ -1,0 +1,1928 @@
+{
+  "speakers": {
+    "spk_0": "Eoin",
+    "spk_1": "Luciano"
+  },
+  "segments": [
+    {
+      "speakerLabel": "spk_0",
+      "start": 0,
+      "end": 5.5200000000000005,
+      "text": " Automated continuous build and continuous delivery are must-haves when you're building modern applications on AWS."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 5.5200000000000005,
+      "end": 11.28,
+      "text": " To achieve this you've got numerous options including third-party providers like GitHub Actions and CircleCI"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 11.28,
+      "end": 14.32,
+      "text": " and the AWS services CodePipeline and CodeBuild."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 14.32,
+      "end": 19.28,
+      "text": " This is our topic for today so you're going to hear about what CodePipeline offers and how to set it up,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 19.28,
+      "end": 21.92,
+      "text": " what are the trade-offs and when to choose one over the other,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 21.92,
+      "end": 27.84,
+      "text": " and when you should look outside AWS to a third-party provider for continuous deployment."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 27.84,
+      "end": 32,
+      "text": " We'll also talk about the rise of GitHub Actions and when to choose it and all the features it offers."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 32,
+      "end": 36.4,
+      "text": " My name is Eoin, I'm joined by Luciano and this is the AWS Bites Podcast."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 45.2,
+      "end": 51.36,
+      "text": " Okay Luciano, regardless of the service we're trying to pick for continuous integration, continuous deployment, continuous build,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 51.36,
+      "end": 54.400000000000006,
+      "text": " what are we trying to achieve? Maybe we should talk about that first."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 54.4,
+      "end": 60.239999999999995,
+      "text": " Yeah, I think there are a number of use cases when it comes to discussing topics such as CI and CD."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 60.239999999999995,
+      "end": 65.84,
+      "text": " And so let's try to come up with a list of the different things that you might want to do with this kind of technology."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 65.84,
+      "end": 69.92,
+      "text": " So first of all you might want to do something we can define as automated build."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 69.92,
+      "end": 74.96,
+      "text": " For instance you have a repository with all your source code, you do things on the repository, I don't know,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 74.96,
+      "end": 78.4,
+      "text": " you open a PR, you merge that PR or you just push a commit."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 78.4,
+      "end": 81.68,
+      "text": " You might want something to happen as a reaction to that event"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 81.68,
+      "end": 85.60000000000001,
+      "text": " and that reaction is probably building your code and doing something with it,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 85.60000000000001,
+      "end": 91.28,
+      "text": " I don't know, running tests, making sure that your code is okay and conform to certain standards that you define."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 91.92,
+      "end": 96.96000000000001,
+      "text": " Then another aspect is releasing a specific artifact."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 96.96000000000001,
+      "end": 102.80000000000001,
+      "text": " So for this is maybe something you would do for instance when you create a tag on your repository,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 102.80000000000001,
+      "end": 107.44000000000001,
+      "text": " you can say I don't know this is version 1.5 and then at that point you want to kind of"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 107.44,
+      "end": 114.08,
+      "text": " archive that particular version and package it in such a way that it can be easily deployed to a particular environment."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 114.64,
+      "end": 121.44,
+      "text": " Then there is the deploying itself where it's basically you take one artifact and you all the code inside it,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 121.44,
+      "end": 127.44,
+      "text": " somehow you deploy that to an environment that might mean, I don't know, if it's defining containers,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 127.44,
+      "end": 132.56,
+      "text": " probably those containers the artifact is going to be an image in a registry and you might want to publish"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 132.56,
+      "end": 141.28,
+      "text": " and run a task for instance on ECS using that image or maybe it's a serverless function so you might want to deploy that function and run it."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 141.28,
+      "end": 146.08,
+      "text": " Or sometimes it can be even something more complex, it can be, I don't know, an entire cloud formation stack"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 146.08,
+      "end": 150.24,
+      "text": " and you want to apply all the changes in that stack. So it's really up to you to define the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 150.24,
+      "end": 155.76,
+      "text": " granularity but the concept is you build, you create an artifact and you try to deploy that artifact."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 156.32,
+      "end": 160.56,
+      "text": " And there are other things to keep in mind, for instance we want to be, most likely we want to be"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 160.56,
+      "end": 165.12,
+      "text": " using different environments and different applications so how do you manage maybe different"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 165.12,
+      "end": 171.76,
+      "text": " AWS accounts, one per environment, how do you manage multiple applications running in AWS accounts?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 171.76,
+      "end": 176.4,
+      "text": " We spoke before should you use multiple accounts for multiple applications, multiple accounts for"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 176.4,
+      "end": 181.04,
+      "text": " multiple environments, so you might have a very large matrix of combinations there and your CI CD"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 181.04,
+      "end": 186.96,
+      "text": " needs to be able to interact with all of those. And then there are other two aspects that I would"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 186.96,
+      "end": 193.20000000000002,
+      "text": " classify as observability and security. So on one side you want to know exactly what's going on, so"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 193.20000000000002,
+      "end": 198.32,
+      "text": " if you are doing a deployment what are the different steps and if something goes wrong at which step"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 198.32,
+      "end": 203.68,
+      "text": " did it go wrong and you should be able to see logs and react to whatever is going wrong. And finally"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 203.68,
+      "end": 210.08,
+      "text": " in terms of security that's kind of a very broad term but in general we want to make sure that our"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 210.08,
+      "end": 215.28,
+      "text": " CI CD doesn't get compromised, doesn't become kind of an attack surface for people to just, what if"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 215.28,
+      "end": 220.08,
+      "text": " they can steal credentials for instance and then they can impersonate your CI CD and do all the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 220.08,
+      "end": 225.2,
+      "text": " things that your CI CD can do. So there needs to be also a certain level of concern around making"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 225.2,
+      "end": 231.52,
+      "text": " sure that your CI CD infrastructure is as secure as possible because generally that layer has a lot"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 231.52,
+      "end": 236.32,
+      "text": " of permissions because it's literally spinning up new infrastructure, changing existing infrastructure"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 236.32,
+      "end": 242.4,
+      "text": " and so on. So yeah I think that covers more or less what is the need but speaking of AWS,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 242.4,
+      "end": 246.88,
+      "text": " how do we do all this stuff because I know there are so many different services to do all these"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 246.88,
+      "end": 251.92000000000002,
+      "text": " different things and I often get confused about which service does what. So should we try to do"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 251.92000000000002,
+      "end": 256.32,
+      "text": " Erica?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 256.32,
+      "end": 262.08,
+      "text": " Yeah in the AWS console if you go to developer tools you see four or five different services and the main ones there are CodeCommit and that's kind of their alternative to GitHub and"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 262.08,
+      "end": 266.32,
+      "text": " Bitbucket and the like. So we're not really going to cover that here since we're assuming people are"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 266.32,
+      "end": 271.2,
+      "text": " using something like Bitbucket or GitHub. We've also got CodeDeploy and this is a special"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 271.2,
+      "end": 276.24,
+      "text": " service for deploying to EC2 or ECS or Lambda. We talked about it a little bit before you can do"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 276.24,
+      "end": 280.64,
+      "text": " blue-green deployments with it. That can be used regardless of whether you used CodePipeline or a"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 280.64,
+      "end": 286.32,
+      "text": " third-party service. So let's also park that to one side. The other two main services are CodeBuild"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 286.32,
+      "end": 291.2,
+      "text": " and CodePipeline. So those are really I guess what we're going to focus on today. CodeBuild is like"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 291.2,
+      "end": 296.71999999999997,
+      "text": " the basic building block and it compares them a little bit to what CircleCI or Travis or other"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 296.72,
+      "end": 303.44000000000005,
+      "text": " similar services offer in that you can declare a YAML file called a build spec and that allows you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 303.44000000000005,
+      "end": 309.36,
+      "text": " to declaratively write all your build steps and CodeBuild will execute them for you. Because it's"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 309.36,
+      "end": 313.76000000000005,
+      "text": " an AWS service you always need to kind of create a resource for that to work so you also before that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 313.76000000000005,
+      "end": 318.56,
+      "text": " works you have to create a CodeBuild project and associate it with a source like GitHub or Bitbucket."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 319.20000000000005,
+      "end": 322.96000000000004,
+      "text": " Then you can pick a container image for your project to run in and you give it an IAM role"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 322.96,
+      "end": 327.68,
+      "text": " to use. You can configure the size of the instance. All in all I think CodeBuild is a pretty good"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 327.68,
+      "end": 335.68,
+      "text": " service as a basic build execution environment but it's I would say no frills. It doesn't provide a"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 335.68,
+      "end": 342.08,
+      "text": " particularly good UI or anything. CodePipeline then is like a continuous deployment or continuous"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 342.08,
+      "end": 346.4,
+      "text": " delivery workflow service so it allows you to chain multiple stages and actions together."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 346.4,
+      "end": 351.76,
+      "text": " So you can use it together with CodeBuild and it will allow you to orchestrate multiple steps."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 351.76,
+      "end": 358.88,
+      "text": " So in CodePipeline you have this concept of stages so each phase of your workflow is called"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 358.88,
+      "end": 364.96,
+      "text": " a stage and each stage can have multiple actions and actions can be run in parallel or in sequence."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 364.96,
+      "end": 368.88,
+      "text": " There's lots of different actions you can do. So you've got source actions and then you've got"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 369.92,
+      "end": 376.4,
+      "text": " so source actions can come from GitHub, it can come from S3, ECR, CodeCommit and then for"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 376.4,
+      "end": 380.88,
+      "text": " actually doing stuff based on that source you can run a CodeBuild job, you can even run Django,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 380.88,
+      "end": 385.28,
+      "text": " you can even run Jenkins and there's also lots of third-party providers as well including lots of"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 385.28,
+      "end": 393.52,
+      "text": " providers for running specific tests. So it's well integrated into lots of AWS services but also"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 393.52,
+      "end": 399.68,
+      "text": " third-party services and it then allows you to deploy with CodeDeploy out to ECS, you can deploy"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 399.68,
+      "end": 404.88,
+      "text": " out to S3, Elastic Beanstalk and as well as that if you really want to do custom stuff you can"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 404.88,
+      "end": 410.08,
+      "text": " invoke Lambda from CodePipeline or Step Function. I've spent actually a lot of time creating"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 410.08,
+      "end": 415.76,
+      "text": " pipelines based on CodePipeline and CodeBuild and that might be a little bit of a hint as to where"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 415.76,
+      "end": 420.4,
+      "text": " these services fit because you do end up spending a lot of time. We do have an open source project"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 420.4,
+      "end": 425.44,
+      "text": " called SlickStarter which is like a serverless template project that you can use for exploring"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 425.44,
+      "end": 429.76,
+      "text": " lots of different things you need to implement when you are creating a serverless project. One"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 429.76,
+      "end": 437.2,
+      "text": " of those is continuous deployment and in there there's a CICD folder that has a CDK project that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 437.2,
+      "end": 442.8,
+      "text": " creates a CodePipeline and CodeBuild with all of the build phases, integration tests and multiple"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 442.8,
+      "end": 449.76,
+      "text": " stages to multiple environments. It supports cross-account deployment and yeah that's probably"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 449.76,
+      "end": 454.08,
+      "text": " a good example because to achieve something like that you do need to spend quite a lot of time but"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 454.8,
+      "end": 459.52,
+      "text": " let's maybe talk about the advantages there first. So with CodePipeline you know everything is well"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 459.52,
+      "end": 465.36,
+      "text": " integrated on AWS that's always going to be the advantage of picking the AWS native option. You"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 465.36,
+      "end": 469.44,
+      "text": " can also maintain the pipeline code using the same infrastructure as code be it Terraform or"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 469.44,
+      "end": 473.92,
+      "text": " CloudFormation or CDK as you do for the rest of the application so you can manage all those"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 473.92,
+      "end": 479.6,
+      "text": " changes together and the way you do it is it's fairly consistent right everything is an AWS"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 479.6,
+      "end": 487.36,
+      "text": " resource. It also kind of scales well right you've got the elasticity of AWS with your"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 488.48,
+      "end": 493.52000000000004,
+      "text": " with your CodeBuild jobs and you know it's it's you can get notifications as well so you get"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 493.52,
+      "end": 498.96,
+      "text": " SNS notifications on your code pipeline you can integrate that to Slack using AWS chatbot."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 498.96,
+      "end": 504.47999999999996,
+      "text": " It's obviously quite well integrated into the AWS ecosystem but having used it quite a lot on"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 504.47999999999996,
+      "end": 508.4,
+      "text": " multiple projects I still think there's lots of areas where CodePipeline and CodeBuild could be"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 508.4,
+      "end": 514.56,
+      "text": " improved right so the main disadvantages I'd say would be like there's a steep learning curve right"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 514.56,
+      "end": 518.24,
+      "text": " compared to the alternatives you you kind of have to design and deploy the CodeBuild projects"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 518.24,
+      "end": 523.12,
+      "text": " understand how the services work it's never as easy as you will think you will always underestimate"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 523.12,
+      "end": 527.52,
+      "text": " the amount of time you need to create these things. Unsurprisingly the user experience for"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 527.52,
+      "end": 533.2,
+      "text": " both services is not as great as the alternatives you don't get like a nice single pane of glass for"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 533.2,
+      "end": 538.72,
+      "text": " all your pipelines with expandable sections that you can quickly go into and go out of."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 539.36,
+      "end": 544.64,
+      "text": " CodePipeline's overview for the execution is pretty good overview but it doesn't show you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 544.64,
+      "end": 549.92,
+      "text": " like multiple workflows very well if you want to drill drill down deeper you end up clicking"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 549.92,
+      "end": 556.0799999999999,
+      "text": " across to CodeBuild and then the user experience is just a big log. There can also be a performance"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 556.0799999999999,
+      "end": 560.24,
+      "text": " problem I'd say so if you've got multiple CodePipeline stages because you're trying to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 560.24,
+      "end": 566,
+      "text": " break it up into lots of distinct steps the transition step between each one can be a little"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 566,
+      "end": 571.28,
+      "text": " bit slow now they did improve the performance of this but you still use S3 as an intermediate"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 571.28,
+      "end": 577.76,
+      "text": " storage between your stages so there's always a push to S3 at the end of stage and a pull from"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 577.76,
+      "end": 584.24,
+      "text": " S3 at the end of the next stage and if you've got you know a substantial amount of data source code"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 584.24,
+      "end": 588.3199999999999,
+      "text": " being passed around which is quite common these days that can really slow down your execution."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 589.76,
+      "end": 593.84,
+      "text": " So that's a bit of a problem right because build and deployment speed is important it is really"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 593.84,
+      "end": 598.3199999999999,
+      "text": " important for developer productivity I would say and we should always be trying to get that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 598.3199999999999,
+      "end": 604.64,
+      "text": " deployment time down as low as possible. I have seen people overcome that problem by like just"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 604.64,
+      "end": 608.64,
+      "text": " getting rid of CodePipeline altogether and just using CodeBuild but the problem there is that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 608.64,
+      "end": 614,
+      "text": " when you're just using CodeBuild you lose that structured workflow everything is running one job"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 614,
+      "end": 618.72,
+      "text": " you do have distinct phases but you don't get any visualization of that really it's just"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 618.72,
+      "end": 622.8,
+      "text": " they're all just steps that are logged out to a log file. The last kind of disadvantage I'd say"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 622.8,
+      "end": 627.84,
+      "text": " is that source providers be it from GitHub or elsewhere are quite clunky to set up with CodeBuild"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 627.84,
+      "end": 632,
+      "text": " and CodePipeline. Setting up authentication there's different ways of doing it in CodeBuild"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 632,
+      "end": 638.96,
+      "text": " and CodePipeline they also have a reasonably new thing called connections which is a little bit"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 638.96,
+      "end": 643.44,
+      "text": " better but you still can't have triggers in CodePipeline from multiple branches."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 643.44,
+      "end": 647.84,
+      "text": " Everything else out there allows you to specify like a glob pattern for your branches"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 649.04,
+      "end": 653.92,
+      "text": " to trigger from PRs. CodeBuild allows you to do that but CodePipeline does not. People end up then"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 653.92,
+      "end": 660.16,
+      "text": " using a CodeBuild job at the start which uses a wildcard pattern on your branches and then this"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 660.16,
+      "end": 664,
+      "text": " triggers the CodePipeline and it's just not as seamless as you would want. It seems like we've"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 664,
+      "end": 671.28,
+      "text": " talked a lot about the shortcomings now of them. How does the alternative compare? Do you want to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 671.28,
+      "end": 676.88,
+      "text": " go through what GitHub actions is like in comparison?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 676.88,
+      "end": 683.04,
+      "text": " Yeah let's talk specifically about GitHub actions because seems to be kind of the main contender in the market even outside AWS"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 683.04,
+      "end": 687.68,
+      "text": " just because even in open source everyone is hosting projects or almost everyone at least is"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 687.68,
+      "end": 692.16,
+      "text": " hosting projects on GitHub and everyone is starting to take more and more advantage of the built-in"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 692.16,
+      "end": 697.3599999999999,
+      "text": " GitHub actions to do all the automations around their open source projects so it kind of makes"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 697.3599999999999,
+      "end": 702.7199999999999,
+      "text": " sense to also use all that knowledge to try to deploy applications in all sorts of different"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 702.7199999999999,
+      "end": 708.56,
+      "text": " environments including AWS and the experience is actually fairly simple in my opinion. I've been"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 708.56,
+      "end": 715.04,
+      "text": " using this extensively for open source not as much with AWS but for open source I have a very good"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 715.04,
+      "end": 720.8,
+      "text": " grasp on what is the process to kind of create a workflow and make it run and it always starts with"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 720.8,
+      "end": 726.4,
+      "text": " a YAML file that is generally created in the root folder of your repository in a actually it's not"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 726.4,
+      "end": 730.88,
+      "text": " in the root folder there is a special folder called.github and in that folder you can create"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 730.88,
+      "end": 736.4,
+      "text": " another subfolder called workflows and then every YAML file that you define in there is kind of"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 736.4,
+      "end": 741.1999999999999,
+      "text": " automatically becomes a pipeline or a workflow if you wish that will be executed depending on the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 741.2,
+      "end": 748.08,
+      "text": " condition that you specify inside of your YAML file so this is kind of what makes that integration"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 748.08,
+      "end": 753.5200000000001,
+      "text": " almost seamless because you don't really have to go and call APIs or click around the UI to enable"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 754.1600000000001,
+      "end": 758.88,
+      "text": " a specific workflow you just create a file and as long that file exists and it's well formatted"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 758.88,
+      "end": 763.44,
+      "text": " your workflow exists and will be executed according to what you specified inside the file"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 764.48,
+      "end": 770.24,
+      "text": " in terms of AWS of course there is a step to integrate the two systems together so GitHub"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 770.24,
+      "end": 775.6800000000001,
+      "text": " needs to be aware of a particular role that needs to be assumed in order to have permissions to do"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 775.6800000000001,
+      "end": 780.8,
+      "text": " all sorts of different actions and this is something that can be done using OIDC provider"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 780.8,
+      "end": 786,
+      "text": " and used to be a little bit more cumbersome in the past but I think now is a little bit more"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 786,
+      "end": 790.8,
+      "text": " simplified so maybe we can go in details in another dedicated episode but yeah basically"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 790.8,
+      "end": 795.12,
+      "text": " you create an OIDC provider for GitHub actions and at that point GitHub actions is able to"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 795.12,
+      "end": 800.96,
+      "text": " assume a role and all the permissions related to that role so in terms of why is this better we"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 800.96,
+      "end": 806.24,
+      "text": " already mentioned that looks a little bit easier to define our workflow and make it run because"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 806.24,
+      "end": 812.8,
+      "text": " it's just creating a YAML file with a quite simple syntax but there are a lot more advantages and"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 813.52,
+      "end": 818.72,
+      "text": " first of all that is already like if you are already using GitHub as a source your repositories"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 818.72,
+      "end": 823.84,
+      "text": " are in GitHub that that's literally it like you don't need to create another source or another"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 823.84,
+      "end": 827.76,
+      "text": " connection or you just create files in the same repository and that's it so that that integration"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 827.76,
+      "end": 834.08,
+      "text": " is very seamless and the other thing is that it's very easy to have conditionals for instance if a"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 834.08,
+      "end": 839.76,
+      "text": " particular step is something that maybe you want to run only in the main branch or maybe you want"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 839.76,
+      "end": 845.76,
+      "text": " to run if that commit was a tag you can have all sorts of conditions actually the language is very"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 845.76,
+      "end": 852.72,
+      "text": " flexible that is very very easy to do there is literally an if attribute in the YAML statements"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 852.72,
+      "end": 857.36,
+      "text": " and that if attribute has its own expression language and it is quite simple but at the same"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 857.36,
+      "end": 862.64,
+      "text": " time powerful enough for most use cases and another thing that i really like that is also"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 862.64,
+      "end": 868.8000000000001,
+      "text": " very simple maybe in comparison with code build and code pipeline is the matrix feature so for"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 868.8000000000001,
+      "end": 873.84,
+      "text": " instance a common use case this is more maybe when you are building a library you might want to run"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 873.84,
+      "end": 878.8000000000001,
+      "text": " the unit tests against different versions of your runtime let's say it's an OJS project probably you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 878.8,
+      "end": 885.28,
+      "text": " want to run the tests against i don't know node 14, node 16, node 18 just to make sure that people"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 885.28,
+      "end": 890.0799999999999,
+      "text": " using different versions of Node.js can use that particular library without problems this is"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 890.0799999999999,
+      "end": 895.92,
+      "text": " extremely easy to do with GitHub actions because you literally have to define a property that says"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 895.92,
+      "end": 900.4,
+      "text": " i have these three attributes that are variations of my pipeline and the attributes will be"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 901.12,
+      "end": 908.4,
+      "text": " node 16, 18 and maybe 14 and then you can use these variables inside your action for instance"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 908.4,
+      "end": 912.48,
+      "text": " you're probably going to have a setup step that says configure the version of Node.js and use that"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 912.48,
+      "end": 919.12,
+      "text": " variable and at that point um GitHub action is going to take all the variations that you specify"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 919.12,
+      "end": 923.36,
+      "text": " for every type of attribute for instance Node.js versions you might have also a imperative system"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 923.36,
+      "end": 927.52,
+      "text": " it's going to do a matrix with all of them and basically it's going to execute all the variations"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 927.52,
+      "end": 932.56,
+      "text": " for you and the UI is actually very sleek in making you see all the different variations that"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 932.56,
+      "end": 937.1999999999999,
+      "text": " are running by default they are executed in parallel so the amount of configuration is very"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 937.2,
+      "end": 943.36,
+      "text": " minimal and the result is quite powerful the other thing that is very nice is this idea of"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 944.96,
+      "end": 952.5600000000001,
+      "text": " third-party actions that is basically for most cases you might want to do something that is"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 952.5600000000001,
+      "end": 958.5600000000001,
+      "text": " very common for instance setup Node.js or authenticate against AWS like in in other"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 958.5600000000001,
+      "end": 965.2,
+      "text": " CI systems you need to write your own bash script using specific CLI utilities to do certain things"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 965.2,
+      "end": 970.1600000000001,
+      "text": " and that's always either a copy paste which is a little bit annoying or something that you need"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 970.1600000000001,
+      "end": 974.5600000000001,
+      "text": " to figure out every single time and then you end up copy pasting from your previous repository"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 975.6,
+      "end": 980.1600000000001,
+      "text": " using GitHub third-party actions basically what you do is like you are importing a module and then"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 980.1600000000001,
+      "end": 986,
+      "text": " you say do this thing and use this particular configuration for instance the the action called"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 986,
+      "end": 991.0400000000001,
+      "text": " setup Node.js is either you say reuse this third-party action which is provided by GitHub"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 991.04,
+      "end": 995.8399999999999,
+      "text": " itself and say you only need to specify the version of Node.js that you want there are of"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 995.8399999999999,
+      "end": 1001.76,
+      "text": " course other parameters but it's literally import this module initialize it with this configuration"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1001.76,
+      "end": 1005.1999999999999,
+      "text": " I don't want to know exactly what's happening behind the scene but I know that it's going to"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1005.1999999999999,
+      "end": 1010.0799999999999,
+      "text": " solve this particular use case that might also be a little bit of a problem because you might start"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1010.0799999999999,
+      "end": 1015.36,
+      "text": " to think oh what about supply chain attacks what if I'm using an action that maybe is not"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1015.36,
+      "end": 1020.8,
+      "text": " trustworthy and people can use that as an attack vector this is definitely a concern I'm not sure"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1020.8,
+      "end": 1029.2,
+      "text": " of course but the good news is that GitHub has 50 official actions that they maintain themselves"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1029.2,
+      "end": 1034.8799999999999,
+      "text": " and these are the most commonly used ones for instance setup node setup java all the basic"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1034.8799999999999,
+      "end": 1039.52,
+      "text": " building blocks that you might find on all sorts of different programming languages and runtimes"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1039.52,
+      "end": 1045.36,
+      "text": " but they also do this thing called verified by GitHub where the most commonly used actions they"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1045.36,
+      "end": 1050.56,
+      "text": " actually audit them to certain extent I'm not really sure to what degree but they will tell you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1050.56,
+      "end": 1055.44,
+      "text": " we kind of spend some time and this is trustworthy so if you see that badge you might be a little bit"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1055.44,
+      "end": 1061.76,
+      "text": " more confident that it's not gonna create security problems for you I still recommend you verify the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1061.76,
+      "end": 1066.56,
+      "text": " source code because all these actions are actually open source so it's actually another repository"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1066.56,
+      "end": 1072.1599999999999,
+      "text": " on GitHub so you can literally read all the code they generally run as containers so what happens"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1072.1599999999999,
+      "end": 1077.12,
+      "text": " is that they will pull the code from that repository and run it as part of your workflow"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1077.12,
+      "end": 1082,
+      "text": " so you can literally see exactly what's going to happen and you can also tag specific commits on"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1082,
+      "end": 1085.9199999999998,
+      "text": " that repository if you really want to be sure you are running a specific version that you have been"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1085.9199999999998,
+      "end": 1093.04,
+      "text": " auditing so this is just as a suggestion if you if you want to be really cautious about importing"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1093.04,
+      "end": 1099.76,
+      "text": " third-party source code into your pipelines what else I think oh yeah there is another interesting"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1099.76,
+      "end": 1107.6,
+      "text": " point regarding self-hosted runners so in general when you use GitHub actions the pipeline is"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1107.6,
+      "end": 1112.4,
+      "text": " running on GitHub infrastructure and of course that comes with a cost that maybe will detail a"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1112.4,
+      "end": 1118.56,
+      "text": " little bit later but you can if you don't want to run your code your pipelines in GitHub self-host"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1118.56,
+      "end": 1123.36,
+      "text": " in GitHub runners you can self-host the runners yourself and there is like an agent that you can"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1123.36,
+      "end": 1128.4,
+      "text": " install in anywhere where you want to run your code it might even be I don't know a raspberry pi"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1128.4,
+      "end": 1133.0400000000002,
+      "text": " connected to the internet if you really want to and at that point you just need to register the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1133.0400000000002,
+      "end": 1139.2,
+      "text": " workers with a particular project and GitHub will dispatch the the workload to to this"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1140.64,
+      "end": 1142.4,
+      "text": " managed runners that you manage yourself"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1144.3200000000002,
+      "end": 1152.0800000000002,
+      "text": " um yeah I think that's all we have so maybe in terms of disadvantages let's see what we can say"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1152.08,
+      "end": 1158.96,
+      "text": " uh in comparison with CodePipeline of course so yeah we said that there are a lot of things that"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1158.96,
+      "end": 1165.12,
+      "text": " are simplified because just the user experience of GitHub actions is is different from what you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1165.12,
+      "end": 1169.6799999999998,
+      "text": " get with CodePipeline but at the same time you need to do this additional step of making sure"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1169.6799999999998,
+      "end": 1175.52,
+      "text": " that credentials are actually set up correctly and that you configure this OIDC provider to allow"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1175.52,
+      "end": 1183.12,
+      "text": " GitHub actions to authenticate against your AWS accounts yeah um if you use multiple environments"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1183.12,
+      "end": 1190.32,
+      "text": " that comes with a host so also that's something to keep in mind some people complain that"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1192.08,
+      "end": 1198.24,
+      "text": " is not the most reliable service it has been going down a few times and even if you even if you use"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1198.24,
+      "end": 1203.92,
+      "text": " your own workers that if the let's call it the data plane I don't know if it's the most correct"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1203.92,
+      "end": 1208.48,
+      "text": " terminology but the orchestration plane whatever you want to call it if that one goes down your"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1208.48,
+      "end": 1214.72,
+      "text": " workers on your own infrastructure are not getting triggered anyway so that that's also another case"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1214.72,
+      "end": 1222.0800000000002,
+      "text": " where you are not 100% in control and also self-hosted runners are they have some quirks"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1222.0800000000002,
+      "end": 1227.68,
+      "text": " I heard people complaining about they are also not reliable in different ways and they seem to"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1227.68,
+      "end": 1235.68,
+      "text": " be a little bit different from what you get in the hosted the managed GitHub runners in in a sense"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1235.68,
+      "end": 1242,
+      "text": " that there are some subtle differences in behaviors and it's not obvious when they appear so your"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1242,
+      "end": 1246.88,
+      "text": " mileage might vary but be careful if you use the self-hosted runners make sure you test them"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1246.88,
+      "end": 1252.4,
+      "text": ""
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1252.4,
+      "end": 1257.68,
+      "text": " because it might not be 100% the same experience you get with the GitHub runners yeah it's probably a good idea I suppose just to try and use the managed runners where possible unless for some"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1257.68,
+      "end": 1262.88,
+      "text": ""
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1262.88,
+      "end": 1267.76,
+      "text": " compliance reason you need to keep those that build running on premise and then we can also talk very quickly about pricing so if you're if you're doing an open source project this is"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1267.76,
+      "end": 1273.6000000000001,
+      "text": " actually the best part it's totally free like if you're building a library and this library is"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1274.64,
+      "end": 1279.2,
+      "text": " your repository is public you can build as much as you want and it's literally free"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1279.2,
+      "end": 1283.92,
+      "text": " so this is actually really nice because it gives you an opportunity to experiment with"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1283.92,
+      "end": 1288.96,
+      "text": " GitHub actions without having to worry too much and it's funny that you can even do like scheduled"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1290.64,
+      "end": 1296.96,
+      "text": " executions for instance for the AWS bytes website what we do is every Friday at midnight if we have"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1296.96,
+      "end": 1301.76,
+      "text": " a new episode coming that will be released that day the website automatically build itself and"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1301.76,
+      "end": 1307.04,
+      "text": " it will show the new episode and this is something we do entirely for free because the whole website"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1307.04,
+      "end": 1312.96,
+      "text": " is open source in a public repository so GitHub gives us all that service for free so that can be"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1312.96,
+      "end": 1317.6,
+      "text": " very nice in different ways but of course if you are building a startup you are not going to"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1317.6,
+      "end": 1323.36,
+      "text": " publish probably all your source code publicly right so what happens when you need something"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1323.36,
+      "end": 1328.8,
+      "text": " private something more enterprisey you actually the pricing is really interesting because on"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1328.8,
+      "end": 1332.3999999999999,
+      "text": " GitHub it's like you have a bunch of different services like repositories"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1332.4,
+      "end": 1338.72,
+      "text": " GitHub actions I think maybe even copilots now as part of all the different services that they offer"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1338.72,
+      "end": 1345.1200000000001,
+      "text": " and you don't buy them like individually it's kind of a one plan where you pay seats for developers"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1345.1200000000001,
+      "end": 1350.16,
+      "text": " and you get access to a certain amount of features for all the services and in the case of"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1351.2800000000002,
+      "end": 1358.88,
+      "text": " GitHub actions you get 3 000 minutes per month I think per seat and that seat is 45 dollars per year"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1358.88,
+      "end": 1364.16,
+      "text": " so my understanding is that if you need more than 3 000 minutes of build time this is of course"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1364.16,
+      "end": 1369.8400000000001,
+      "text": " using their own workers the GitHub workers you probably have to buy more seats so buying more"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1369.8400000000001,
+      "end": 1374.72,
+      "text": " seats will give access to more developers but this is going to give you more build minutes yeah I'm"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1374.72,
+      "end": 1380.64,
+      "text": ""
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1380.64,
+      "end": 1385.1200000000001,
+      "text": " not sure I'm a big fan of that just because I mean why why is the number of builds going to be tied to the number of developers it seems a little bit like those those things aren't necessarily going"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1385.12,
+      "end": 1390.9599999999998,
+      "text": " to scale linearly I mean I would joke like everybody knows every time you add a member to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1390.9599999999998,
+      "end": 1395.6799999999998,
+      "text": " your team your productivity goes down anyway because you have so much more coordination to do"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1395.6799999999998,
+      "end": 1400.08,
+      "text": " so maybe it should be the opposite anyway I digress yeah on one side I appreciate that they"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1400.08,
+      "end": 1404.8799999999999,
+      "text": ""
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1404.8799999999999,
+      "end": 1409.84,
+      "text": " are trying to keep it simple and you don't have to worry about too many dimensions and how they can affect your pricing but at the same time it's probably true that you might have specific use"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1409.84,
+      "end": 1415.28,
+      "text": " cases where I don't know maybe you end up paying so many seats just because you need more build time"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1415.28,
+      "end": 1420.9599999999998,
+      "text": " but you don't really have as many developers right so yeah there are kind of implicit dimensions and"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1420.9599999999998,
+      "end": 1425.84,
+      "text": " I guess if you happen to be in the standard use case you're probably fine but if you deviate from"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1425.84,
+      "end": 1430.24,
+      "text": " that standard use case I don't know maybe your pricing is not going to make that much sense"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1430.24,
+      "end": 1438.48,
+      "text": " anymore and then what else can we say there is a thing called GitHub engine that is not going to"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1438.48,
+      "end": 1444,
+      "text": " say there is a thing called GitHub enterprise that is 231 dollars a year I think this is per"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1444,
+      "end": 1451.04,
+      "text": " organization right not per user it's also per user per year okay and that one gives you environment"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1451.04,
+      "end": 1455.6,
+      "text": ""
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1455.6,
+      "end": 1460.64,
+      "text": " production which I'm not really sure what that is yeah so that means if you want to have you know rules conditions that specify under what conditions can you deploy to production so you don't allow"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1460.64,
+      "end": 1466.56,
+      "text": " everybody to create a bill that can trigger release to production those kind of conditions"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1466.56,
+      "end": 1471.76,
+      "text": " then you need GitHub enterprise for that which is you know it's it's something that I guess a lot of"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1471.76,
+      "end": 1476.8799999999999,
+      "text": " people might want and it's kind of unusual that you would need to go from 45 to 44 dollars a year"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1476.8799999999999,
+      "end": 1481.84,
+      "text": " to 231 dollars a year just to get that so I get your mileage is going to vary like pricing could"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1481.84,
+      "end": 1485.9199999999998,
+      "text": " be very work out really well for you with GitHub but it could also get expensive if you've got"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1485.9199999999998,
+      "end": 1491.76,
+      "text": ""
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1491.76,
+      "end": 1497.04,
+      "text": ""
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1497.04,
+      "end": 1501.04,
+      "text": " long running builds with you know small startup so in comparison to all of that how does code pipeline and code build work what is the price in there I think I think it's a little bit I guess just more linear in terms of the number of pipelines and build jobs you have so code pipeline"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1501.04,
+      "end": 1506.56,
+      "text": " is one of the simplest AWS pricing sheets out there it's a dollar per month per pipeline and"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1506.56,
+      "end": 1513.44,
+      "text": " that's it whether it runs or not you get one free on the free tier and code build then it depends on"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1513.44,
+      "end": 1517.76,
+      "text": " the instance size so you can configure different instance sizes the kind of standard one is general"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1517.76,
+      "end": 1522.64,
+      "text": " one medium that's a cent a minute dollar cent per minute for Linux you can also do Windows"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1522.64,
+      "end": 1527.2,
+      "text": " builds are more expensive you can go down as far as the smallest arm instance which is like a third"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1527.2,
+      "end": 1533.44,
+      "text": " of a cent per minute and if you want a really massive GPU on its own it's like 65 cents per"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1533.44,
+      "end": 1537.68,
+      "text": " minute so if it's but it's just based on the number of minutes you execute and there's there"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1537.68,
+      "end": 1541.6,
+      "text": " are some quotas but you can get the quotas increased so I would say that it's one of the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1541.6,
+      "end": 1545.44,
+      "text": " advantages of code build is actually it scales pretty well I have had cases on especially on"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1545.44,
+      "end": 1551.76,
+      "text": " new accounts where code build jobs can sometimes take a while to provision and I guess this is"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1551.76,
+      "end": 1555.92,
+      "text": " something that will kind of come up now and again as AWS add more and more infrastructure and as"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1555.92,
+      "end": 1561.2,
+      "text": " more people run code build jobs but I have found that sometimes even recently that it can you can"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1561.2,
+      "end": 1566.4,
+      "text": ""
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1566.4,
+      "end": 1571.1200000000001,
+      "text": " end up waiting and prefer provisioning stuff so that's something to be mindful of yeah I was about to say that this is another kind of trade-off that with GitHub actions if you use the managed"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1571.12,
+      "end": 1575.76,
+      "text": " runners you don't really know on what kind of hardware you are running your code so if you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1575.76,
+      "end": 1580.6399999999999,
+      "text": " need specific things like a GPU because I don't know if you're doing training models whatever"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1581.76,
+      "end": 1586.8799999999999,
+      "text": " you you're not necessarily going to get a fine-tuned experience there but if you either"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1586.8799999999999,
+      "end": 1591.4399999999998,
+      "text": " host yourself the runners then you can use whatever hardware you want but in code build"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1591.4399999999998,
+      "end": 1595.76,
+      "text": " that's a lot more kind of obvious that you're going to pay for the compute you actually use"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1595.76,
+      "end": 1600.4799999999998,
+      "text": ""
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1600.48,
+      "end": 1606,
+      "text": " but at the same time you can customize that compute as much as you want yeah that's a good point maybe it's a good point to talk about when to choose one or the over the other in summary so"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1606,
+      "end": 1610.24,
+      "text": " I think maybe people have already made up their own mind based on what we discussed in the pros"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1610.24,
+      "end": 1614.96,
+      "text": " and cons I'd say like use code build code build and code pipeline if you have a good understanding"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1614.96,
+      "end": 1619.92,
+      "text": " of those services already and want this AWS service integrations also maybe if you're all"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1619.92,
+      "end": 1624.08,
+      "text": " in on CDK CDK actually has something called CDK pipelines which allows you to create all these"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1624.08,
+      "end": 1630.32,
+      "text": " things very simply for you with a self-updating pipeline we'll link in the show notes to a CDK"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1630.32,
+      "end": 1635.4399999999998,
+      "text": " workshop which is really good it talks about how you do that but in general I'd say if you should"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1635.4399999999998,
+      "end": 1639.28,
+      "text": " use GitHub actions if you want to reduce the amount of time developers spend on maintaining"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1639.28,
+      "end": 1644,
+      "text": " the pipelines because it's just a lower barrier to entry and it's not so steep a learning curve"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1644,
+      "end": 1647.6,
+      "text": " and if you don't need those specific AWS integrations code pipeline offers"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1647.6,
+      "end": 1651.52,
+      "text": " it's I would see that more and more people are going to choose GitHub actions to do this in the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1651.52,
+      "end": 1659.4399999999998,
+      "text": " future so it would become the well-traveled path and code pipeline code build maybe you know it's"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1659.44,
+      "end": 1664.8,
+      "text": " still very widely used because it's just part of all the AWS services and it's reasonably well"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1664.8,
+      "end": 1670.3200000000002,
+      "text": " documented in terms of third-party community resources but not it will not be it's not the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1670.3200000000002,
+      "end": 1676.16,
+      "text": " juggernaut that GitHub is so you won't you just won't find the same level of support after that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1676.16,
+      "end": 1680.88,
+      "text": " yeah we're interested in everyone else's opinion also there's plenty of other third-party services"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1680.88,
+      "end": 1685.04,
+      "text": " out there circle CI I've used in the past as well which has also been really easy to set up"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1685.04,
+      "end": 1690.3999999999999,
+      "text": " and comparable I think in to GitHub actions in a lot of ways in terms of resources if people are"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1690.3999999999999,
+      "end": 1695.76,
+      "text": " looking for other places to to go one of the reasons why we were inspired to talk about this"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1695.76,
+      "end": 1699.6,
+      "text": " topic today is because Paul Swale released a really good article a couple of weeks ago"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1699.6,
+      "end": 1704.8799999999999,
+      "text": " called why I switched from AWS code pipeline to GitHub actions it's really excellent article and"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1704.8799999999999,
+      "end": 1709.68,
+      "text": " well worth a read we've also linked to a tutorial showing how you can set up authentication between"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1709.68,
+      "end": 1716.5600000000002,
+      "text": " GitHub actions and building and deploying a web app to EC2 we'll also link to our previous episode"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1716.5600000000002,
+      "end": 1721.76,
+      "text": " which is on the same theme when to use other alternatives to AWS services so please check"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1721.76,
+      "end": 1725.3600000000001,
+      "text": " out that last episode if you haven't heard it already so thanks for listening and we'll see you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1725.36,
+      "end": 1741.84,
+      "text": " next time"
+    }
+  ]
+}

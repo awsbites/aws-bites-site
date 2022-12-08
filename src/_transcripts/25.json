@@ -1,0 +1,2360 @@
+{
+  "speakers": {
+    "spk_0": "Luciano",
+    "spk_1": "Eoin"
+  },
+  "segments": [
+    {
+      "speakerLabel": "spk_0",
+      "start": 0,
+      "end": 4.72,
+      "text": " Hello everyone, today we're going to answer the question what can you do with Kinesis data"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 4.72,
+      "end": 9.68,
+      "text": " streams and today we're going to explore this topic and talk about what are the main differences"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 9.68,
+      "end": 15.120000000000001,
+      "text": " between data streams and queues or message buses, how Kinesis can let you process large"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 15.120000000000001,
+      "end": 21.92,
+      "text": " batches of messages in near real time, why you might want to use Kinesis as a queue or a pub-sub"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 21.92,
+      "end": 27.52,
+      "text": " in some particular scenarios and also we're going to explore a few different ways to use Kinesis"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 27.52,
+      "end": 33.6,
+      "text": " with the focus on avoiding too much complexity. My name is Luciano and I'm joined by Eoin"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 33.6,
+      "end": 35.6,
+      "text": " and this is AWS Bites podcast."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 42.96,
+      "end": 50.32,
+      "text": " So this is one of our last episodes in our series of AWS events services and we are now focusing on"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 50.32,
+      "end": 56.08,
+      "text": " streaming data. So I suppose the first question that we should try to answer is what is streaming,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 56.08,
+      "end": 61.519999999999996,
+      "text": " what do we mean by that and in particular in the context of Kinesis data streams what are the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 62.08,
+      "end": 67.6,
+      "text": " pieces of functionality that we get from this particular service. What do you think Eoin?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 69.6,
+      "end": 75.03999999999999,
+      "text": " Kinesis data streams we're talking about, so this is a fully managed event streaming service,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 75.03999999999999,
+      "end": 79.84,
+      "text": " so yeah like you say streaming is different to queuing and pub-sub systems, the ones we've"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 79.84,
+      "end": 85.2,
+      "text": " talked about already, so we should probably talk about what streaming is and how it's subtly but"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 85.2,
+      "end": 91.28,
+      "text": " quite different. With streaming you're talking about processing continuous streams of events"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 91.28,
+      "end": 98.08,
+      "text": " in near real time and typically in batches right, larger batches with SNS or SQS you might be"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 98.08,
+      "end": 104.72,
+      "text": " talking about individual messages normally they're standalone units but with pub-subs you're talking"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 104.72,
+      "end": 111.36,
+      "text": " about single message to fanning out to multiple consumers but streaming you're typically talking"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 111.36,
+      "end": 116.56,
+      "text": " about larger volumes of messages from multiple producers being processed in bulk so in batches"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 116.56,
+      "end": 123.52,
+      "text": " by one or more consumers and more or less in real time so you're really talking about a continuous"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 123.52,
+      "end": 129.68,
+      "text": " stream of batches of records and another difference with streaming with things like"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 129.68,
+      "end": 135.52,
+      "text": " Kinesis and Kafka it retains the records even after they've been processed so you can always"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 135.52,
+      "end": 143.52,
+      "text": " have new consumers join or you can reprocess data by going back to the data that's stored"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 143.52,
+      "end": 149.36,
+      "text": " depending on how long you've configured the retention of your streams."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 149.36,
+      "end": 154.48000000000002,
+      "text": " Yeah that can be very useful also when you have a bug in your code and you realize that maybe you you're processing"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 154.48000000000002,
+      "end": 159.60000000000002,
+      "text": " didn't really do what you wanted to do in the first place you can fix the bug and then basically"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 159.6,
+      "end": 167.04,
+      "text": " rewind your ingestion start from scratch and re-ingest everything again."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 167.04,
+      "end": 172.56,
+      "text": " Yeah that's true that's true I mean we should also say that even though we're clarifying the differences between"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 172.56,
+      "end": 178.64,
+      "text": " streaming and queues or pub-sub it's actually very common well not uncommon I would say for people to"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 178.64,
+      "end": 186.4,
+      "text": " use Kinesis or Kafka as a queuing system or as a pub-sub system and then there's the question why"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 186.4,
+      "end": 191.36,
+      "text": " would you do that and I suppose you'd only really do that if you need some of the specific features"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 191.36,
+      "end": 197.04000000000002,
+      "text": " that Kinesis or Kafka provides that aren't provided with SQS or SNS so those we'll go into"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 197.04000000000002,
+      "end": 203.36,
+      "text": " those in a bit more detail but we should probably do our usual rundown through some of the use cases"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 203.36,
+      "end": 210.72,
+      "text": " for Kinesis data streams where should we start?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 210.72,
+      "end": 217.36,
+      "text": " Yeah I always like our e-commerce example so in the context of an e-commerce how can we avail of Kinesis data stream like what kind of utility can"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 217.36,
+      "end": 224.64,
+      "text": " we get from from this service and one example that we mentioned before in one of our other episodes"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 224.64,
+      "end": 232.32,
+      "text": " was if you need to collect clicks let's say or mouse movements from the users in the e-commerce"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 232.32,
+      "end": 238.32,
+      "text": " because that will give us an information what kind of products they're possibly interested in what we"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 238.32,
+      "end": 244.4,
+      "text": " could do is that we can collect this data almost in real time from the UI send it to a Kinesis data"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 244.4,
+      "end": 249.35999999999999,
+      "text": " stream and then we can have some processing logic that it's getting the data in real time"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 249.35999999999999,
+      "end": 255.35999999999999,
+      "text": " figuring out which products maybe are relevant for the users and we can send this data back maybe to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 255.35999999999999,
+      "end": 262.88,
+      "text": " a web socket or some other API and refresh the UI in real time with interesting suggestions so that's"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 262.88,
+      "end": 271.44,
+      "text": " a cool use case and we could definitely implement that with Kinesis data streams. Also another thing"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 271.44,
+      "end": 277.28,
+      "text": " that I have done in the past is basically you can capture logs for instance from CloudWatch logs"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 277.28,
+      "end": 283.28,
+      "text": " or other sources and you can store them in Kinesis data streams and then you can let"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 284.15999999999997,
+      "end": 289.84,
+      "text": " the Lambda integration process these logs pretty much in real time and you can do all sorts of"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 289.84,
+      "end": 296.32,
+      "text": " things with that. One use case I've done before is basically if you store things that allow you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 296.32,
+      "end": 301.44,
+      "text": " to extrapolate metrics then from your Lambda you can actually ingest this information as"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 302.15999999999997,
+      "end": 309.44,
+      "text": " CloudWatch metrics so you can basically transform logs into metrics by using Kinesis data stream as"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 309.44,
+      "end": 316.64,
+      "text": " a quick way to transport the data and then start some processing. Any other example comes to mind"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 316.64,
+      "end": 321.59999999999997,
+      "text": " on your side?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 322.64,
+      "end": 329.36,
+      "text": " Yeah, speaking of metrics there are quite often a few cases where AWS, CloudWatch metrics for some services they're missing some of the metrics you want. Often for"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 329.36,
+      "end": 335.68,
+      "text": " things like when you're trying to track the number of resources for pricing you know you want to be"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 335.68,
+      "end": 342.24,
+      "text": " alerted when you're using too many containers or number of vc2 instances you can use the last time"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 342.24,
+      "end": 347.76,
+      "text": " we were talking about event bridge events that come from AWS out of the box so you'll get state"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 347.76,
+      "end": 354,
+      "text": " transition events when a container starts or stops similar with EC2 instances. With event bridge it"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 354,
+      "end": 359.68,
+      "text": " integrates into Kinesis data streams quite easily so you can set a data stream as your target for"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 359.68,
+      "end": 364.64,
+      "text": " an event bridge rule you can take all of those events that are coming relating to ECS containers"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 364.64,
+      "end": 371.52,
+      "text": " and then you can process them in in batches in lambda or another consumer and use it to figure"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 371.52,
+      "end": 375.52,
+      "text": " out okay at any given point in time how many containers are running how many containers are"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 375.52,
+      "end": 381.68,
+      "text": " running in each state what is the duration of a running container and you can create your own"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 381.68,
+      "end": 387.52,
+      "text": " custom metrics then. This is something I've done a few times with things like ECS and AWS batch"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 387.52,
+      "end": 392.32,
+      "text": " where the metrics out of the box have a few gaps and it works pretty well."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 392.32,
+      "end": 397.76,
+      "text": " I suppose you also see other interesting use cases like people are building a delivery service you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 397.76,
+      "end": 402.8,
+      "text": " know like uber deliveroo that kind of service if you can imagine an architecture for that system"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 402.8,
+      "end": 407.04,
+      "text": " you've got a lot of real-time event processing so you're collecting orders you're collecting"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 407.04,
+      "end": 412.71999999999997,
+      "text": " responses from drivers all of those cases are things where you would say okay this is a"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 412.71999999999997,
+      "end": 420.8,
+      "text": " delivery stream I could use Kinesis or Kafka for this. Yeah absolutely. So I think that's"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 420.8,
+      "end": 427.2,
+      "text": " a good thing. Yeah absolutely."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 427.2,
+      "end": 434.32,
+      "text": " Yeah we should maybe talk now about some of the main features of Kinesis Data Stream. So we said that the data is going to stay there but of course it's not"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 434.32,
+      "end": 440.24,
+      "text": " going to stay there indefinitely you can configure a retention time by default is 24 hours but you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 440.24,
+      "end": 445.52,
+      "text": " can scale that up to one year so you can keep your data around for a very long time if you want to."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 445.52,
+      "end": 453.44,
+      "text": " Another thing that is worth mentioning is that you get very very good latency it's under a second to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 455.35999999999996,
+      "end": 460.56,
+      "text": " basically when you store that first record from when you actually consume it"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 462.79999999999995,
+      "end": 468.47999999999996,
+      "text": " and can be around a second or 70 milliseconds depending on how you use it so we will talk"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 468.48,
+      "end": 475.52000000000004,
+      "text": " more about this later on. And then messages in Kinesis are called records as you might have"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 475.52000000000004,
+      "end": 481.52000000000004,
+      "text": " guessed at this point but a record generally has a sequence number and a partition key"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 481.52000000000004,
+      "end": 486.88,
+      "text": " and then there is of course a date of art so the payload itself which is the part you are"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 486.88,
+      "end": 493.84000000000003,
+      "text": " interested in processing. Another thing that we mentioned to some extent but is worth highlighting"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 493.84,
+      "end": 499.35999999999996,
+      "text": " a little bit more in detail is the concept of shards. Shards are the unit of scale for"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 499.35999999999996,
+      "end": 506.79999999999995,
+      "text": " Kinesis and I suppose you can imagine shards as different locations where the data is being"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 506.79999999999995,
+      "end": 514.88,
+      "text": " distributed and partition keys are basically is the concept used to select given a record in which"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 514.88,
+      "end": 520.4,
+      "text": " shard is going to end up so this is very similar to many other distributed systems so it's not"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 520.4,
+      "end": 524.88,
+      "text": " magic in that sense it uses the same principles as many other distributed systems."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 525.68,
+      "end": 531.04,
+      "text": " And of course that gives us other guarantees so you're not going to have absolute ordering"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 531.04,
+      "end": 536.72,
+      "text": " of messages but you will have relative ordering per shard so only the data ending up in the same"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 536.72,
+      "end": 543.04,
+      "text": " shard will respect partial ordering there but if you look if you fetch data from different shards"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 543.04,
+      "end": 549.36,
+      "text": " they will not necessarily be in order."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 549.36,
+      "end": 556.8000000000001,
+      "text": " Exactly that's a little bit like what we talked about SQS and message group IDs it's a similar principle yeah and of course what that means is that with"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 557.92,
+      "end": 564.5600000000001,
+      "text": " guaranteed ordering you always have physics getting in the way and putting limits on you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 564.5600000000001,
+      "end": 569.52,
+      "text": " so we should talk about those limits because the limits of Kinesis and what you can do with a"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 569.52,
+      "end": 575.04,
+      "text": " single shard really dictate the architecture of your system so normally we talk about quotas and"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 575.04,
+      "end": 579.76,
+      "text": " limits at the end but we're going to talk about this a little bit earlier because you get very"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 579.76,
+      "end": 585.12,
+      "text": " fixed capacity and you have to think about that and how it impacts the architecture the scalability"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 585.12,
+      "end": 590,
+      "text": " and the level of concurrency. It makes your architecture a little bit more complex and it"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 590,
+      "end": 594.4,
+      "text": " kind of makes you realize that streaming data applications are inherently more complex than"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 594.4,
+      "end": 600,
+      "text": " queues and pubsub so it's probably worth saying at this point if you don't need any of the specific"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 600,
+      "end": 605.36,
+      "text": " characteristics of these services it's always better to stick with something simple like SQS"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 605.36,
+      "end": 611.68,
+      "text": " and SNF Enbridge because they do give you you can get low latency and scale and massive concurrency"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 611.68,
+      "end": 617.68,
+      "text": " with those systems you don't need a streaming data system to get that it's only if you really have"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 617.68,
+      "end": 624.08,
+      "text": " specific needs that some of the Kinesis or Kafka features will give you just around the number of"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 624.08,
+      "end": 629.6,
+      "text": " messages you can get in a batch for example or the integrations with specific other systems"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 629.6,
+      "end": 634,
+      "text": " those are the only reasons where you really need to reach for those more complex streaming"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 634,
+      "end": 640.08,
+      "text": " applications but anyway with that out of the way what are these limits so we have strict limits of"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 640.64,
+      "end": 647.52,
+      "text": " one megabyte write per shard or a thousand records per second write capacity so that's how much you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 647.52,
+      "end": 654.08,
+      "text": " can write per shard in a second or you can read two megabytes or two thousand records per second"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 654.08,
+      "end": 658.8000000000001,
+      "text": " from a shard so the right read capacity is double the right capacity and it's very easy to remember"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 658.8,
+      "end": 664.3199999999999,
+      "text": " because it's one megabyte and one thousand for right but you're limited to how often you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 669.28,
+      "end": 674.8,
+      "text": " on this one i want to mention sunday because the first time i noticed these limits i was a little bit confused i was thinking okay why can you write at a certain speed and then you can read"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 674.8,
+      "end": 679.68,
+      "text": " a double the speed and that might seem counterintuitive at first but we need to keep"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 679.68,
+      "end": 683.92,
+      "text": " in mind that you might have multiple consumers so you are writing from one side but you have"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 683.92,
+      "end": 689.68,
+      "text": " multiple consumer on the other side and these limits needs to be accounted for all the consumers"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 695.36,
+      "end": 700.88,
+      "text": " at the same time so they they compound you they are not specific for consumers exactly yeah and you also sometimes need to read more than you're writing because you might be catch up you might"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 700.88,
+      "end": 705.76,
+      "text": " be reading from older records in the stream so you have to catch up so you can't catch up if the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 705.76,
+      "end": 711.68,
+      "text": " limits would be only the same as the the right limit but there's also the five get you can only"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 711.68,
+      "end": 716.7199999999999,
+      "text": " call get records you can only have five read transactions per shard per second as well which"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 716.7199999999999,
+      "end": 720.9599999999999,
+      "text": " is another interesting interesting one so you could that means you can read up like with a"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 720.9599999999999,
+      "end": 726.0799999999999,
+      "text": " single read transaction you can actually read 10 000 records so remember we were both talking about"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 726.0799999999999,
+      "end": 729.8399999999999,
+      "text": " this is about batches that gives you an indication right in one read transaction"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 730.4799999999999,
+      "end": 736.16,
+      "text": " you might be reading 10 000 records or 50 megabytes so you just need to think about that"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 736.16,
+      "end": 741.28,
+      "text": " when you're thinking about latency you might say okay i can get like 50 milliseconds i i i've"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 741.28,
+      "end": 745.1999999999999,
+      "text": " observed that i can get messages in 50 milliseconds so if i just call get records"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 745.8399999999999,
+      "end": 752.9599999999999,
+      "text": " 20 times a second that's fine but you can you can only call it um five times per second so that's"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 752.9599999999999,
+      "end": 758.64,
+      "text": " really the unit of scale the size you can think about if you if you know what rate you're going"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 758.64,
+      "end": 763.76,
+      "text": " to be ingesting at and reading at then you can do the maths and figure figure the rest out as"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 763.76,
+      "end": 769.76,
+      "text": " regards other limits soft limits you have a soft limit of either 200 or 500 shards per stream"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 769.76,
+      "end": 775.68,
+      "text": " depending on the region but you can always increase that to i think tens of thousands of shards"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 776.4,
+      "end": 783.2,
+      "text": " so you can really get high volumes through kinesis and i guess since we're talking about"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 783.76,
+      "end": 790.72,
+      "text": " units of scale we know the limits what do you do then how do you scale how does kinesis scale for"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 796.48,
+      "end": 803.28,
+      "text": " you yeah that's an interesting one and it's a little bit of a controversial topic because in some cases you will hear kinesis being addressed as a serverless service but i suppose"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 803.28,
+      "end": 808.8000000000001,
+      "text": " that really depends on the definition of serverless that you have in mind yeah sometimes the argument"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 808.8000000000001,
+      "end": 813.6800000000001,
+      "text": " to that is that it doesn't really scale to zero that means that you have to think about how do"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 813.6800000000001,
+      "end": 821.04,
+      "text": " you provision kinesis data streams up front and once you do that if you don't use them they don't"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 821.04,
+      "end": 828.56,
+      "text": " automatically scale to zero so an interesting news on this field was that in the last reinvent"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 828.56,
+      "end": 836.56,
+      "text": " aws announced the on-demand mode for kinesis data stream which helps a little bit to see kinesis data"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 836.56,
+      "end": 841.52,
+      "text": " stream in a more serverless way but again they don't scale to zero so you have to worry less"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 841.52,
+      "end": 847.36,
+      "text": " about provisioning them in advance but they will never scale to zero and even if you don't use them"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 847.36,
+      "end": 853.6800000000001,
+      "text": " there is always some cost that you will need to pay anyway so it's interesting like you could"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 853.6800000000001,
+      "end": 861.12,
+      "text": " argue it's serverless but not quite anyway talking about scalability we at this point we understand"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 861.12,
+      "end": 867.92,
+      "text": " that the shard is probably the primary unit to understand how kinesis data stream will scale"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 867.92,
+      "end": 877.8399999999999,
+      "text": " and the interesting thing is that if you use the provision mode it's up to you to basically do all"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 877.8399999999999,
+      "end": 883.36,
+      "text": " the calculations up front and allocate the number of shards that you think are going to be enough"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 883.36,
+      "end": 891.12,
+      "text": " for you to sustain your read and write throughput you can change that over time like if you realize"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 891.12,
+      "end": 896.0799999999999,
+      "text": " at some point you need more or you over provision and you want to scale it down you can do that but"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 896.08,
+      "end": 904.08,
+      "text": " there are restrictions you can do it only 10 times per day meaning a 24-hour period and then"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 904.08,
+      "end": 911.76,
+      "text": " it's interesting that you can only either double or decrease to half the original number of shards"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 912.5600000000001,
+      "end": 919.76,
+      "text": " funny enough you can do arbitrary amounts if you use the web ui but you can see that the value"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 919.76,
+      "end": 924.96,
+      "text": " fluctuates until it actually converts to the value one so there is some magic there if you use the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 924.96,
+      "end": 930.24,
+      "text": " web ui looks like you can go to any arbitrary number but there is still this restriction where"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 930.24,
+      "end": 936.24,
+      "text": " you are doubling and decreasing enough until you get to the number you really want to use yeah and"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 940.8000000000001,
+      "end": 945.44,
+      "text": " of course the reason for that essentially is because if you look at the apis for doing it if you're implementing this programmatically as a lot of people do especially before on-demand mode came"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 945.44,
+      "end": 951.2800000000001,
+      "text": " out the way you increase the number of shards is by splitting existing shards and the way you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 951.28,
+      "end": 955.12,
+      "text": " and the way you reduce the number of shares is by merging two existing shards together"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 955.12,
+      "end": 960.0799999999999,
+      "text": " so that's where the doubling and the half comes from but i guess yeah you don't have to do that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 966.64,
+      "end": 972.88,
+      "text": " so much so how does on-demand mode work then yeah on-demand mode is pretty much aws will figure it out for you and it's based on the actual throughput that you have while working on the kinesis data"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 972.88,
+      "end": 979.12,
+      "text": " stream so you start with a default write capacity of four megabytes per second or four thousand"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 979.12,
+      "end": 984.24,
+      "text": " records which is probably for shards behind the scenes we just don't have to worry too much about"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 984.24,
+      "end": 990,
+      "text": " the concept of shards in this case and if you keep writing and reading more so if you will need more"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 990,
+      "end": 995.84,
+      "text": " capacity the on-demand mode will automatically scale the stream and you will be able to go up"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 995.84,
+      "end": 1005.6800000000001,
+      "text": " to 200 megabits per second or 200,000 records for writing into the stream of course it doesn't scale"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1005.68,
+      "end": 1012.9599999999999,
+      "text": " instantaneously so be careful with that like if you have spikes that are like instantaneously"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1013.68,
+      "end": 1020.4799999999999,
+      "text": " doubling or tripling your throughput don't expect to scale immediately it will take a little bit of"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1020.4799999999999,
+      "end": 1026.32,
+      "text": " time i think it's around 15 minutes before it will decide to double the capacity so you might still"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1033.6,
+      "end": 1039.04,
+      "text": " get throttled with with this approach if you have spikes so be careful with that yeah i also think it's kind of worth mentioning that while it says you you get a default write capacity of four"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1039.04,
+      "end": 1044.3999999999999,
+      "text": " megabytes and four thousand records and like you say that equates to four shards and you might think"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1044.3999999999999,
+      "end": 1049.4399999999998,
+      "text": " oh that's great i don't have to worry about my shards anymore of course at the consumption side"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1050.08,
+      "end": 1055.6799999999998,
+      "text": " you need to think about the read uh the limits because you still have a per-shard read limit"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1055.6799999999998,
+      "end": 1061.04,
+      "text": " and if you've got four shards you kind of need to know about that because it affects the concurrency"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1061.04,
+      "end": 1066.8799999999999,
+      "text": " of your consumers and if we'll talk a little bit more about lambda but with lambda the number of"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1066.8799999999999,
+      "end": 1071.36,
+      "text": " invocations of lambda will depend on the number of shards so if you don't know the number of shards"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1071.36,
+      "end": 1076.72,
+      "text": " it's very difficult to predict how many lambdas are going to be invoked so you always need to"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1076.72,
+      "end": 1082.72,
+      "text": " kind of think about that anyway that's true even if even if it's happening in an on-demand fashion"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1091.6000000000001,
+      "end": 1099.28,
+      "text": " you should probably do some monitoring on that absolutely yeah do we want to mention also there is another mode called enhanced fan out which it's it makes sense it's relevant only for consumers"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1099.28,
+      "end": 1105.52,
+      "text": " and it's a different way that allows you to consume the data because in this case you basically"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1105.52,
+      "end": 1114.48,
+      "text": " get a pipe so every consumers will have a pipe and the capacity of how much data you can read"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1114.48,
+      "end": 1120.32,
+      "text": " per second is basically per consumer in this case and it goes up to two megabytes per second per"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1127.6,
+      "end": 1133.04,
+      "text": " shard if i remember correctly so the interesting thing is that i guess the sorry to jenna but yeah i guess the interesting thing here is that with these limits we talked you mentioned the read"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1133.04,
+      "end": 1138.1599999999999,
+      "text": " limit of 2000 and how it's greater than the right limit but it's shared with your consumers so"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1138.72,
+      "end": 1143.84,
+      "text": " like you said you've got five if you have let's say two consumers they're sharing that they get"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1143.84,
+      "end": 1150.3999999999999,
+      "text": " a thousand each or a megabyte each and that can be quite difficult if you've got multiple consumers"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1150.3999999999999,
+      "end": 1155.52,
+      "text": " if you've got you know one consumer that's aggregating events one that's sending them to"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1155.52,
+      "end": 1162.24,
+      "text": " firehose and another one that's doing another lambda based aggregation with enhanced fan out"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1162.24,
+      "end": 1168.08,
+      "text": " you're basically saying give me a dedicated pipe and it's using http2 and instead of you're pulling"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1168.08,
+      "end": 1175.92,
+      "text": " the events it's pushing them to you so you essentially get 2000 records or two megabytes"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1175.92,
+      "end": 1182,
+      "text": " per shard per consumer per shard per consumer right instead of per shard which is really good"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1182,
+      "end": 1187.36,
+      "text": " which is really good yeah and you also get lower latency for free as well because it's push mode"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1187.36,
+      "end": 1192.96,
+      "text": " it can it can give you that latency of yeah i think it says average 70 milliseconds"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1201.84,
+      "end": 1207.12,
+      "text": " instead of the average of 200 milliseconds with a standard shared consumer yeah thanks for clarifying that do you want to mention something quickly about the different pricing model"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1214.7199999999998,
+      "end": 1219.52,
+      "text": " especially comparing the on-demand and the provision mode yeah this is this was a surprise because a lot of people have been anticipating an on-demand or kind of serverless version of kinesis"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1219.52,
+      "end": 1225.6,
+      "text": " for a while and the slight disappointment came from the pricing because it looks like in order"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1225.6,
+      "end": 1229.04,
+      "text": " to take advantage of on-demand mode it doesn't immediately make it free but it's because it"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1229.04,
+      "end": 1237.36,
+      "text": " doesn't scale down to zero so the kind of entry level pricing for each if you compare them on"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1237.36,
+      "end": 1242.48,
+      "text": " demand is actually more expensive than provisioned because with on-demand you pay per stream per hour"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1243.44,
+      "end": 1250.3999999999999,
+      "text": " and with provision you pay per shard per hour so if you if you go with provisioned the lowest"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1250.3999999999999,
+      "end": 1258.48,
+      "text": " provisioned level which is one shard you'll pay about a third almost a quarter of the price of the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1258.48,
+      "end": 1264.08,
+      "text": " on-demand baseline which is around four and a half cents per hour because on-demand is charging you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1264.08,
+      "end": 1269.3600000000001,
+      "text": " per stream it's giving you four shards out of the box but if you don't use any of those shards"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1269.3600000000001,
+      "end": 1274.64,
+      "text": " you're still being charged right so the baseline is higher for on-demand and then with on-demand"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1274.64,
+      "end": 1279.04,
+      "text": " you're being it is kind of more senseless and serverless in the sense that it's charging you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1279.04,
+      "end": 1283.92,
+      "text": " by the data that's flowing through the system the data ingested and the data retrieved whereas with"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1283.92,
+      "end": 1289.04,
+      "text": " provisioned you're paid by the shard and then the shard gives you a capacity you don't pay as you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1289.04,
+      "end": 1296.3200000000002,
+      "text": " read so it depends i think the the the if you're trying to judge which is the right mode from a"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1296.3200000000002,
+      "end": 1300.96,
+      "text": " pricing point of view you just have to compare your use case it's going to vary for everybody"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1301.68,
+      "end": 1306.24,
+      "text": " some cases on demand will be cheaper in other cases provision will be cheaper it depends on"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1306.24,
+      "end": 1312.24,
+      "text": " your trade-offs between performance scalability cost and the value you're getting out of this"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1319.52,
+      "end": 1324.16,
+      "text": " feature so it's yeah it's really a business context how frequent do you actually write and read to and from the stream like is it a constant stream or is it something that can be a little bit more spiky"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1324.16,
+      "end": 1334.32,
+      "text": " yeah yeah all right in terms of observability because we slightly mentioned that before"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1334.32,
+      "end": 1341.52,
+      "text": " but yeah let's leave let's see maybe what are the most interesting metrics to look after to to see"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1341.52,
+      "end": 1347.2,
+      "text": " if we are actually using the data streams correctly so of course the the first one and"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1347.2,
+      "end": 1355.92,
+      "text": " probably the most obvious is the iterator age which can basically tell you the age of let's say"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1355.92,
+      "end": 1361.36,
+      "text": " that the message the latest messages you still have to process so it's kind of an indicator of"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1361.36,
+      "end": 1369.44,
+      "text": " how far behind are you in the stream in consuming it so it's a good way to see if your read capacity"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1369.44,
+      "end": 1376.96,
+      "text": " is is not well tuned as opposed to the rate of producing data so keep that in mind because that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1376.96,
+      "end": 1382.88,
+      "text": " might might be very useful for you to to guarantee that you are actually producing and consuming data"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1382.88,
+      "end": 1388.8,
+      "text": " as in real time as possible another one is throttling and this is a little bit of a"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1388.8,
+      "end": 1397.2,
+      "text": " controversial topic in my in my opinion because it's you can get accurate throttling metrics"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1397.2,
+      "end": 1403.6,
+      "text": " because of course you'll get a data point every time you get throttled but if you want to try to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1403.6,
+      "end": 1408.24,
+      "text": " anticipate throttling you have to do a little bit of maths on your own and you can look at the get"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1408.24,
+      "end": 1413.52,
+      "text": " record and put record matrix and the problem with those metrics is that the ones you get by default"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1413.52,
+      "end": 1422,
+      "text": " in cloud watch they are aggregated by minute so if you have very bursty data producing and"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1422,
+      "end": 1427.84,
+      "text": " consuming the data then you don't really know in a minute how much are you doing for instance in a"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1427.84,
+      "end": 1433.52,
+      "text": " second so you only see the minute value so you might see a value that looks okay but then you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1433.52,
+      "end": 1439.04,
+      "text": " see that at the same time you got a throttling for that particular minute so be careful with that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1439.04,
+      "end": 1444.48,
+      "text": " and if you really have bursty use cases maybe you want to do something a little bit more custom"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1444.48,
+      "end": 1449.76,
+      "text": " and maybe record metrics on your own to make sure that you understand if you want to understand in"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1449.76,
+      "end": 1454.8799999999999,
+      "text": " advance when you might incur in throttling otherwise the simple way of looking at this is"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1454.8799999999999,
+      "end": 1460,
+      "text": " just look at the matrix for when the throttling actually happens in reading and writing so when"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1460,
+      "end": 1466.6399999999999,
+      "text": " you exceed the capacity and then you can adjust your shards or you can adjust your process"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1466.64,
+      "end": 1471.3600000000001,
+      "text": " to avoid the throttling in the future sometimes even a little bit of throttling can be fine"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1471.3600000000001,
+      "end": 1477.68,
+      "text": " because of course the sdk will retry for you so if that's not really slowing down your pipeline"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1478.96,
+      "end": 1482.96,
+      "text": " probably you don't even need to change the chart so keep a look at this matrix because they will"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1482.96,
+      "end": 1488,
+      "text": " be telling you a lot and you can understand whether you need to change some configuration"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1488,
+      "end": 1491.1200000000001,
+      "text": " and how you read and write the data or the number of shards itself"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1491.12,
+      "end": 1499.36,
+      "text": " At this point maybe we should talk I think you probably have a fair idea on how to use"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1499.36,
+      "end": 1505.4399999999998,
+      "text": " kinesis data stream but this may be good to do a recap and maybe provide a little bit more details"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1505.4399999999998,
+      "end": 1513.84,
+      "text": " right?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1513.84,
+      "end": 1517.84,
+      "text": " Yeah okay I'll try there's generally one way I usually try to use kinesis but I'll talk about that last because there are kind of three different ways to use kinesis and I'll talk about"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1517.84,
+      "end": 1523.84,
+      "text": " that last because there are kind of three different ways to use it there's the api there's the libraries"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1523.84,
+      "end": 1528.3999999999999,
+      "text": " and then you've got lambda and if we talk about the api usage first it probably gives you a sense"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1528.3999999999999,
+      "end": 1533.1999999999998,
+      "text": " of how it works under the hood even if you use some of the abstractions so when you're producing"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1533.1999999999998,
+      "end": 1538.8799999999999,
+      "text": " messages and sending them into kinesis there's a put records api and it allows you to put 500"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1538.8799999999999,
+      "end": 1545.12,
+      "text": " records at a given api request and it does that really quickly as well so when you're again when"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1545.12,
+      "end": 1551.12,
+      "text": " you're comparing to queuing or pubsub kinesis is all about big lots of messages big batches you can"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1551.12,
+      "end": 1557.12,
+      "text": " put in 500 in a single request you'll remember like with sns and sqs it's 10 with the batch api's"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1558,
+      "end": 1563.1999999999998,
+      "text": " so you can put in a megabyte total per record or up to five megabytes for the whole request"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1564,
+      "end": 1568.8799999999999,
+      "text": " so there's a bit of maths to be done there as well and when you specify that you put in the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1568.88,
+      "end": 1576.16,
+      "text": " partition key which you already mentioned so the partition key is useful for dictating ordering"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1576.16,
+      "end": 1581.6000000000001,
+      "text": " and also the shard it's allocated to so aws will take your partition key produce a hash of it"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1582.4,
+      "end": 1588.8000000000002,
+      "text": " and use that hash to dictate which shard your message goes into because every shard basically"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1588.8000000000002,
+      "end": 1597.3600000000001,
+      "text": " has a range of hash keys that it will accept so it's just basically an integer allocation for each"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1597.36,
+      "end": 1602,
+      "text": " shard a range of integers but if you want to override that and you want to be really have"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1602,
+      "end": 1606.24,
+      "text": " lots of fine control over which shard a message goes into you can actually override the key and"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1606.24,
+      "end": 1611.4399999999998,
+      "text": " specify that integer in the message as a decimal value and that's called the explicit hash key"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1612.32,
+      "end": 1615.9199999999998,
+      "text": " generally you don't have to do that but in some cases if you want to be really"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1617.1999999999998,
+      "end": 1621.1999999999998,
+      "text": " if you want to control that ordering and the shard allocation yourself you can do that"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1621.2,
+      "end": 1626.32,
+      "text": " I suppose since you're putting 500 messages as well it's also really important I think a lot of"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1626.32,
+      "end": 1632,
+      "text": " people using Kinesis have been here if you use the put records api you have to ensure that you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1632,
+      "end": 1636.64,
+      "text": " handle the errors that come back because you can get partial success and the put records api will"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1636.64,
+      "end": 1644.32,
+      "text": " tell you which ones have failed and then you need to reprocess those so it's not like a you're"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1644.32,
+      "end": 1649.68,
+      "text": " going to get an exception or just an error code back you have to look at the error response and"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1649.68,
+      "end": 1654.16,
+      "text": " figure out which ones have succeeded and which ones have failed and redrive so that's the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1654.16,
+      "end": 1661.1200000000001,
+      "text": " production side the producer but if we look at the consumer side retrieving manually using the api"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1661.1200000000001,
+      "end": 1666.72,
+      "text": " there's quite a lot of complexity to it or at least there's a lot of heavy lifting because"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1666.72,
+      "end": 1672.4,
+      "text": " you've got multiple shards you can re you can call get records for a single shard so then you need to"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1672.4,
+      "end": 1678.4,
+      "text": " get first of all find out how many shards there are you establish an integer and then you can"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1678.4,
+      "end": 1684,
+      "text": " you establish an iterator by calling get shard iterator and the iterator is like a pointer"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1684,
+      "end": 1689.1200000000001,
+      "text": " that the service is maintaining for you and then with that pointer you call get records"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1690.48,
+      "end": 1695.2,
+      "text": " but when you establish your connection get an iterator you can specify whether you want to"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1695.2,
+      "end": 1700.96,
+      "text": " read from the latest message the oldest message in the stream or you can specify a specific point in"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1700.96,
+      "end": 1707.3600000000001,
+      "text": " time or a specific record and then once you have your iterator you call get records in sequence"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1707.36,
+      "end": 1714,
+      "text": " and you can do it up to five times per second and every like we said already i think you can get"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1714,
+      "end": 1719.52,
+      "text": " 10 000 messages in each get records request then you just it's essentially like pagination after"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1719.52,
+      "end": 1724.8799999999999,
+      "text": " that but of course like there's a bit of complexity in that managing multiple shards"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1725.52,
+      "end": 1731.1999999999998,
+      "text": " you might need like multi-threading to do that you have to keep track of where each thread is storing"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1739.04,
+      "end": 1744.16,
+      "text": " it's you know is what chart each thread is retrieving from and that's one one good analogy that we can use to understand really what's going on there is that imagine that every single shard"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1744.16,
+      "end": 1750.16,
+      "text": " is a file that where some all the producers are pretty much appending more and more data"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1750.72,
+      "end": 1755.44,
+      "text": " while at the same time you have consumers that have a pointer in every single file"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1755.44,
+      "end": 1759.3600000000001,
+      "text": " you're trying to track okay this is the point where i arrived consuming the data"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1759.36,
+      "end": 1764.9599999999998,
+      "text": " and they need to figure out how to move forward not just on one file but for every single shard"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1764.9599999999998,
+      "end": 1771.52,
+      "text": " you have like one file yeah multiple files multiple pointers with data coming in all the time"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1779.6799999999998,
+      "end": 1784.32,
+      "text": " in every single file yeah i mean these systems are ultimately very fully featured distributed logs and i do like that i think that's really good analogy if you think of each shard or partition"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1784.32,
+      "end": 1789.6,
+      "text": " as just a text file and every record is on a line and then you just need to keep track of"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1789.6,
+      "end": 1797.2,
+      "text": " the line number and that's like your iterator um the yeah i mentioned that there's complexity here"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1797.2,
+      "end": 1803.2,
+      "text": " so the kinesis client library is a consumer library written in java that aws provides to"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1803.2,
+      "end": 1809.04,
+      "text": " make this a bit easier now you do have to understand how it works a little bit it manages"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1809.04,
+      "end": 1816.08,
+      "text": " that pool of workers and multi-threading for you and it uses dynamo db to track the state um so it's"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1816.72,
+      "end": 1821.2,
+      "text": " has it can recover and it can keep track of things as shards increase and decrease"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1822,
+      "end": 1826.6399999999999,
+      "text": " it does it is written in java it does have some findings for other languages like node js and"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1826.6399999999999,
+      "end": 1834.32,
+      "text": " python that essentially use the java process running as a daemon and use s standard input"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1834.32,
+      "end": 1840.56,
+      "text": " and standard output to communicate with the node js or the python process so that's the consumer"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1840.56,
+      "end": 1846.8,
+      "text": " library but there's also a producer library the kpl and that allows you to send messages but it"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1846.8,
+      "end": 1853.04,
+      "text": " has multi-threading retry logic batching in there for you and it can also try to reduce the chances"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1853.04,
+      "end": 1858.8,
+      "text": " that you're going to get throttled on you know the number of messages per second limit by packing"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1858.8,
+      "end": 1865.36,
+      "text": " large numbers of small messages into a single record and that's something that might be complex"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1865.36,
+      "end": 1869.44,
+      "text": " to implement yourself but if you use the producer library and the consumer library together"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1870.24,
+      "end": 1875.52,
+      "text": " it happens seamlessly for you so i think especially if you're in a java ecosystem and"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1875.52,
+      "end": 1882.48,
+      "text": " you're using instances or containers with kinesis those libraries are a good fit but there's still"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1883.6,
+      "end": 1886.8,
+      "text": " you still have to understand how they work you still have to manage the extra resources"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1886.8,
+      "end": 1894.1599999999999,
+      "text": " so the third way of using kinesis is definitely my favorite and that's with lambda so i i've"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1894.1599999999999,
+      "end": 1899.68,
+      "text": " i've talked enough about the first two do you want to try cover um how lambda works with the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1903.52,
+      "end": 1909.36,
+      "text": " event source mapping that we talked about previously sure yeah i'll try to explain how that works but feel free to add more if i'm missing any important either so we already"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1909.36,
+      "end": 1916.1599999999999,
+      "text": " explore something similar when we talk about sqs where basically we say sqs has a bunch of api"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1916.16,
+      "end": 1921.1200000000001,
+      "text": " is for you to fetch the data but then when you use it with lambda it becomes a little bit more"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1921.1200000000001,
+      "end": 1925.68,
+      "text": " magic and you get a lot of stuff magically integrated and working well out of the box"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1926.3200000000002,
+      "end": 1932.48,
+      "text": " and the reason why that happens is because lambda has this component called event source mapping"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1933.0400000000002,
+      "end": 1939.8400000000001,
+      "text": " which is basically something that can be used to pull information and trigger a lambda for you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1939.8400000000001,
+      "end": 1945.2,
+      "text": " so in the case of kinesis this integration exists as well and basically what you can do you can just"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1945.2,
+      "end": 1951.92,
+      "text": " say use a kinesis stream as a source for a lambda and what happens is that as new data is available"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1951.92,
+      "end": 1957.44,
+      "text": " in the stream your lambda will be triggered and you will get an event that describes the data"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1957.44,
+      "end": 1963.3600000000001,
+      "text": " in the stream a little bit more involved than that of course because you might want to configure"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1963.3600000000001,
+      "end": 1970,
+      "text": " how you get the data how many lambda gets executed concurrently and things like that so of course"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1970,
+      "end": 1976.16,
+      "text": " these integrations don't you can configure and there are specific parameters you can use you can"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1976.16,
+      "end": 1983.68,
+      "text": " also do things like aggregations i think it's called tumbling window aggregation so you could"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1983.68,
+      "end": 1989.76,
+      "text": " configure this integration too as it's going through the stream aggregate some data and then"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1989.76,
+      "end": 1996,
+      "text": " trigger your lambda with already a partial aggregated result so you can even let the this"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1996,
+      "end": 2001.36,
+      "text": " event source mapping do some of the work for you and just trigger the lambda with some partial"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2001.36,
+      "end": 2007.84,
+      "text": " value already calculated other interesting thing is that you could define rules to filter events"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2007.84,
+      "end": 2013.28,
+      "text": " so you could specify a filter that tells you i'm only interested in triggering the lambda for"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2013.28,
+      "end": 2022.4,
+      "text": " events that match certain conditions another interesting one is the batch size window count"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2022.4,
+      "end": 2029.2800000000002,
+      "text": " uh count so for instance you could say i want to receive let's say i don't know batches with 30"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2029.2800000000002,
+      "end": 2036.16,
+      "text": " messages so i want to trigger a lambda when i accumulate 30 messages but you can also say unless"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2036.8000000000002,
+      "end": 2041.76,
+      "text": " maybe a certain amount of time has passed so i want to receive a smaller batch if i'm waiting"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2041.76,
+      "end": 2047.8400000000001,
+      "text": " too long so you could configure this batch size and window to say what's the maximum amount of"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2047.84,
+      "end": 2053.6,
+      "text": " time you want to wait or if you can produce batches of a certain size within that unit"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2053.6,
+      "end": 2059.2799999999997,
+      "text": " start to trigger the lambda anyway another interesting one is the parallelization factor"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2059.92,
+      "end": 2064.72,
+      "text": " which is what is going to tell us how many lambdas we are going to potentially spin up"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2064.72,
+      "end": 2070.3199999999997,
+      "text": " concurrently for processing that particular data stream and basically what what you can"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2070.32,
+      "end": 2079.2000000000003,
+      "text": " say you specify this value and that value gives you the number of lambda concurrent repair shard"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2079.2000000000003,
+      "end": 2086.48,
+      "text": " so let's make an example if you have two shards and you say that parallelization factor is four"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2092.96,
+      "end": 2098.48,
+      "text": " i think you get eight up to eight concurrent lambdas at any given point right yeah yeah am i missing an interesting thing i just wanted to chime in there to mention you might be we"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2098.48,
+      "end": 2105.52,
+      "text": " mentioned that ordering is strict per shard so if you if you haven't dealt with this with lambda"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2105.52,
+      "end": 2109.2,
+      "text": " before you might be wondering well if ordering is strict per shard how can it do concurrent"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2110.08,
+      "end": 2116.8,
+      "text": " multiple concurrent lambdas for one shard and event source mapping also manages that for you so"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2117.36,
+      "end": 2123.04,
+      "text": " what it means is that if you've got the same partition key so the partition key is quite"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2123.04,
+      "end": 2127.12,
+      "text": " important here if you've got the same partition key for a message it will guarantee that messages"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2127.12,
+      "end": 2133.7599999999998,
+      "text": " for the same partition key will still be order guaranteed for each concurrent lambda processor"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2133.7599999999998,
+      "end": 2139.2,
+      "text": " so even though the hash key is different it'll it'll it'll let the hash key will allow it to"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2139.2,
+      "end": 2145.12,
+      "text": " give that concurrency per shard but you'll still get strict ordering per partition key"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2146.16,
+      "end": 2151.68,
+      "text": " within that so it's like an extra level of order guarantee there so it's um it works"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2151.68,
+      "end": 2155.2,
+      "text": " pretty well but you just have to make sure that the ordering guarantee matches your expectation"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2162.16,
+      "end": 2166.64,
+      "text": " that's an interesting one i was not aware of that one okay do we want to get to the end of this episode by talking maybe maybe about some of the integrations that you will get"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2167.2,
+      "end": 2170.24,
+      "text": " with kinesis data streams and other aws services"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2177.3599999999997,
+      "end": 2181.4399999999996,
+      "text": " yeah we mentioned event bridge already because we said we you could take events from event bridge and put them into kinesis data streams to make metrics and all sorts of useful things but there's"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2181.44,
+      "end": 2186.88,
+      "text": " also a couple of interesting kind of change data capture possibilities you can do with data streams"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2187.76,
+      "end": 2190.7200000000003,
+      "text": " you know when people are using streaming applications one of the other use cases we"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2190.7200000000003,
+      "end": 2198.08,
+      "text": " didn't really talk about is kind of like event sourcing or you're using a complete history of"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2198.08,
+      "end": 2204.7200000000003,
+      "text": " events to accumulate the state of a system like in a financial application so change data capture is"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2204.7200000000003,
+      "end": 2209.52,
+      "text": " is quite common in some fields and people are using the changes in the database as an event"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2209.52,
+      "end": 2215.52,
+      "text": " it changes in the database as an event source for aggregation for reporting but also for"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2216.48,
+      "end": 2224.16,
+      "text": " real-time calculations and you can integrate kinesis data streams into dynamo db and get a"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2224.16,
+      "end": 2231.04,
+      "text": " change data capture and also for aurora in rds so it'll give you a continuous stream of database"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2231.04,
+      "end": 2237.52,
+      "text": " changes coming from your tables and you can either aggregate that or use it to build accumulate state"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2237.52,
+      "end": 2246,
+      "text": " based on a history of records so you also got the other two products in the kinesis family and this"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2246,
+      "end": 2250.96,
+      "text": " is sometimes you know the branding and naming confusion but we talk about kinesis sometimes as"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2250.96,
+      "end": 2254.88,
+      "text": " if there's only kinesis data streams but you've also got the other ones do you want to talk about"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2261.6,
+      "end": 2268.3199999999997,
+      "text": " what those are and what they can give you yeah so you have kinesis data analytics which is if you ever use fling apache fling is something very close to that probably implements the same api or"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2268.3199999999997,
+      "end": 2277.6,
+      "text": " probably is using yeah but it's basically you can define processing logic and aggregation in real"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2277.6,
+      "end": 2286.96,
+      "text": " time directly on the stream so you basically define yeah how to get the data aggregated and"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2286.96,
+      "end": 2293.52,
+      "text": " produce new data so it's kind of that analytics use case is the best use case for seeing this"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2293.52,
+      "end": 2301.92,
+      "text": " particular kinesis variation the other one is kinesis pharaohs which is also quite common and"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2301.92,
+      "end": 2307.92,
+      "text": " the idea is that sometimes you just want to flush all the data in a stream somewhere so rather than"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2307.92,
+      "end": 2313.44,
+      "text": " writing all that integration yourself you can use pharaohs and integrates automatically with things"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2313.44,
+      "end": 2321.04,
+      "text": " like s3 redshift elastic search or even apis through api gateway or directly calling http"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2321.04,
+      "end": 2327.12,
+      "text": " endpoints so that's a good way when you just want to store the data or propagate it somewhere else"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2327.12,
+      "end": 2331.92,
+      "text": " you just use pharaohs write it to the stream and let pharaohs do the rest of the integration"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2335.36,
+      "end": 2340.56,
+      "text": " you can also use that by the way to connect different kinesis data streams together because"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2340.56,
+      "end": 2345.92,
+      "text": " you could use pharaohs to say move the data from one stream to another so the destination"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2345.92,
+      "end": 2353.04,
+      "text": " on pharaohs can be another kinesis data stream there is another one i think related to videos"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2353.04,
+      "end": 2357.52,
+      "text": " you can even have kinesis video streams but i will leave that aside for this episode because"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2357.52,
+      "end": 2363.2799999999997,
+      "text": " it's a little bit of a snowflake i think it's the naming is confusing in reality it's in the family"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2375.28,
+      "end": 2380.96,
+      "text": " of video services should we mention maybe some material for deep diving on the topic there's there's a must read on kinesis actually i believe because the documentation can be difficult as it"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2380.96,
+      "end": 2389.92,
+      "text": " often is but there's a two-part blog post by anahit pogosova which is almost like the de facto manual"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2389.92,
+      "end": 2395.12,
+      "text": " i think for kinesis at this point so we'll provide the links to those in the show notes"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2395.76,
+      "end": 2400.8,
+      "text": " and everything here we've covered is covered in really just comprehensive detail really well in"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2400.8,
+      "end": 2407.76,
+      "text": " those articles we mentioned that we'll be talking about kafka as well so there's a comparison"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2408.48,
+      "end": 2414.96,
+      "text": " by the cloud and us guys between kinesis and managed streaming for kafka which is definitely"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2414.96,
+      "end": 2420.16,
+      "text": " worth checking out there's accompanying video with that i also saw a really good one in reinvent"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2420.16,
+      "end": 2427.04,
+      "text": " 2020 which is a deep dive on using lambda specifically with kinesis by hiki park and we'll"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2427.04,
+      "end": 2432.08,
+      "text": " provide the link to that one too that talks a lot about how it's implemented under the hood and how"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2432.08,
+      "end": 2437.44,
+      "text": " standard consumers work versus enhanced fan out really worth checking out so if you're looking at"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2437.44,
+      "end": 2442.88,
+      "text": " kinesis because you have to consider the how they work and the limits so much there's a little bit"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2442.88,
+      "end": 2447.6800000000003,
+      "text": " more investment in your time as an architect or developer with kinesis and streaming data in"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2447.6800000000003,
+      "end": 2453.92,
+      "text": " general i think it's worth taking you know a couple of hours looking at those resources and"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2461.36,
+      "end": 2466.88,
+      "text": " you'll feel much more prepared that's great yeah i think with this we have covered a lot this is probably our longest episode ever so by the way feel feel free to let us know if you prefer longer"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2466.88,
+      "end": 2471.04,
+      "text": " and more in-depth episodes or if you prefer the shorter ones because of course we are always"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2471.04,
+      "end": 2477.84,
+      "text": " experimenting and it's great to have your feedback on that with that let's keep in touch make sure to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2477.84,
+      "end": 2482.4,
+      "text": " follow and subscribe if you want to be notified about new episodes especially if you're liking"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2482.4,
+      "end": 2488.24,
+      "text": " this event and messaging series you can get notified when we publish the next one which as"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2488.24,
+      "end": 2493.7599999999998,
+      "text": " owen said is going to be about kafka and again don't forget to connect we are looking forward"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2493.7599999999998,
+      "end": 2498.4,
+      "text": " for all your opinions and if you have used kinesis we're curious to know your use cases"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2498.4,
+      "end": 2503.6,
+      "text": " if you had any trouble with it surprises because all of that it's something that we can share"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2503.6,
+      "end": 2528.7999999999997,
+      "text": " and learn from each other see you in the next episode bye"
+    }
+  ]
+}

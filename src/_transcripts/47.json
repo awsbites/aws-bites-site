@@ -1,0 +1,662 @@
+{
+  "speakers": {
+    "spk_0": "Luciano",
+    "spk_1": "Eoin"
+  },
+  "segments": [
+    {
+      "speakerLabel": "spk_0",
+      "start": 0,
+      "end": 5.28,
+      "text": " Hello everyone, today we want to give you a heads up for a new kind of episode that we are working on."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 5.28,
+      "end": 9.52,
+      "text": " So instead of giving you a pre-recorded episode, we are taking a short break for the summer,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 9.52,
+      "end": 15.120000000000001,
+      "text": " but then we will be back with actually coding live streams. Our plan is to go live on Wednesday,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 15.120000000000001,
+      "end": 23.6,
+      "text": " 17th of August, and we're gonna be live on YouTube at 5pm Ireland or UK time, which should be 6pm"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 23.6,
+      "end": 32.56,
+      "text": " standard time, 12 Eastern time, and 9am Pacific time. Hopefully all my time zone maths are correct."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 32.56,
+      "end": 37.68,
+      "text": " Our point of reference is definitely 5pm Ireland, UK, if you want to double check all these times."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 37.68,
+      "end": 42.08,
+      "text": " So basically in this live episode, what we want to do is we are going to start to build"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 42.08,
+      "end": 45.52,
+      "text": " an application, and this of course is an application running on AWS,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 45.52,
+      "end": 49.760000000000005,
+      "text": " and over the course of the series we actually want to build a file transfer service,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 49.76,
+      "end": 54.48,
+      "text": " something that looks a little bit like WeTransfer or DropboxTransfer if you ever use those kind of"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 54.48,
+      "end": 59.12,
+      "text": " services. So I suppose the main question is why are we doing this?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 59.12,
+      "end": 63.599999999999994,
+      "text": " Right, well we get lots of feedback from viewers and listeners and people who just really like the real world use cases."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 63.599999999999994,
+      "end": 68.96,
+      "text": " So the one you mentioned about migrating an application to AWS was really popular. We've"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 68.96,
+      "end": 74.16,
+      "text": " also covered, like we spent 50 episodes covering all the different AWS services and how they work."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 74.16,
+      "end": 77.92,
+      "text": " It's probably time to start putting these into practice and showing people really how it works"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 77.92,
+      "end": 83.6,
+      "text": " when you've got hands on keyboard. And I suppose it's also good just to build the services you use,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 83.6,
+      "end": 88.4,
+      "text": " like file transfer services, because you understand exactly what the idea is, and you can learn a lot"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 88.4,
+      "end": 94.56,
+      "text": " like trying to understand how you might build that from scratch. So what would it look like?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 99.04,
+      "end": 102.96000000000001,
+      "text": " Sure, so just to put things into context, we are not going to try to build like a fully fledged Dropbox with file syncing and stuff like that. We're going to keep it a little bit more"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 102.96000000000001,
+      "end": 106.88,
+      "text": " minimalistic, but still we want to build something that is going to be useful for people and you can"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 106.88,
+      "end": 112.88,
+      "text": " use it in different contexts. So the idea is that it's kind of a very simple file sharing product."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 112.88,
+      "end": 117.84,
+      "text": " So you just want to upload one file and then have a URL that you can share with other people for"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 117.84,
+      "end": 122.64,
+      "text": " them to download that particular file. And if you are thinking of different kind of examples or use"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 122.64,
+      "end": 127.75999999999999,
+      "text": " cases, for instance, when we record these episodes, we always need to share video file and audio files"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 127.75999999999999,
+      "end": 132.32,
+      "text": " between ourselves before we do the final production. So imagine that we will be using a"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 132.32,
+      "end": 136.95999999999998,
+      "text": " service like this to just upload this video and audio file somewhere, and then we have an easy link"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 136.95999999999998,
+      "end": 142,
+      "text": " that we can easily share between ourselves. Similarly, you might be thinking, okay, I need"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 142,
+      "end": 147.6,
+      "text": " to send a bunch of receipts to my accountant. I have this big zip file, but it's too big to send"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 147.6,
+      "end": 151.76,
+      "text": " it in an email. What do I do? My accountant probably doesn't have Dropbox, so let's send"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 151.76,
+      "end": 157.35999999999999,
+      "text": " them a URL. Similarly, and this is actually a very common use case I had many, many times,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 157.35999999999999,
+      "end": 161.2,
+      "text": " and you probably can relate to that. You have multiple devices and you just want to transfer"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 161.2,
+      "end": 166.39999999999998,
+      "text": " a big file between them. Every time it's like, how do I do that? If you have a service like this,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 166.39999999999998,
+      "end": 170.39999999999998,
+      "text": " you can easily just upload on one side and download from the URL on the other side."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 171.28,
+      "end": 177.28,
+      "text": " And at this point, why not to use Dropbox? Well, there might be many reasons. Maybe you just don't"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 177.28,
+      "end": 183.28,
+      "text": " want to pay for Dropbox, or maybe you want to be in control of your own data and prefer to avoid"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 183.28,
+      "end": 187.35999999999999,
+      "text": " third-party services and have something where you really understand what's going on, how the data"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 187.36,
+      "end": 192.4,
+      "text": " is actually being processed and used. Or maybe this is actually a realistic use case I've seen"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 192.4,
+      "end": 198.48000000000002,
+      "text": " in many offices that the network is actually blocking services like WeTransfer or Dropbox."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 198.48000000000002,
+      "end": 203.92000000000002,
+      "text": " In that case, you literally cannot use those services. One final reason that we can find is"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 203.92000000000002,
+      "end": 208.16000000000003,
+      "text": " maybe you just want to use your own custom URL either for vanity or because you're actually"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 208.16000000000003,
+      "end": 213.76000000000002,
+      "text": " building a business and it might make sense to have a little bit more trust by giving URLs that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 213.76,
+      "end": 219.51999999999998,
+      "text": " represent your company or your product. So I suppose, yeah, just to finish off,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 219.51999999999998,
+      "end": 224.72,
+      "text": " we are building this product mostly for ourselves to have fun, but in reality, a feature like this,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 224.72,
+      "end": 229.04,
+      "text": " it's something that could be integrated in every other product. Imagine you are building,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 229.04,
+      "end": 232.95999999999998,
+      "text": " I don't know, a chat application and you need people to be able to exchange files in a chat"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 232.95999999999998,
+      "end": 239.12,
+      "text": " session, or you have just a file management system integrated in a CMS or other kinds of products."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 239.12,
+      "end": 243.6,
+      "text": " So it is actually a very, very common use case to having to deal with uploads and downloads in"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 243.6,
+      "end": 248.32,
+      "text": " all sorts of SaaS products. So I think by doing this exercise, we're going to, well, first of all,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 248.32,
+      "end": 253.35999999999999,
+      "text": " learn ourself how to do this, but hopefully also teach and share with other people this learning"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 253.35999999999999,
+      "end": 256.88,
+      "text": " so that you can go off and build the same functionality in other applications."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 258.08,
+      "end": 261.04,
+      "text": " So do you want to describe, Eoin, what's the plan?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 262.32,
+      "end": 267.04,
+      "text": ""
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 267.04,
+      "end": 273.2,
+      "text": " The starting point, I think what we can do as the MVP for our file sharing would be, imagine that you call it an API that we deploy onto AWS and it gives you an upload URL and a"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 273.2,
+      "end": 277.92,
+      "text": " download URL. So you upload the file with your upload URL, and then you share the download URL"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 277.92,
+      "end": 282.71999999999997,
+      "text": " with your friend or with your other device. And that's enough, right? For our MVP, that should"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 282.71999999999997,
+      "end": 287.12,
+      "text": " work. It might be a little bit rough around the edges in terms of user experience, but"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 287.12,
+      "end": 292,
+      "text": " fundamentally it achieves the goal. So for that, we could use things like S3, of course, maybe"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 292,
+      "end": 299.84,
+      "text": " signed URLs integrated with API gateway, a bit of Lambda, a sprinkling of IAM and put it all"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 299.84,
+      "end": 308.23999999999995,
+      "text": " together with Node.js Lambda functions, serverless framework. And since it's an MVP, you can just use"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 308.23999999999995,
+      "end": 313.35999999999996,
+      "text": " curl to do the uploading and downloading. But that's the first MVP. And I think that would"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 313.35999999999996,
+      "end": 319.03999999999996,
+      "text": " be the core of it from that point. Okay, you mentioned vanity URLs. So maybe the next thing"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 319.03999999999996,
+      "end": 326.96,
+      "text": " would be to register a domain name, integrate it so that we have much nicer links that are branded"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 326.96,
+      "end": 333.12,
+      "text": " and we could use Route 53 and certificate manager to help us achieve that. Maybe we have to pick a"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 333.12,
+      "end": 336.47999999999996,
+      "text": " name for this product. So maybe people can let us know over the next couple of weeks, what"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 337.03999999999996,
+      "end": 342.71999999999997,
+      "text": " funky name we could use for our WeTransfer clone. We can get the domain registered in time for the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 342.71999999999997,
+      "end": 349.67999999999995,
+      "text": " first episode. Beyond that, I guess we could start building a bit of a front end, right? Maybe not a"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 349.67999999999995,
+      "end": 355.28,
+      "text": " React front end. How about a command line interface, something like an NPM CLI? What do you think?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 355.28,
+      "end": 361.44,
+      "text": ""
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 362.15999999999997,
+      "end": 367.44,
+      "text": " Yeah, I suppose that the simplest CLI I can think of is literally you just call the command name, let's call it file upload for now until we have an actual name. And you just say file upload"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 367.44,
+      "end": 372.4,
+      "text": " this part. And then you just see the progress bar and eventually you see, okay, this is the URL for"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 372.4,
+      "end": 378.71999999999997,
+      "text": " your file. This is probably the simplest thing I could think of in terms of CLI. And of course,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 378.71999999999997,
+      "end": 382.96,
+      "text": " we can make it nicer. We can have, I don't know, spinning progress bar and all that kind of stuff."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 382.96,
+      "end": 387.91999999999996,
+      "text": " But the very minimum is that you just easily are able to upload a file by just giving a path to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 387.91999999999996,
+      "end": 395.2,
+      "text": " the CLI. And we'll probably gonna do all of that with Node.js again, because it's the easiest for"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 395.2,
+      "end": 399.91999999999996,
+      "text": " us. So yeah, it's probably gonna be like a package that you can just NPM install global and then you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 399.91999999999996,
+      "end": 407.84,
+      "text": " can use it from any bash terminal. After that, I think that there is a lot of room for different"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 407.84,
+      "end": 413.91999999999996,
+      "text": " kinds of improvements. We can probably also listen to feedback and try to understand what are things"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 413.91999999999996,
+      "end": 418.4,
+      "text": " that people are mostly interested in. But the ideas that we came up with are, for instance,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 418.4,
+      "end": 423.44,
+      "text": " showing how we could build a deployment pipeline. We also talk a lot about using GitHub Actions and"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 423.44,
+      "end": 428.96,
+      "text": " OIDC providers. So that can be another excuse to showcase how we could actually deploy this product"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 428.96,
+      "end": 435.12,
+      "text": " from a GitHub Action using the OIDC integration that we have been talking about. We could also"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 435.12,
+      "end": 439.92,
+      "text": " think about securing this entire API, because up to this point, we haven't mentioned any level of"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 439.92,
+      "end": 445.76,
+      "text": " security. As long as you know the host, you can just upload and download. But we might want to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 445.76,
+      "end": 450.8,
+      "text": " limit that. Maybe we can... The easiest thing we could do is just use API keys in API Gateway,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 450.8,
+      "end": 456,
+      "text": " but we might end up exploring other options as well. Maybe Cognito or something a little bit more"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 456,
+      "end": 461.12,
+      "text": " sophisticated. And then another topic that we were thinking about is probably you don't want these"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 461.12,
+      "end": 465.52,
+      "text": " files to live in a mystery packet forever. Most likely, if you are using this kind of service,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 465.52,
+      "end": 471.36,
+      "text": " you are transferring big files, you probably don't load them only once and then not using them again."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 471.36,
+      "end": 476.4,
+      "text": " So it probably makes sense to make this file somehow disposable. Maybe make sure they get"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 476.4,
+      "end": 482.48,
+      "text": " deleted automatically after a week, a day, or whatever is the deadline that makes sense for"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 482.48,
+      "end": 487.36,
+      "text": " the kind of application. We might discuss a little bit about quota, limits, pricing,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 487.36,
+      "end": 492.08000000000004,
+      "text": " and things like that. So definitely let us know if you already have specific topics in mind that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 492.08000000000004,
+      "end": 496.64,
+      "text": " you would like us to actually explore in a kind of live coding fashion, because that is going to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 496.64,
+      "end": 504.32,
+      "text": " drive us in selecting what can we do next after this. Yep. That's it. That sounds good."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 504.32,
+      "end": 508.16,
+      "text": " Maybe people want to see a bit more front end. It might be nice if you share the link that it gives people"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 508.16,
+      "end": 512.64,
+      "text": " your download page and they have an option with what to do with the content. You can even preview"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 512.64,
+      "end": 518.4,
+      "text": " the content in some way. There's a lot of different directions we could take this. And I'm"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 518.4,
+      "end": 524.08,
+      "text": " really interested to hear what people want to see. So yeah, maybe in terms of feedback, since we're"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 524.08,
+      "end": 529.36,
+      "text": " looking for it, one thing is for podcast listeners, we've got a question for you, because we know we"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 529.36,
+      "end": 535.04,
+      "text": " have a lot of people who listen to AWS Bites in podcast audio only format. And this presents a"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 535.04,
+      "end": 540.4,
+      "text": " bit of a challenge when you're doing a live coding demo, live build. And so I sometimes listen to"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 540.4,
+      "end": 546.64,
+      "text": " YouTube videos of that kind of thing when I'm in the bus or driving. But does it make sense for"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 546.64,
+      "end": 552.0799999999999,
+      "text": " you? Do you want us to publish these streams as audio only podcasts? Let us know. We're happy to"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 552.0799999999999,
+      "end": 556.48,
+      "text": " do so if people want to hear it. If people think it's annoying and pointless, we're happy to skip"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 556.48,
+      "end": 561.68,
+      "text": " them as well. We're probably going to do a summary episode at the end anyway, where we talk about all"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 561.68,
+      "end": 567.1999999999999,
+      "text": " the things we learned. So just let us know what you think. We're happy to be guided by you."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 567.2,
+      "end": 572,
+      "text": " So we're really looking forward to pairing with you all live on this build. Make sure you're"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 572,
+      "end": 576,
+      "text": " subscribed to the YouTube channel so you're going to be notified when we go live on Wednesday,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 576,
+      "end": 597.6,
+      "text": " the 17th of August. Until then, goodbye."
+    }
+  ]
+}

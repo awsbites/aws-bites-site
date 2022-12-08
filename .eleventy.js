@@ -55,8 +55,10 @@ module.exports = function (eleventyConfig) {
   eleventyConfig.addShortcode('excerpt', (article) => extractExcerpt(article))
 
   eleventyConfig.addCollection('publishedEpisodes', function (collectionApi) {
-    // get unsorted items
-    return collectionApi.getFilteredByTag('episode').filter((item) => item.data.publish_date <= now)
+    // get episodes, sorted by publish date, descending
+    return collectionApi.getFilteredByTag('episode')
+      .filter((item) => item.data.publish_date <= now)
+      .sort((a, b) => a.data.publish_date - b.data.publish_date)
   })
 
   // minify html pages

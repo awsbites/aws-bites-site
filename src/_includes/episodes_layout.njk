@@ -53,113 +53,115 @@
 
 {% if transcripts[episode] %}
   <div id="transcript" class="my-8 px-4 prose prose-sm md:prose-lg lg:prose-xl dark:prose-dark mx-auto font-serif">
+    <div class="font-sans text-sm text-center p-4 bg-slate-300 dark:bg-slate-900">Help us to make this transcription better! If you find an error, please <a href="https://github.com/awsbites/aws-bites-site/edit/main/src/_transcripts/{{ episode }}.json">submit a PR</a> with your corrections.</div>
+
     {% set currentSpeakerLabel = '' %}
 
     {% for paragraph in transcripts[episode].paragraphs %}
       <p>
-      {% for segment in paragraph %}
-        {% if segment.speakerLabel != currentSpeakerLabel %}
-          {% set currentSpeakerLabel = segment.speakerLabel %}
-          <p data-start-time="{{ segment.start }}">
-            <span class="speaker-label font-bold text-primary-300 dark:text-secondary-200">{{ transcripts[episode].speakers[currentSpeakerLabel] }}</span>: 
+        {% for segment in paragraph %}
+          {% if segment.speakerLabel != currentSpeakerLabel %}
+            {% set currentSpeakerLabel = segment.speakerLabel %}
+            <p data-start-time="{{ segment.start }}">
+              <span class="speaker-label font-bold text-primary-300 dark:text-secondary-200">{{ transcripts[episode].speakers[currentSpeakerLabel] }}</span>: 
         {% endif %}
-        <span data-start-time="{{ segment.start }}">{{ segment.text }}</span>
+            <span data-start-time="{{ segment.start }}">{{ segment.text }}</span>
+          {% endfor %}
+        </p>
       {% endfor %}
-      </p>
-    {% endfor %}
-  </div>
-{% endif %}
+    </div>
+  {% endif %}
 
-{% set previousEpisode = collections.publishedEpisodes | reverse | getPreviousCollectionItem(page) %}
-{% set nextEpisode = collections.publishedEpisodes | reverse | getNextCollectionItem(page) %}
+  {% set previousEpisode = collections.publishedEpisodes | reverse | getPreviousCollectionItem(page) %}
+  {% set nextEpisode = collections.publishedEpisodes | reverse | getNextCollectionItem(page) %}
 
-<div class="row">
-  <div class="max-w-7xl mx-auto">
-    <div class="sm:grid grid-cols-4 gap-5 mx-auto px-16">
-      {% if previousEpisode %}
-        <div class="col-start-1 col-end-3 my-2">
-          <a href="{{ previousEpisode.url }}">
-            <div
+  <div class="row">
+    <div class="max-w-7xl mx-auto">
+      <div class="sm:grid grid-cols-4 gap-5 mx-auto px-16">
+        {% if previousEpisode %}
+          <div class="col-start-1 col-end-3 my-2">
+            <a href="{{ previousEpisode.url }}">
+              <div
 						class="h-full p-6 dark:bg-gray-700 bg-white text-primary-200 dark:text-secondary-100 hover:shadow-xl rounded border-b-4 border-accent-100 dark:border-accent-100 shadow-md">
-              <h3 class="text-2xl mb-3 font-semibold inline-flex">
-                <svg class="mr-2" width="24" height="30" viewBox="0 0 24 24" fill="none"
+                <h3 class="text-2xl mb-3 font-semibold inline-flex">
+                  <svg class="mr-2" width="24" height="30" viewBox="0 0 24 24" fill="none"
 								xmlns="http://www.w3.org/2000/svg">
-                  <path
+                    <path
 									d="M1.02698 11.9929L5.26242 16.2426L6.67902 14.8308L4.85766 13.0033L22.9731 13.0012L22.9728 11.0012L4.85309 11.0033L6.6886 9.17398L5.27677 7.75739L1.02698 11.9929Z"
 									fill="currentColor"/></svg>
 							Prev
 						      </h3>
-              <p class="text-lg">{{ previousEpisode.data.episode }}. {{ previousEpisode.data.title }}</p>
-            </div>
-          </a>
-        </div>
-      {% endif %}
+                <p class="text-lg">{{ previousEpisode.data.episode }}. {{ previousEpisode.data.title }}</p>
+              </div>
+            </a>
+          </div>
+        {% endif %}
 
-      {% if nextEpisode %}
-        <div class="col-end-5 col-span-2 my-2">
-          <a href="{{ nextEpisode.url }}">
-            <div
+        {% if nextEpisode %}
+          <div class="col-end-5 col-span-2 my-2">
+            <a href="{{ nextEpisode.url }}">
+              <div
 						class="h-full p-6 dark:bg-gray-700 bg-white text-primary-200 dark:text-secondary-100 hover:shadow-xl rounded border-b-4 border-accent-100 dark:border-accent-100 shadow-md text-right">
-              <h3 class="text-2xl mb-3 font-semibold inline-flex ">
+                <h3 class="text-2xl mb-3 font-semibold inline-flex ">
 							Next
 							<svg class="ml-2" width="24" height="30" viewBox="0 0 24 24" fill="none"
 								xmlns="http://www.w3.org/2000/svg">
-                  <path
+                    <path
 									d="M23.0677 11.9929L18.818 7.75739L17.4061 9.17398L19.2415 11.0032L0.932469 11.0012L0.932251 13.0012L19.2369 13.0032L17.4155 14.8308L18.8321 16.2426L23.0677 11.9929Z"
 									fill="currentColor"/></svg>
-              </h3>
-              <p class="text-lg">{{ nextEpisode.data.episode }}. {{ nextEpisode.data.title }}</p>
-            </div>
-          </a>
-        </div>
-      {% endif %}
+                </h3>
+                <p class="text-lg">{{ nextEpisode.data.episode }}. {{ nextEpisode.data.title }}</p>
+              </div>
+            </a>
+          </div>
+        {% endif %}
+      </div>
     </div>
-  </div>
-{% endblock body_content %}
+  {% endblock body_content %}
 
-{% block scripts %}
-  {{ super() }}
-  <script>
-    const tabClasses = 'inline-block p-4 rounded-t-lg border-b-2 border-transparent hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300'
-    const activeTabClasses = 'inline-block p-4 text-blue-600 rounded-t-lg border-b-2 border-blue-600 active dark:text-blue-500 dark:border-blue-500'
-    const tabbtns = document.querySelectorAll('.tab-button')
-    const allPanels = [...tabbtns].map(item => item.getAttribute('href'))
-    const initialTab = tabbtns[0].getAttribute('href')
+  {% block scripts %}
+    {{ super() }}
+    <script>
+      const tabClasses = 'inline-block p-4 rounded-t-lg border-b-2 border-transparent hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300'
+      const activeTabClasses = 'inline-block p-4 text-blue-600 rounded-t-lg border-b-2 border-blue-600 active dark:text-blue-500 dark:border-blue-500'
+      const tabbtns = document.querySelectorAll('.tab-button')
+      const allPanels = [...tabbtns].map(item => item.getAttribute('href'))
+      const initialTab = tabbtns[0].getAttribute('href')
 
-    function showTab(toShowSelector) {
-      const activeTabButton = [...tabbtns].find(item => item.getAttribute('href') === toShowSelector)
-      activeTabButton.setAttribute('class', activeTabClasses);
+      function showTab(toShowSelector) {
+        const activeTabButton = [...tabbtns].find(item => item.getAttribute('href') === toShowSelector)
+        activeTabButton.setAttribute('class', activeTabClasses);
 
-      ([...tabbtns]).forEach(item => {
-        if (item !== activeTabButton) {
-          item.setAttribute('class', tabClasses)
-        }
-      })
+        ([...tabbtns]).forEach(item => {
+          if (item !== activeTabButton) {
+            item.setAttribute('class', tabClasses)
+          }
+        })
 
-      const toHideSelectors = allPanels.filter(item => item !== toShowSelector)
+        const toHideSelectors = allPanels.filter(item => item !== toShowSelector)
 
-      toHideSelectors.forEach(item => {
+        toHideSelectors.forEach(item => {
+          document
+            .querySelector(item)
+            .style
+            .display = 'none'
+        })
+
         document
-          .querySelector(item)
+          .querySelector(toShowSelector)
           .style
-          .display = 'none'
-      })
+          .display = 'block'
+      }
+      showTab(initialTab)
 
-      document
-        .querySelector(toShowSelector)
-        .style
-        .display = 'block'
-    }
-    showTab(initialTab)
+      tabbtns.forEach((item) => item.addEventListener('click', evt => {
+        evt.preventDefault()
 
-    tabbtns.forEach((item) => item.addEventListener('click', evt => {
-      evt.preventDefault()
+        const toShowSelector = evt
+          .currentTarget
+          .getAttribute('href')
 
-      const toShowSelector = evt
-        .currentTarget
-        .getAttribute('href')
-
-      showTab(toShowSelector)
-    }))
-  </script>
-{% endblock %}
+        showTab(toShowSelector)
+      }))
+    </script>
+  {% endblock %}

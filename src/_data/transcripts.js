@@ -16,13 +16,13 @@ module.exports = async function transcripts () {
     // to avoid very short trailing paragraphs at the end of a speaker's slot
 
     // First, group all segments into 'slots' representing a sequential set of segments for a speaker
-    const speakerSlots = []
     let currentSlot = { textLength: 0, segments: [] }
+    const speakerSlots = [currentSlot]
     let currentSpeakerLabel = ''
     for (const segment of fileContent.segments) {
       if (segment.speakerLabel !== currentSpeakerLabel) {
-        speakerSlots.push(currentSlot)
         currentSlot = { textLength: 0, segments: [] }
+        speakerSlots.push(currentSlot)
       }
       currentSlot.textLength += segment.text.length
       currentSlot.segments.push(segment)

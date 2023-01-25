@@ -1,0 +1,1838 @@
+{
+  "speakers": {
+    "spk_0": "spk_0",
+    "spk_1": "spk_1"
+  },
+  "segments": [
+    {
+      "speakerLabel": "spk_0",
+      "start": 0,
+      "end": 4.2,
+      "text": " Using AWS Lambda together with SQS is a very common serverless pattern"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 4.2,
+      "end": 7.92,
+      "text": " that has always suffered from some special limitations."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 7.92,
+      "end": 10.56,
+      "text": " We covered SQS in a dedicated episode last year,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 10.56,
+      "end": 14.120000000000001,
+      "text": " but recently we've had a significant new feature solving a common pain."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 14.120000000000001,
+      "end": 17.84,
+      "text": " And today we want to dive deeper into using SQS and Lambda together"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 17.84,
+      "end": 21.56,
+      "text": " and tell you all you need to know about using SQS triggers,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 21.56,
+      "end": 23.36,
+      "text": " about scaling and concurrency."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 23.36,
+      "end": 24.8,
+      "text": " I'm Eoin, I'm here with Luciana,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 24.8,
+      "end": 30.200000000000003,
+      "text": " and this is another episode of the AWS Bites podcast."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 30.200000000000003,
+      "end": 38.88,
+      "text": " AWS Bites is sponsored by 4Theorem."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 38.88,
+      "end": 41.760000000000005,
+      "text": " 4Theorem is an AWS consulting partner offering training,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 41.760000000000005,
+      "end": 44.120000000000005,
+      "text": " cloud migration and modern application architecture."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 44.120000000000005,
+      "end": 46.040000000000006,
+      "text": " You can find out more at 4Theorem.com"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 46.040000000000006,
+      "end": 48.28,
+      "text": " and you can find that link in the show notes."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 48.28,
+      "end": 50.56,
+      "text": " Luciano, let's start with addressing the basics"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 50.56,
+      "end": 54.2,
+      "text": " for anyone not intimately familiar with AWS Lambda and SQS."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 54.2,
+      "end": 56.56,
+      "text": " We have a lot of seasoned experts out there listening,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 56.56,
+      "end": 60.2,
+      "text": " but we also know that plenty of people are listening and watching"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 60.2,
+      "end": 63.56,
+      "text": " or taking their first steps with AWS or these serverless offerings."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 63.56,
+      "end": 68,
+      "text": " Do you want to give a quick overview and a quick elevator pitch for SQS and Lambda?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 68,
+      "end": 71.04,
+      "text": " Okay, I'll try my best and I'm going to start with Lambda."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 71.04,
+      "end": 74,
+      "text": " So Lambda is basically a function as a service offering"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 74,
+      "end": 75.88,
+      "text": " that is available on AWS."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 75.88,
+      "end": 79.36,
+      "text": " So what that means is that it is effectively a managed compute service"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 79.36,
+      "end": 81.52000000000001,
+      "text": " with a very simple abstraction."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 81.52,
+      "end": 84.39999999999999,
+      "text": " As developers, we are familiar with the concept of a function,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 84.39999999999999,
+      "end": 86.8,
+      "text": " which is basically a piece of code that takes some inputs,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 86.8,
+      "end": 89.28,
+      "text": " executes some logics and returns some output."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 89.28,
+      "end": 91.44,
+      "text": " And Lambda basically takes that particular model"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 91.44,
+      "end": 95.28,
+      "text": " and provides it as a managed on-demand compute layer."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 95.28,
+      "end": 97.6,
+      "text": " So as a user, you write your own Lambda function."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 97.6,
+      "end": 101.03999999999999,
+      "text": " You can use many languages, so pick the language of your choice."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 101.03999999999999,
+      "end": 104.08,
+      "text": " You write your own business logic in that particular shape,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 104.08,
+      "end": 106.16,
+      "text": " so in that particular function format."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 106.16,
+      "end": 109.28,
+      "text": " And then you just tell AWS when to run that particular function."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 109.28,
+      "end": 112.24,
+      "text": " And generally, this is in response to a particular event."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 112.24,
+      "end": 115.04,
+      "text": " Just to give you an example, that event can be an HTTP call"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 115.04,
+      "end": 116.64,
+      "text": " if you're using something like API Gateway"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 116.64,
+      "end": 120,
+      "text": " and you are trying to implement an API in a serverless fashion."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 120,
+      "end": 123.36,
+      "text": " It can be a schedule, I don't know, every Monday at 9am."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 123.36,
+      "end": 124.64,
+      "text": " Maybe you want to do something,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 124.64,
+      "end": 127.52000000000001,
+      "text": " so you can trigger the Lambda that way on that schedule."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 127.52000000000001,
+      "end": 130.64,
+      "text": " Or maybe you want to react to certain files being created in S3."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 130.64,
+      "end": 132.08,
+      "text": " There can be another trigger."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 132.08,
+      "end": 135.6,
+      "text": " Or maybe, because we are going to be talking about the integration with a queue,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 135.6,
+      "end": 137.6,
+      "text": " you can respond, you can trigger your Lambda"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 137.6,
+      "end": 140.72,
+      "text": " as a response to a new message being available in SQS,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 140.72,
+      "end": 143.44,
+      "text": " which is a queuing system available in AWS."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 143.44,
+      "end": 146.07999999999998,
+      "text": " So let's just talk more about SQS as well."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 146.64,
+      "end": 148.56,
+      "text": " So very similar to Lambda,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 148.56,
+      "end": 152.4,
+      "text": " SQS is another managed scalable service provided by AWS."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 153.12,
+      "end": 154.48,
+      "text": " So if you need a queuing system"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 154.48,
+      "end": 158.4,
+      "text": " and you don't want to manage all of the deployment updates,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 158.4,
+      "end": 160.79999999999998,
+      "text": " security patches, scalability by yourself,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 160.79999999999998,
+      "end": 164.56,
+      "text": " you just go on AWS and you provision a new SQS queue."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 164.56,
+      "end": 167.35999999999999,
+      "text": " And just to explain why you would want to do that,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 167.36,
+      "end": 169.36,
+      "text": " let's present an example."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 170.48000000000002,
+      "end": 172.32000000000002,
+      "text": " Or actually, in a more generic sense,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 172.32000000000002,
+      "end": 176.56,
+      "text": " let's just say that you have some piece of functionality going on,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 176.56,
+      "end": 180.96,
+      "text": " but also you might want to do more work on demand in the background."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 180.96,
+      "end": 183.84,
+      "text": " For instance, I don't know, you are sending transactional emails,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 183.84,
+      "end": 185.36,
+      "text": " or you need to resize some pictures,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 185.36,
+      "end": 187.44000000000003,
+      "text": " or you need to run some workloads."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 187.44000000000003,
+      "end": 191.28000000000003,
+      "text": " For instance, you have some text available in picture format,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 191.28000000000003,
+      "end": 195.04000000000002,
+      "text": " and you want to extract the text, maybe running an OCR algorithm."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 195.04,
+      "end": 197.67999999999998,
+      "text": " So all things that you don't want to do in line,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 197.67999999999998,
+      "end": 199.51999999999998,
+      "text": " you probably want to offload in the background"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 199.51999999999998,
+      "end": 201.84,
+      "text": " and maybe you want to parallelize that kind of compute."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 202.4,
+      "end": 206.56,
+      "text": " So what you could do there is you could create a queuing system,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 206.56,
+      "end": 208.07999999999998,
+      "text": " maybe use just SQS,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 208.07999999999998,
+      "end": 210.32,
+      "text": " and then every time a new job becomes available,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 210.32,
+      "end": 211.84,
+      "text": " you get the definition of that job."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 211.84,
+      "end": 213.68,
+      "text": " Rather than doing it straight away"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 213.68,
+      "end": 216.48,
+      "text": " in the process that receives the definition of the jobs,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 216.48,
+      "end": 218.16,
+      "text": " you just send it to the queue,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 218.16,
+      "end": 222,
+      "text": " and then the queue is going to keep it in storage somehow,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 222,
+      "end": 225.12,
+      "text": " and other workers in the background can just ask to the queue,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 225.12,
+      "end": 226.64,
+      "text": " is there something I can do?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 226.64,
+      "end": 229.52,
+      "text": " They can pick up the work and just do it in the background."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 229.52,
+      "end": 232.56,
+      "text": " Now this brings a few interesting advantages."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 232.56,
+      "end": 236.08,
+      "text": " The first one is that you are not blocking the core application."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 236.08,
+      "end": 237.2,
+      "text": " If it's a web server,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 237.2,
+      "end": 239.6,
+      "text": " the web server can reply to the user as fast as possible."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 239.6,
+      "end": 241.84,
+      "text": " This is what user expects on the web,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 241.84,
+      "end": 244.4,
+      "text": " while all the heavy work is offloaded to the background."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 244.96,
+      "end": 246.56,
+      "text": " If you have a peak of traffic,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 246.56,
+      "end": 250.48,
+      "text": " maybe that creates a lot of work that you'll need to do in the background."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 250.48,
+      "end": 252.95999999999998,
+      "text": " So by having a queue and having workers,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 252.95999999999998,
+      "end": 254.39999999999998,
+      "text": " you have a decoupled system,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 254.39999999999998,
+      "end": 257.2,
+      "text": " and basically you can decide to scale up the workers part."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 257.2,
+      "end": 259.68,
+      "text": " So add more and more workers to be able to respond"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 259.68,
+      "end": 262.64,
+      "text": " to that increased demand for background work."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 262.64,
+      "end": 263.92,
+      "text": " And that can be very elastic,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 263.92,
+      "end": 265.52,
+      "text": " so when the demand is over,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 265.52,
+      "end": 267.03999999999996,
+      "text": " maybe you go back to a normal,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 267.03999999999996,
+      "end": 270,
+      "text": " you can remove all the workers that you don't need anymore."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 270,
+      "end": 271.52,
+      "text": " And also that adds resiliency,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 271.52,
+      "end": 272.96,
+      "text": " because if something fails,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 272.96,
+      "end": 276.88,
+      "text": " the queuing mechanism can automatically recognize that a job failed"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 276.88,
+      "end": 278,
+      "text": " and put it back in the queue."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 278,
+      "end": 280.4,
+      "text": " So that means that another worker would pick it up again"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 280.4,
+      "end": 282.88,
+      "text": " later and you can retry it automatically."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 282.88,
+      "end": 283.91999999999996,
+      "text": " And even more interesting,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 283.91999999999996,
+      "end": 285.84,
+      "text": " if that particular job keeps failing,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 285.84,
+      "end": 289.59999999999997,
+      "text": " you can add rules to basically move that job on the site."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 289.59999999999997,
+      "end": 291.52,
+      "text": " They are generally called dead letter queues."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 291.52,
+      "end": 293.91999999999996,
+      "text": " So it's basically another queue where you store all the jobs"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 293.91999999999996,
+      "end": 295.44,
+      "text": " that you were not able to process,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 295.44,
+      "end": 297.03999999999996,
+      "text": " and a human can just go there"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 297.03999999999996,
+      "end": 299.44,
+      "text": " and try to figure out why this consistently failed."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 299.44,
+      "end": 300.47999999999996,
+      "text": " Maybe there is a bug."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 300.47999999999996,
+      "end": 301.91999999999996,
+      "text": " You can fix that bug in your code"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 301.91999999999996,
+      "end": 304.23999999999995,
+      "text": " and then push the message back to the original queue."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 304.23999999999995,
+      "end": 305.2,
+      "text": " And at that point,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 305.2,
+      "end": 307.84,
+      "text": " you are able to reprocess that message correctly."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 307.84,
+      "end": 311.2,
+      "text": " So that's basically giving you ways to never lose jobs"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 311.2,
+      "end": 315.35999999999996,
+      "text": " and consistently be able to deliver on what the user expects."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 315.35999999999996,
+      "end": 317.59999999999997,
+      "text": " We want to talk about Lambda and SQS together."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 317.59999999999997,
+      "end": 319.35999999999996,
+      "text": " So how do they work together?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 319.35999999999996,
+      "end": 322.4,
+      "text": " So with SQS, you're always using a poll-based model."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 322.4,
+      "end": 324.47999999999996,
+      "text": " You would need something to pull the queue,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 324.47999999999996,
+      "end": 327.44,
+      "text": " retrieve events, process them, and then delete them."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 327.44,
+      "end": 330.08,
+      "text": " It's a fairly simple API, really,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 330.08,
+      "end": 332.71999999999997,
+      "text": " when it comes to consuming messages from SQS."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 332.71999999999997,
+      "end": 334.88,
+      "text": " And we covered that in detail in the previous episodes."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 334.88,
+      "end": 337.76,
+      "text": " So traditionally, you'd use EC2 or a container"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 337.76,
+      "end": 340.71999999999997,
+      "text": " or some other piece of long-lived compute running on AWS"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 340.71999999999997,
+      "end": 342.4,
+      "text": " or even on-premises or anywhere else."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 343.28,
+      "end": 346.32,
+      "text": " With AWS Lambda, it's a lot simpler"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 346.32,
+      "end": 348.56,
+      "text": " because you don't have to run a poller yourself."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 348.56,
+      "end": 350.32,
+      "text": " The polling service is actually provided"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 350.32,
+      "end": 353.12,
+      "text": " as part of Lambda's event source mapping feature."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 353.76,
+      "end": 356.48,
+      "text": " And you may have used SQS and Lambda together"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 356.48,
+      "end": 358.56,
+      "text": " without knowing that there was such a feature"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 358.56,
+      "end": 360.32,
+      "text": " because a lot of things like the serverless framework"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 360.32,
+      "end": 363.68,
+      "text": " or SAM kind of create this for you transparently under the hood"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 363.68,
+      "end": 365.04,
+      "text": " when you create that trigger."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 365.68,
+      "end": 367.28000000000003,
+      "text": " So within the AWS Lambda service,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 367.28000000000003,
+      "end": 369.2,
+      "text": " you've got this event source mapping feature."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 369.2,
+      "end": 370.8,
+      "text": " And this is the bit that's doing the polling."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 370.8,
+      "end": 374.32,
+      "text": " It's also the same feature that handles Lambda triggers"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 374.32,
+      "end": 378.64,
+      "text": " from Kinesis and Kafka, MQ, and DynamoDB streams."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 379.36,
+      "end": 381.84000000000003,
+      "text": " So if you imagine a simple architecture diagram,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 381.84000000000003,
+      "end": 383.44,
+      "text": " you've got your queue on the left"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 383.44,
+      "end": 385.36,
+      "text": " and a Lambda function on the right."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 385.36,
+      "end": 387.84000000000003,
+      "text": " The event source mapping is essentially a box in the middle"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 387.84000000000003,
+      "end": 390.96000000000004,
+      "text": " that's running that polling and passing messages from the queue"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 390.96,
+      "end": 394.4,
+      "text": " and invoking Lambda functions with the messages."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 394.4,
+      "end": 396.64,
+      "text": " And those invocations are actually synchronous."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 396.64,
+      "end": 398.15999999999997,
+      "text": " So they're not, with Lambda,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 398.15999999999997,
+      "end": 400.47999999999996,
+      "text": " you've got synchronous and asynchronous invocations."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 400.47999999999996,
+      "end": 403.2,
+      "text": " Event source mapping is using a synchronous invocation"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 403.2,
+      "end": 405.35999999999996,
+      "text": " and waiting for the function invocation to complete."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 407.28,
+      "end": 408.71999999999997,
+      "text": " So event source mappings are very good"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 408.71999999999997,
+      "end": 410.88,
+      "text": " because they give you a few neat features for free"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 410.88,
+      "end": 412.56,
+      "text": " that you would have to implement yourself."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 412.56,
+      "end": 415.2,
+      "text": " Like you can control the batch size and the batching window"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 415.2,
+      "end": 418.32,
+      "text": " in terms of the number of events that arrive in a batch,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 418.32,
+      "end": 421.12,
+      "text": " what kind of time interval they need to arrive within."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 422.15999999999997,
+      "end": 424.56,
+      "text": " And since about a year or so ago as well,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 424.56,
+      "end": 426.56,
+      "text": " you can also specify filters."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 426.56,
+      "end": 429.59999999999997,
+      "text": " Some messages are filtered out before they reach your function."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 429.59999999999997,
+      "end": 431.92,
+      "text": " So that can save you a lot of execution time and cost as well."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 433.76,
+      "end": 436.48,
+      "text": " So if you imagine if you've got an instance"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 436.48,
+      "end": 438.71999999999997,
+      "text": " or a number of EC2 instances polling from a queue,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 438.71999999999997,
+      "end": 441.68,
+      "text": " you're in control of the processing rate and the concurrency"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 441.68,
+      "end": 444.56,
+      "text": " because it's directly linked to the number of workers you have."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 445.68,
+      "end": 447.03999999999996,
+      "text": " You can retrieve a batch of messages,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 447.04,
+      "end": 449.92,
+      "text": " process them with whatever cluster size"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 449.92,
+      "end": 452.40000000000003,
+      "text": " or worker pool size you have running."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 452.40000000000003,
+      "end": 455.04,
+      "text": " Now with Lambda, the event source mapping is doing this for you."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 455.04,
+      "end": 457.52000000000004,
+      "text": " So it's in control of the concurrency."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 457.52000000000004,
+      "end": 460.32000000000005,
+      "text": " And it's this fact that's been a source of pain for a lot of users."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 460.96000000000004,
+      "end": 464.32000000000005,
+      "text": " And this was the case until very recently"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 464.32000000000005,
+      "end": 471.6,
+      "text": " when the AWS announced a feature called SQS maximum concurrency support."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 473.76,
+      "end": 478.56,
+      "text": " That makes a lot of sense to me, but maybe we can provide an example of what is the pain we are talking about"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 478.56,
+      "end": 481.59999999999997,
+      "text": " so we can make it more obvious to everyone."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 481.59999999999997,
+      "end": 486.24,
+      "text": " And also, how is this new feature helping to ease this particular type of pain?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 487.52,
+      "end": 489.12,
+      "text": " Yeah, no, this is good."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 489.12,
+      "end": 490.96,
+      "text": " Let's try and give some sort of an example."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 490.96,
+      "end": 493.2,
+      "text": " So let's say you've got a queue"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 493.2,
+      "end": 496.48,
+      "text": " that has messages relating to signups for your SaaS application."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 496.48,
+      "end": 500.64,
+      "text": " So a user fills in a form, signs up, they're now customer reviewers."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 500.64,
+      "end": 503.76,
+      "text": " As part of this whole signup flow, maybe you've got this event-driven"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 504.32,
+      "end": 506.08,
+      "text": " mailing list subscription feature."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 506.08,
+      "end": 511.44,
+      "text": " So when a user signs up, you go off and you want to make an API call to MailChimp,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 511.44,
+      "end": 515.52,
+      "text": " for example, so that they're going to receive your weekly user mailing list."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 516.24,
+      "end": 519.68,
+      "text": " Now, let's say in this contrived example that MailChimp has a rate limit"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 519.68,
+      "end": 522.4,
+      "text": " of 10 invocations per second to this API."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 522.4,
+      "end": 527.28,
+      "text": " So you've got a queue and a Lambda function that takes the signup event"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 527.28,
+      "end": 530.8,
+      "text": " and initiates a subscription with the MailChimp API."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 530.8,
+      "end": 534.3199999999999,
+      "text": " So you want this to scale as users sign up."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 534.3199999999999,
+      "end": 536.8,
+      "text": " You want to have this resiliency you talked about,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 536.8,
+      "end": 540.88,
+      "text": " but you don't want to flood this API because it's got a rate limit."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 541.4399999999999,
+      "end": 544.3199999999999,
+      "text": " So let's talk about the behavior before we've got this recent change"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 544.3199999999999,
+      "end": 546.48,
+      "text": " in how Lambda and SQS work together."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 546.48,
+      "end": 551.36,
+      "text": " So the event source mapping in Lambda starts five pollers by default,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 551.36,
+      "end": 553.1999999999999,
+      "text": " reading messages in batches from the queue."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 553.1999999999999,
+      "end": 555.36,
+      "text": " So let's say you've just got a batch size of one,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 555.36,
+      "end": 557.92,
+      "text": " but you've got more than 10 messages coming in per second."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 558.5600000000001,
+      "end": 561.52,
+      "text": " So when messages are available, the event source mapping will pass these"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 561.52,
+      "end": 562.96,
+      "text": " to running Lambda containers."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 562.96,
+      "end": 566.48,
+      "text": " But if you've got more messages coming in because your service is really popular"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 566.48,
+      "end": 568.88,
+      "text": " and people are signing up at a really, really fast rate,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 570.24,
+      "end": 575.12,
+      "text": " the event source mapping is still going to try and scale up the number of Lambda workers"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 575.12,
+      "end": 577.84,
+      "text": " by making synchronous invocation requests."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 577.84,
+      "end": 581.6,
+      "text": " And it's going to increase that concurrency level by a factor of 60 every minute."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 581.6,
+      "end": 586.24,
+      "text": " And it will keep going up to the account concurrency limit"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 588.88,
+      "end": 592,
+      "text": " or the reserve concurrency or 1000, whichever is the lowest."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 592.88,
+      "end": 598,
+      "text": " So in order to prevent your function from exceeding that realtor API limit,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 598,
+      "end": 601.0400000000001,
+      "text": " you might set the reserve concurrency to five because you're thinking,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 601.0400000000001,
+      "end": 604,
+      "text": " okay, maybe this function takes about 500 milliseconds to invoke."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 604.64,
+      "end": 609.0400000000001,
+      "text": " So in order to keep it at 10 per second, I'm going to just have five concurrency."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 609.04,
+      "end": 613.1999999999999,
+      "text": " But event source mappings don't seem to know anything about your functions reserve concurrency"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 613.1999999999999,
+      "end": 614.7199999999999,
+      "text": " or the account level concurrency."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 614.7199999999999,
+      "end": 616.16,
+      "text": " It just keeps scaling up."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 616.16,
+      "end": 621.12,
+      "text": " So the Lambda for service will stop there from being more than that number of concurrent workers,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 621.12,
+      "end": 623.92,
+      "text": " but event source mapping just keeps trying to invoke functions anyway."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 625.52,
+      "end": 628.0799999999999,
+      "text": " And this results in invocations being throttled."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 629.1999999999999,
+      "end": 630.8,
+      "text": " So this can happen in a lot of different cases,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 630.8,
+      "end": 633.52,
+      "text": " like when other functions are consuming the account concurrency"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 633.52,
+      "end": 635.52,
+      "text": " and there just isn't the available capacity as well."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 635.52,
+      "end": 639.52,
+      "text": " It can even happen if you've got cases where you've got multiple event source mappings"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 639.52,
+      "end": 644.16,
+      "text": " invoking the same function, which is also possible because each one is scaling independently."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 645.76,
+      "end": 649.04,
+      "text": " So this has been a source of a lot of pain for use cases like this."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 653.6,
+      "end": 660.16,
+      "text": " So what happens when the throttling actually occurs and how can we actually leverage this new maximum concurrency feature to make our life easier?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 660.16,
+      "end": 660.64,
+      "text": " Yes."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 665.76,
+      "end": 666.96,
+      "text": " When the throttling occurs, messages are going to go back onto the queue once the visibility time has been reached."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 667.6,
+      "end": 672.08,
+      "text": " And if this keeps happening after a number of retries, which is configurable,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 672.08,
+      "end": 673.84,
+      "text": " the message will be discarded."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 673.84,
+      "end": 676.3199999999999,
+      "text": " Or if you've got a dead letter queue, it will end up in your dead letter queue."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 677.12,
+      "end": 682.64,
+      "text": " So the new maximum concurrency feature is really doing exactly what it implies."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 682.64,
+      "end": 686.72,
+      "text": " It's specifying a maximum number of invocations at the event source mapping level."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 686.72,
+      "end": 690.72,
+      "text": " So you don't need to use a reserved concurrency for the function, although you can use both"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 690.72,
+      "end": 692,
+      "text": " together in combination."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 692.8000000000001,
+      "end": 697.6,
+      "text": " So it solves the problem by essentially copying the number of concurrent invocations and reducing"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 697.6,
+      "end": 701.0400000000001,
+      "text": " the excess of throttling that can happen with the default behavior."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 701.0400000000001,
+      "end": 705.52,
+      "text": " So it's helpful for our example when you don't want to flood the third party API with requests"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 705.52,
+      "end": 707.28,
+      "text": " that might cause a rate limiting error."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 707.28,
+      "end": 711.6,
+      "text": " It means you don't have to use a reserved concurrency, which can be annoying for people"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 711.6,
+      "end": 715.36,
+      "text": " because when you use reserved concurrency, you don't have to use a reserve concurrency."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 715.36,
+      "end": 719.44,
+      "text": " If you use reserve concurrency, you're also taking away capacity from other functions."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 720.88,
+      "end": 724.48,
+      "text": " It's also nice for anyone using multiple event source mappings with the same function,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 724.48,
+      "end": 729.04,
+      "text": " that you can now control the concurrency of each trigger independently instead of just"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 729.04,
+      "end": 730.32,
+      "text": " the function as a whole."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 730.32,
+      "end": 731.84,
+      "text": " Yeah, that makes a lot of sense."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 731.84,
+      "end": 737.28,
+      "text": " Basically, before we were effectively hacking the system, trying to limit the number of"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 737.28,
+      "end": 741.84,
+      "text": " execution with something that was not necessarily meant to be used in that way."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 741.84,
+      "end": 747.2,
+      "text": " And that was creating the side effect that the event source mapper was still trying to"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 747.2,
+      "end": 751.2,
+      "text": " trigger your lambda and probably would end up with a lot of messages in the dead letter"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 751.2,
+      "end": 756.4,
+      "text": " queue just because there wasn't capacity to execute them, not because the messages were"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 756.4,
+      "end": 757.36,
+      "text": " actually failing."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 757.36,
+      "end": 761.12,
+      "text": " So probably this will lead to a lot of false positives and then somebody needs to look"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 761.12,
+      "end": 766.48,
+      "text": " at them, retry them, and a lot of overhead just because for lacking that capacity of"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 766.48,
+      "end": 770.64,
+      "text": " saying, I don't want you to run more than a certain number of lambdas at any given time"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 770.64,
+      "end": 773.36,
+      "text": " for this particular source of events."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 773.36,
+      "end": 775.12,
+      "text": " So that makes a lot of sense."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 775.12,
+      "end": 779.68,
+      "text": " Is there any other improvement that we would like to see in this integration between lambda"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 779.68,
+      "end": 780.3199999999999,
+      "text": " and SQS?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 780.88,
+      "end": 786.56,
+      "text": " One of the things I mentioned was that the scaling rate of lambda and SQS, it's adding"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 786.56,
+      "end": 790.16,
+      "text": " 60 concurrent function executions per minute."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 791.28,
+      "end": 794.16,
+      "text": " Now, this is pretty slow scaling rate."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 794.16,
+      "end": 797.84,
+      "text": " And if you've got batch processing workloads when suddenly you've got tens of thousands"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 797.84,
+      "end": 802.1600000000001,
+      "text": " of requests coming in and you want to scale out to maybe hundreds of thousands of lambda"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 802.1600000000001,
+      "end": 806,
+      "text": " functions concurrently, adding 60 every minute is really slow."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 806,
+      "end": 810.08,
+      "text": " And I've encountered this myself and then had to use other mechanisms."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 810.08,
+      "end": 817.0400000000001,
+      "text": " So if you have just the lambda API and you call invoke directly with the async mode,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 817.0400000000001,
+      "end": 820.96,
+      "text": " then you can scale to 1000s of concurrent functions in seconds."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 820.96,
+      "end": 825.0400000000001,
+      "text": " And I know for a fact that that's using SQS internally to manage that queue of invocations"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 825.0400000000001,
+      "end": 825.76,
+      "text": " as well."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 825.76,
+      "end": 830.88,
+      "text": " So it's still a bit strange that SQS seems to be really slowing down your scaling rate"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 831.4399999999999,
+      "end": 832.8,
+      "text": " and other events sources don't."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 832.8,
+      "end": 835.04,
+      "text": " Like with Kinesis, it's tied to the number of shards."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 836.3199999999999,
+      "end": 838.4,
+      "text": " So this is a bit limiting."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 838.4,
+      "end": 842.24,
+      "text": " So I would like to see if there was a new future coming out in this integration, I'd"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 842.24,
+      "end": 847.6,
+      "text": " like to see that changed and make it more configurable so that you could at least, if"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 847.6,
+      "end": 850.72,
+      "text": " you choose to, you can scale up much faster than that."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 850.72,
+      "end": 853.36,
+      "text": " That would be my number one next feature."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 853.92,
+      "end": 854.8,
+      "text": " That makes a lot of sense."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 854.8,
+      "end": 859.92,
+      "text": " I also have a slightly related comment that another feature that is available in lambda"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 859.92,
+      "end": 864.3199999999999,
+      "text": " is that you can consume messages in batches, not necessarily just one by one."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 864.3199999999999,
+      "end": 869.3599999999999,
+      "text": " Now this is not necessarily going to solve this problem because this problem still exists."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 869.3599999999999,
+      "end": 873.5999999999999,
+      "text": " But it's another dimension that you might use, for instance, to handle throttling or"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 873.5999999999999,
+      "end": 878.3199999999999,
+      "text": " to handle cases where you want to, where maybe the task that you need to perform is very"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 878.3199999999999,
+      "end": 881.5999999999999,
+      "text": " small and therefore it makes sense to try to aggregate this task together."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 881.6,
+      "end": 886,
+      "text": " So you poll once from the queue and then you, that the lambda that gets executed can do"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 886,
+      "end": 889.6800000000001,
+      "text": " a certain number of them together rather than just doing that one by one."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 889.6800000000001,
+      "end": 893.28,
+      "text": " So this is just something to keep in mind and something we mentioned in the other SQS"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 893.28,
+      "end": 893.76,
+      "text": " episodes."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 893.76,
+      "end": 898.64,
+      "text": " So maybe check out that particular feature if you're trying to figure out what kind of"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 898.64,
+      "end": 900.64,
+      "text": " patterns you can use when using SQS."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 901.76,
+      "end": 906.24,
+      "text": " With that being said, are there resources that we want to recommend people if they want"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 906.24,
+      "end": 907.2,
+      "text": " to deep dive?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 910.4,
+      "end": 915.12,
+      "text": " A lot of people have been writing and talking about this maximum concurrency feature recently, but I think the best place to go is the series of articles written by Zach Charles, who described"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 915.12,
+      "end": 920.64,
+      "text": " this problem very well when he originally encountered it, described how to reproduce"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 920.64,
+      "end": 925.12,
+      "text": " that problem and has now written a follow up in that series about how this solves maximum"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 925.12,
+      "end": 928.72,
+      "text": " concurrent, how this maximum concurrency feature solves the problem, but also some other things"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 928.72,
+      "end": 930,
+      "text": " you might want to watch out for."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 930,
+      "end": 932.16,
+      "text": " So that is definitely the go-to guide here."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 932.16,
+      "end": 936.88,
+      "text": " We will also include a link to the AWS blog post and sample code provided with the announcement."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 936.88,
+      "end": 942.08,
+      "text": " There's some template that you can use to explore the new feature."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 942.08,
+      "end": 947.2,
+      "text": " And of course, do check out our previous episode on SQS and all our other series on all the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 947.2,
+      "end": 948.96,
+      "text": " AWS event services."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 948.96,
+      "end": 950.88,
+      "text": " So that's it for today's episode."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 950.88,
+      "end": 970,
+      "text": " Thank you very much for joining us and we'll see you in the next episode."
+    }
+  ]
+}

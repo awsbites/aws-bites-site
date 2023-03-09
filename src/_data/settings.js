@@ -1,6 +1,7 @@
 const settings = {
   now: new Date(),
   website: 'https://awsbites.com',
+  description: 'AWS Bites is a weekly podcast where we answer interesting questions about AWS and cloud computing.',
   rss_link: 'https://anchor.fm/s/6a3312a0/podcast/rss',
   analytics_id: 'G-LZHZ86B8SZ',
   links: [

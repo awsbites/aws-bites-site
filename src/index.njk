@@ -93,15 +93,32 @@ is_generic: true
 </div>
 <div class="max-w-6xl mx-auto p-6">
   <main>
-    <div class="my-8 prose prose-sm md:prose-lg lg:prose-xl dark:prose-dark">
-      <h2 class="text-gray-900 dark:text-gray-100">Recent episodes</h2>
+    {% set publishedEpisodes = collections
+      .publishedEpisodes
+      .reverse() %}
+    {% set lastEpisode = publishedEpisodes.shift() %}
 
+    <div>
+      <div class="max-w-6xl mx-auto p-6">
+        <div class="text-center">
+          <span class="text-gray-900 dark:text-gray-100 font-bold leading-normal">Last episode</span>
+          <h2 class="text-gray-900 dark:text-gray-100 text-3xl lg:text-4xl font-bold leading-normal pb-6">
+            <a class="text-primary-100 dark:text-secondary-100 hover:underline" href="{{lastEpisode.url}}">{{ lastEpisode.data.episode }}. {{ lastEpisode.data.title }}</a>
+          </h2>
+          <p class="text-gray-600 dark:text-gray-300 text lg:text-lg pb-4">
+          Published {{ lastEpisode.data.publish_date | formatDate }} -
+          <a href="{{ lastEpisode.data.anchor_fm_link }}" class="text-primary-100 dark:text-secondary-100 hover:underline">Listen on your favourite podcast player</a>
+          </p>
+        </div>
+        <p>{{ lastEpisode.data.youtube_id | youtubeLink }}</p>
+      </div>
+    </div>
+
+    <div class="my-8 prose prose-sm md:prose-lg lg:prose-xl dark:prose-dark">
+      <h2 class="text-gray-900 dark:text-gray-100">Previous episodes</h2>
       <ul class="">
-        {% for episode in collections
-          .publishedEpisodes
-          .reverse() %}
+        {% for episode in publishedEpisodes %}
           <li class="text-gray-900 dark:text-gray-100 ">
-            <span class="font-mono w-full block text-sm md:inline md:text-base">{{ episode.data.publish_date | formatDate }} — </span>
             <a class="w-10 font-bold" href="{{episode.url}}">{{ episode.data.episode }}. {{episode.data.title}}</a>
           </li>
         {% endfor %}

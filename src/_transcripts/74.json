@@ -1,0 +1,2120 @@
+{
+  "speakers": {
+    "spk_0": "spk_0",
+    "spk_1": "spk_1"
+  },
+  "segments": [
+    {
+      "speakerLabel": "spk_0",
+      "start": 0,
+      "end": 4.32,
+      "text": " People have been building APIs and web books on AWS Lambda for many years now."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 4.88,
+      "end": 8.16,
+      "text": " There used to be one way to do this with API Gateway REST APIs."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 8.88,
+      "end": 11.44,
+      "text": " Then came Lambda support for application load balancer"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 11.44,
+      "end": 14.32,
+      "text": " and then the new HTTP APIs in API Gateway."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 14.88,
+      "end": 18.88,
+      "text": " And the latest way to build simple APIs backed by Lambda is function URLs."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 18.88,
+      "end": 22.16,
+      "text": " And you don't even need API Gateway or load balancer for that one."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 22.16,
+      "end": 24.240000000000002,
+      "text": " But should you use it? And if so, when?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 24.88,
+      "end": 27.36,
+      "text": " Today we will give you a quick and simple guide"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 27.36,
+      "end": 31.28,
+      "text": " picking the best way to build APIs with Lambda and pitch function URLs"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 31.28,
+      "end": 33.04,
+      "text": " in a battle against API Gateway."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 33.04,
+      "end": 36.56,
+      "text": " And also we're going to mention the pros and cons of load balancers in between."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 36.56,
+      "end": 40,
+      "text": " I am Luciano and I'm here with Eoin and this is AWS Bites podcast."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 47.2,
+      "end": 49.44,
+      "text": " AWS Bites is sponsored by fourTheorem."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 49.44,
+      "end": 53.36,
+      "text": " fourTheorem is an AWS partner for migration, architecture and training,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 53.36,
+      "end": 56.239999999999995,
+      "text": " including APIs for application and system integration."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 56.24,
+      "end": 58.480000000000004,
+      "text": " Find out more at fourTheorem.com."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 58.480000000000004,
+      "end": 59.84,
+      "text": " There is a link in the show notes."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 61.120000000000005,
+      "end": 63.760000000000005,
+      "text": " So since function URLs is the new feature here,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 63.760000000000005,
+      "end": 67.84,
+      "text": " what is it and why it's something that we should be excited about?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 67.84,
+      "end": 73.28,
+      "text": " With function URLs, the focus is on trying to make almost any configuration go away."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 73.28,
+      "end": 75.92,
+      "text": " So if you have a function built in Lambda,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 75.92,
+      "end": 80.16,
+      "text": " the goal here is to give you the quickest way of getting a public URL to invoke that function."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 80.80000000000001,
+      "end": 84.24000000000001,
+      "text": " All of the other methods you talked about, like API Gateway and load balancer,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 84.24,
+      "end": 86.72,
+      "text": " they require you to create and configure lots of new resources"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 87.28,
+      "end": 90.88,
+      "text": " and configure them and understand how those configurations are syntaxed."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 91.52,
+      "end": 94.32,
+      "text": " And you have to then integrate them with the Lambda service."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 94.32,
+      "end": 97.91999999999999,
+      "text": " With tools like SAM and the service framework, it makes that process easier,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 97.91999999999999,
+      "end": 100.32,
+      "text": " but there's still all those knobs under the hood"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 100.32,
+      "end": 101.6,
+      "text": " and you kind of have to understand how they work."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 101.6,
+      "end": 103.52,
+      "text": " So function URLs are a different approach."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 103.52,
+      "end": 105.19999999999999,
+      "text": " It's not even a simple separate service."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 105.19999999999999,
+      "end": 107.52,
+      "text": " It's just a feature of the Lambda service itself."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 107.52,
+      "end": 109.84,
+      "text": " So you only have to enable it with one property."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 109.84,
+      "end": 113.19999999999999,
+      "text": " And once you enable it, you get a generated URL right away for the function"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 113.2,
+      "end": 114.72,
+      "text": " that can be invoked publicly."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 115.52,
+      "end": 118.4,
+      "text": " So the format of that URL you get is like HTTPS,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 118.4,
+      "end": 124.64,
+      "text": " a generated ID, dot Lambda URL, dot whatever region, dot on dot AWS."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 124.64,
+      "end": 127.2,
+      "text": " So it's different to the ones you've seen in API Gateway."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 127.92,
+      "end": 130.88,
+      "text": " Now, I did say that the aim was for zero configuration."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 130.88,
+      "end": 133.76,
+      "text": " There are a few parameters you can add if you want."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 133.76,
+      "end": 135.2,
+      "text": " So one is you can enable course."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 136.32,
+      "end": 140.32,
+      "text": " So if you've got a front end and you need to have course enabled for your API, you can do that."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 140.32,
+      "end": 142.79999999999998,
+      "text": " You can also enable IAM authorization."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 142.79999999999998,
+      "end": 149.84,
+      "text": " So while the URLs are public, you can restrict access to them by mandating IAM privileges."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 151.2,
+      "end": 154.4,
+      "text": " And that's the only supported authorization method for function URLs."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 155.35999999999999,
+      "end": 158.4,
+      "text": " Another one you could do is you can actually map your function URL"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 158.4,
+      "end": 161.2,
+      "text": " to a specific Lambda function alias."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 161.2,
+      "end": 164.88,
+      "text": " So that means you have a label that points to a specific version of that Lambda function."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 164.88,
+      "end": 169.51999999999998,
+      "text": " And if you have safe deployments where you're shifting traffic from one version to another,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 169.52,
+      "end": 175.68,
+      "text": " you can do that using aliases in a controlled way and then point your function URL to a specific alias."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 176.8,
+      "end": 180.24,
+      "text": " So what this simple configuration means is that you don't get a lot of the features"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 180.24,
+      "end": 182,
+      "text": " that are supported with API Gateway."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 182.8,
+      "end": 187.04000000000002,
+      "text": " We could probably just quickly list through the features that you're going to be missing out on"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 187.04000000000002,
+      "end": 190.4,
+      "text": " that you get with API Gateway, but don't come with function URLs."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 190.4,
+      "end": 192.4,
+      "text": " So API keys are out."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 193.52,
+      "end": 198.32000000000002,
+      "text": " You can also don't have the option of using Cognito User Pool or Lambda Authorizers or"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 198.32,
+      "end": 199.92,
+      "text": " JWT Authorizers."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 200.4,
+      "end": 205.28,
+      "text": " You have no support for custom domains, so you are restricted to using the generated names"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 205.28,
+      "end": 205.76,
+      "text": " that you get."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 206.95999999999998,
+      "end": 209.44,
+      "text": " You don't get request or response validation."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 209.44,
+      "end": 210.64,
+      "text": " You don't get any caching."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 211.2,
+      "end": 217.51999999999998,
+      "text": " And if you want a web application firewall, there's no support with function URLs directly."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 218.24,
+      "end": 224.72,
+      "text": " Now, you can use CloudFront in front of a function URL if you want and get caching from CloudFront."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 224.72,
+      "end": 228.96,
+      "text": " You could also use that for WAF as well."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 228.96,
+      "end": 234.64,
+      "text": " So that's another way of overcoming the caching and WAF limitations in function URLs."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 234.64,
+      "end": 238.56,
+      "text": " You don't get HTTP access logs with function URLs, which might be a bit of a deal breaker"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 238.56,
+      "end": 239.12,
+      "text": " for some people."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 240.4,
+      "end": 243.04,
+      "text": " And you have no way of doing throttling or usage plans."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 243.6,
+      "end": 247.36,
+      "text": " And of course, there's no WebSockets support like there is with API Gateway."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 248,
+      "end": 249.84,
+      "text": " So those are all the things you're missing out on."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 249.84,
+      "end": 252.72,
+      "text": " So given that that's quite a long list, what do you think?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 252.72,
+      "end": 253.6,
+      "text": " Why would you use it?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 253.6,
+      "end": 256.08,
+      "text": " What are the actual advantages of function URLs, Luciano?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 256.08,
+      "end": 261.28,
+      "text": " And what kind of use cases might people say, OK, they don't have all the features, but"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 261.28,
+      "end": 262.96,
+      "text": " I could still use function URLs here?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 268.32,
+      "end": 272.64,
+      "text": " Yeah, I think as you said, if you don't need most of these features, there are some trade-offs for which I think it might be beneficial to consider something like functional URLs."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 272.64,
+      "end": 274.24,
+      "text": " First of all, it is much simpler."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 274.24,
+      "end": 279.44,
+      "text": " So if you just need a quick way to trigger a lambda based on a URL, that's probably the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 279.44,
+      "end": 281.28,
+      "text": " simplest way that there is right now."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 281.28,
+      "end": 282.32,
+      "text": " It is also cheaper."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 282.32,
+      "end": 286.71999999999997,
+      "text": " It is actually free compared to all the other options where you have an extra cost other"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 286.71999999999997,
+      "end": 288.48,
+      "text": " than the cost of the lambda invocation."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 288.48,
+      "end": 291.2,
+      "text": " In the case of function URLs, you don't have that extra cost."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 291.2,
+      "end": 294.24,
+      "text": " You just pay for the lambda duration and the invocation."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 296.32,
+      "end": 298,
+      "text": " Also, there is an interesting article."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 298,
+      "end": 302.71999999999997,
+      "text": " We're going to put the link in the show notes that claims that this integration with function"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 302.71999999999997,
+      "end": 304.96,
+      "text": " URL, it is the fastest one."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 304.96,
+      "end": 311.12,
+      "text": " And it claims something around 8.30 something milliseconds with a warm lambda."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 311.12,
+      "end": 315.2,
+      "text": " That of additional overhead just in doing that HTTP request."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 315.2,
+      "end": 317.6,
+      "text": " But we were not actually able to replicate that number."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 317.6,
+      "end": 321.76,
+      "text": " And I think the best that we got in our tests was 100 milliseconds."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 321.76,
+      "end": 324.32,
+      "text": " Maybe that really depends on the testing methodology."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 324.32,
+      "end": 325.36,
+      "text": " It depends on the region."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 325.36,
+      "end": 329.76,
+      "text": " There might be many factors to affect really that particular result."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 329.76,
+      "end": 331.04,
+      "text": " We'd be curious to know more."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 331.04,
+      "end": 335.68,
+      "text": " So if you have any more data that can prove or disprove this hypothesis, definitely let"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 335.68,
+      "end": 336.72,
+      "text": " us know in the comments."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 336.72,
+      "end": 343.36,
+      "text": " Another thing, and this is actually a really interesting one that may enable some interesting"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 343.36,
+      "end": 346,
+      "text": " use cases, is that timeout is much longer than API Gateway."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 346.72,
+      "end": 352.56,
+      "text": " In fact, in API Gateway, you have 30 seconds, meaning that if your lambda doesn't respond"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 352.56,
+      "end": 356.88000000000005,
+      "text": " between 30 seconds, API Gateway will just stop the connection there and respond with"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 356.88000000000005,
+      "end": 357.36,
+      "text": " an error."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 358.64000000000004,
+      "end": 362.72,
+      "text": " With function URLs, instead, you can leverage the entire maximum direction of a lambda."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 362.72,
+      "end": 366.48,
+      "text": " Because if your lambda is lasting the maximum amount of time, which is 15 minutes,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 366.48,
+      "end": 368.64000000000004,
+      "text": " that connection is still going to be open."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 368.64000000000004,
+      "end": 373.76,
+      "text": " So you could use this particular feature if you have APIs that, for whatever reason, need"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 373.76,
+      "end": 377.44,
+      "text": " to take more than 30 seconds to create a response for the user."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 378.8,
+      "end": 382.88,
+      "text": " And actually, with that, let's move on to some use cases."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 382.88,
+      "end": 388,
+      "text": " So we can try to think a little bit more practically what we can use this feature for."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 389.36,
+      "end": 395.52000000000004,
+      "text": " And the first use case, and probably the one that will come to mind first for most people,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 395.52,
+      "end": 396.64,
+      "text": " is Webbooks."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 396.64,
+      "end": 401.12,
+      "text": " Because Webbooks, traditionally, you just need a URL and that creates an integration"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 401.12,
+      "end": 402.71999999999997,
+      "text": " point between different systems."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 403.28,
+      "end": 404.4,
+      "text": " And for instance, I do not."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 404.4,
+      "end": 407.12,
+      "text": " The common ones I've seen is CRM systems."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 407.12,
+      "end": 409.44,
+      "text": " They generally support Webbooks."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 409.44,
+      "end": 415.2,
+      "text": " So maybe you would want a way to know when a new deal is created in the system, because"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 415.2,
+      "end": 417.52,
+      "text": " maybe you want to do some, I don't know, data enhancement."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 417.52,
+      "end": 422.15999999999997,
+      "text": " Maybe you want to use another system or another API to try to enrich the data."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 422.16,
+      "end": 427.36,
+      "text": " You could create your own Lambda with a function URL and then create the Webbook integration"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 427.36,
+      "end": 428.56,
+      "text": " using that function URL."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 429.28000000000003,
+      "end": 433.20000000000005,
+      "text": " And very similarly, I've seen newsletter systems doing the same thing."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 433.20000000000005,
+      "end": 437.36,
+      "text": " Basically, every time somebody signs up for your newsletter, you can have the option to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 437.36,
+      "end": 442.08000000000004,
+      "text": " specify a Webbook URL there, and then you can run your own backend logic to do something"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 442.08000000000004,
+      "end": 442.48,
+      "text": " with it."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 442.48,
+      "end": 448.08000000000004,
+      "text": " Maybe you can insert that email address into a specific database, maybe a marketing database"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 448.08,
+      "end": 453.52,
+      "text": " or something like that, or maybe you can just send a custom newsletter to welcome the person"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 453.52,
+      "end": 454.64,
+      "text": " into the system."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 455.91999999999996,
+      "end": 458.71999999999997,
+      "text": " Another one that I've seen is shipping providers."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 458.71999999999997,
+      "end": 463.76,
+      "text": " So if you are running an e-commerce that needs to send physical products, very, very often"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 463.76,
+      "end": 468.71999999999997,
+      "text": " they will provide a Webbook-based interface to give you updates every time there is a"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 468.71999999999997,
+      "end": 471.12,
+      "text": " status update on one of your shippings."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 471.12,
+      "end": 476.47999999999996,
+      "text": " So you could create a Lambda with a function URL, and then you can receive those kinds"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 476.48,
+      "end": 481.6,
+      "text": " of events and use those events to update your own database and maybe send notifications"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 481.6,
+      "end": 485.12,
+      "text": " to your customers to tell them what's the status of their shipping."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 486.08000000000004,
+      "end": 492.08000000000004,
+      "text": " And finally, another one that I've seen a lot for Webbooks is integration with CI systems"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 492.08000000000004,
+      "end": 497.44,
+      "text": " or repositories, where they also can trigger Webbooks based on different events."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 497.44,
+      "end": 501.12,
+      "text": " So if you want to do something custom, again, you can just build your own Lambda very quickly,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 501.12,
+      "end": 503.12,
+      "text": " function URL and integrate it that way."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 503.12,
+      "end": 508.08,
+      "text": " Another use case could be outside Webbooks when you are building quick prototypes."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 508.64,
+      "end": 513.68,
+      "text": " And this can be also something that long term, maybe you want to do something like API Gateway,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 513.68,
+      "end": 518.08,
+      "text": " but you are just sketching out a Lambda just to see if the idea works."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 518.08,
+      "end": 520.48,
+      "text": " And maybe you are even using the web console."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 520.48,
+      "end": 525.04,
+      "text": " It could be very beneficial if you already have your cURL request ready or maybe post"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 525.04,
+      "end": 529.6800000000001,
+      "text": " map request ready there to just quickly enable the function URL just to get a URL that can"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 529.68,
+      "end": 534.16,
+      "text": " invoke your Lambda, do the request, test that everything is actually working as you expect,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 534.16,
+      "end": 538.56,
+      "text": " and then you can switch it off and maybe before going to production, actually migrate to API"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 538.56,
+      "end": 540.4799999999999,
+      "text": " Gateway to leverage all the other features."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 542,
+      "end": 547.1999999999999,
+      "text": " Another use case, and this is something that actually we found in the blog post announcement"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 547.1999999999999,
+      "end": 553.12,
+      "text": " for function URLs, is what they call single function microservices, which actually in"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 553.12,
+      "end": 556.64,
+      "text": " the blog post didn't really explain what they meant with that example."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 556.64,
+      "end": 562,
+      "text": " But later on in the same blog post, they mentioned the idea that you could create a payment endpoint"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 562,
+      "end": 563.28,
+      "text": " for a mobile application."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 563.28,
+      "end": 566.88,
+      "text": " So maybe that's what they were referring to as a single function microservice."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 566.88,
+      "end": 570.88,
+      "text": " And I think that makes a lot of sense if you also consider that you can use IAM authentication"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 570.88,
+      "end": 573.68,
+      "text": " there, so you could create a very small service."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 574.48,
+      "end": 575.36,
+      "text": " It's just an endpoint."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 575.36,
+      "end": 579.84,
+      "text": " You don't need to create an API Gateway dedicated to that because you can secure it with IAM"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 579.84,
+      "end": 581.84,
+      "text": " and then you can call it from other services."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 581.84,
+      "end": 586,
+      "text": " And then I was trying to think for other possible use cases and I was thinking the different"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 586,
+      "end": 589.2800000000001,
+      "text": " features that you have with Lambda function URLs."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 589.2800000000001,
+      "end": 594,
+      "text": " And since you can enable CORS, I think that enables a bunch of use cases where you have"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 594,
+      "end": 599.9200000000001,
+      "text": " very simple front ends, maybe static websites, and you want to create some server-side functionality."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 599.9200000000001,
+      "end": 605.6,
+      "text": " Again, that could be a contact form or maybe a form to sign up for a newsletter and you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 605.6,
+      "end": 609.6800000000001,
+      "text": " can build all the server-side logic using a Lambda with a function URL."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 609.68,
+      "end": 614.9599999999999,
+      "text": " And finally, again, thinking about that 15 minutes time, extra time that you can use"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 614.9599999999999,
+      "end": 619.12,
+      "text": " compared to API Gateway, I was thinking that that could be a good use case if you have"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 619.12,
+      "end": 624.3199999999999,
+      "text": " an API that runs some machine learning inference algorithm that maybe can take longer than"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 624.3199999999999,
+      "end": 630.4,
+      "text": " 30 seconds, maybe can take a few minutes, and you still want to use that HTTP protocol there."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 631.12,
+      "end": 634.9599999999999,
+      "text": " If you use function URLs, then you can still use a Lambda to do all this work behind the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 634.9599999999999,
+      "end": 635.4599999999999,
+      "text": " scenes."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 635.46,
+      "end": 640.74,
+      "text": " So, of course, these are just some examples."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 640.74,
+      "end": 645.7,
+      "text": " If you have other ideas, we'd be curious to hear what you're thinking about in the comments,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 645.7,
+      "end": 647.14,
+      "text": " so definitely let us know."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 647.14,
+      "end": 653.22,
+      "text": " But it's always worth keeping in mind what are the limitations there, because in general,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 653.22,
+      "end": 657.94,
+      "text": " you can build all these different use cases, but you need to think that you have no authorizations,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 657.94,
+      "end": 662.5,
+      "text": " at least outside if you use IAM, but most importantly, you don't have DDoS protection."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 662.5,
+      "end": 667.62,
+      "text": " So that basically means that if somebody manages to figure out what's your function URL, and"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 667.62,
+      "end": 671.78,
+      "text": " if you're using that, for instance, BI in the frontend application, it will be there"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 671.78,
+      "end": 674.98,
+      "text": " in the HTML, so it's not something that you can easily keep secret."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 675.7,
+      "end": 680.34,
+      "text": " So what they could do is they can start to generate requests against that particular URL"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 680.34,
+      "end": 685.78,
+      "text": " and basically do a denial of wallet attack to you, because you might end up paying for"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 685.78,
+      "end": 686.98,
+      "text": " all of those invocations."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 686.98,
+      "end": 691.94,
+      "text": " Now, we were trying to think, okay, are there strategies there that you can put in places"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 691.94,
+      "end": 693.38,
+      "text": " to protect yourself against that?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 693.94,
+      "end": 699.46,
+      "text": " And maybe to some degree, what you could do, you could create an alarm to detect excessive"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 699.46,
+      "end": 704.9,
+      "text": " invocations and then basically respond to that alarm by editing the Lambda function"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 704.9,
+      "end": 710.9,
+      "text": " and setting the throttling to basically forbid additional invocations of that Lambda."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 710.9,
+      "end": 714.82,
+      "text": " And that could work, but you have to keep in mind that under the alarm, you have to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 714.82,
+      "end": 717.94,
+      "text": " and that could work, but you have to keep in mind that at that point you are stopping"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 717.94,
+      "end": 721.22,
+      "text": " that Lambda entirely, even for legitimate invocations."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 721.22,
+      "end": 727.1400000000001,
+      "text": " So you are literally deciding, let's sacrifice this feature for now in exchange for not getting"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 727.1400000000001,
+      "end": 728.74,
+      "text": " the denial of wallet attack."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 729.3000000000001,
+      "end": 734.5,
+      "text": " So again, if you are really worried about DDoS, probably function URLs are not the best"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 734.5,
+      "end": 735.1400000000001,
+      "text": " option there."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 736.9000000000001,
+      "end": 742.74,
+      "text": " The final point that I have is in terms of drawbacks of function URLs is that there is"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 742.74,
+      "end": 745.46,
+      "text": " no routes or HTTP methods."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 745.46,
+      "end": 746.82,
+      "text": " Again, it's just a URL."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 746.82,
+      "end": 751.38,
+      "text": " You get a custom domain and every request there will invoke the Lambda."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 751.38,
+      "end": 756.58,
+      "text": " So if you are expecting a post and somebody does a GET, you still get the Lambda invocation."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 756.58,
+      "end": 760.74,
+      "text": " Now, of course, you can do validation inside the Lambda function, but you have to remember"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 760.74,
+      "end": 762.1,
+      "text": " that the Lambda gets invoked."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 762.1,
+      "end": 765.7,
+      "text": " So you're going to be paying for that, which is something that you can avoid instead with"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 765.7,
+      "end": 770.98,
+      "text": " API Gateway because you can be very specific on which methods and paths will actually invoke"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 770.98,
+      "end": 772.74,
+      "text": " the specific Lambda."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 772.74,
+      "end": 778.1800000000001,
+      "text": " And finally, the function URL, since it's generated randomly, if for any reason you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 778.1800000000001,
+      "end": 782.34,
+      "text": " have to delete the stack, redeploy, so you're basically removing the Lambda and recreating"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 782.34,
+      "end": 784.5,
+      "text": " it, you will end up with a new URL."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 784.5,
+      "end": 789.94,
+      "text": " So if you are assuming that that URL is going to be stable across the entire deletion of"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 789.94,
+      "end": 792.4200000000001,
+      "text": " the stack and recreation, that's not going to be the case."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 792.4200000000001,
+      "end": 796.4200000000001,
+      "text": " So if you happen to do that, you will need to reconfigure whatever integration because"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 796.4200000000001,
+      "end": 798.58,
+      "text": " you will have to provide a new function URL."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 798.58,
+      "end": 800.82,
+      "text": " Yeah, that's a good point."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 800.82,
+      "end": 802.5,
+      "text": " And there's no real way around that."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 802.5,
+      "end": 807.86,
+      "text": " I think you can't use a CNAME because I presume the service uses the host header to do the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 807.86,
+      "end": 809.46,
+      "text": " routing back to the individual function."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 810.26,
+      "end": 814.74,
+      "text": " So given these drawbacks, let's kind of pitch function URLs in a battle against the rest."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 814.74,
+      "end": 819.14,
+      "text": " We don't want to cover API Gateway in extensive detail, but we can remind ourselves of the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 819.14,
+      "end": 820.1800000000001,
+      "text": " options and the trade-offs."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 820.82,
+      "end": 822.9000000000001,
+      "text": " Now, API Gateway has two flavors."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 822.9000000000001,
+      "end": 826.58,
+      "text": " We have the classic REST API mode and the newer HTTP API."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 826.58,
+      "end": 832.1800000000001,
+      "text": " HTTP API is about 30% of the price of REST API roughly, but there are some feature gaps."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 832.1800000000001,
+      "end": 832.9000000000001,
+      "text": " So it's a bit leaner."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 832.9000000000001,
+      "end": 834.5,
+      "text": " It doesn't have all the features of REST API."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 836.5,
+      "end": 840.26,
+      "text": " We should mention you can also do WebSockets with API Gateway, but we'll leave that out"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 840.26,
+      "end": 842.5,
+      "text": " since that's not really part of our use cases here."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 842.5,
+      "end": 846.6600000000001,
+      "text": " And we'll assume that you're dealing with GETs, POSTs, PUTs, patches, and that sort"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 846.6600000000001,
+      "end": 847.3000000000001,
+      "text": " of typical stuff."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 848.1,
+      "end": 853.7,
+      "text": " So HTTP API, I would say, is the nearest competitor to function URLs because it's a bit simpler"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 853.7,
+      "end": 856.82,
+      "text": " and the price and performance are better than REST API."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 858.0200000000001,
+      "end": 862.58,
+      "text": " In terms of authorization, we mentioned that function URLs supports IAM."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 862.58,
+      "end": 868.5,
+      "text": " HTTP API will support IAM Lambda authorizers as well and JWT authorizers."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 869.0600000000001,
+      "end": 874.9000000000001,
+      "text": " And those JWT authorizers can also be used with Cognito user pools, whereas the REST"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 874.9000000000001,
+      "end": 878.98,
+      "text": " API has a dedicated authorizer type just for Cognito user pools."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 878.98,
+      "end": 883.54,
+      "text": " The older REST API also has a private mode, so you can use it for internal APIs."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 883.54,
+      "end": 885.7,
+      "text": " But that's not always plain sailing."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 885.7,
+      "end": 890.4200000000001,
+      "text": " If you want to use custom domains with private internal APIs, that's not very trivial and"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 890.4200000000001,
+      "end": 892.82,
+      "text": " it requires a workaround with a load balancer in front."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 895.0600000000001,
+      "end": 900.58,
+      "text": " Otherwise, if it's not a private API, HTTP APIs and REST APIs both support custom domains"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 900.58,
+      "end": 902.02,
+      "text": " with your own domain names."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 902.02,
+      "end": 907.22,
+      "text": " So that handles the case you mentioned, Luciano, where you delete the function, redeploy it."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 907.22,
+      "end": 912.26,
+      "text": " If you've got custom domains, then you can map that to the underlying API and you don't"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 912.26,
+      "end": 914.58,
+      "text": " have to worry about regenerating URLs."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 915.62,
+      "end": 918.6600000000001,
+      "text": " But HTTP API and REST API both have throttling support."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 919.94,
+      "end": 923.7,
+      "text": " They both have the concept of stages, so you can have like a production stage and a development"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 923.7,
+      "end": 929.0600000000001,
+      "text": " stage, QA stages, and they both have some level of open API or swagger support."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 930.1800000000001,
+      "end": 936.26,
+      "text": " Now, REST API does have a bunch of extra features that HTTP API does not have, like edge deployments."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 936.26,
+      "end": 942.9,
+      "text": " request response validation with JSON schemas, and also request response transformation with"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 942.9,
+      "end": 945.14,
+      "text": " velocity template language or VTL."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 945.7,
+      "end": 950.26,
+      "text": " This actually gives you the option of excluding Lambda altogether and having a functionless"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 950.26,
+      "end": 950.76,
+      "text": " API."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 951.38,
+      "end": 958.26,
+      "text": " And you can proxy your API into a backend service like DynamoDB or Kinesis or some other"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 958.26,
+      "end": 959.38,
+      "text": " underlying service."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 959.38,
+      "end": 963.3,
+      "text": " And that can be optimal in terms of cost and performance for some cases."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 963.3,
+      "end": 966.3399999999999,
+      "text": " REST API also has caching and it has X-ray tracing support."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 966.3399999999999,
+      "end": 969.62,
+      "text": " HTTP API doesn't have X-ray support yet."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 970.18,
+      "end": 973.14,
+      "text": " So that's a pretty important one, I think, for a lot of people."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 974.74,
+      "end": 980.3399999999999,
+      "text": " I would say that the general guidance is use HTTP APIs if you don't need anything in that"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 980.3399999999999,
+      "end": 985.06,
+      "text": " list, because REST API has a lot of those features, but they're not required in all"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 985.06,
+      "end": 985.62,
+      "text": " cases."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 985.62,
+      "end": 988.42,
+      "text": " Edge deployments, not particularly."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 988.42,
+      "end": 991.06,
+      "text": " You can always use CloudFront as an option instead of edge deployments anyway."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 991.06,
+      "end": 993.9399999999999,
+      "text": " And request response validation and transformation."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 993.9399999999999,
+      "end": 996.5,
+      "text": " I don't see it used a lot in the wild, really."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 996.5,
+      "end": 1000.3399999999999,
+      "text": " They're a little bit of niche in terms of their usage."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1001.54,
+      "end": 1010.26,
+      "text": " So I would say also as a point of note on observability, both of these API gateway modes"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1010.26,
+      "end": 1013.78,
+      "text": " will give you logs, access logs, and you can configure that log format."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1014.42,
+      "end": 1018.7399999999999,
+      "text": " It's worth mentioning that although you don't get any access logs with function, you're"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1018.74,
+      "end": 1022.82,
+      "text": " also you do get CloudWatch metrics."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1022.82,
+      "end": 1029.3,
+      "text": " So you get the request count, request latency, and metrics for 400 hours and 500 hours as"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1029.3,
+      "end": 1029.8,
+      "text": " well."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1036.66,
+      "end": 1040.74,
+      "text": " Yeah, so my understanding is that the general guidance seems to be that you should be using function URLs if your use case is very, very simple and you don't really have a lot of"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1040.74,
+      "end": 1046.58,
+      "text": " patience for configuring a bunch of other resources just to route traffic to a Lambda."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1046.58,
+      "end": 1051.6999999999998,
+      "text": " And that's probably a good use case if you are just learning AWS and these are your first"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1051.6999999999998,
+      "end": 1055.06,
+      "text": " experiments with Lambda and you just want something simple that just works."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1055.06,
+      "end": 1059.3799999999999,
+      "text": " You are not too concerned about extremely production ready deployments at that stage."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1060.8999999999999,
+      "end": 1065.22,
+      "text": " If that's not your case, probably your second best choice is to use HTTP APIs."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1065.9399999999998,
+      "end": 1069.9399999999998,
+      "text": " But of course, this is the case when you don't need caching, you don't need private endpoints,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1069.9399999999998,
+      "end": 1073.86,
+      "text": " X-ray validation, transformations, and all the other extra features that are not currently"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1073.86,
+      "end": 1075.6999999999998,
+      "text": " supported by HTTP APIs."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1075.7,
+      "end": 1079.94,
+      "text": " Because if you need those, of course, you need to fall back to more traditional REST"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1079.94,
+      "end": 1082.42,
+      "text": " APIs on API Gateway."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1083.46,
+      "end": 1088.3400000000001,
+      "text": " But we still have left out another contender there, which is using an application load"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1088.3400000000001,
+      "end": 1088.82,
+      "text": " balancer."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1088.82,
+      "end": 1093.22,
+      "text": " So let's try to have a quick overview on why that might be an interesting option."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1094.02,
+      "end": 1099.06,
+      "text": " And to be fair, in general, it's not too common to see load balancers being used with Lambda."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1099.06,
+      "end": 1103.46,
+      "text": " They are more used for traditional EC2 deployments or Fargate deployments."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1103.46,
+      "end": 1108.58,
+      "text": " But it is definitely possible to use load balancer to forward traffic to Lambda, basically"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1108.58,
+      "end": 1110.82,
+      "text": " to Invocate Lambdas with an HTTP event."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1112.5,
+      "end": 1115.14,
+      "text": " And there are some advantages actually in doing that."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1115.14,
+      "end": 1120.26,
+      "text": " For instance, if you use API Gateway, something that I don't think is very commonly known,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1120.26,
+      "end": 1122.9,
+      "text": " there is a limit of 10,000 requests per second."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1122.9,
+      "end": 1125.7,
+      "text": " There is some burst capacity there, but there is a limit anyway."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1126.74,
+      "end": 1130.98,
+      "text": " While if you use a load balancer, you can literally have millions of requests per second."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1130.98,
+      "end": 1134.5,
+      "text": " Now, I don't know if that's really that useful in the context of a Lambda, because in the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1134.5,
+      "end": 1139.38,
+      "text": " context of a Lambda, you always need to keep in mind that if you have many concurrent requests,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1139.38,
+      "end": 1144.18,
+      "text": " that would probably trigger many concurrent invocations of different Lambda instances."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1144.74,
+      "end": 1149.8600000000001,
+      "text": " So basically, you might run out of concurrency in Lambda anyway at some point."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1149.8600000000001,
+      "end": 1154.82,
+      "text": " So I don't think you can easily leverage millions of requests per second by just using Lambda"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1154.82,
+      "end": 1159.94,
+      "text": " behind the scene, unless you really had a lot of conversations with AWS and they managed"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1159.94,
+      "end": 1162.02,
+      "text": " to increase your quota significantly."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1162.02,
+      "end": 1167.14,
+      "text": " But that probably only happens if you really have a very large business running lots of"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1167.14,
+      "end": 1168.42,
+      "text": " infrastructure in AWS."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1170.42,
+      "end": 1177.22,
+      "text": " Interesting enough, ALB and general use with EC2, as we said, so you have options to route"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1178.02,
+      "end": 1179.46,
+      "text": " traffic in many different ways."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1179.46,
+      "end": 1183.6200000000001,
+      "text": " For instance, you can look at the hostname, you can look at headers, you can look at query"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1183.6200000000001,
+      "end": 1184.5,
+      "text": " strings."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1184.5,
+      "end": 1190.18,
+      "text": " So in the case where you have complex microservices, where you have different routing logic, I"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1190.18,
+      "end": 1195.14,
+      "text": " think ALBs are the most flexible option there to decide where to send specific requests."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1195.7,
+      "end": 1198.74,
+      "text": " And we will talk more about an example that can be relevant there."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1199.38,
+      "end": 1205.86,
+      "text": " And finally, another one is about pricing, because if you have very little traffic with"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1205.86,
+      "end": 1211.62,
+      "text": " load balancer, there is a specific pricing model where basically it might be a little"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1211.62,
+      "end": 1215.62,
+      "text": " bit more expensive to just have an ALB to route traffic if you don't really have a lot"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1215.62,
+      "end": 1216.5,
+      "text": " of requests."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1216.5,
+      "end": 1221.9399999999998,
+      "text": " But when you start to have a significant amount of requests, I think that price is actually"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1221.9399999999998,
+      "end": 1225.78,
+      "text": " much more justified and overall you might end up with a better pricing compared, for"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1225.78,
+      "end": 1227.3799999999999,
+      "text": " instance, to just having API Gateway."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1228.1,
+      "end": 1233.4599999999998,
+      "text": " So keep in mind that also pricing might be interesting depending on what's your particular"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1233.4599999999998,
+      "end": 1234.1,
+      "text": " need there."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1234.1,
+      "end": 1240.1799999999998,
+      "text": " Just to mention that particular example that I was saying before, one good use case is"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1240.1799999999998,
+      "end": 1244.02,
+      "text": " when you are trying to migrate a monolith application, maybe behind an application load"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1244.02,
+      "end": 1248.98,
+      "text": " balancer, to something that looks like microservices and maybe you want to use Lambda as part of"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1248.98,
+      "end": 1250.74,
+      "text": " this new microservice architecture."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1250.74,
+      "end": 1254.98,
+      "text": " What you could do, you could still keep your own monolith and apply the strangler pattern"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1254.98,
+      "end": 1259.2199999999998,
+      "text": " to slowly migrate bits and pieces of that application to microservices."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1259.2199999999998,
+      "end": 1262.74,
+      "text": " So basically what you could do as soon as you implement a new endpoint with a Lambda,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1262.74,
+      "end": 1267.38,
+      "text": " you can just change the routing logic at the load balancer level and use the load balancer"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1267.38,
+      "end": 1271.22,
+      "text": " itself to map that particular endpoint to a Lambda invocation."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1271.22,
+      "end": 1275.94,
+      "text": " So that way you basically can do everything at the load balancer level, manage all that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1275.94,
+      "end": 1280.82,
+      "text": " routing, keep using the monolith as long as we have features to migrate over to serverless"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1280.82,
+      "end": 1285.94,
+      "text": " functions and then at some point you will have only serverless functions in a microservices"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1286.82,
+      "end": 1287.32,
+      "text": " way."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1287.32,
+      "end": 1291.48,
+      "text": " So just to summarize, we have four options."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1291.48,
+      "end": 1294.36,
+      "text": " We have function URLs, which are the simplest and the quickest."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1294.36,
+      "end": 1298.84,
+      "text": " Very good for webbooks, very good for quick experimentation, very good if you are learning"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1298.84,
+      "end": 1304.04,
+      "text": " Lambda and you want a simple option just to trigger HTTP requests and invoke Lambdas."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1304.6,
+      "end": 1310.9199999999998,
+      "text": " Then we have HTTP APIs where you can leverage some of the more advanced features of API"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1310.9199999999998,
+      "end": 1315,
+      "text": " Gateway, but they are not as feature complete as REST API Gateways."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1315,
+      "end": 1321,
+      "text": " So if you need all the additional features, of course, go to REST API Gateway."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1321,
+      "end": 1325,
+      "text": " And finally, we have Application Load Balancer, which are generally very good either when"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1325,
+      "end": 1329.48,
+      "text": " you are migrating from monoliths or where you have a lot of traffic and therefore it"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1329.48,
+      "end": 1333.64,
+      "text": " might be more beneficial in terms of pricing and scalability to use an Application Load"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1333.64,
+      "end": 1334.14,
+      "text": " Balancer."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1335,
+      "end": 1339,
+      "text": " We also have a repository where we put some of these notes and some of the evaluation"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1339,
+      "end": 1343.4,
+      "text": " tests that we made to prepare this episode, so we will have the link in the show notes."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1343.4,
+      "end": 1345.24,
+      "text": " And this is everything we have for today."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1345.24,
+      "end": 1350.1200000000001,
+      "text": " So really looking forward to your opinion, which HTTP integration method to use."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1350.1200000000001,
+      "end": 1354.2800000000002,
+      "text": " And if you have any other suggestions on the we missed some other reason to use one approach"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1354.2800000000002,
+      "end": 1357.16,
+      "text": " rather than another, please let us know in the chat."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1357.16,
+      "end": 1362.2,
+      "text": " Sorry, in the comments and we'll be back to you and trying to debate whether we like this"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1362.2,
+      "end": 1365,
+      "text": " opinion or not, or whether we are missing something there."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1365,
+      "end": 1374.2,
+      "text": " Thank you very much and we'll see you in the next episode."
+    }
+  ]
+}

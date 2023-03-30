@@ -2,7 +2,7 @@
 episode: 50
 title: "Building a File Transfer application on AWS - Live coding PART 3"
 youtube_id: "hlW_RwRgskI"
-anchor_fm_link: "https://anchor.fm/aws-bites/episodes/50--Building-a-File-Transfer-application-on-AWS---Live-coding-PART-3-e1n7bkq"
+anchor_fm_link: "https://podcasters.spotify.com/pod/show/aws-bites/episodes/50--Building-a-File-Transfer-application-on-AWS---Live-coding-PART-3-e1n7bkq"
 publish_date: 2022-08-31
 ---
 

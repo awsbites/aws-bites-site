@@ -2,7 +2,7 @@
 episode: 62
 title: "Top 3 re:Invent 2022 announcements"
 youtube_id: "sjZlmZQ8FlU"
-anchor_fm_link: "https://anchor.fm/aws-bites/episodes/62--Top-3-reInvent-2022-announcements-e1rtucg"
+anchor_fm_link: "https://podcasters.spotify.com/pod/show/aws-bites/episodes/62--Top-3-reInvent-2022-announcements-e1rtucg"
 publish_date: 2022-12-09
 ---
 

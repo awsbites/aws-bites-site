@@ -2,7 +2,7 @@
 episode: 64
 title: "How do you write Lambda Functions in Rust?"
 youtube_id: "HZLEIWcFJy8"
-anchor_fm_link: "https://anchor.fm/aws-bites/episodes/64--How-do-you-write-Lambda-Functions-in-Rust-e1tkluh"
+anchor_fm_link: "https://podcasters.spotify.com/pod/show/aws-bites/episodes/64--How-do-you-write-Lambda-Functions-in-Rust-e1tkluh"
 publish_date: 2023-01-20
 ---
 

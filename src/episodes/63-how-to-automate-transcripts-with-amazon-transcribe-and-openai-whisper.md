@@ -2,7 +2,7 @@
 episode: 63
 title: "How to automate transcripts with Amazon Transcribe and OpenAI Whisper"
 youtube_id: "OV9uNQHZpJ4"
-anchor_fm_link: "https://anchor.fm/aws-bites/episodes/63--How-to-automate-transcripts-with-Amazon-Transcribe-and-OpenAI-Whisper-e1tbii6"
+anchor_fm_link: "https://podcasters.spotify.com/pod/show/aws-bites/episodes/63--How-to-automate-transcripts-with-Amazon-Transcribe-and-OpenAI-Whisper-e1tbii6"
 publish_date: 2023-01-13
 ---
 

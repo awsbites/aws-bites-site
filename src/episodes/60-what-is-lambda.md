@@ -2,7 +2,7 @@
 episode: 60
 title: "What is AWS Lambda?"
 youtube_id: "uIxJS8PFqHg"
-anchor_fm_link: "https://anchor.fm/aws-bites/episodes/60--What-is-AWS-Lambda-e1r7jas"
+anchor_fm_link: "https://podcasters.spotify.com/pod/show/aws-bites/episodes/60--What-is-AWS-Lambda-e1r7jas"
 publish_date: 2022-11-25
 ---
 

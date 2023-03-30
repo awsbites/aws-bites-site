@@ -2,7 +2,7 @@
 episode: 66
 title: "AWS SAM v Serverless Framework"
 youtube_id: "4PO3W3eWHK4"
-anchor_fm_link: "https://anchor.fm/aws-bites/episodes/66--AWS-SAM-v-Serverless-Framework-e1u8127"
+anchor_fm_link: "https://podcasters.spotify.com/pod/show/aws-bites/episodes/66--AWS-SAM-v-Serverless-Framework-e1u8127"
 publish_date: 2023-02-03
 ---
 

@@ -2,7 +2,7 @@
 episode: 68
 title: "Are you well architected?"
 youtube_id: "ruvT4PGbuOY"
-anchor_fm_link: "https://anchor.fm/aws-bites/episodes/68--Are-you-well-architected-e1up9rr"
+anchor_fm_link: "https://podcasters.spotify.com/pod/show/aws-bites/episodes/68--Are-you-well-architected-e1up9rr"
 publish_date: 2023-02-17
 ---
 

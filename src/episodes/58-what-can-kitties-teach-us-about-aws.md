@@ -2,7 +2,7 @@
 episode: 58
 title: "What can kitties teach us about AWS?"
 youtube_id: "DYryFM1vTe0"
-anchor_fm_link: "https://anchor.fm/aws-bites/episodes/58--What-can-kitties-teach-us-about-AWS-e1qisr8"
+anchor_fm_link: "https://podcasters.spotify.com/pod/show/aws-bites/episodes/58--What-can-kitties-teach-us-about-AWS-e1qisr8"
 publish_date: 2022-11-11
 ---
 

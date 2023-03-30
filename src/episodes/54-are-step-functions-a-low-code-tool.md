@@ -2,7 +2,7 @@
 episode: 54
 title: "Are Step Functions a Low-Code tool?"
 youtube_id: "QcizmpwQCg8"
-anchor_fm_link: "https://anchor.fm/aws-bites/episodes/54--Are-Step-Functions-a-Low-Code-tool-e1p5vhf"
+anchor_fm_link: "https://podcasters.spotify.com/pod/show/aws-bites/episodes/54--Are-Step-Functions-a-Low-Code-tool-e1p5vhf"
 publish_date: 2022-10-14
 ---
 

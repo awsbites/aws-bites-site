@@ -2,7 +2,7 @@
 episode: 56
 title: "What can you do with S3 presigned URLs?"
 youtube_id: "NDEWH0VTudg"
-anchor_fm_link: "https://anchor.fm/aws-bites/episodes/56--What-can-you-do-with-S3-presigned-URLs-e1pqbac"
+anchor_fm_link: "https://podcasters.spotify.com/pod/show/aws-bites/episodes/56--What-can-you-do-with-S3-presigned-URLs-e1pqbac"
 publish_date: 2022-10-28
 ---
 

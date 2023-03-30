@@ -2,7 +2,7 @@
 episode: 57
 title: "Cognito User Pools vs. Identity Pools"
 youtube_id: "KXZQUKgsHj8"
-anchor_fm_link: "https://anchor.fm/aws-bites/episodes/57--Cognito-User-Pools-vs--Identity-Pools-e1q6ojt"
+anchor_fm_link: "https://podcasters.spotify.com/pod/show/aws-bites/episodes/57--Cognito-User-Pools-vs--Identity-Pools-e1q6ojt"
 publish_date: 2022-11-04
 ---
 

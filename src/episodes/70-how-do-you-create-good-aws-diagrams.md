@@ -2,7 +2,7 @@
 episode: 70
 title: "How do you create good AWS diagrams?"
 youtube_id: "AYmcjVX0CK8"
-anchor_fm_link: "https://podcasters.spotify.com/pod/show/aws-bites/episodes/70--How-do-you-create-good-AWS-diagrams-e1vmae8"
+spotify_link: "https://podcasters.spotify.com/pod/show/aws-bites/episodes/70--How-do-you-create-good-AWS-diagrams-e1vmae8"
 publish_date: 2023-03-03
 ---
 

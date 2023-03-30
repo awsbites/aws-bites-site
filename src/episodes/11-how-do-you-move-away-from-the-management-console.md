@@ -2,7 +2,7 @@
 episode: 11
 title: How do you move away from the management console?
 youtube_id: _X78qPZhlDQ
-anchor_fm_link: https://anchor.fm/aws-bites/episodes/11--How-do-you-move-away-from-the-management-console-e1a9dbc
+spotify_link: https://anchor.fm/aws-bites/episodes/11--How-do-you-move-away-from-the-management-console-e1a9dbc
 publish_date: 2021-11-18
 ---
 

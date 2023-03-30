@@ -2,7 +2,7 @@
 episode: 65
 title: "Solving SQS and Lambda concurrency problems"
 youtube_id: "kNtOhcpju6g"
-anchor_fm_link: "https://podcasters.spotify.com/pod/show/aws-bites/episodes/65--Solving-SQS-and-Lambda-concurrency-problems-e1u0mbq"
+spotify_link: "https://podcasters.spotify.com/pod/show/aws-bites/episodes/65--Solving-SQS-and-Lambda-concurrency-problems-e1u0mbq"
 publish_date: 2023-01-27
 ---
 

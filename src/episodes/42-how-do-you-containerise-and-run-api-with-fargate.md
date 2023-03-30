@@ -2,7 +2,7 @@
 episode: 42
 title: How do you containerise and run your API with Fargate?
 youtube_id: 5ZSnNsC8szE
-anchor_fm_link: https://anchor.fm/aws-bites/episodes/42--How-do-you-containerise-and-run-your-API-with-Fargate-e1k6m3j
+spotify_link: https://anchor.fm/aws-bites/episodes/42--How-do-you-containerise-and-run-your-API-with-Fargate-e1k6m3j
 publish_date: 2022-06-24
 ---
 

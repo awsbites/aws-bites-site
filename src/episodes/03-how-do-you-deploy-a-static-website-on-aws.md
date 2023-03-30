@@ -2,7 +2,7 @@
 episode: 3
 title: How do you deploy a static website on AWS?
 youtube_id: Sp7cvaBtzH4
-anchor_fm_link: https://anchor.fm/aws-bites/episodes/03--How-do-you-deploy-a-static-website-on-AWS-e17ne47
+spotify_link: https://anchor.fm/aws-bites/episodes/03--How-do-you-deploy-a-static-website-on-AWS-e17ne47
 publish_date: 2021-09-23
 ---
 

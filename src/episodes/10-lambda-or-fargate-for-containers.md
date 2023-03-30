@@ -2,7 +2,7 @@
 episode: 10
 title: Lambda or Fargate for containers?
 youtube_id: a57pXpcA_Bs
-anchor_fm_link: https://anchor.fm/aws-bites/episodes/10--Lambda-or-Fargate-for-containers-e19gjq8
+spotify_link: https://anchor.fm/aws-bites/episodes/10--Lambda-or-Fargate-for-containers-e19gjq8
 publish_date: 2021-11-11
 ---
 

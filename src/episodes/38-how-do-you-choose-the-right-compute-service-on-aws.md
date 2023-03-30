@@ -2,7 +2,7 @@
 episode: 38
 title: How do you choose the right compute service on AWS?
 youtube_id: hjzPq7TLIcU
-anchor_fm_link: https://anchor.fm/aws-bites/episodes/38--How-do-you-choose-the-right-compute-service-on-AWS-e1j2416
+spotify_link: https://anchor.fm/aws-bites/episodes/38--How-do-you-choose-the-right-compute-service-on-AWS-e1j2416
 publish_date: 2022-05-26
 ---
 

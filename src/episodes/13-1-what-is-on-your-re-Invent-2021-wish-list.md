@@ -3,7 +3,7 @@ is_special: true
 episode: 13.1
 title: What’s on your re:Invent 2021 wish list?
 youtube_id: NY03iwbOkzk
-anchor_fm_link: https://anchor.fm/aws-bites/episodes/13--Whats-on-your-reInvent-2021-wish-list-e1at0s2
+spotify_link: https://anchor.fm/aws-bites/episodes/13--Whats-on-your-reInvent-2021-wish-list-e1at0s2
 publish_date: 2021-11-27
 ---
 

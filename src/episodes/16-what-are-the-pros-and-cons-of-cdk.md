@@ -2,7 +2,7 @@
 episode: 16
 title: What are the pros and cons of CDK?
 youtube_id: jjyNTNQdW2s
-anchor_fm_link: https://anchor.fm/aws-bites/episodes/16--What-are-the-pros-and-cons-of-CDK-e1btcpa
+spotify_link: https://anchor.fm/aws-bites/episodes/16--What-are-the-pros-and-cons-of-CDK-e1btcpa
 publish_date: 2021-12-23
 ---
 

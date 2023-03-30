@@ -2,7 +2,7 @@
 episode: 18
 title: How do you move to the cloud?
 youtube_id: IDh4eQzbvyg
-anchor_fm_link: https://anchor.fm/aws-bites/episodes/18--How-do-you-move-to-the-cloud-e1c4ojd
+spotify_link: https://anchor.fm/aws-bites/episodes/18--How-do-you-move-to-the-cloud-e1c4ojd
 publish_date: 2022-01-06
 ---
 

@@ -2,7 +2,7 @@
 episode: 24
 title: What's SNS and how do you use it?
 youtube_id: 9uzQVr7fFIQ
-anchor_fm_link: https://anchor.fm/aws-bites/episodes/24--Whats-SNS-and-how-do-you-use-it-e1ed1h7
+spotify_link: https://anchor.fm/aws-bites/episodes/24--Whats-SNS-and-how-do-you-use-it-e1ed1h7
 publish_date: 2022-02-17
 ---
 

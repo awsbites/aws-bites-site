@@ -2,7 +2,7 @@
 episode: 59
 title: "What will Serverless 2.0 look like?"
 youtube_id: "GPIQKuhvmxc"
-anchor_fm_link: "https://podcasters.spotify.com/pod/show/aws-bites/episodes/59--What-will-Serverless-2-0-look-like-e1qpl8a"
+spotify_link: "https://podcasters.spotify.com/pod/show/aws-bites/episodes/59--What-will-Serverless-2-0-look-like-e1qpl8a"
 publish_date: 2022-11-18
 ---
 

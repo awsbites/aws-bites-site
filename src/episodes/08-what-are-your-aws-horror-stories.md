@@ -2,7 +2,7 @@
 episode: 8
 title: What are your AWS horror stories?
 youtube_id: 2Us0H9HOpew
-anchor_fm_link: https://anchor.fm/aws-bites/episodes/08--What-are-your-AWS-horror-stories-e19bpdp
+spotify_link: https://anchor.fm/aws-bites/episodes/08--What-are-your-AWS-horror-stories-e19bpdp
 publish_date: 2021-10-28
 ---
 

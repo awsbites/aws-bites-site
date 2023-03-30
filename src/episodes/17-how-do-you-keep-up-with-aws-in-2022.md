@@ -2,7 +2,7 @@
 episode: 17
 title: How do you keep up with AWS in 2022?
 youtube_id: sc2B5g_wJx0
-anchor_fm_link: https://anchor.fm/aws-bites/episodes/17--How-do-you-keep-up-with-AWS-in-2022-e1c4ask
+spotify_link: https://anchor.fm/aws-bites/episodes/17--How-do-you-keep-up-with-AWS-in-2022-e1c4ask
 publish_date: 2021-12-30
 ---
 

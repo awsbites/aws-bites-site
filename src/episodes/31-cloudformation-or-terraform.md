@@ -2,7 +2,7 @@
 episode: 31
 title: CloudFormation or Terraform?
 youtube_id: mLkOH2I0rX8
-anchor_fm_link: https://anchor.fm/aws-bites/episodes/31--CloudFormation-or-Terraform-e1gr87b
+spotify_link: https://anchor.fm/aws-bites/episodes/31--CloudFormation-or-Terraform-e1gr87b
 publish_date: 2022-04-07
 ---
 

@@ -2,7 +2,7 @@
 episode: 69
 title: "Do you know what’s in your cloud account?"
 youtube_id: "Sh2nE7_-ews"
-anchor_fm_link: "https://podcasters.spotify.com/pod/show/aws-bites/episodes/69--Do-you-know-whats-in-your-cloud-account-e1vb0rr"
+spotify_link: "https://podcasters.spotify.com/pod/show/aws-bites/episodes/69--Do-you-know-whats-in-your-cloud-account-e1vb0rr"
 publish_date: 2023-02-24
 ---
 

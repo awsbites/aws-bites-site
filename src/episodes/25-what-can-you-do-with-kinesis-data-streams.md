@@ -2,7 +2,7 @@
 episode: 25
 title: What can you do with Kinesis Data Streams?
 youtube_id: u_nR6up4Kvs
-anchor_fm_link: https://anchor.fm/aws-bites/episodes/25--What-can-you-do-with-Kinesis-Data-Streams-e1emi6q
+spotify_link: https://anchor.fm/aws-bites/episodes/25--What-can-you-do-with-Kinesis-Data-Streams-e1emi6q
 publish_date: 2022-02-24
 ---
 

@@ -2,7 +2,7 @@
 episode: 30
 title: What can you do with 10GB of Lambda storage?
 youtube_id: KahJlwJTyMQ
-anchor_fm_link: https://anchor.fm/aws-bites/episodes/30--What-can-you-do-with-10GB-of-Lambda-storage-e1gi23r
+spotify_link: https://anchor.fm/aws-bites/episodes/30--What-can-you-do-with-10GB-of-Lambda-storage-e1gi23r
 publish_date: 2022-03-31
 ---
 

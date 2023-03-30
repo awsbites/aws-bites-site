@@ -2,7 +2,7 @@
 episode: 51
 title: "Authentication for a CLI app with Cognito - Live coding PART 4"
 youtube_id: "vVic3oqqqfY"
-anchor_fm_link: "https://podcasters.spotify.com/pod/show/aws-bites/episodes/51--Authentication-for-a-CLI-app-with-Cognito---Live-coding-PART-4-e1nvr0m"
+spotify_link: "https://podcasters.spotify.com/pod/show/aws-bites/episodes/51--Authentication-for-a-CLI-app-with-Cognito---Live-coding-PART-4-e1nvr0m"
 publish_date: 2022-09-16
 ---
 

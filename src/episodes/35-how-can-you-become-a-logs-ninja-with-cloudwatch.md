@@ -2,7 +2,7 @@
 episode: 35
 title: How can you become a Logs Ninja with CloudWatch?
 youtube_id: z23_9c--QGQ
-anchor_fm_link: https://anchor.fm/aws-bites/episodes/35--How-can-you-become-a-Logs-Ninja-with-CloudWatch-e1ht45e
+spotify_link: https://anchor.fm/aws-bites/episodes/35--How-can-you-become-a-Logs-Ninja-with-CloudWatch-e1ht45e
 publish_date: 2022-05-05
 ---
 

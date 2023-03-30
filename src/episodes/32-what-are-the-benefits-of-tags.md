@@ -2,7 +2,7 @@
 episode: 32
 title: What are the benefits of tags?
 youtube_id: qh0BlnGRAog
-anchor_fm_link: https://anchor.fm/aws-bites/episodes/32--What-are-the-benefits-of-tags-e1h246h
+spotify_link: https://anchor.fm/aws-bites/episodes/32--What-are-the-benefits-of-tags-e1h246h
 publish_date: 2022-04-14
 ---
 

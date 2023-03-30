@@ -2,7 +2,7 @@
 episode: 28
 title: How do you onboard junior devs to AWS?
 youtube_id: sA36ujItNiU
-anchor_fm_link: https://anchor.fm/aws-bites/episodes/28--How-do-you-onboard-junior-devs-to-AWS-e1fcg60
+spotify_link: https://anchor.fm/aws-bites/episodes/28--How-do-you-onboard-junior-devs-to-AWS-e1fcg60
 publish_date: 2022-03-17
 ---
 

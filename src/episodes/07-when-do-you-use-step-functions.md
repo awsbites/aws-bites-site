@@ -2,7 +2,7 @@
 episode: 7
 title: When do you use Step Functions?
 youtube_id: nNskWnmozaE
-anchor_fm_link: https://anchor.fm/aws-bites/episodes/07--When-do-you-use-Step-Functions-e18qtqg
+spotify_link: https://anchor.fm/aws-bites/episodes/07--When-do-you-use-Step-Functions-e18qtqg
 publish_date: 2021-10-22
 ---
 

@@ -2,7 +2,7 @@
 episode: 27
 title: How do you organize AWS Accounts?
 youtube_id: 1XvL1t98UBU
-anchor_fm_link: https://anchor.fm/aws-bites/episodes/27--How-do-you-organize-AWS-Accounts-e1fbiu7
+spotify_link: https://anchor.fm/aws-bites/episodes/27--How-do-you-organize-AWS-Accounts-e1fbiu7
 publish_date: 2022-03-10
 ---
 

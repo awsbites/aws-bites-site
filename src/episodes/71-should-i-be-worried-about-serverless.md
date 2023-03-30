@@ -2,7 +2,7 @@
 episode: 71
 title: "Should I be worried about Serverless?"
 youtube_id: "pJMfmVtXBRs"
-anchor_fm_link: "https://podcasters.spotify.com/pod/show/aws-bites/episodes/71--Should-I-be-worried-about-adopting-serverless-e1vvceh"
+spotify_link: "https://podcasters.spotify.com/pod/show/aws-bites/episodes/71--Should-I-be-worried-about-adopting-serverless-e1vvceh"
 publish_date: 2023-03-10
 ---
 

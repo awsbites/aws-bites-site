@@ -2,7 +2,7 @@
 episode: 6
 title: Is AWS Lambda cheap or expensive?
 youtube_id: XHxXcsvKGFA
-anchor_fm_link: https://anchor.fm/aws-bites/episodes/06--Is-AWS-Lambda-cheap-or-expensive-e17ocg4
+spotify_link: https://anchor.fm/aws-bites/episodes/06--Is-AWS-Lambda-cheap-or-expensive-e17ocg4
 publish_date: 2021-10-14
 ---
 

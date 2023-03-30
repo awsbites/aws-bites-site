@@ -2,7 +2,7 @@
 episode: 33
 title: What can you do with CloudWatch metrics?
 youtube_id: vwo2jXfyooQ
-anchor_fm_link: https://anchor.fm/aws-bites/episodes/33--What-can-you-do-with-CloudWatch-metrics-e1hentr
+spotify_link: https://anchor.fm/aws-bites/episodes/33--What-can-you-do-with-CloudWatch-metrics-e1hentr
 publish_date: 2022-04-21
 ---
 

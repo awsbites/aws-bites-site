@@ -2,7 +2,7 @@
 episode: 44
 title: Do you use CodePipeline or GitHub Actions?
 youtube_id: zJ_YFqonxNE
-anchor_fm_link: https://anchor.fm/aws-bites/episodes/44--Do-you-use-CodePipeline-or-GitHub-Actions-e1ktqb4
+spotify_link: https://anchor.fm/aws-bites/episodes/44--Do-you-use-CodePipeline-or-GitHub-Actions-e1ktqb4
 publish_date: 2022-07-08
 ---
 

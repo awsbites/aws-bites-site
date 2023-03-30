@@ -2,7 +2,7 @@
 episode: 37
 title: How do you migrate a monolith to AWS without the drama?
 youtube_id: GYa2RkYDfBQ
-anchor_fm_link: https://anchor.fm/aws-bites/episodes/37--How-do-you-migrate-a-monolith-to-AWS-without-the-drama-e1ilt8s
+spotify_link: https://anchor.fm/aws-bites/episodes/37--How-do-you-migrate-a-monolith-to-AWS-without-the-drama-e1ilt8s
 publish_date: 2022-05-19
 ---
 

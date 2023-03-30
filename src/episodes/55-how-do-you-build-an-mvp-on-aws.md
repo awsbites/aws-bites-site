@@ -2,7 +2,7 @@
 episode: 55
 title: "How do you build an MVP on AWS?"
 youtube_id: "s-ItwHScf-c"
-anchor_fm_link: "https://podcasters.spotify.com/pod/show/aws-bites/episodes/55--How-do-you-build-an-MVP-on-AWS-e1pcqsm"
+spotify_link: "https://podcasters.spotify.com/pod/show/aws-bites/episodes/55--How-do-you-build-an-MVP-on-AWS-e1pcqsm"
 publish_date: 2022-10-21
 ---
 

@@ -2,7 +2,7 @@
 episode: 22
 title: What do you need to know about SQS?
 youtube_id: svoA-ds8-8c
-anchor_fm_link: https://anchor.fm/aws-bites/episodes/22--What-do-you-need-to-know-about-SQS-e1dge30
+spotify_link: https://anchor.fm/aws-bites/episodes/22--What-do-you-need-to-know-about-SQS-e1dge30
 publish_date: 2022-02-03
 ---
 

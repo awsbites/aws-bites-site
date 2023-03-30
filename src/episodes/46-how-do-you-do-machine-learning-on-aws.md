@@ -2,7 +2,7 @@
 episode: 46
 title: How do you do machine learning on AWS?
 youtube_id: dGMGdkq9N6Q
-anchor_fm_link: https://anchor.fm/aws-bites/episodes/46--How-do-you-do-machine-learning-on-AWS-e1lhih6
+spotify_link: https://anchor.fm/aws-bites/episodes/46--How-do-you-do-machine-learning-on-AWS-e1lhih6
 publish_date: 2022-07-22
 ---
 

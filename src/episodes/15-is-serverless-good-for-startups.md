@@ -2,7 +2,7 @@
 episode: 15
 title: Is serverless good for startups?
 youtube_id: I8lxFKcuCmI
-anchor_fm_link: https://anchor.fm/aws-bites/episodes/15--Is-serverless-good-for-startups-e1bp795
+spotify_link: https://anchor.fm/aws-bites/episodes/15--Is-serverless-good-for-startups-e1bp795
 publish_date: 2021-12-16
 ---
 

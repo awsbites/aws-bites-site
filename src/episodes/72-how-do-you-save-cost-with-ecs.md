@@ -2,7 +2,7 @@
 episode: 72
 title: "How do you save cost with ECS?"
 youtube_id: "kx0zvD0jNK0"
-anchor_fm_link: "https://podcasters.spotify.com/pod/show/aws-bites/episodes/72--How-do-you-save-cost-with-ECS-e20c3q3"
+spotify_link: "https://podcasters.spotify.com/pod/show/aws-bites/episodes/72--How-do-you-save-cost-with-ECS-e20c3q3"
 publish_date: 2023-03-17
 ---
 

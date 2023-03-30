@@ -2,7 +2,7 @@
 episode: 40
 title: What do you need to know about IAM?
 youtube_id: CDC9BmIPssw
-anchor_fm_link: https://anchor.fm/aws-bites/episodes/40--What-do-you-need-to-know-about-IAM-e1johd4
+spotify_link: https://anchor.fm/aws-bites/episodes/40--What-do-you-need-to-know-about-IAM-e1johd4
 publish_date: 2022-06-10
 ---
 

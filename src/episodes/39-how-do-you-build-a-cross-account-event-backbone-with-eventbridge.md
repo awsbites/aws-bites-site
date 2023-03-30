@@ -2,7 +2,7 @@
 episode: 39
 title: How do you build a cross-account event backbone with EventBridge?
 youtube_id: 8zxVwApwgKM
-anchor_fm_link: https://anchor.fm/aws-bites/episodes/39--How-do-you-build-a-cross-account-event-backbone-with-EventBridge-e1jd97n
+spotify_link: https://anchor.fm/aws-bites/episodes/39--How-do-you-build-a-cross-account-event-backbone-with-EventBridge-e1jd97n
 publish_date: 2022-06-03
 ---
 

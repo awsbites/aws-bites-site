@@ -2,7 +2,7 @@
 episode: 23
 title: What’s the big deal with EventBridge?
 youtube_id: UjIE5qp-v8w
-anchor_fm_link: https://anchor.fm/aws-bites/episodes/23--Whats-the-big-deal-with-EventBridge-e1e66j1
+spotify_link: https://anchor.fm/aws-bites/episodes/23--Whats-the-big-deal-with-EventBridge-e1e66j1
 publish_date: 2022-02-10
 ---
 

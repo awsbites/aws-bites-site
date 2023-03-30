@@ -2,7 +2,7 @@
 episode: 26
 title: What can you do with Kafka on AWS?
 youtube_id: nH03_bnr_xA
-anchor_fm_link: https://anchor.fm/aws-bites/episodes/26--What-can-you-do-with-Kafka-on-AWS-e1f58mk
+spotify_link: https://anchor.fm/aws-bites/episodes/26--What-can-you-do-with-Kafka-on-AWS-e1f58mk
 publish_date: 2022-03-03
 ---
 

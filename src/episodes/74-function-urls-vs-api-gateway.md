@@ -2,7 +2,7 @@
 episode: 74
 title: "Function URLs vs API Gateway"
 youtube_id: "R1LG7pY5k8c"
-anchor_fm_link: "https://podcasters.spotify.com/pod/show/aws-bites/episodes/74--Function-URLs-vs-API-Gateway-e2142kb"
+spotify_link: "https://podcasters.spotify.com/pod/show/aws-bites/episodes/74--Function-URLs-vs-API-Gateway-e2142kb"
 publish_date: 2023-03-31
 ---
 

@@ -2,7 +2,7 @@
 episode: 36
 title: What’s new for JavaScript developers on AWS?
 youtube_id: KXBPMvPhHCo
-anchor_fm_link: https://anchor.fm/aws-bites/episodes/36--Whats-new-for-JavaScript-developers-on-AWS-e1ie3mj
+spotify_link: https://anchor.fm/aws-bites/episodes/36--Whats-new-for-JavaScript-developers-on-AWS-e1ie3mj
 publish_date: 2022-05-12
 ---
 

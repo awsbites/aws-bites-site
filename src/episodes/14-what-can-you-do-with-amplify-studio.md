@@ -2,7 +2,7 @@
 episode: 14
 title: What can you do with Amplify Studio?
 youtube_id: W9ZTYIVQWjQ
-anchor_fm_link: https://anchor.fm/aws-bites/episodes/14--What-can-you-do-with-Amplify-Studio-e1bg4gg
+spotify_link: https://anchor.fm/aws-bites/episodes/14--What-can-you-do-with-Amplify-Studio-e1bg4gg
 publish_date: 2021-12-09
 ---
 

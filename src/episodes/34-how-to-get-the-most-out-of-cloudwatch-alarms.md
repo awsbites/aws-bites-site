@@ -2,7 +2,7 @@
 episode: 34
 title: How to get the most out of CloudWatch Alarms?
 youtube_id: rk4QMJf6R4U
-anchor_fm_link: https://anchor.fm/aws-bites/episodes/34--How-to-get-the-most-out-of-CloudWatch-Alarms-e1hodou
+spotify_link: https://anchor.fm/aws-bites/episodes/34--How-to-get-the-most-out-of-CloudWatch-Alarms-e1hodou
 publish_date: 2022-04-28
 ---
 

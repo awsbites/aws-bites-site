@@ -2,7 +2,7 @@
 episode: 9
 title: How do you get started with AWS?
 youtube_id: M6KAb1RQh9E
-anchor_fm_link: https://anchor.fm/aws-bites/episodes/09--How-do-you-get-started-with-AWS-e19ggtq
+spotify_link: https://anchor.fm/aws-bites/episodes/09--How-do-you-get-started-with-AWS-e19ggtq
 publish_date: 2021-11-04
 ---
 

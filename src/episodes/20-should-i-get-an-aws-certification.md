@@ -2,7 +2,7 @@
 episode: 20
 title: Should I get an AWS certification?
 youtube_id: qf0CuUOtPEI
-anchor_fm_link: https://anchor.fm/aws-bites/episodes/20--Should-I-get-an-AWS-certification-e1d4j31
+spotify_link: https://anchor.fm/aws-bites/episodes/20--Should-I-get-an-AWS-certification-e1d4j31
 publish_date: 2022-01-20
 ---
 

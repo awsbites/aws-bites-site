@@ -2,7 +2,7 @@
 episode: 48
 title: "Building a File Transfer application on AWS - Live coding PART 1"
 youtube_id: "EfRElTYilyY"
-anchor_fm_link: "https://spotifyanchor-web.app.link/e/ZmRNLRMACsb"
+spotify_link: "https://spotifyanchor-web.app.link/e/ZmRNLRMACsb"
 publish_date: 2022-08-17
 ---
 

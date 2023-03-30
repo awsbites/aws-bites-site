@@ -2,7 +2,7 @@
 episode: 73
 title: "What is AWS Application Composer?"
 youtube_id: "XSZSCM9cn8s"
-anchor_fm_link: "https://podcasters.spotify.com/pod/show/aws-bites/episodes/73--What-is-AWS-Application-Composer-e20ulrl"
+spotify_link: "https://podcasters.spotify.com/pod/show/aws-bites/episodes/73--What-is-AWS-Application-Composer-e20ulrl"
 publish_date: 2023-03-24
 ---
 

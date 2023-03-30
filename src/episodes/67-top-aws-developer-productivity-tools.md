@@ -2,7 +2,7 @@
 episode: 67
 title: "Top AWS Developer productivity tools"
 youtube_id: "wlZqFtYmWZ4"
-anchor_fm_link: "https://podcasters.spotify.com/pod/show/aws-bites/episodes/67--Top-AWS-Developer-Productivity-Tools-e1uk6st"
+spotify_link: "https://podcasters.spotify.com/pod/show/aws-bites/episodes/67--Top-AWS-Developer-Productivity-Tools-e1uk6st"
 publish_date: 2023-02-10
 ---
 

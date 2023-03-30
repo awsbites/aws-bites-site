@@ -2,7 +2,7 @@
 episode: 29
 title: Is serverless more secure?
 youtube_id: cDj5j1qOVyw
-anchor_fm_link: https://anchor.fm/aws-bites/episodes/28--Is-serverless-more-secure-e1g6m7n
+spotify_link: https://anchor.fm/aws-bites/episodes/28--Is-serverless-more-secure-e1g6m7n
 publish_date: 2022-03-24
 ---
 

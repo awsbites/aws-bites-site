@@ -2,7 +2,7 @@
 episode: 12
 title: How do you manage your AWS credentials?
 youtube_id: X4uA6EtNyos
-anchor_fm_link: https://anchor.fm/aws-bites/episodes/12--How-do-you-manage-your-AWS-credentials-e1ah4vk
+spotify_link: https://anchor.fm/aws-bites/episodes/12--How-do-you-manage-your-AWS-credentials-e1ah4vk
 publish_date: 2021-11-26
 ---
 

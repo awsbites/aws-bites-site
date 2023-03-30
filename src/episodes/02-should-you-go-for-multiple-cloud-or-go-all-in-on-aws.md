@@ -2,7 +2,7 @@
 episode: 2
 title: Should you go for multi-cloud or go all-in on AWS?
 youtube_id: X0Fatw9qxQc
-anchor_fm_link: https://anchor.fm/aws-bites/episodes/02--Should-you-go-for-multi-cloud-or-go-all-in-on-AWS-e17c5ff
+spotify_link: https://anchor.fm/aws-bites/episodes/02--Should-you-go-for-multi-cloud-or-go-all-in-on-AWS-e17c5ff
 publish_date: 2021-09-16
 ---
 

@@ -2,7 +2,7 @@
 episode: 61
 title: "How do I control AWS cost?"
 youtube_id: "BYt8vSdJL08"
-anchor_fm_link: "https://podcasters.spotify.com/pod/show/aws-bites/episodes/61--How-do-I-control-AWS-costs-e1rid5p"
+spotify_link: "https://podcasters.spotify.com/pod/show/aws-bites/episodes/61--How-do-I-control-AWS-costs-e1rid5p"
 publish_date: 2022-12-02
 ---
 

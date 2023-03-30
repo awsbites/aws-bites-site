@@ -2,7 +2,7 @@
 episode: 45
 title: What’s the magic of OIDC identity providers?
 youtube_id: dXQkZresTpw
-anchor_fm_link: https://anchor.fm/aws-bites/episodes/45--Whats-the-magic-of-OIDC-identity-providers-e1l5r6p
+spotify_link: https://anchor.fm/aws-bites/episodes/45--Whats-the-magic-of-OIDC-identity-providers-e1l5r6p
 publish_date: 2022-07-15
 ---
 

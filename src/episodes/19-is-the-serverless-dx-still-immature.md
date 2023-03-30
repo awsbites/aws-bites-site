@@ -2,7 +2,7 @@
 episode: 19
 title: Is the serverless DX still immature?
 youtube_id: WF701W3akKw
-anchor_fm_link: https://anchor.fm/aws-bites/episodes/19--Is-the-serverless-DX-still-immature-e1ct76d
+spotify_link: https://anchor.fm/aws-bites/episodes/19--Is-the-serverless-DX-still-immature-e1ct76d
 publish_date: 2022-01-13
 ---
 

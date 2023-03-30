@@ -2,7 +2,7 @@
 episode: 41
 title: How can Middy make writing Lambda functions easier?
 youtube_id: 18y6OjdeR6o
-anchor_fm_link: https://anchor.fm/aws-bites/episodes/41--How-can-Middy-make-writing-Lambda-functions-easier-e1ju4f2
+spotify_link: https://anchor.fm/aws-bites/episodes/41--How-can-Middy-make-writing-Lambda-functions-easier-e1ju4f2
 publish_date: 2022-06-17
 ---
 

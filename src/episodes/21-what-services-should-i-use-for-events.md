@@ -2,7 +2,7 @@
 episode: 21
 title: What services should I use for events?
 youtube_id: CG7uhkKftoY
-anchor_fm_link: https://anchor.fm/aws-bites/episodes/21--What-services-should-I-use-for-events-e1daih1
+spotify_link: https://anchor.fm/aws-bites/episodes/21--What-services-should-I-use-for-events-e1daih1
 publish_date: 2022-01-27
 ---
 

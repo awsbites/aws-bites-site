@@ -10,7 +10,7 @@ How can you use a Lambda to respond to an HTTP request? There are more ways than
 
 In this episode of AWS Bites podcast, we will give you a quick and simple guide to picking the best way to build APIs with Lambda. In this video, we're going to pitch Function URLs against API Gateway in a battle for the ages!
 
-Function URLs offer a simple and quick way to get a public URL to invoke a Lambda function, with fewer configuration options and cheaper pricing. They are suitable for private webhooks, simple backend functions, and machine learning inference backend. However, they lack authorization and DDoS protection, making them unsuitable for public APIs like public webhooks. On the other hand, API Gateway offers more features and control, making it suitable for public APIs. API Gateway comes in two flavors: REST and HTTP with some subtle differences.
+Function URLs offer a simple and quick way to get a public URL to invoke a Lambda function, with fewer configuration options and cheaper pricing. They are suitable for private webhooks, simple backend functions, and machine learning inference backend. However, they lack authorization and DDoS protection, making them unsuitable for like public webhooks. On the other hand, API Gateway offers more features and control, making it suitable for public APIs. API Gateway comes in two flavors: REST and HTTP with some subtle differences.
 
 Finally, we will also cover Application Load balancer and explore when and why it can be a convenient alternative to both Function URLs and API Gateway.
 

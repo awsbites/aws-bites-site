@@ -1,0 +1,1796 @@
+{
+  "speakers": {
+    "spk_0": "Eoin",
+    "spk_1": "Luciano"
+  },
+  "segments": [
+    {
+      "speakerLabel": "spk_0",
+      "start": 0,
+      "end": 4.4,
+      "text": " The AWS Lambda team recently announced an exciting new feature that might be interesting"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 4.4,
+      "end": 8.4,
+      "text": " to all of the JavaScript and TypeScript developers out there using Lambda."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 8.4,
+      "end": 13.120000000000001,
+      "text": " We're talking about Lambda response streaming, which allows for sending data incrementally from"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 13.120000000000001,
+      "end": 19.04,
+      "text": " a Lambda function, reducing the time to first byte. I'm Eoin, joined by Luciano, and in this"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 19.04,
+      "end": 23.6,
+      "text": " episode of AWS Bites, we will tell you everything there is to know about this new Lambda feature."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 24.240000000000002,
+      "end": 28.8,
+      "text": " We will discuss the benefits of streaming over buffering, talk about the provided API,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 28.8,
+      "end": 33.44,
+      "text": " what we like and what we don't like about it, and we'll mention quotas and pricing. And finally,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 33.44,
+      "end": 38.08,
+      "text": " we're going to speculate on whether we can expect a more streamable future for Lambda. So stick"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 38.08,
+      "end": 42.88,
+      "text": " around for the full episode to learn more about Lambda response streaming and how it can benefit"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 42.88,
+      "end": 45.2,
+      "text": " your JavaScript Lambda functions."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 53.28,
+      "end": 57.84,
+      "text": " AWS Bites is sponsored by fourTheorem. fourTheorem is an AWS partner for migration, architecture,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 57.84,
+      "end": 61.92,
+      "text": " and training. Find out more at fourtheorem.com. That link is in the show notes."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 63.2,
+      "end": 69.28,
+      "text": " Okay, Luciano, for Lambda response streaming, let's talk a little bit about what it is. It was"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 69.28,
+      "end": 74.48,
+      "text": " announced, I think, just about a week ago, and it's a Lambda feature and it's currently only"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 74.48,
+      "end": 80.80000000000001,
+      "text": " possible for Node.js runtimes and custom runtimes as well. And the idea here is that it allows you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 80.80000000000001,
+      "end": 84.96000000000001,
+      "text": " to send a response from a Lambda function incrementally. Previously, you had to kind"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 84.96,
+      "end": 89.28,
+      "text": " of build up your whole response and then send it back in one go. So instead of sending it back in"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 89.28,
+      "end": 94.08,
+      "text": " one block, you can now start to send some bytes as soon as you have them and your client can start"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 94.08,
+      "end": 99.11999999999999,
+      "text": " receiving them. So this is useful for streaming data, like let's think about some use cases,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 99.11999999999999,
+      "end": 103.91999999999999,
+      "text": " let's say records from a CSV file if you're generating them on the fly, or even server"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 103.91999999999999,
+      "end": 108.39999999999999,
+      "text": " side rendering. I think that's a big use case for this kind of functionality. So the client can"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 108.39999999999999,
+      "end": 113.36,
+      "text": " start receiving the data straight away, even while processing is still happening. Now, how do you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 113.36,
+      "end": 117.52,
+      "text": " actually integrate this into your client? So it currently works with Lambda function URLs. This"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 117.52,
+      "end": 121.68,
+      "text": " is something we talked about in a very recent episode, link is in the show notes, but you can"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 121.68,
+      "end": 126.64,
+      "text": " also use that then with a CloudFront distribution in front of it if you want to get all the benefits"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 126.64,
+      "end": 133.36,
+      "text": " of caching and edge locations with CloudFront CDN. It doesn't really work with API Gateway or"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 133.36,
+      "end": 137.92000000000002,
+      "text": " Application Load Balancer. I mean, it kind of works, but it doesn't give you the streaming"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 137.92,
+      "end": 143.67999999999998,
+      "text": " benefit. So you can send use it with an API Gateway in front of it, but the API Gateway"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 143.67999999999998,
+      "end": 148.48,
+      "text": " is still going to buffer it up for you. But there are actually some subtle differences when you use"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 148.48,
+      "end": 153.51999999999998,
+      "text": " it with API Gateway that give you some benefits and we'll cover that later. On support, it's"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 153.51999999999998,
+      "end": 157.92,
+      "text": " supported in CloudFormation and SAM. I mean, you don't actually have to change the Lambda function"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 157.92,
+      "end": 163.04,
+      "text": " itself, only the code. But if you want to use it with function URLs, there is a new CloudFormation"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 163.04,
+      "end": 168.79999999999998,
+      "text": " feature. It's not available in CDK yet. It is available in SAM and it's not yet available in"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 168.79999999999998,
+      "end": 174.72,
+      "text": " the serverless framework, although there is a pull request open for it. Luciano, you're a bit of a"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 174.72,
+      "end": 178.72,
+      "text": " streaming guru, if you don't mind me saying so. What is a stream really and how does it differ"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 178.72,
+      "end": 185.44,
+      "text": " from buffering? Now I feel the pressure."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 186.32,
+      "end": 191.51999999999998,
+      "text": " Okay, let me try to explain what is the difference between streaming and not streaming. Because on one side, if you think about sending data over the wire,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 191.52,
+      "end": 197.04000000000002,
+      "text": " like networking is inherently streaming, like you keep appending bytes in a channel. So it's more"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 197.04000000000002,
+      "end": 202.08,
+      "text": " of a conceptual model on how do you actually produce the data before sending it to the wire"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 202.08,
+      "end": 208.56,
+      "text": " or while sending it to the wire. So when we talk about buffering, basically the idea is that you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 208.56,
+      "end": 213.76000000000002,
+      "text": " are creating some kind of response object or some kind of response data. And of course, it's a"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 213.76000000000002,
+      "end": 218.96,
+      "text": " sequence of bytes, represents some serialization, represents some kind of structure. And you might"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 218.96,
+      "end": 222.88,
+      "text": " be accumulating all of that information in memory for a while until you actually have the entire"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 222.88,
+      "end": 227.28,
+      "text": " message ready. And this is kind of what we mean when we say buffering. You buffer all of that"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 227.28,
+      "end": 232.08,
+      "text": " information in memory and only when you complete that, you start to send the bytes over the wire."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 232.08,
+      "end": 238.8,
+      "text": " As opposed to streaming where maybe you can have meaningful chunks of that information, maybe,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 238.8,
+      "end": 243.76000000000002,
+      "text": " again, your example of CSV records, I think it's a very good one. So you might be able to send"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 243.76000000000002,
+      "end": 247.44,
+      "text": " partial information over the wire as you are accumulating that information. Actually,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 247.44,
+      "end": 252.4,
+      "text": " you don't even accumulate. You keep kind of passing the bytes as they are becoming available."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 252.4,
+      "end": 256.71999999999997,
+      "text": " And your client can start to make sense of that information as soon as the first row, for instance,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 256.71999999999997,
+      "end": 261.44,
+      "text": " if the CSV record arrives, you can actually start to take advantage of that information."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 261.44,
+      "end": 267.92,
+      "text": " So again, in a CSV file example, what that can be useful for is the client can start to do analysis"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 267.92,
+      "end": 272.4,
+      "text": " on that CSV data. Maybe it's doing a query so I can filter out the records that are relevant"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 272.4,
+      "end": 277.67999999999995,
+      "text": " and keep only the ones that display to the user the ones that match the query. Or maybe if it"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 277.67999999999995,
+      "end": 281.67999999999995,
+      "text": " needs to do some kind of streaming aggregation, I don't know, maybe you're calculating a sum or"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 281.67999999999995,
+      "end": 286.88,
+      "text": " an average or something like that, you can start to do all the computation real time. And even with"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 286.88,
+      "end": 292.47999999999996,
+      "text": " partial data, you can start to show something useful to the user. Other examples are you could,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 292.47999999999996,
+      "end": 298.15999999999997,
+      "text": " for instance, if you are plotting a chart that has thousands or millions of points,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 298.16,
+      "end": 302.48,
+      "text": " if those points are sent to you in a streaming fashion, you can start to display them straight"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 302.48,
+      "end": 307.76000000000005,
+      "text": " away as soon as they arrive rather than waiting for the entire response to arrive. Similarly,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 307.76000000000005,
+      "end": 313.68,
+      "text": " you could render pictures that are encoding formats that are progressive, so you could"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 313.68,
+      "end": 318.72,
+      "text": " start to render the picture as it arrives, even before it's all received. Or even web pages,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 318.72,
+      "end": 325.28000000000003,
+      "text": " you mentioned the case of server-side rendering pages, and I think this is kind of a common trend"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 325.28,
+      "end": 330.88,
+      "text": " in the front-end world. Lots of single-pages application frameworks now have capabilities"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 330.88,
+      "end": 336.64,
+      "text": " to server-side render to make sure that you get the advantage of that time to first byte,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 336.64,
+      "end": 342.08,
+      "text": " which is a very important metric on the web today. Search engines will prioritize web pages that"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 342.08,
+      "end": 347.11999999999995,
+      "text": " will start to render as soon as possible. So this is probably the most interesting use case,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 347.11999999999995,
+      "end": 352.96,
+      "text": " and I would bet that this is the main motivation why AWS spent energies enabling this feature,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 352.96,
+      "end": 357.52,
+      "text": " because I've seen a lot of other competitors trying to support the story of if you're using"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 357.52,
+      "end": 360.96,
+      "text": " Svelte, if you're using Vue.js, if you're using React, if you're using Solid or Quick,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 361.68,
+      "end": 367.59999999999997,
+      "text": " they all offer today ways to server-side render and be able to send dynamic content to the users,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 367.59999999999997,
+      "end": 372.71999999999997,
+      "text": " and probably Lambda needs to be on par with these other engines and make sure that this use case is"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 372.71999999999997,
+      "end": 378,
+      "text": " supported as well. Now, another interesting technical detail is that if you're really curious"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 378,
+      "end": 383.36,
+      "text": " to understand what is the actual protocol that gets used, this is just using plain HTTP chunked"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 383.36,
+      "end": 387.04,
+      "text": " encoding behind the scenes, and we will have a link in the show notes if you're curious,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 387.04,
+      "end": 392.48,
+      "text": " but the idea is that because you need to send small frames of data, you need to tell the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 392.48,
+      "end": 397.36,
+      "text": " receiving side how big is every frame, so there is a protocol that kind of documents how do you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 397.36,
+      "end": 402.48,
+      "text": " encode that information, so not just the raw data, but encapsulated in a frame that also specifies"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 402.48,
+      "end": 408.08000000000004,
+      "text": " the length of that frame, and then of course there is a way to mention, well, to specify when the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 408.08000000000004,
+      "end": 413.68,
+      "text": " entire stream is over and the entire request can be considered completed, so I hope that kind of"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 413.68,
+      "end": 417.92,
+      "text": " clarifies what do we mean when we say buffering and streaming and what are the benefits there"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 417.92,
+      "end": 423.92,
+      "text": " and the use cases, but I don't know, maybe there is something more to add on why one model could"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 423.92,
+      "end": 429.52000000000004,
+      "text": " be better than the other or when one is more convenient than the other."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 429.52,
+      "end": 434.08,
+      "text": " I think you already mentioned the main benefit, which is the time to first byte metric, and you also mentioned that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 434.08,
+      "end": 439.03999999999996,
+      "text": " this is useful for search engine optimization and also for performance metrics like Lighthouse,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 439.84,
+      "end": 443.84,
+      "text": " so it's pretty important for web applications and mobile applications these days, but the other"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 443.84,
+      "end": 451.03999999999996,
+      "text": " thing I suppose is that with streaming you can handle potentially infinite amounts of data in a"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 451.03999999999996,
+      "end": 455.84,
+      "text": " pretty efficient way, so you've already got the alternatives of doing frequent polling if you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 455.84,
+      "end": 461.2,
+      "text": " wanted to get periodic data like to render a chart based on real-time data, but it's much more"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 461.2,
+      "end": 466.96,
+      "text": " efficient to do with streaming. You don't have the request overhead every time and you don't have to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 466.96,
+      "end": 473.52,
+      "text": " specify the content length up front with junked encoding. It can dynamically evolve in that way."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 474.96,
+      "end": 480.23999999999995,
+      "text": " It could also be used for say streaming footage from a video camera, a security camera for"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 480.23999999999995,
+      "end": 484.55999999999995,
+      "text": " example, but from an application development point of view the nice thing about streams I suppose is"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 484.56,
+      "end": 490.32,
+      "text": " that they are composable, so you can have streams within streams and if you're a Node.js developer"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 490.32,
+      "end": 493.84,
+      "text": " you'll probably see this quite often, but it's also possible with lots of other languages"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 495.28000000000003,
+      "end": 500.24,
+      "text": " where you've got streaming abstractions that allow you to nest streams. For example, you can have a"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 500.24,
+      "end": 507.84000000000003,
+      "text": " zip stream or an encryption stream and you might have then a base64 encoding on top of that and by"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 507.84000000000003,
+      "end": 513.04,
+      "text": " writing into one stream you get that automatically happening for you under the hood and the base64"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 513.04,
+      "end": 520.48,
+      "text": " gzipped version is being streamed out at the other end. I suppose there is a disadvantage with"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 520.48,
+      "end": 523.92,
+      "text": " streaming as well in that it can be a little bit more complex and harder to reason about."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 523.92,
+      "end": 529.36,
+      "text": " Buffering is a little bit of a simpler model and easier to debug, but I still think that in modern"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 529.36,
+      "end": 534.24,
+      "text": " web applications it's hard to avoid streaming. So maybe Lutiano, you've done a lot of content,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 534.24,
+      "end": 540.0799999999999,
+      "text": " a lot of speaking and writing about Node.js streams and all the different generations of"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 540.08,
+      "end": 545.6800000000001,
+      "text": " how streaming works in Node.js, so you're probably best place of anybody to talk about how this will"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 545.6800000000001,
+      "end": 550.32,
+      "text": " work in Lambda with response streaming. So how does it work under the hood?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 550.32,
+      "end": 556.1600000000001,
+      "text": " Yeah, not going to go too much in depth, but I think it's worth giving a very quick summary of"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 556.1600000000001,
+      "end": 561.6,
+      "text": " why Node.js is particularly suitable for streams and for this particular use case in Lambda."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 561.6,
+      "end": 566.32,
+      "text": " And I think it's because streams in Node.js are kind of a first-class citizen. They always have"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 566.32,
+      "end": 572.1600000000001,
+      "text": " been, even from the very early versions of Node.js. And there are some primitives that get used in"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 572.1600000000001,
+      "end": 577.6,
+      "text": " different places in the Node.js core library and third-party libraries. And these are all different"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 577.6,
+      "end": 582,
+      "text": " kinds of streams that you can use and compose in different ways. So the main ones are readable"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 582,
+      "end": 586.08,
+      "text": " streams, which are basically an abstraction that allows you to consume data from a source."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 586.08,
+      "end": 591.5200000000001,
+      "text": " That can be a file from the file system, a network socket basically is how do you read data in a"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 591.52,
+      "end": 597.12,
+      "text": " streamable fashion. Similarly, there are writable streams. So again, if you are trying to send data"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 597.12,
+      "end": 603.92,
+      "text": " to a file or send data over the wire or maybe write to standard output, you can use writable"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 603.92,
+      "end": 608.0799999999999,
+      "text": " streams, which again, is just an abstraction to basically allow you to write data incrementally"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 608.0799999999999,
+      "end": 614.16,
+      "text": " into whatever source of data. Then there are transform streams, which are kind of something"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 614.16,
+      "end": 618.96,
+      "text": " in between. They basically allow you to take data from readable stream, do some transformation,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 618.96,
+      "end": 624.48,
+      "text": " and then send it to a writable stream on the other side. So these are generally, if you can imagine,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 624.48,
+      "end": 628.24,
+      "text": " streams are like plumbing. These are generally something you put in between a readable and"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 628.24,
+      "end": 633.84,
+      "text": " a writable to change the data on the flight. And good use cases also in the standard library are"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 633.84,
+      "end": 640.08,
+      "text": " encryption, compression, and yeah, basically you can use them even together. Like you can even"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 640.08,
+      "end": 643.76,
+      "text": " pipe two transform streams and add encryption and compression at the same time."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 643.76,
+      "end": 648.24,
+      "text": " And finally, there is duplex streams, which is kind of an abstraction that represents"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 648.24,
+      "end": 652.8,
+      "text": " bidirectional channels, like a network socket. So for instance, when you have a communication"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 652.8,
+      "end": 658.3199999999999,
+      "text": " channel where you can both read and write and you are kind of creating a channel where two parts"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 658.3199999999999,
+      "end": 663.68,
+      "text": " can basically exchange information in both directions. So again, this is important just"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 663.68,
+      "end": 669.52,
+      "text": " because these are all classes that you can use in Node.js core and they will be used to implement"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 669.52,
+      "end": 674.8,
+      "text": " all the more advanced streams capability like file system, HTTP, compression, encryption, standard"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 674.8,
+      "end": 679.28,
+      "text": " inputs, standard output, standard error. So once you get familiar with those primitives, you can"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 679.28,
+      "end": 685.12,
+      "text": " even build your own custom streams, custom transformations. And if you, for instance, have to"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 685.12,
+      "end": 688.56,
+      "text": " interact with a new database that you're starting to use for the first time and it's not in the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 688.56,
+      "end": 693.92,
+      "text": " standard library, you can use stream to also read and write data from that database if you want to"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 693.92,
+      "end": 698.16,
+      "text": " in a streaming function. Now again, I don't want to go too much into detail, but we will have a link"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 698.16,
+      "end": 703.8399999999999,
+      "text": " in the show notes with a workshop that I created some time ago that basically guides you through"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 703.8399999999999,
+      "end": 708.48,
+      "text": " the whole experience of understanding how stream works, there are exercises up to get into more"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 708.48,
+      "end": 712.0799999999999,
+      "text": " advanced topics where you can create your own custom streams. So if that's something you are"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 712.0799999999999,
+      "end": 715.68,
+      "text": " curious about, feel free to check the link and let me know if you like it or not."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 716.48,
+      "end": 721.36,
+      "text": " Okay, sounds good. Do you also want to shamelessly plug this book, which also covers Node.js streams?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 721.36,
+      "end": 725.28,
+      "text": " Oh, that's a good one. Yes, we will also have the link to that one in the show notes. Thank you."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 725.28,
+      "end": 732.24,
+      "text": " Thank you. Yeah, there is an entire chapter about streams and I think most of the material is also"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 732.24,
+      "end": 736.8,
+      "text": " covered in the workshop, but I think the book probably goes a little bit more in depth."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 738.9599999999999,
+      "end": 743.68,
+      "text": " Okay, great. Well, maybe we can talk a little bit then about how the world of Node.js streams meets"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 743.68,
+      "end": 749.36,
+      "text": " Lambda functions with this new feature. There's a new API that you can use in your Lambda functions"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 749.36,
+      "end": 754.88,
+      "text": " for Node.js. So you end up with a global object called 'awslambda', and then you call the 'streamifyResponse'"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 754.88,
+      "end": 761.12,
+      "text": " function on it. So it's not a case of just returning your existing payload. You have"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 761.12,
+      "end": 764.48,
+      "text": " to write your functions a little bit differently if you want them to work with response streaming."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 765.2,
+      "end": 771.28,
+      "text": " So instead of your typical Lambda function signature with event and context parameters,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 771.28,
+      "end": 775.52,
+      "text": " you do this streamifyResponse and then you use a function with three parameters. So you get an"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 775.52,
+      "end": 779.92,
+      "text": " event, a response stream and a context, and then you can start writing to this response stream"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 780.48,
+      "end": 784.72,
+      "text": " in the way that you just described. So it's just a writable stream and it forwards bytes"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 784.72,
+      "end": 788.96,
+      "text": " incrementally. So you can write to it or use any of the libraries out there that support Node.js"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 788.96,
+      "end": 793.36,
+      "text": " streams to write to it. Once it's finished, then you call.end to close the stream."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 794.72,
+      "end": 799.9200000000001,
+      "text": " So you mentioned that there's lots of different cool things you can do with Node.js stream. So you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 799.9200000000001,
+      "end": 805.28,
+      "text": " could use pipeline if you've got multiple steps in the pipeline to create those streams. Like we"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 805.28,
+      "end": 811.6,
+      "text": " talked about gzipping and base64 encoding, that would be one example you can do with it. Now,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 811.6,
+      "end": 816.5600000000001,
+      "text": " it is a bit of a weird thing, this global object, awslambda. We haven't had this before."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 819.44,
+      "end": 825.12,
+      "text": " I'm slightly surprised by this because globals are generally frowned upon. This is weird for"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 825.12,
+      "end": 830.24,
+      "text": " a few different reasons. Your linter or TypeScript will complain about this object because it's just"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 830.24,
+      "end": 834.72,
+      "text": " not the done thing these days to have globals. So you'll have to configure your linter to ignore"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 834.72,
+      "end": 841.52,
+      "text": " this global. You won't be able to run your Lambda function code globally. So you'll have to fix"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 841.52,
+      "end": 848.8,
+      "text": " something for your unit tests. It does seem to work with local invoke, which is good news. But"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 848.8,
+      "end": 856.48,
+      "text": " I did try the latest serverless framework version and the one from the PR that has this function"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 856.48,
+      "end": 861.76,
+      "text": " streaming URL support. It didn't work with local invoke. It didn't know what the AWS Lambda global"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 861.76,
+      "end": 868.48,
+      "text": " was at all. So it's a little bit of a strange kind of black box that you have to work with. The code"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 868.48,
+      "end": 875.12,
+      "text": " doesn't seem to be publicly available on GitHub. Although I think Luciana, you found that there"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 875.12,
+      "end": 881.36,
+      "text": " is something you can find from the Lambda emulator container, the container image for Lambda. You can"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 881.36,
+      "end": 887.12,
+      "text": " actually reverse engineer that a little bit and find out how it works. If you don't want to deal"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 887.12,
+      "end": 891.52,
+      "text": " with all of these problems, MIDI has actually been very quick and added support for response streams"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 891.52,
+      "end": 896,
+      "text": " and added a nice interface that hides a lot of the complexity. There's a link to the documentation"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 896,
+      "end": 904.16,
+      "text": " in the show notes. Now, Luciano, is there anything you'd like to add to that? And maybe you can talk"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 904.16,
+      "end": 909.04,
+      "text": " about how do you actually read the response of a Lambda using response streaming?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 909.04,
+      "end": 914.4,
+      "text": " I think that's a good segue from what you just mentioned. Yeah, basically the idea is once you have a Lambda that"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 914.4,
+      "end": 919.6,
+      "text": " uses this feature, sending responses in a streaming fashion, how do you consume that information?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 919.6,
+      "end": 923.84,
+      "text": " Right. Also from the client perspective, you need to be ready to consume information in a streaming"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 923.84,
+      "end": 929.2,
+      "text": " way. So you will receive chunks of bytes rather than just the whole response straight away."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 929.2,
+      "end": 934.32,
+      "text": " So the way they implemented this in AWS is we already mentioned the diffuse Lambda function URLs."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 935.0400000000001,
+      "end": 940.88,
+      "text": " You basically can just use HTTP and you will see the HTTP response coming up in a streaming way. So"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 940.88,
+      "end": 945.52,
+      "text": " for instance, if you get a chunk every second, you should see, maybe you do a call or you open"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 945.52,
+      "end": 952,
+      "text": " the browser in a specific function URL, you should see the response being rendered basically over"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 952,
+      "end": 957.12,
+      "text": " time as the new chunks are available. That's one way, but if you want to use a more programmatic"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 957.12,
+      "end": 964.08,
+      "text": " way, you can also use the SDK. There is a new functionality called Invoked with Response Stream."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 964.08,
+      "end": 969.6,
+      "text": " So basically that I haven't checked exactly the specification in JavaScript, but my expectation"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 969.6,
+      "end": 974.4,
+      "text": " is that you will get a readable stream so you can then keep using streams in Node.js if you're using"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 974.4,
+      "end": 984.0799999999999,
+      "text": " the Node.js SDK, the JavaScript SDK. Now, what about Node.js runtimes? It's probably the follow-up"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 984.0799999999999,
+      "end": 990.0799999999999,
+      "text": " question there. And the answer is still a little bit, let's figure it out. I think that there is"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 990.0799999999999,
+      "end": 995.28,
+      "text": " still new documentation that will come up in the next few weeks. It seems that there is some support"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 995.28,
+      "end": 1001.6,
+      "text": " coming up. For instance, we were able to dig into the Rust runtime, which is fully open source,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1001.6,
+      "end": 1006.4,
+      "text": " and we found instances in the code where it looks like this feature is fully supported there,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1006.4,
+      "end": 1010.16,
+      "text": " even though we couldn't really find an official piece of documentation for that."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1010.72,
+      "end": 1016.32,
+      "text": " And we will have links in the show notes for all of that. Very similarly for Golang, we were able"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1016.32,
+      "end": 1023.36,
+      "text": " to find something for it. But again, we expect we will have news in the coming week about more"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1023.36,
+      "end": 1029.28,
+      "text": " official support for other runtimes because of course all these concepts, yeah, custom runtimes,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1029.28,
+      "end": 1035.12,
+      "text": " all these concepts are not special for Node.js. It's just Node.js has a better support because"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1035.12,
+      "end": 1039.68,
+      "text": " it's a primitive that existed in Node.js for a long time, and people are more used to use these"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1039.68,
+      "end": 1044.48,
+      "text": " kind of concepts in Node.js. But of course, this concept, you can use them in any language. You"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1044.48,
+      "end": 1049.2,
+      "text": " just need to have an interface to work with that. Okay."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1049.2,
+      "end": 1054,
+      "text": " So the official line there is that we have supported Node.js and custom runtimes, but not in any of the other provided runtimes. So you won't"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1054,
+      "end": 1061.44,
+      "text": " be able to use this in the Python provided runtime or the Java one or.NET yet. You'll have to wait"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1061.44,
+      "end": 1066.48,
+      "text": " for new features to come out in those actual runtimes. Yeah, that's a good clarification."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1068.56,
+      "end": 1072.88,
+      "text": " Okay. Maybe then given that we can talk a little bit about some of the other limits and pricing,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1072.88,
+      "end": 1078.16,
+      "text": " anything else that might stop you from plowing ahead with this feature. We talked about the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1078.16,
+      "end": 1083.44,
+      "text": " ability to do infinite streaming with streaming. Now that's practically of course not the case"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1083.44,
+      "end": 1088.3200000000002,
+      "text": " with Lambda because you still have a 15 minute timeout limit. One of the advantages of using"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1088.3200000000002,
+      "end": 1092.72,
+      "text": " Lambda response streaming though is that you can go over the traditional limit of a six megabyte"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1092.72,
+      "end": 1097.76,
+      "text": " response payload. And now you can stream up to 20 megabytes of data, but that's only a soft limit."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1097.76,
+      "end": 1103.92,
+      "text": " So you can ask for more if you needed to. And that will then allow you to go beyond six megabytes and"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1103.92,
+      "end": 1110.3200000000002,
+      "text": " well beyond that with function URLs or with the direct invocation method. If you're using an API"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1110.32,
+      "end": 1114.8,
+      "text": " gateway, you still have a 10 megabyte limit. So it allows you to get up to 10 megabytes with"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1114.8,
+      "end": 1119.4399999999998,
+      "text": " API gateway, but it's not a massive increase. And if you do go over six megabytes, then you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1119.4399999999998,
+      "end": 1124.72,
+      "text": " start to incur an extra cost. So this is another pricing dimension for Lambda. So it used to be"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1124.72,
+      "end": 1131.4399999999998,
+      "text": " that you only had requests and memory per second to worry about when you were thinking about Lambda."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1131.4399999999998,
+      "end": 1136.32,
+      "text": " Now there's a few more pricing dimensions. So this is a new one and it's just less than a cent"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1136.32,
+      "end": 1141.84,
+      "text": " per gigabyte roughly for anything above the normal six megabyte limit."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1143.4399999999998,
+      "end": 1148.32,
+      "text": " It's also important to realize that there is a maximum bandwidth throughput limit of 16 megabits"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1148.32,
+      "end": 1155.28,
+      "text": " per second, otherwise known as two megabytes a second for streaming functions. So if that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1155.28,
+      "end": 1159.36,
+      "text": " doesn't sound like it really works for your use case, we should probably remind everybody that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1159.36,
+      "end": 1166.32,
+      "text": " there's a couple of other ways to do streaming with Lambda. And if you cast your memory back, you might"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1166.32,
+      "end": 1171.84,
+      "text": " remember that there was an S3 object Lambda feature released a couple of years back. I"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1171.84,
+      "end": 1176.1599999999999,
+      "text": " wrote an article about it at the time and did some example repos, which we can link in the show notes."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1176.1599999999999,
+      "end": 1181.76,
+      "text": " But this is one way to get a streaming response back to user. And this is where you basically"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1182.3999999999999,
+      "end": 1189.12,
+      "text": " intercept something like a get object request to the S3 service. And it will invoke a Lambda"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1189.12,
+      "end": 1193.9199999999998,
+      "text": " function that allow you to intercept the object and pass back some different response. So you can"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1193.9199999999998,
+      "end": 1198.56,
+      "text": " either generate a completely new response or you can mutate the response in some way like convert"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1198.56,
+      "end": 1204.8,
+      "text": " the file format, do some filtering. And this allows you to stream back as well using a different"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1206.1599999999999,
+      "end": 1210.2399999999998,
+      "text": " stream interface. So this is something that might also work for you if you need to do streaming,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1210.2399999999998,
+      "end": 1216.2399999999998,
+      "text": " but it's only based on objects that exist in an S3 bucket. So an object still has to exist."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1216.24,
+      "end": 1222.24,
+      "text": " You could probably hack this a little bit and just have some dummy objects that you use and then use"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1222.24,
+      "end": 1233.52,
+      "text": " the S3 interface to essentially give you a way to get a much longer stream back and then control"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1233.52,
+      "end": 1238.48,
+      "text": " that stream using Lambda function code. And you can even do S3 presigned URLs on top of it as"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1238.48,
+      "end": 1244.16,
+      "text": " well. So there's probably all sorts of cool hacks you could build on top of it. Also worth mentioning"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1244.16,
+      "end": 1247.92,
+      "text": " that you can do WebSockets. So you don't necessarily have to do it in the streaming way."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1247.92,
+      "end": 1254.16,
+      "text": " You can use HTTP, WebSockets, and API Gateway has support for that. The disadvantage being that you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1254.16,
+      "end": 1259.3600000000001,
+      "text": " have to maintain the state yourself. So you generally need a DynamoDB table or something"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1259.3600000000001,
+      "end": 1264.72,
+      "text": " to keep track of all the connections you need to send messages back to. And the other option"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1264.72,
+      "end": 1272.24,
+      "text": " for WebSockets is to use AWS IoT, which is the original way to do a serverless WebSockets on AWS."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1272.24,
+      "end": 1277.1200000000001,
+      "text": " And that way it does the state management for you, but there's a little bit of other complexity"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1277.1200000000001,
+      "end": 1283.76,
+      "text": " around authorization, but it's not too bad. So I think those are all the response streaming topics"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1283.76,
+      "end": 1288.8,
+      "text": " we have. Maybe we could speculate a bit about the future. Do you think we'll get request streaming"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1288.8,
+      "end": 1292.64,
+      "text": " support at some point? And why would we want it? What would it be good for?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1293.92,
+      "end": 1298.96,
+      "text": " That's a good question."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1298.96,
+      "end": 1304.64,
+      "text": " And I think one of the reasons why this conversation comes up is because if you were dealing with kind of a more classic standalone web server in Node.js,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1304.64,
+      "end": 1310.24,
+      "text": " like Express or Fastify or Happy or something like that, almost all of them, they will give"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1310.24,
+      "end": 1314.88,
+      "text": " you this abstraction where the request that is coming in into your handler, it's a stream."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1315.52,
+      "end": 1319.92,
+      "text": " It's a readable stream. So for instance, if you are implementing a piece of functionality"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1319.92,
+      "end": 1325.44,
+      "text": " that receives an upload, you can actually start to consume that information and process it and"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1325.44,
+      "end": 1330.88,
+      "text": " save it somewhere else without having to buffer that entire upload up front and then later on"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1330.88,
+      "end": 1334.4,
+      "text": " push it somewhere else. And this is one of the common limitations when you implement"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1334.4,
+      "end": 1340.72,
+      "text": " APIs in Lambda that is not a great idea to do that with, for instance, for uploading files."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1340.72,
+      "end": 1344.72,
+      "text": " You probably will end up using something like a strict resigned URLs, which by the way,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1344.72,
+      "end": 1348.64,
+      "text": " something else we talked about before, we will have the link in the show notes as well if you're"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1348.64,
+      "end": 1356.24,
+      "text": " curious. So I think once we get now, since we got now the response streaming functionality, it's"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1356.24,
+      "end": 1361.1200000000001,
+      "text": " legit to ask ourselves, are we going to get also requests streaming? So maybe we can support"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1361.1200000000001,
+      "end": 1366.0800000000002,
+      "text": " uploads or other use cases where even the request is streaming, or maybe when you need to send a lot"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1366.0800000000002,
+      "end": 1370.16,
+      "text": " of information to the Lambda and you want the Lambda to start to process that information as"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1370.16,
+      "end": 1376.3200000000002,
+      "text": " soon as possible. Now, I don't really have an answer, of course, we are just speculating here,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1376.32,
+      "end": 1380.96,
+      "text": " but I think this was a couple of years ago, I was curious about the same question. We didn't even"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1380.96,
+      "end": 1385.4399999999998,
+      "text": " have response streaming at the time. And I was just trying to understand how the Lambda runtime"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1385.4399999999998,
+      "end": 1390.48,
+      "text": " was working behind the scenes. And the way I did the research was basically, okay, let me try to"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1390.48,
+      "end": 1396.72,
+      "text": " build a custom runtime myself for Node.js and see if I can make that custom runtime closer to an"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1396.72,
+      "end": 1401.6,
+      "text": " actual web framework in Node.js. So rather than receiving an event and the context, I actually"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1401.6,
+      "end": 1406.56,
+      "text": " wanted to be able in my handler to receive a request object and a response object where the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1406.56,
+      "end": 1410.7199999999998,
+      "text": " request object was a readable stream and the response object was a writable stream, which is"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1411.6,
+      "end": 1416.08,
+      "text": " basically the lower level interface that you get in any web framework, even the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1416.08,
+      "end": 1421.76,
+      "text": " HTTP library that is built in with Node.js. So I was actually able to achieve that in a bit of"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1421.76,
+      "end": 1428.1599999999999,
+      "text": " a hacky way. And the reason why that worked is because the Lambda runtime, when you want to"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1428.16,
+      "end": 1434.48,
+      "text": " build a custom runtime, AWS gives you two HTTP endpoints to work with. The first HTTP endpoint"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1434.48,
+      "end": 1439.2,
+      "text": " is like a polling endpoint where you have to constantly poll from your runtime to see,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1439.2,
+      "end": 1442.3200000000002,
+      "text": " is there a new message there? Is there a new event that I need to handle?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1443.3600000000001,
+      "end": 1448.0800000000002,
+      "text": " And of course, it's an HTTP request. So you can take that as a readable stream and that's"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1448.0800000000002,
+      "end": 1454.24,
+      "text": " basically your input. And then also you get another endpoint, which is basically when you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1454.24,
+      "end": 1460.32,
+      "text": " finish and you have a response, send the response to this HTTP endpoint. So effectively you have"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1460.32,
+      "end": 1464.72,
+      "text": " an HTTP endpoint to read from and an HTTP endpoint where you send the response to,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1464.72,
+      "end": 1470,
+      "text": " and what you have to run in between is your actual handler code. So you could build your own custom"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1470,
+      "end": 1474.48,
+      "text": " handler in any way. You could even call something written in COBOL at that point in between, right?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1474.48,
+      "end": 1478.96,
+      "text": " And this is basically the way you build custom runtimes. So at that point, what I did is basically"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1478.96,
+      "end": 1487.2,
+      "text": " a very thin layer that just call a handler passing the request from the first endpoint and a response"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1487.2,
+      "end": 1491.68,
+      "text": " that is already starting to the second endpoint. And then the handler can basically fill the gap"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1491.68,
+      "end": 1496.32,
+      "text": " by reading from the first endpoint and writing in the second endpoint. Now this is very sketchy and"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1496.32,
+      "end": 1500.72,
+      "text": " barebone and it's probably exposing more that it should need to be exposing because it's actually"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1500.72,
+      "end": 1506.4,
+      "text": " giving the handler full access to requests and responses that are actually part of the runtime."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1506.4,
+      "end": 1511.2800000000002,
+      "text": " So I'm not too sure it's the best way of doing this, but it kind of works and it demonstrates"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1511.2800000000002,
+      "end": 1516,
+      "text": " that the idea makes sense in the context of Node.js, even though there is a big caveat."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1516,
+      "end": 1521.52,
+      "text": " This is assuming that you are streaming end to end, that basically you are not buffering anywhere"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1521.52,
+      "end": 1526.3200000000002,
+      "text": " else outside the runtime, which we know is not the case when, for instance, you integrate"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1526.3200000000002,
+      "end": 1533.0400000000002,
+      "text": " this solution with API Gateway. So we saw that for response streaming, AWS needed to kind of come up"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1533.04,
+      "end": 1537.92,
+      "text": " with different ways and add support for different features to actually make this possible. So even"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1537.92,
+      "end": 1542.8,
+      "text": " though we expect this is possible also for request streaming, I think AWS will also need to kind of"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1542.8,
+      "end": 1549.68,
+      "text": " come up with some new feature that enables that end to end. So we still, yeah, big speculation"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1549.68,
+      "end": 1553.76,
+      "text": " here. We cannot just say for sure that this is going to happen and when it's going to happen"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1553.76,
+      "end": 1558.8,
+      "text": " or how it's going to happen, but we just feel that it's technically possible and it could enable"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1558.8,
+      "end": 1563.44,
+      "text": " some interesting use cases. So hopefully it's something that we will get in the future."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1568.32,
+      "end": 1572.32,
+      "text": " I think we've covered all of the features and benefits and everything with function response streaming so far. So I'd just like to say thanks for joining us for"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1572.32,
+      "end": 1576.32,
+      "text": " this episode of AWS Bites. Again, we hope you enjoyed learning about response streaming and"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1576.32,
+      "end": 1581.44,
+      "text": " how it can benefit your JavaScript, TypeScript, and custom Lambda functions. If you want to learn"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1581.44,
+      "end": 1584.56,
+      "text": " more, check out the links in the show notes and don't forget to subscribe to the podcast if you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1584.56,
+      "end": 1591.28,
+      "text": " haven't already. Hit like, hit the bell and stay tuned for more AWS news and updates."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1591.28,
+      "end": 1615.84,
+      "text": " Thanks for listening and we'll see you next time on AWS Bites."
+    }
+  ]
+}

@@ -1,0 +1,1784 @@
+{
+  "speakers": {
+    "spk_0": "spk_0",
+    "spk_1": "spk_1"
+  },
+  "segments": [
+    {
+      "speakerLabel": "spk_0",
+      "start": 0,
+      "end": 5.2,
+      "text": " When you use more traditional data storage services such as a MySQL or a Postgres database on RDS,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 5.2,
+      "end": 9.36,
+      "text": " or maybe you're using a Redis instance on ElastiCache, it is good practice to provision"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 9.36,
+      "end": 14.08,
+      "text": " these resources in a private subnet. In fact, only your applications running in your private"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 14.08,
+      "end": 18.8,
+      "text": " network should be able to access these sensitive resources. We don't want them to be publicly"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 18.8,
+      "end": 23.84,
+      "text": " accessible on the internet, of course. But what do you do if you want to connect to those resources"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 23.84,
+      "end": 28.32,
+      "text": " from your own desktop machine? Maybe you want to run some Ad-hoc queries on your database,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 28.32,
+      "end": 32.56,
+      "text": " maybe you are investigating a bug and trying to figure out what's going on on the data layer,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 32.56,
+      "end": 36.56,
+      "text": " maybe we simply want to make sure that the data is being persisted correctly because you just"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 36.56,
+      "end": 41.04,
+      "text": " released a new application and you want to control that things are going as expected."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 41.04,
+      "end": 45.120000000000005,
+      "text": " So how can we access a resource that is not reachable from the public internet?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 45.84,
+      "end": 52,
+      "text": " Today we will be talking about Bastion host, sometimes also known as jump boxes or jump servers,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 52.64,
+      "end": 57.44,
+      "text": " and these are basically well-known ways to create a secure bridge that can allow us to access"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 57.44,
+      "end": 60.559999999999995,
+      "text": " these private instances through the public internet when we need to do that."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 61.36,
+      "end": 66.56,
+      "text": " We will also discuss some practical architecture in AWS and the trade-offs of these solutions."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 66.56,
+      "end": 69.92,
+      "text": " We will explore the different approaches you can use to connect to a Bastion host,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 69.92,
+      "end": 76.16,
+      "text": " including plain SSH, EC2 instance connect, and AWS session manager. Finally, we will give you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 76.16,
+      "end": 80.4,
+      "text": " some resources that can help you to create a Bastion host when you need them. My name is"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 80.4,
+      "end": 88.56,
+      "text": " Luciano and today I'm joined by Eoin for another episode of AWS Bites podcast."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 92.24000000000001,
+      "end": 97.60000000000001,
+      "text": " AWS Bites is sponsored by fourTheorem. fourTheorem is an AWS partner for migration, architecture,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 97.60000000000001,
+      "end": 104.32000000000001,
+      "text": " and training. Find out more at fourtheorem.com. The link is in the show notes. So Eoin, should we maybe"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 104.32000000000001,
+      "end": 108.88000000000001,
+      "text": " start introducing this topic by providing an example architecture that we can use to wrap our"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 108.88,
+      "end": 114.56,
+      "text": " minds around? Sure."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 114.56,
+      "end": 120.72,
+      "text": " Why don't we start with an example like a three-tier web application architecture? So you've got load balancer, which is public facing. You might have a web application,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 120.72,
+      "end": 125.67999999999999,
+      "text": " which is running in private subnet, and then you've got a database, relational database,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 125.67999999999999,
+      "end": 130.48,
+      "text": " also running in private subnet. So for security reasons, we want to keep the network, the web"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 130.48,
+      "end": 134.72,
+      "text": " application and the database are running in private networks, and that load balancer is"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 134.72,
+      "end": 139.44,
+      "text": " public. So the subnet where the load balancer is deployed sometimes called a perimeter or DMZ,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 139.44,
+      "end": 144.48,
+      "text": " like a demilitarized zone. And this is like a buffer zone between the internal network and the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 144.48,
+      "end": 150.8,
+      "text": " public network. And it's not possible to reach the internal web application server from the public"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 150.8,
+      "end": 156.32,
+      "text": " internet. So you're reducing the attack surface there, basically. The only way you can access it"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 156.32,
+      "end": 160.72,
+      "text": " is by the very specific routing that's possible from the load balancer to that web server."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 160.72,
+      "end": 164.8,
+      "text": " And equally, it's not possible to reach your database server. You don't want your database"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 164.8,
+      "end": 172.07999999999998,
+      "text": " server publicly exposed for many, many reasons on the public internet. So this is all great"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 172.88,
+      "end": 177.44,
+      "text": " in practice. And when you're running in production until for some reason, you decide you want to"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 177.44,
+      "end": 181.12,
+      "text": " access that database from your local laptop. So either you've got a production instance,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 181.12,
+      "end": 185.52,
+      "text": " or you're just trying to troubleshoot some environment even in the staging environment,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 185.52,
+      "end": 190.4,
+      "text": " which is set up in the same way, or you want to run like a database user interface that"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 190.4,
+      "end": 198.24,
+      "text": " connects over ODBC, for example, to your database. So like while this is a three-tier web application,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 198.24,
+      "end": 203.20000000000002,
+      "text": " we might describe this as a problem that only exists for traditional applications. This kind"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 203.20000000000002,
+      "end": 208.08,
+      "text": " of challenge also comes up with serverless modern applications as well, because you can still have"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 208.08,
+      "end": 213.84,
+      "text": " resources in a private VPC. You might have Lambda functions that access RDS or ElasticHash again,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 213.84,
+      "end": 218.24,
+      "text": " or ElasticSearch, or even an internal load balancer. So in all of those cases,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 218.24,
+      "end": 222.72,
+      "text": " this is the kind of scenario where something like a bastion host can help."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 222.72,
+      "end": 227.44,
+      "text": " So we've said bastion a few times Luciano, what is a bastion host?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 227.44,
+      "end": 232.4,
+      "text": " Yes, I'll try my best to describe that. So it is basically a Vipswan machine."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 232.4,
+      "end": 237.68,
+      "text": " So an instance that you run on AWS in this case, and it kind of works almost like you can imagine it as a bridge"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 237.68,
+      "end": 242.4,
+      "text": " if we want to have the kind of mental model. So you can spin up this at the perimeter, so somewhere"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 242.4,
+      "end": 247.60000000000002,
+      "text": " that is reachable on the public internet, and then you can configure your networking to use that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 247.6,
+      "end": 253.2,
+      "text": " to effectively route connections from public internet, which in this case may be your own laptop,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 253.2,
+      "end": 258.64,
+      "text": " to your database server. So you just put it there in the middle and use it effectively as a jump box."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 258.64,
+      "end": 264.32,
+      "text": " That's why some people like to call it jump box. Now you might be thinking, okay, we are trying to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 264.32,
+      "end": 270.48,
+      "text": " keep our database in a private area because probably the main thinking there is security reasons."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 270.48,
+      "end": 275.12,
+      "text": " If we have a jump box, isn't that a security liability at that point? Like, I mean, we're"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 275.12,
+      "end": 280.88,
+      "text": " re-exposing everything again, right? And that's kind of true. You have to be really careful with"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 280.88,
+      "end": 286.16,
+      "text": " a bastion host or a jump box because if you don't do it correctly, it can become a security liability."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 286.16,
+      "end": 291.04,
+      "text": " So there are some things that are very common that people would do to try to keep it as secure"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 291.04,
+      "end": 296.32,
+      "text": " as possible. Of course, you need to use an up-to-date operative system and have things in"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 296.32,
+      "end": 300.48,
+      "text": " place to always update the operative system every time there is a new security patch available."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 300.48,
+      "end": 306.56,
+      "text": " You need to install only the bare minimum software needed. Traditionally, that's just an SSH server."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 306.56,
+      "end": 312.08000000000004,
+      "text": " You don't need much more than that. And you need to open only the ports that are really needed"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 312.08000000000004,
+      "end": 321.52000000000004,
+      "text": " for accepting connections on that SSH server. And you need to... Basically, if you can limit"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 321.52000000000004,
+      "end": 326.48,
+      "text": " the IP addresses that can connect to that machine, that's even better. Most likely you will want only"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 326.48,
+      "end": 331.12,
+      "text": " your own personal IP, so your own laptop, to be able to connect on that port. So you can create"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 331.12,
+      "end": 336,
+      "text": " a security group that is restrictive. Or maybe if you are using that and sharing it with your own"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 336,
+      "end": 341.76,
+      "text": " office, you can have a list of IPs that are authorized. But the idea there is don't make it"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 341.76,
+      "end": 348.24,
+      "text": " open to any possible IP. Just limit to the ones that you trust. And don't use SSH through password,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 348.24,
+      "end": 354.96000000000004,
+      "text": " but use SSH keys. That's another common best practice. And one more thing is you don't"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 354.96,
+      "end": 359.52,
+      "text": " necessarily need to have desistances running all the time, because we know in AWS you can"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 359.52,
+      "end": 363.68,
+      "text": " spin things up and down when you need them. So it would be nice if you have a process that allows"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 363.68,
+      "end": 368.15999999999997,
+      "text": " you to provision really quickly a bastion host only when you want to do a connection, and then"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 368.15999999999997,
+      "end": 372.24,
+      "text": " tear it down when you don't need it anymore. I think that's an even better security practice,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 372.24,
+      "end": 376.64,
+      "text": " because then you are limiting the exposed surface only for the time when you are actually using it."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 377.76,
+      "end": 382.47999999999996,
+      "text": " And there are other tricks like port knocking, and maybe, oh, and you are more familiar with it,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 382.48,
+      "end": 387.52000000000004,
+      "text": " so you want to mention something about that."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 387.52000000000004,
+      "end": 393.20000000000005,
+      "text": " Port knocking is kind of just an interesting way of, I suppose, implementing a software-based combination lock for this bastion host. So the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 393.20000000000005,
+      "end": 399.52000000000004,
+      "text": " idea with port knocking is that by opening up some special ports on the machine, you don't open"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 399.52000000000004,
+      "end": 405.92,
+      "text": " up SSH port 22 by default, or whatever port you're using. You have some special random ports that"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 405.92,
+      "end": 411.28000000000003,
+      "text": " only you know about. And by opening these ports in a certain sequence, you can have a daemon or"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 411.28,
+      "end": 416.64,
+      "text": " server on the machine which recognizes that you're essentially knocking on the door in the right"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 416.64,
+      "end": 422,
+      "text": " sequence, and it will then enable the SSH socket. So it could use IP tables or something at that"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 422,
+      "end": 428.15999999999997,
+      "text": " point to enable SSH inbound. And there's a number of different implementations of port knocking out"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 428.15999999999997,
+      "end": 434.96,
+      "text": " there that will allow you to not leave SSH open all the time as a bastion host. So it just makes"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 434.96,
+      "end": 438.32,
+      "text": " it more difficult. It's kind of an obscurity mechanism. It makes it more difficult for hackers"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 438.32,
+      "end": 445.68,
+      "text": " to detect that you've got SSH running there. So maybe it's worthwhile just going through how you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 445.68,
+      "end": 450.32,
+      "text": " normally provision a bastion host on AWS. So traditionally, the way you do that is by running"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 450.32,
+      "end": 457.6,
+      "text": " an EC2 instances. You'd usually use a very small one using a recent Linux AMI, and you give it"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 457.6,
+      "end": 462.96,
+      "text": " very minimal capabilities because all you want to be able to do is jump right to your destination"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 462.96,
+      "end": 467.28,
+      "text": " on the target VPC. And you will have to generate an SSH key pair for that machine. And this is"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 467.28,
+      "end": 471.76,
+      "text": " where it gets a little bit challenging because if you've got key pairs that are long lived, then you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 471.76,
+      "end": 477.11999999999995,
+      "text": " know you've already got a security problem because you've got issues with retention of those and also"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 477.11999999999995,
+      "end": 482.96,
+      "text": " people who have access to those when they shouldn't have. Then you configure the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 482.96,
+      "end": 488.15999999999997,
+      "text": " security groups of that instance to accept traffic only on that SSH port. And you would"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 488.15999999999997,
+      "end": 492.47999999999996,
+      "text": " also make sure that the instance gets a public IP and is reachable from the internet. So you might"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 492.47999999999996,
+      "end": 496.32,
+      "text": " have to update your routing tables and add internet gateway and all that kind of stuff."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 496.32,
+      "end": 501.44,
+      "text": " You also should make sure that the security group on your database can accept connections"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 501.44,
+      "end": 506.24,
+      "text": " from this bastion host. And then you should be able to connect to this instance using SSH and"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 506.24,
+      "end": 510.32,
+      "text": " create a tunnel to your database. So you could open a shell on the bastion and then go to your"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 510.32,
+      "end": 515.84,
+      "text": " database, or you can tunnel. We might talk about that in a bit. If people aren't really familiar"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 515.84,
+      "end": 521.52,
+      "text": " with SSH, many people would have seen it, but maybe not used it that much. It stands for secure shell"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 521.52,
+      "end": 528.8,
+      "text": " and it's a common tool that's existed since 1995. OpenSSH is pretty widespread implementation."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 528.8,
+      "end": 532.0799999999999,
+      "text": " It allows you to manage a shell session in a remote machine and also to create tunnels."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 533.52,
+      "end": 541.28,
+      "text": " If you've used GitHub and you've had a repository of your own and you've pushed code to it,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 541.28,
+      "end": 545.76,
+      "text": " you've probably used SSH at some point, especially if you don't want to manage passwords all the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 545.76,
+      "end": 550.64,
+      "text": " time. So you can have a server application running on the machine you're connecting to,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 550.64,
+      "end": 555.68,
+      "text": " and you also need a client application. So OpenSSH is generally available on most platforms these"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 555.68,
+      "end": 560.96,
+      "text": " days, including Windows, but you often see people using PuTTY on Windows as well. And it supports"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 560.96,
+      "end": 564.64,
+      "text": " lots of different types of authentication. We mentioned username and password, but public and"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 564.64,
+      "end": 570.48,
+      "text": " private keys with various levels of encryption are also possible. So that's SSH. And one of the cool"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 570.48,
+      "end": 576.24,
+      "text": " things about SSH is its ability to tunnel. So Luciano, what the heck is a tunnel?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 576.24,
+      "end": 582.32,
+      "text": " Yeah, so a tunnel is also something that sometimes is referred to as SSH port forwarding. So the idea is that you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 582.32,
+      "end": 589.44,
+      "text": " can create a secure connection between, let's say, your own local machine and a destination machine"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 589.44,
+      "end": 595.76,
+      "text": " using this kind of jump box. And the idea is in your own local machine, you will expose that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 595.76,
+      "end": 601.84,
+      "text": " connection in a local port. So then you can connect to that remote endpoint by just using"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 601.84,
+      "end": 606.5600000000001,
+      "text": " localhost and whatever is the port that you selected locally. So basically the idea is that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 606.5600000000001,
+      "end": 612.48,
+      "text": " through SSH you create this channel, this channel is encrypted, and it's exposed somehow locally,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 612.48,
+      "end": 616.8000000000001,
+      "text": " and all the bytes that you send to this local port will be forwarded to the destination system,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 616.8000000000001,
+      "end": 622,
+      "text": " so maybe the database running on RDS in a private subnet. And of course all the data coming back"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 622,
+      "end": 627.44,
+      "text": " from RDS will be channeled through your own local port, so you can also read and write all this"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 627.44,
+      "end": 632.96,
+      "text": " stream of bytes this way. So it's effectively a secure way to create a channel on the public"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 632.96,
+      "end": 637.7600000000001,
+      "text": " internet when you need to do something like that, and you want to make sure it's stable because it's"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 637.7600000000001,
+      "end": 642.96,
+      "text": " through TCP and it's encrypted, so it's not going to leak any information along the way."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 644.8000000000001,
+      "end": 653.12,
+      "text": " So you also mentioned that managing SSH keys is a security risk, so is there any alternative?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 653.12,
+      "end": 655.7600000000001,
+      "text": " Like if you don't want to take this security risk, what can you possibly do?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 655.76,
+      "end": 661.84,
+      "text": " Yeah, once you have long-lived keys we know that's an issue."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 661.84,
+      "end": 666.08,
+      "text": " When we talk about IAM access keys, it's the same problem. Where do you store them? Who has access to them? Or how do you revoke them?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 667.6,
+      "end": 671.52,
+      "text": " But also another challenge is that with SSH you also have to figure out how do you collect logs"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 671.52,
+      "end": 675.84,
+      "text": " and maintain audit trail of access and commands executed. That's quite common for various"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 675.84,
+      "end": 681.76,
+      "text": " compliance and governance scenarios. So there are a couple of ways in AWS that make this a bit"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 681.76,
+      "end": 688.56,
+      "text": " easier. The first one, which is maybe less common, is EC2 instance connect, and that gives you a way"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 688.56,
+      "end": 694.56,
+      "text": " to have short-lived native SSH connections with short-lived keys. So it works with Amazon Linux"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 694.56,
+      "end": 699.52,
+      "text": " 2 and I presume the newer versions as well, and also Ubuntu AMIs. It doesn't work with other"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 699.52,
+      "end": 706.48,
+      "text": " distros and OSs. If you want to install it on older versions you'll have to yum install EC2"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 706.48,
+      "end": 711.36,
+      "text": " instance connect, and then at that point you need to make sure that the principal has a policy that"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 711.36,
+      "end": 717.76,
+      "text": " authorizes this special action which is EC2 instance connect send SSH publish key. There will"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 717.76,
+      "end": 722.32,
+      "text": " be a link in the show notes with examples and everything you need to do to get up and running"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 722.32,
+      "end": 726.72,
+      "text": " with this. When you use this it basically means that when you want to initialize a new connection"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 726.72,
+      "end": 733.28,
+      "text": " a new SSH key pair is generated on the fly. The public part of it is pushed into the EC2 updating"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 733.28,
+      "end": 737.84,
+      "text": " the SSH server configuration and the private part is kept local and used to authenticate the new"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 737.84,
+      "end": 742.5600000000001,
+      "text": " connection. Then the public key is removed from the server after 60 seconds so you don't have to"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 742.5600000000001,
+      "end": 747.6800000000001,
+      "text": " so you have to have establish your connection within that time frame. And then once you do that"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 747.6800000000001,
+      "end": 752.8000000000001,
+      "text": " you can connect from the browser from the EC2 instance console and also with the AWS CLI."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 755.2800000000001,
+      "end": 760,
+      "text": " If you do use the CLI then you have to regenerate the key pair yourself and run the SSH"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 760,
+      "end": 764.96,
+      "text": " connection command. So the fact that it's using SSH means that the instance still needs to have"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 764.96,
+      "end": 771.52,
+      "text": " SSH installed and the SSH port has to be reachable and if you don't want your SSH port reachable from"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 771.52,
+      "end": 776.8000000000001,
+      "text": " any public IP you can actually download the list of AWS public IPs and look for the ones associated"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 776.8000000000001,
+      "end": 781.36,
+      "text": " to EC2 instance connect. So there's a bit of work involved in that but the link for the AP range"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 781.36,
+      "end": 786.48,
+      "text": " will also be in the show notes. So that's EC2 instance connect and that uses SSH so it might"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 786.48,
+      "end": 790.88,
+      "text": " be a bit more familiar to people how that works. The other one which I think I've used a lot more"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 790.88,
+      "end": 796.48,
+      "text": " often and is much more exciting in my view is Session Manager and it's a bit more advanced and"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 796.48,
+      "end": 801.36,
+      "text": " a broader solution. It works on Linux and it works on Windows and it even works on premises and on"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 801.36,
+      "end": 808.48,
+      "text": " edge devices like IoT Greengrass. And Session Manager what it does is it provides this a whole"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 808.48,
+      "end": 814.16,
+      "text": " suite of things so it's not just connecting but it provides like auditable node management without"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 814.16,
+      "end": 820.16,
+      "text": " the need to have sockets open and have SSH keys and all of that and you're just relying on IAM"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 820.16,
+      "end": 826.8,
+      "text": " for authorization for everything. So you don't have to run any ports no SSH no RDP the only thing you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 826.8,
+      "end": 833.6,
+      "text": " need to have for your EC2 instances is to have the AWS Session Manager agent installed. So this"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 833.6,
+      "end": 838.7199999999999,
+      "text": " is an agent-based approach and once you have it all set up you can create a connection from either"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 838.7199999999999,
+      "end": 846.3199999999999,
+      "text": " a web browser or from the AWS CLI. All of the commands you issue can be logged then and made"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 846.32,
+      "end": 852.4000000000001,
+      "text": " available in an S3 bucket or in cloud which logs for auditing purposes. The connection creation is"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 852.4000000000001,
+      "end": 858.48,
+      "text": " also logged in CloudTrail as well. So you need because it's IAM based you need to make sure"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 858.48,
+      "end": 864.4000000000001,
+      "text": " that the instance profile your EC2 instance is running has specific permissions there's a managed"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 864.4000000000001,
+      "end": 869.5200000000001,
+      "text": " policy for that and you can also put in the permissions yourself. There's actually three"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 869.5200000000001,
+      "end": 874.72,
+      "text": " kind of resources you need to deal with so you'll see it when you put in your actions in the IAM"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 874.72,
+      "end": 884.4,
+      "text": " policy you've got SSM for systems manager EC2 messages and SSM messages so you actually have"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 884.4,
+      "end": 890.64,
+      "text": " three namespaces in your actions that you need to use so it's actually if you if you look at the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 890.64,
+      "end": 895.52,
+      "text": " traffic it's actually talking to three different hosts in the background and once you have that"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 895.52,
+      "end": 900.32,
+      "text": " set up you can actually create SSH tunnels through Session Manager sessions as well so all of the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 900.32,
+      "end": 905.2800000000001,
+      "text": " stuff we talked about with SSH port forwarding can also work over Session Manager as well."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 906.5600000000001,
+      "end": 912.08,
+      "text": " So it might seem like okay how does this work it doesn't use like normal TCP stuff it just uses"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 912.08,
+      "end": 917.9200000000001,
+      "text": " IAM and AWS actions what kind of black magic is this how does it work in practice do you have any"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 917.9200000000001,
+      "end": 924.8000000000001,
+      "text": " idea?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 924.8,
+      "end": 930.8,
+      "text": " Yeah so that's something actually that a few years ago I was trying to do something similar and I bumped into this tool called Inlets and I got curious about like what is the black magic when"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 930.8,
+      "end": 935.5999999999999,
+      "text": " like you you don't have any inbound connection because you cannot literally reach that machine"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 935.5999999999999,
+      "end": 940.64,
+      "text": " from the outside how is it possible that you still can create a channel and connect to that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 940.64,
+      "end": 945.3599999999999,
+      "text": " machine when you set up this kind of thing so there is some kind of networking trick there"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 945.3599999999999,
+      "end": 950.16,
+      "text": " that I need to figure it out to really understand how is this possible so I investigated this Inlets"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 950.16,
+      "end": 956.24,
+      "text": " project it's an open source project you can check out on GitHub we'll have the link in the show"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 956.24,
+      "end": 961.4399999999999,
+      "text": " notes and I tried to figure out how it works and in practice what it does it's something really"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 961.4399999999999,
+      "end": 966.4,
+      "text": " clever but also later on I figured out it's really common it's something that's been used for a while"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 966.4,
+      "end": 971.4399999999999,
+      "text": " and even when you use tools like ngrok they do something similar right to expose your own laptop"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 971.4399999999999,
+      "end": 975.8399999999999,
+      "text": " to the rest of the world if you want to showcase as like a website you are running locally and the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 975.84,
+      "end": 980.24,
+      "text": " idea is that basically you don't accept any connection from the outside like starting from"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 980.24,
+      "end": 984.8000000000001,
+      "text": " the outside but you can start a connection from your own blockchain machine to the outside world"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 984.8000000000001,
+      "end": 990,
+      "text": " and then create a channel that way and then on that channel you can basically keep sending bytes"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 990,
+      "end": 995.12,
+      "text": " so the trick is that you have to do the opposite you have to initialize a connection from the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 995.12,
+      "end": 1000,
+      "text": " machine that is in the private subnet and then with that connection you can start to accept"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1000,
+      "end": 1006.08,
+      "text": " traffic but that means that the machine in the private network needs to initialize the connection"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1006.08,
+      "end": 1011.2,
+      "text": " with some instance that has the capability to receive traffic from the public internet so you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1011.2,
+      "end": 1017.6,
+      "text": " have to have this kind of let's call it a service that runs somewhere in the public internet and"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1017.6,
+      "end": 1022.96,
+      "text": " your local machine is connected to that service and this intermediate public service is the one"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1022.96,
+      "end": 1028.16,
+      "text": " that receives connection from the outer world and then creates this kind of tunnel so in the case of"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1028.16,
+      "end": 1034.48,
+      "text": " um ssm this is the way works because even if you expect the traffic on your machine you will see"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1034.48,
+      "end": 1040.8000000000002,
+      "text": " this machine reaching out to a domain that starts with ec2 messages dot something aws so definitely"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1040.8000000000002,
+      "end": 1046.48,
+      "text": " they are creating a tunnel this way by initializing a connection from inside the machine itself and in"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1046.48,
+      "end": 1052.24,
+      "text": " the case of aws of course they can use all the aws ecosystem they can use iam as you mentioned owen"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1052.24,
+      "end": 1057.28,
+      "text": " and make sure that you are authorizing all the kind of connection to happen and at that point"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1057.28,
+      "end": 1062.56,
+      "text": " you basically have effective with this service being aware of all the connections that are"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1062.56,
+      "end": 1068.3999999999999,
+      "text": " established and you can also use that in ssm to track keep track of all the instances that you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1068.3999999999999,
+      "end": 1073.28,
+      "text": " are running to distribute patches to all these instances to see the health check and basically"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1073.92,
+      "end": 1078.08,
+      "text": " it becomes kind of an overlay network that allows you to keep track of all the instances you are"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1078.08,
+      "end": 1084.8799999999999,
+      "text": " running and manage them so i suppose that kind of brings another question if this is such a generic"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1084.88,
+      "end": 1090,
+      "text": " solution to solve this kind of problem of exposing private resources in the public internet is this"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1096.16,
+      "end": 1102.24,
+      "text": " something that we can use only for ec2 or can we use it in and outside ec2 yeah well you there's probably a clue you've given already because we've said it's an open source agent so and that all it"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1102.24,
+      "end": 1107.6000000000001,
+      "text": " needs is you know a connection to aws services like ec2 messages ssm messages and then you can"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1107.6000000000001,
+      "end": 1112.4,
+      "text": " probably imagine that it probably works in other environments and that's the case so it works on"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1112.4,
+      "end": 1117.52,
+      "text": " ecs as well so you can get it working on ecs containers and fargate containers as well and"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1117.52,
+      "end": 1123.52,
+      "text": " then not just shell into the host machine but actually into the containers as well and that"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1123.52,
+      "end": 1128.48,
+      "text": " feature has a different name it's called ecs exec in that context and it has a slightly different"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1128.48,
+      "end": 1134.3200000000002,
+      "text": " interface but it's still just ssm session manager you always need to enable these things in advance"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1134.3200000000002,
+      "end": 1138.48,
+      "text": " so if you need to troubleshoot and you haven't set this up in advance you're kind of out of luck or"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1138.48,
+      "end": 1143.28,
+      "text": " you have to go back and make sure these things are turned on so you have to enable ecs exec in"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1143.28,
+      "end": 1148.16,
+      "text": " your fargate service and you'll also make sure you need those iam permissions now fargate doesn't"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1148.16,
+      "end": 1152.64,
+      "text": " need all the permissions that ec2 needs because again its host is managed so you just need to"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1152.64,
+      "end": 1158.96,
+      "text": " make sure you can do a certain number of ssm message actions from your task role in fargate"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1158.96,
+      "end": 1163.76,
+      "text": " and then it can access ssm and then you can shell into containers to debug and troubleshoot and all"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1163.76,
+      "end": 1170.32,
+      "text": " sorts of good stuff actually you can also run it outside of aws as well so that means you can run"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1170.32,
+      "end": 1176.16,
+      "text": " if you've got instances on premises or if you've got hosts on other cloud providers or even on"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1176.16,
+      "end": 1182.8,
+      "text": " embedded devices you can register these as managed instances in ssm and you can run the ssm agent on"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1182.8,
+      "end": 1188.08,
+      "text": " these hosts there's a special kind of sequence you need to do to activate and register these just to"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1188.08,
+      "end": 1192.48,
+      "text": " set up your security you have like an activation code and then you register the instance and then"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1192.48,
+      "end": 1199.84,
+      "text": " it assumes an iam role from this instance and it can run ssm agent and then you can connect via"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1199.84,
+      "end": 1206.56,
+      "text": " the aws console into your even your own laptop for example if you run the ssm agent on that there is"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1206.56,
+      "end": 1210.16,
+      "text": " a cost actually associated with running that just because it's your machine once you're running ssm"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1210.16,
+      "end": 1216.08,
+      "text": " agent on it there is a certain cost and you also need to invent enable a special advanced tier of"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1216.08,
+      "end": 1221.28,
+      "text": " ssm to do all of that but you can imagine that if you're using ssm for some of the other things"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1221.28,
+      "end": 1226.8,
+      "text": " not just ssh and bastion kind of stuff but you're using run command to be able to run the same"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1226.8,
+      "end": 1232.72,
+      "text": " command or a set of commands like documents across a fleet of machines that this becomes useful or"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1232.72,
+      "end": 1236.8799999999999,
+      "text": " if you're using patch manager to apply patches to thousands of machines including on-premises"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1242.72,
+      "end": 1248.08,
+      "text": " machines then this could be an advantage yeah so you are definitely settling session manager as the solution you would want to use if you are thinking to set up a bastion host but we also"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1248.08,
+      "end": 1252.8799999999999,
+      "text": " saw that it's not trivial like there are a bunch of steps involved and you need to do many things"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1252.8799999999999,
+      "end": 1259.28,
+      "text": " right for that to work it's not just like one click and everything works so when we were"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1259.28,
+      "end": 1263.84,
+      "text": " reviewing the notes for this episode we were thinking is there any tool that would help you to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1263.84,
+      "end": 1268.96,
+      "text": " do all these things right and we discovered this tool open source tool called basti by bodan"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1268.96,
+      "end": 1275.4399999999998,
+      "text": " patricine i hope i'm pronouncing the name correctly and what basti does is basically a cli tool"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1275.44,
+      "end": 1280.72,
+      "text": " that allows you to provision a bastion host in the simplest possible way so it tries to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1280.72,
+      "end": 1285.04,
+      "text": " to reduce the amount of knowledge that you need to have to basically be able to provision"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1285.04,
+      "end": 1291.6000000000001,
+      "text": " a bastion host and also create a tunnel for an rds instance or for an elastic hash instance"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1292.4,
+      "end": 1298.48,
+      "text": " and the way works is it's basically a tool written in node js so you can easily install it with npm"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1298.48,
+      "end": 1303.28,
+      "text": " install global and then the first thing that you can do once you have it installed is run the cli"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1303.28,
+      "end": 1309.76,
+      "text": " with the command basti init and what init does it will start a guided procedure so on the cli"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1309.76,
+      "end": 1314.8799999999999,
+      "text": " it will ask you for a bunch of questions for instance it's gonna list all your rds databases"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1314.8799999999999,
+      "end": 1319.12,
+      "text": " and tell you which one do you want to connect to and based on that choice it will figure out"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1319.12,
+      "end": 1325.6,
+      "text": " in which vpc is that instance running and it will let you select a subnet that where the instance"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1325.6,
+      "end": 1330.48,
+      "text": " is going to be provisioned also that instance is going to be provisioned with the right policies"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1330.48,
+      "end": 1335.6,
+      "text": " and it's going to create the right security groups so that you can do all the connection using ssm"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1335.6,
+      "end": 1339.6,
+      "text": " and at that point what you can do when you have everything provisioned you can run a second command"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1339.6,
+      "end": 1345.2,
+      "text": " called basti connect and basti connect effectively is the part that connects to the instance that you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1345.2,
+      "end": 1349.04,
+      "text": " just provisioned and creates a tunnel on your local machine so the only thing that you need"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1349.04,
+      "end": 1354.96,
+      "text": " to do at that point is select a local port and then you can basically use localhost on that port"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1354.96,
+      "end": 1360.96,
+      "text": " to connect with i don't know another cli or maybe using a graphic client whatever you want to use to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1360.96,
+      "end": 1367.2,
+      "text": " connect to your database now i did try to use this tool and i was very pleased with the developer"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1367.2,
+      "end": 1371.76,
+      "text": " experience like using it seemed very simple i didn't even have to think much about what i was"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1371.76,
+      "end": 1376.96,
+      "text": " doing but unfortunately it didn't work the first time and this is definitely my fault because i did"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1376.96,
+      "end": 1383.28,
+      "text": " two very dumb mistakes that basti cannot really protect you against and the first mistake was"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1383.28,
+      "end": 1389.2,
+      "text": " that i selected a private subnet rather than a public one so basically my instance didn't have"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1389.2,
+      "end": 1395.36,
+      "text": " didn't have any connection from from the public internet and of course i fixed the problem still"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1395.36,
+      "end": 1401.92,
+      "text": " didn't work and then i realized looking at the security group of my rds instance that i didn't"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1401.92,
+      "end": 1407.68,
+      "text": " configure that security group to accept traffic from instances running on the public subnet i was"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1407.68,
+      "end": 1412.24,
+      "text": " accepted traffic only from instances running on the private subnet so i also needed to fix that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1412.24,
+      "end": 1418.4,
+      "text": " and at that point basti connect worked straight away and i was able to connect with my graphic"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1418.4,
+      "end": 1423.84,
+      "text": " client to the database and inspect the data another interesting thing that is worth mentioning"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1423.84,
+      "end": 1429.44,
+      "text": " about bast is that it tries to keep the costs down even though it's running a very small machine so"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1429.44,
+      "end": 1434.48,
+      "text": " the cost would be minimal anyway what it tries to do is it's something very clever what they do is"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1434.48,
+      "end": 1440.88,
+      "text": " while you run the basti connect command they keep tagging your instance with like a timestamp"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1440.88,
+      "end": 1445.6000000000001,
+      "text": " and then there is a cron job running on the instance itself that basically scan the instance"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1445.6000000000001,
+      "end": 1452.8000000000002,
+      "text": " tags and if you have been running well if the latest tag was older than a certain threshold"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1452.8000000000002,
+      "end": 1458,
+      "text": " they will automatically shut down the instance which reduces the cost a bit more and also it's"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1458,
+      "end": 1463.0400000000002,
+      "text": " it makes it more secure because you are not always running that instance all the time but you run it"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1463.0400000000002,
+      "end": 1467.7600000000002,
+      "text": " only when you need it so that's a really clever trick that they they figure it out and i was"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1467.76,
+      "end": 1473.84,
+      "text": " really pleased to to look at the code and see how they implemented that and yeah so definitely check"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1473.84,
+      "end": 1478.4,
+      "text": " out basti and let us know if you like it as well and maybe if you are into open sources and other"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1478.4,
+      "end": 1485.52,
+      "text": " projects worth contributing to but are there alternatives to bastionost in general yeah since"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1490.8799999999999,
+      "end": 1496.4,
+      "text": " you already mentioned inlets you might want to look at other kind of similar tools in that realm tail scale is one that i use quite a lot for not necessarily for like production deployments on"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1496.4,
+      "end": 1503.1200000000001,
+      "text": " AWS but between my own machines and hosts and you can even connect from your phone to your host or"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1503.1200000000001,
+      "end": 1509.3600000000001,
+      "text": " i actually use this sometimes when i'm building docker images on x86 hosts and i don't want to do"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1509.3600000000001,
+      "end": 1516.5600000000002,
+      "text": " it on my mac and cross compile i'm using a remote docker host and i can use tail scale to do all the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1516.5600000000002,
+      "end": 1520.72,
+      "text": " tunneling for that it's really nice has a really good user interface and manages all your devices"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1520.72,
+      "end": 1527.44,
+      "text": " that's built on top of a technology called wire guard which is more or less a vpn solution you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1527.44,
+      "end": 1533.28,
+      "text": " could also use a more traditional vpn like open vpn or you on aws you could use like a client vpn"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1533.28,
+      "end": 1540.72,
+      "text": " system so those are other ways of securing access to environments you could also like really just"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1540.72,
+      "end": 1544.88,
+      "text": " do a basic solution if you wanted to access something like elastiCache rds you could create"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1544.88,
+      "end": 1549.3600000000001,
+      "text": " a lambda function that accepts custom commands and executes them i know that's not a problem"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1549.36,
+      "end": 1555.1999999999998,
+      "text": " but executes them i know that's something i've seen in the past for very simple access scenarios"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1555.1999999999998,
+      "end": 1558.9599999999998,
+      "text": " but really it's not that i don't think it's really worth the investment and i would recommend that"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1558.9599999999998,
+      "end": 1563.9199999999998,
+      "text": " people go with something like an ssn based solution and set that up in your developer"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1563.9199999999998,
+      "end": 1568.1599999999999,
+      "text": " staging production environments from the get-go makes it a lot easier in the long run you wouldn't"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1568.1599999999999,
+      "end": 1572.3999999999999,
+      "text": " be able to run a graphical client or have proper open sockets through a lambda function of course"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1578.56,
+      "end": 1584.72,
+      "text": " it's still it's a simple solution for very simple tasks yeah i'm definitely guilty of implementing the solution many times and i think just because i i always found until now recently that provisioning"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1584.72,
+      "end": 1589.84,
+      "text": " abastionos the right way was more complicated than i wanted it to be the moment where i needed it but"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1589.84,
+      "end": 1595.6799999999998,
+      "text": " hopefully with all the research we did in this episode and trying all these different tools now"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1595.6799999999998,
+      "end": 1600.72,
+      "text": " it is much easier and i won't need to go for a lambda anymore to satisfy this kind of use cases"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1601.52,
+      "end": 1605.9199999999998,
+      "text": " so i think that's everything we have for today i hope you enjoyed this episode if you did please"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1605.92,
+      "end": 1610.8000000000002,
+      "text": " remember to like this on youtube and subscribe and if you have listened to the audio podcast please"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1610.8000000000002,
+      "end": 1615.68,
+      "text": " leave us a review and if you have any comment if you have been using other solutions that maybe we"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1615.68,
+      "end": 1620.16,
+      "text": " didn't mention please let us know because of course we'd like to hear from you and we'd like"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1620.16,
+      "end": 1624.48,
+      "text": " to learn from you and then share this learnings with other people so thank you very much and we'll"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1624.48,
+      "end": 1642.32,
+      "text": " see you in the next episode"
+    }
+  ]
+}

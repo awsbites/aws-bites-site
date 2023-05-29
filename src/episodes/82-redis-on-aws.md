@@ -27,3 +27,4 @@ In this episode, we mentioned the following resources:
 - [Elasticache](https://aws.amazon.com/elasticache/)
 - [Upstash](https://upstash.com/)
 - [Momento](https://www.gomomento.com/)
+- [The story of Antirez and Redis](https://blog.brachiosoft.com/redis-en)

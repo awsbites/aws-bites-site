@@ -1,0 +1,1418 @@
+{
+  "speakers": {
+    "spk_0": "spk_0",
+    "spk_1": "spk_1"
+  },
+  "segments": [
+    {
+      "speakerLabel": "spk_0",
+      "start": 0,
+      "end": 3.52,
+      "text": " Zero trust is the major security trend of the last five years."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 3.52,
+      "end": 6.08,
+      "text": " These days, it feels like everything is public and more open,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 6.08,
+      "end": 8.32,
+      "text": " but you have to authenticate every connection."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 8.32,
+      "end": 12.48,
+      "text": " In this episode, we're going to delve into the topic of virtual private cloud or VPCs"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 12.48,
+      "end": 16.72,
+      "text": " and whether they should be avoided or not as we evolve to this zero trust future."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 16.72,
+      "end": 21.12,
+      "text": " If you stick until the end, we'll share our strategy for when to use and when not to use them."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 21.12,
+      "end": 32.88,
+      "text": " I'm Eoin and I'm here with Luciano and this is AWS Bites."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 32.88,
+      "end": 37.760000000000005,
+      "text": " AWS Bites is sponsored by Forthereum, an advanced AWS consulting partner that works together with"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 37.760000000000005,
+      "end": 43.2,
+      "text": " you on architecture, migration and cost optimization. Find out more at forthereum.com."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 43.2,
+      "end": 49.44,
+      "text": " You'll find the link in the show notes. Zero trust is a concept that moves away from relying on"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 49.44,
+      "end": 53.28,
+      "text": " strong network controls alone to strong authorization,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 53.28,
+      "end": 56.8,
+      "text": " fine grained access control and generally fewer network restrictions."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 57.92,
+      "end": 62.239999999999995,
+      "text": " AWS credentials and IAM are a good example of this since you can access these resources"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 62.239999999999995,
+      "end": 66.96,
+      "text": " over the internet even though they might be very powerful, very private and require strong security."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 66.96,
+      "end": 72.8,
+      "text": " But instead of enforcing network controls, AWS provides AWS v4 signatures for every API call"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 72.8,
+      "end": 78.08,
+      "text": " and very fine grained policies with IAM and continuous monitoring and detection on top of that."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 78.08,
+      "end": 83.6,
+      "text": " Even if you've ever built an API with JWT or JWT tokens for authorization of a publicly"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 83.6,
+      "end": 86.72,
+      "text": " accessible API, this can also be part of a zero trust approach."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 87.6,
+      "end": 91.84,
+      "text": " So this is all very practical in the context when an ever increasing number of corporate"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 91.84,
+      "end": 96.88,
+      "text": " environments would be comprised of cloud deployments and on-premises systems and third"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 96.88,
+      "end": 100.8,
+      "text": " party SaaS applications. There's just too much corporate footprint now living outside the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 100.8,
+      "end": 105.36,
+      "text": " boundaries of the private corporate network. So you might be wondering what does this mean"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 105.36,
+      "end": 112.96,
+      "text": " for architecting systems on AWS? Do we still need VPCs? What's the story? Where are they relevant?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 112.96,
+      "end": 117.6,
+      "text": " Are they overly complex? Luciano, do you want to start off talking about what is a VPC first of"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 117.6,
+      "end": 122.56,
+      "text": " all? What does it mean for architects or developers working on AWS?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 122.56,
+      "end": 128.56,
+      "text": " Yeah, I think it's a good idea to start by defining what is a VPC. And in the context of Amazon, VPC means virtual private"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 128.56,
+      "end": 133.68,
+      "text": " cloud and the idea is that you are defining a network but in software. So you're not just"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 133.68,
+      "end": 140.8,
+      "text": " connecting cables around, I don't know, somewhere in your storage place but no, you are actually"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 140.8,
+      "end": 146.56,
+      "text": " doing all of that remotely and you are configuring a virtual network. But it's not too different from"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 146.56,
+      "end": 151.44,
+      "text": " like a real network that you might have seen in a data center or somewhere else. The idea is that"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 151.44,
+      "end": 156.8,
+      "text": " it's something that is logically isolated even if it lives in the cloud together with all the other"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 156.8,
+      "end": 162.88,
+      "text": " accounts that live in AWS, it is isolated from all the others. So you need to define that and"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 162.88,
+      "end": 167.6,
+      "text": " configure it so that you can start launching AWS resources in that particular virtual network."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 168.56,
+      "end": 176.64,
+      "text": " And we can imagine that, again, it's like you build your own network so that you can start"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 177.2,
+      "end": 181.2,
+      "text": " connecting things and provide services to whoever needs to be able to access those services,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 181.2,
+      "end": 186.64,
+      "text": " except you're doing all of that in the cloud. And when you start creating your own VPC,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 186.64,
+      "end": 190.88,
+      "text": " what you can do is you can manage a range of different IP addresses and these are private"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 190.88,
+      "end": 196,
+      "text": " IP addresses. You can define subnets and place them in different availability zones."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 196.64,
+      "end": 202.48,
+      "text": " You can define your own internal routing rules, inbound and outbound traffic. You can use internet"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 202.48,
+      "end": 210,
+      "text": " gateways and NAT distances to basically define whether that network needs to have public internet"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 210,
+      "end": 214.88,
+      "text": " access or it needs to be able to reach out to public IPs that live somewhere else in other"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 214.88,
+      "end": 219.92,
+      "text": " networks in the public internet. And you can also do things that are a little bit more advanced."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 219.92,
+      "end": 224.79999999999998,
+      "text": " For instance, you could be connecting different VPCs together using a feature called VPC peering"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 224.79999999999998,
+      "end": 229.83999999999997,
+      "text": " or using something like Transit Gateway. And finally, other things that you could be doing,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 229.83999999999997,
+      "end": 236.23999999999998,
+      "text": " for instance, you could be provisioning VPN access so that you could be able to join that VPC,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 236.23999999999998,
+      "end": 241.04,
+      "text": " for instance, from your own laptop, development laptop, and access resources that way."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 241.04,
+      "end": 246.07999999999998,
+      "text": " Or alternative things that you could be doing is you could be provisioning Bastion host."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 246.08,
+      "end": 249.52,
+      "text": " So there are different things that as soon as you start to think in terms of creating"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 249.52,
+      "end": 254.64000000000001,
+      "text": " a virtual private network, you need to think about, define, architect, and then start to"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 254.64000000000001,
+      "end": 261.04,
+      "text": " actually provision in AWS. So I suppose with that introduction, which I hope was good enough,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 261.04,
+      "end": 265.84000000000003,
+      "text": " when do we want to use VPCs?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 265.84000000000003,
+      "end": 271.12,
+      "text": " Well, historically creating a VPC was like the starting point for pretty much every new cloud project on AWS. You needed to configure the place where you put all"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 271.12,
+      "end": 275.6,
+      "text": " this cloud infrastructure before you can start provisioning anything. And the rise of service"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 275.6,
+      "end": 281.12,
+      "text": " and to manage serverless has changed this in a lot of different ways, effectively kind of making it"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 281.12,
+      "end": 286.48,
+      "text": " easier for developers and architects to adopt cloud services without needing to think about"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 286.48,
+      "end": 290.56,
+      "text": " networking, because it's all just part of AWS's managed network and you don't have to worry too"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 290.56,
+      "end": 296,
+      "text": " much about IP addresses or routing or security groups. You're just relying on those kind of"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 296,
+      "end": 300.88,
+      "text": " zero trust pieces like the IAM policies and roles and service linked roles and all that kind of"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 300.88,
+      "end": 306.56,
+      "text": " stuff. So why do we still need VPCs then? Well, VPCs can still be incredibly useful when dealing"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 306.56,
+      "end": 311.84,
+      "text": " with sensitive data or when you have the need to have fine grained control over the network"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 311.84,
+      "end": 315.84,
+      "text": " environment. They can also be used to provide a secure connection between your on-premises"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 315.84,
+      "end": 322.71999999999997,
+      "text": " infrastructure or another cloud and AWS resources. So they're not only useful for non-serverless"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 322.71999999999997,
+      "end": 326.71999999999997,
+      "text": " applications, I would say, but they can be used in serverless applications as well. So"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 326.72,
+      "end": 333.04,
+      "text": " an example is if you're using AWS Lambda, you can deploy your Lambda functions inside of VPC."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 333.04,
+      "end": 337.76000000000005,
+      "text": " That's an optional configuration, which will give them access to resources inside that VPC,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 337.76000000000005,
+      "end": 343.52000000000004,
+      "text": " such as a database or some other services. So in general, VPCs and serverless applications"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 343.52000000000004,
+      "end": 348.48,
+      "text": " can be used for a few different use cases. So we mentioned accessing resources in a VPC"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 348.48,
+      "end": 354.08000000000004,
+      "text": " or in an on-premises network. Another one is preventing outbound internet access to prevent"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 354.08,
+      "end": 358.96,
+      "text": " data exfiltration in the event of a vulnerability. So you can imagine if there's a supply chain attack"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 358.96,
+      "end": 364,
+      "text": " and one of your modules is kind of rogue or has a vulnerability and an attacker gets access to that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 364,
+      "end": 369.2,
+      "text": " environment, they might need to exfiltrate some keys or some data. If they don't have internet"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 369.2,
+      "end": 373.52,
+      "text": " access, you're making it very difficult for them to do that. So having a network boundary on top"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 373.52,
+      "end": 379.52,
+      "text": " of your zero trust mechanism makes it, it just gives you more defense in depth there. Of course,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 379.52,
+      "end": 385.52,
+      "text": " from a compliance point of view, or just like a really strict, well thought through network"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 385.52,
+      "end": 389.12,
+      "text": " architecture, you might want to do traffic analysis. And if it's all on AWS's managed network,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 389.12,
+      "end": 394.08,
+      "text": " you can't do that. But if everything is in a VPC, you can use things like VPC flow logs to monitor"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 394.08,
+      "end": 399.03999999999996,
+      "text": " your traffic. And then you can also get fine-grained access control over access to AWS services with"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 399.03999999999996,
+      "end": 402.96,
+      "text": " routing, security groups, and VPC endpoints as well, which can have their own policies."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 404.08,
+      "end": 408.32,
+      "text": " Finally, I'd say service discovery through private DNS is another thing you can get if you have"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 408.32,
+      "end": 414.32,
+      "text": " VPCs. So if you've got a hybrid of instances, containers, and things like Lambda functions,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 414.32,
+      "end": 420,
+      "text": " it might make sense to think about service discovery and DNS as well. So there's still"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 420,
+      "end": 425.44,
+      "text": " some valid cases for thinking about VPCs. I wouldn't dismiss them just yet, but it's not"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 425.44,
+      "end": 429.44,
+      "text": " necessarily, you would have to think through the trade-offs and think if you could have avoided"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 429.44,
+      "end": 434.56,
+      "text": " VPCs until now, you might think, okay, should I go and start creating network resources just because"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 434.56,
+      "end": 439.76,
+      "text": " I need a database? Or should I continue to try and use serverless options where I don't have to think"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 439.76,
+      "end": 446.96,
+      "text": " about networking? So why would you avoid VPCs, Luciano?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 446.96,
+      "end": 451.2,
+      "text": " Yeah, my main reason is that VPCs can be quite complicated, even though they're useful for all the reasons that you described,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 451.2,
+      "end": 455.76,
+      "text": " they are not really that easy to get right. And even when you are just starting, there are so many"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 455.76,
+      "end": 461.12,
+      "text": " concepts that you need to learn. I remember the first time that I started to work with AWS and I"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 461.12,
+      "end": 466.4,
+      "text": " was just trying to deploy a simple application. I did this one day course just to learn, I think,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 466.4,
+      "end": 471.6,
+      "text": " 11 different concepts that are the ones that you just described. And I was overwhelmed and it felt"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 471.6,
+      "end": 475.92,
+      "text": " a bit unnecessary to having to go through all this pain just to deploy an application in the cloud."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 475.92,
+      "end": 480,
+      "text": " Of course, in retrospective, I think it was very valuable to learn all these things. And I feel"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 480,
+      "end": 484.08,
+      "text": " like now I understand the cloud much better and I can use it better. But I think the point still"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 484.08,
+      "end": 488.64,
+      "text": " stands. When is it really worth it? Where should you go through all these layers and learning"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 488.64,
+      "end": 493.59999999999997,
+      "text": " property properly while maybe other times you can just avoid all this complexity and focus on your"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 493.59999999999997,
+      "end": 501.59999999999997,
+      "text": " application? So the complexity bit is probably the main reason. And kind of a consequence to that is"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 501.59999999999997,
+      "end": 507.91999999999996,
+      "text": " that because it can be complex to understand setup correctly, sometimes you can do silly mistakes."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 507.91999999999996,
+      "end": 515.4399999999999,
+      "text": " I remember one time I created a subnet, I allocated a Lambda in that subnet, and then I didn't realize"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 515.44,
+      "end": 520.1600000000001,
+      "text": " that that subnet had very few IP addresses. So when that Lambda was running at scale,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 520.1600000000001,
+      "end": 525.6800000000001,
+      "text": " it was basically starving to get more IP addresses. The Lambda runtime wasn't able anymore to provision"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 525.6800000000001,
+      "end": 531.0400000000001,
+      "text": " more Lambdas. And therefore, at some point, we hit a ceiling and we couldn't really serve the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 531.0400000000001,
+      "end": 536.24,
+      "text": " users that we were trying to serve anymore. And that was just a very silly mistake at the VPC"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 536.24,
+      "end": 541.12,
+      "text": " level, configured in the subnets. And it was actually a bit complex to fix because then we"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 541.12,
+      "end": 546.32,
+      "text": " needed to redefine all the VPC and it was a bit messy to fix that kind of issue. This is just to"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 546.32,
+      "end": 550.8,
+      "text": " give you an example of stuff that can happen. If you want to do it, you need to learn it properly"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 550.8,
+      "end": 555.92,
+      "text": " and you need to spend some time making sure you understand all the implications. And similarly,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 555.92,
+      "end": 560.08,
+      "text": " you can think about routing firewall security groups, so many things that can go wrong there."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 561.28,
+      "end": 566.96,
+      "text": " The other thing is that you might be wanting to provision bastion hosts or VPNs. Again,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 566.96,
+      "end": 572.96,
+      "text": " because if you start to have things behind, basically in a private network, in a way that"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 572.96,
+      "end": 576.72,
+      "text": " they are not very easy to access. Sometimes if you want to access from your own laptop,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 576.72,
+      "end": 580.72,
+      "text": " because you are trying to debug something, maybe access another base, for instance, or Redis,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 581.36,
+      "end": 585.9200000000001,
+      "text": " you need to figure out how do I do that? How do I enable that? And again, that requires provisioning"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 585.9200000000001,
+      "end": 590.48,
+      "text": " more infrastructure and thinking more about security. And you are potentially creating"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 590.48,
+      "end": 594.96,
+      "text": " a backdoor that is useful to yourself. But if you don't make it secure enough, you are actually"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 594.96,
+      "end": 599.2800000000001,
+      "text": " creating a security risk there. We actually have been speaking about some of these topics,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 599.2800000000001,
+      "end": 603.36,
+      "text": " specifically around the concept of bastion hosts in another episode. So we'll have the link in the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 603.36,
+      "end": 608.64,
+      "text": " show notes if you're curious to explore that topic as well. And again, monitoring and intrusion"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 608.64,
+      "end": 613.6800000000001,
+      "text": " detection. It's something you probably want to do. You want to have ways to understand what's"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 613.6800000000001,
+      "end": 619.6,
+      "text": " happening in that VPC. And if somebody is having access and that somebody is not supposed to do"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 619.6,
+      "end": 624.32,
+      "text": " that, how do you spot that and how do you react to that? You need to put all these kinds of things in"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 624.32,
+      "end": 631.12,
+      "text": " place somehow. So again, I think that just to boil it down is not an easy feat. It's something you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 631.12,
+      "end": 635.12,
+      "text": " need to spend a significant amount of time learning, trying things before you can feel"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 635.12,
+      "end": 640.08,
+      "text": " confident that you are doing it correctly and you can go to production without any big surprise."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 641.6,
+      "end": 649.44,
+      "text": " So I suppose if all of that sounds scary enough, how realistic it is that you just go VPC-less and"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 649.44,
+      "end": 654.8800000000001,
+      "text": " be able to deploy even significantly complicated application without having to think about VPCs."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 654.8800000000001,
+      "end": 659.7600000000001,
+      "text": " Is that actually possible today or not? Yeah, definitely possible."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 659.7600000000001,
+      "end": 665.36,
+      "text": " I've been part of teams, I think you have as well, where we've built significantly complex applications that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 665.36,
+      "end": 670,
+      "text": " are completely VPC-less. And I think there's plenty of public examples out there of companies"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 670,
+      "end": 674.72,
+      "text": " who are able to do it. There's a lot of people advocating for this VPC-less kind of architecture."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 674.72,
+      "end": 679.76,
+      "text": " And I think a lot of people believe that it's kind of a core tenant of serverless applications,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 679.76,
+      "end": 684.24,
+      "text": " that you should try and avoid VPCs. And I don't necessarily agree that you have to avoid them."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 684.24,
+      "end": 687.44,
+      "text": " Let's just think about some of the services that don't require VPCs and we might be able"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 687.44,
+      "end": 692,
+      "text": " to extrapolate what you could do with them. So DynamoDB, for example, I think that's one of its"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 692,
+      "end": 696.5600000000001,
+      "text": " advantages and appeals is that you don't have to set up any networking in advance. API Gateway,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 697.28,
+      "end": 703.12,
+      "text": " you don't need it. Kinesis. Also, most of the event services, SQS, SNS, EventBridge,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 703.12,
+      "end": 707.12,
+      "text": " Step Functions as well, you don't need to associate it with any of the tasks within your"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 707.12,
+      "end": 712.32,
+      "text": " Step Function. Can connect with VPC, of course, if you want to. CloudFront even doesn't use VPCs."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 712.32,
+      "end": 720.16,
+      "text": " Cognito. And then you have the compute services like Lambda, AppRunner, and Glue. So these are"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 720.16,
+      "end": 724.24,
+      "text": " all capable of running without a VPC. And you also have lots of third-party services that can"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 724.24,
+      "end": 731.28,
+      "text": " integrate with AWS without needing private link. So you can think about, I suppose, any service"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 731.28,
+      "end": 737.92,
+      "text": " that uses IAM or even services that are integrated with EventBridge. So all of these services,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 737.92,
+      "end": 743.4399999999999,
+      "text": " they use the AWS network and don't require you to set up a VPC. And Glue, AppRunner, and Lambda,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 743.4399999999999,
+      "end": 747.76,
+      "text": " those compute services we mentioned, while they don't require a VPC, they allow you to specify"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 747.76,
+      "end": 752.48,
+      "text": " VPC subnets so you can connect them to network-connected resources. So you have that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 752.48,
+      "end": 756.48,
+      "text": " option there. I think it's very possible then to build large, complex applications without using"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 756.48,
+      "end": 762.96,
+      "text": " VPCs. But it begs the question, is this a utopian vision we should all strive for?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 762.96,
+      "end": 770.5600000000001,
+      "text": " Is it a good practice? Is it a well-architected thing in 2023 to be trying to avoid VPCs?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 770.5600000000001,
+      "end": 774.88,
+      "text": " Are they some sort of anti-pattern?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 774.88,
+      "end": 781.6800000000001,
+      "text": " I wouldn't say, at least in the context of serverless, that VPCs are an anti-pattern. As you said, it's something that you can avoid in many situations."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 781.68,
+      "end": 788.2399999999999,
+      "text": " But I think there are situations where if you weight the benefits and the complexity,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 789.1999999999999,
+      "end": 795.12,
+      "text": " there might be a trade-off there where it could be worth it doing serverless and also do VPCs."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 795.76,
+      "end": 801.3599999999999,
+      "text": " And just to give you some examples, very simply, probably a use case we've been talking about"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 801.3599999999999,
+      "end": 807.92,
+      "text": " before is if you start to use RDS, that's kind of a service that forces you to go down the path of"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 807.92,
+      "end": 812.56,
+      "text": " creating your own VPCs. And then if you want to connect a Lambda, for instance, to your own RDS"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 812.56,
+      "end": 818.64,
+      "text": " database, the easiest way is probably to just put the Lambda in the same VPC where you have your own"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 818.64,
+      "end": 824.64,
+      "text": " database and make sure that the whole routing and subnets is configured correctly so that you can"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 824.64,
+      "end": 829.4399999999999,
+      "text": " have access from the Lambda directory to the database. And very similarly, if you use ECS or"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 829.4399999999999,
+      "end": 836,
+      "text": " EKS or Elasticash or Kafka or OpenSearch, all these services are built around the concept you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 836,
+      "end": 841.36,
+      "text": " need to effectively provision instances behind the scenes in a specific VPC. So you need to think"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 841.36,
+      "end": 846.56,
+      "text": " about how am I going to structure this VPC and how I'm going to connect things together. So this is"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 846.56,
+      "end": 852.24,
+      "text": " definitely a very good case where if you use some of these services, you are a bit forced down the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 852.24,
+      "end": 858.72,
+      "text": " path of thinking about VPCs. But again, as you said before, it's not necessarily a bad thing"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 858.72,
+      "end": 864.88,
+      "text": " because you gain additional control in the sense of being able to add more in-depth security."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 864.88,
+      "end": 869.52,
+      "text": " So you can add more things around your application that makes it a little bit more secure."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 870.08,
+      "end": 874.96,
+      "text": " So it might not be just extra work for you. It gives you some advantages as well. In summary,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 874.96,
+      "end": 879.92,
+      "text": " I will say that VPCs are not necessarily an anti-pattern, but it's just something that you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 879.92,
+      "end": 884.48,
+      "text": " might or might not need to use. And if you need to use, of course, you need to be careful in terms of"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 884.48,
+      "end": 888,
+      "text": " just not discount the amount of work and the amount of complexity that there is and make sure"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 888,
+      "end": 893.2,
+      "text": " you take enough time to absorb all the concept and to try different things and to test that you're"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 893.2,
+      "end": 900.1600000000001,
+      "text": " set up is actually doing what you think it needs to be doing. So again, anything that you would"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 900.1600000000001,
+      "end": 905.9200000000001,
+      "text": " add in terms of how to think about VPCs in the context of Lambda. Well, if you want to access"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 911.2800000000001,
+      "end": 914.8000000000001,
+      "text": " resources in VPC or in an on-premises network, you need to find VPC subnets and security groups for the Lambda function. It's actually interesting with security groups and Lambda function, it can"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 914.8000000000001,
+      "end": 919.12,
+      "text": " be a little bit misleading because normally with security groups, you can say what ports are"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 919.12,
+      "end": 923.36,
+      "text": " allowed in, what ports are allowed out, but Lambda doesn't really work like that because it doesn't"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 923.36,
+      "end": 928.32,
+      "text": " have that stateful socket connection. So the only reason you define security groups really with"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 928.32,
+      "end": 932.5600000000001,
+      "text": " Lambda is that so you can use those security groups in the rules of other security groups"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 932.5600000000001,
+      "end": 938.64,
+      "text": " and allow that Lambda function to access network resources. The VPC with Lambda used to make a"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 938.64,
+      "end": 943.28,
+      "text": " massive difference for cold start times. So Lambda used to create and attach an elastic network"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 943.28,
+      "end": 947.52,
+      "text": " interface or an ENI for the cold start of each container. I think that was what led to the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 947.52,
+      "end": 954.8,
+      "text": " problem you mentioned having experienced when your IP CIDR block was too small. But this is no"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 954.8,
+      "end": 960.96,
+      "text": " longer the case. So in the end of 2019, AWS changed this. So an ENI is now provisioned for the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 960.96,
+      "end": 965.6,
+      "text": " function when you deploy it and each Lambda container routes through this interface using a"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 965.6,
+      "end": 971.12,
+      "text": " VPC to VPC NAT instead. So it's much more efficient. It doesn't impact cold start times like"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 971.12,
+      "end": 976.72,
+      "text": " it used to and just makes VPCs with Lambda way more useful than they used to be. So that's"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 976.72,
+      "end": 981.12,
+      "text": " what it used to be. So there are some advantages then of using VPCs for Lambda that are really"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 981.12,
+      "end": 985.76,
+      "text": " worthwhile to state. And I think one really interesting one is something we alluded to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 985.76,
+      "end": 991.12,
+      "text": " earlier. You can prevent outbound internet access. There's no other way to do this. There"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 991.12,
+      "end": 996.4,
+      "text": " used to be this product called Function Shield, which doesn't really exist anymore, which was"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 996.4,
+      "end": 1001.84,
+      "text": " like a low level interface that would try and prevent outbound internet access to prevent"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1001.84,
+      "end": 1007.2,
+      "text": " exfiltration. But the only way to do this really now effectively is with a VPC and ensuring that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1007.2,
+      "end": 1012.32,
+      "text": " there's no route to the internet from that VPC. So it's a useful security perimeter then. And if"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1012.32,
+      "end": 1016.72,
+      "text": " you've got that supply chain attack problem, you don't have to worry as much. You can also then"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1016.72,
+      "end": 1022.1600000000001,
+      "text": " analyze traffic with VPC flow logs and you've got fine grain network control, right? So in a"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1022.1600000000001,
+      "end": 1026.96,
+      "text": " corporate environment or if you've got other network resources, it can make a lot of sense"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1026.96,
+      "end": 1031.52,
+      "text": " to use Lambda with VPC. Now I would still in a lot of cases, even when you've got a corporate"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1031.52,
+      "end": 1035.68,
+      "text": " environment end up with a hybrid approach where you've got lots of Lambda functions that don't"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1035.68,
+      "end": 1040.48,
+      "text": " need to access those network resources. So those ones don't get assigned a subnet. And then the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1040.48,
+      "end": 1046.6399999999999,
+      "text": " ones that do, do get to assign a subnet. So you can mix it like that. So I would definitely think,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1046.6399999999999,
+      "end": 1050.96,
+      "text": " okay, don't worry so much about VPCs for Lambda. If you've got VPCs and private networks,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1051.6,
+      "end": 1056.4,
+      "text": " it makes sense to just start using it. And we've got plenty of very serverless applications out"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1056.4,
+      "end": 1064.4,
+      "text": " there now that use ElastiCache and RDS and other VPC connected resources. And it's just becomes part"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1064.4,
+      "end": 1068.96,
+      "text": " of the architecture that you have to use VPCs at least until we get into a situation where maybe"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1068.96,
+      "end": 1074.5600000000002,
+      "text": " AWS will start to think about more of a zero trust model for all services. Like with RDS,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1074.5600000000002,
+      "end": 1079.76,
+      "text": " you've got the data API now, maybe in the future, we'll have other examples where you're just using"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1079.76,
+      "end": 1086.32,
+      "text": " more like HTTP based interaction for all of these services using IAM instead of network controls."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1086.32,
+      "end": 1092.4,
+      "text": " I'm going to try to do a summary of everything we just said today."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1092.4,
+      "end": 1096.8,
+      "text": " And I suppose that the first point is that applications without VPCs are possible, that that's a given, and they can"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1096.8,
+      "end": 1102.4,
+      "text": " be simpler if you are able to build something like that, you don't have the extra overhead"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1102.4,
+      "end": 1108.4,
+      "text": " of thinking about VPCs. But VPCs are not going away, at least not in the short term. And they"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1108.4,
+      "end": 1114,
+      "text": " are an important feature that I think is good, especially if you are an architect, if you learn"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1114,
+      "end": 1117.2,
+      "text": " the principles and if you're able to use them, and if you're able to understand, especially the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1117.2,
+      "end": 1121.68,
+      "text": " trade off, like when it makes sense to use them, when you can just keep things simple and not"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1121.68,
+      "end": 1129.2800000000002,
+      "text": " having to bother with VPCs. And if you're using VPCs, again, very important to do them, like take"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1129.2800000000002,
+      "end": 1135.6000000000001,
+      "text": " your own time to do them correctly. There are a lot of templates that you can find online that"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1135.6,
+      "end": 1142.24,
+      "text": " just create VPCs magically for you. They can be useful, but at least make sure you check out what"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1142.24,
+      "end": 1146.3999999999999,
+      "text": " they are actually doing and you understand what's happening, you are okay with that particular setup."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1146.3999999999999,
+      "end": 1151.04,
+      "text": " Don't just give it for granted that there is a matching default that would work in every case."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1151.04,
+      "end": 1155.52,
+      "text": " I think you need to, again, spend the time, understand it, and then make the right choices"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1155.52,
+      "end": 1162.3999999999999,
+      "text": " for the specific context. It can be complex, but I feel that things are going in a direction where"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1162.4,
+      "end": 1168,
+      "text": " providers are giving simpler abstractions. So I think over time we'll be able to use things that"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1168,
+      "end": 1171.6000000000001,
+      "text": " are a little bit simpler, even though I think if you know the theory, if you know what's going on"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1171.6000000000001,
+      "end": 1176.16,
+      "text": " behind the scene, that's always something powerful to have, because I think you can understand those"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1176.16,
+      "end": 1180.24,
+      "text": " interfaces a little bit better and you can avoid some of the pitfalls that might still happen,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1180.24,
+      "end": 1185.3600000000001,
+      "text": " even though you might have a simpler interface to deal with. There is an interesting tool called"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1185.3600000000001,
+      "end": 1191.68,
+      "text": " VPC lattice, I think it's pronounced, and we'll be doing probably another episode where we talk"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1191.68,
+      "end": 1196.96,
+      "text": " a little bit more in depth, but the promise of this particular service is that it makes it easier"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1196.96,
+      "end": 1203.44,
+      "text": " to define networks that are a little bit more advanced and where you can connect things in a"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1203.44,
+      "end": 1210.3200000000002,
+      "text": " very dynamic way. So it could be a very interesting topic to explore a bit more, so we'll probably"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1210.3200000000002,
+      "end": 1214.48,
+      "text": " leave that for another episode in the future. I'm looking forward to that one, actually."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1214.48,
+      "end": 1218.4,
+      "text": " We're getting lots of great feedback on AWS Bites Online, and when we meet listeners and viewers in"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1218.4,
+      "end": 1222.48,
+      "text": " person, which is always great as well. If you do get something from these episodes, please do leave"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1222.48,
+      "end": 1226.88,
+      "text": " a review and rating wherever you listen. It helps other people to discover to the show. And if you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1226.88,
+      "end": 1230.88,
+      "text": " watch on YouTube, like our episodes, subscribe and share with all your friends and colleagues."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1230.88,
+      "end": 1251.3600000000001,
+      "text": " We really appreciate that, so thanks for listening again, and we'll see you next week."
+    }
+  ]
+}

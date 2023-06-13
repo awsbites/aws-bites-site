@@ -20,5 +20,5 @@ So, are ready to talk VPCs!?
 
 In this episode, we mentioned the following resources:
 
-- - Our [previous episode on Bastion hosts](https://awsbites.com/78-when-do-you-need-a-bastion-host/)
--[AWS announcement for improved Lambda VPC connection (2019)](https://aws.amazon.com/blogs/compute/announcing-improved-vpc-networking-for-aws-lambda-functions/)
+- Our [previous episode on Bastion hosts](https://awsbites.com/78-when-do-you-need-a-bastion-host/)
+- [AWS announcement for improved Lambda VPC connection (2019)](https://aws.amazon.com/blogs/compute/announcing-improved-vpc-networking-for-aws-lambda-functions/)

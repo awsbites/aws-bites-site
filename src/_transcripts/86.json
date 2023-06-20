@@ -1,0 +1,1352 @@
+{
+  "speakers": {
+    "spk_0": "Eoin",
+    "spk_1": "Luciano"
+  },
+  "segments": [
+    {
+      "speakerLabel": "spk_0",
+      "start": 0,
+      "end": 4.48,
+      "text": " We recently had to integrate a workload running on Azure with some components running on AWS."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 4.48,
+      "end": 8.64,
+      "text": " To do that, we explored a lot of different options and evaluated all the trade-offs in terms of"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 8.64,
+      "end": 13.36,
+      "text": " simplicity and security. So in this episode, we wanted to share our learnings and discuss how to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 13.36,
+      "end": 18.48,
+      "text": " securely and efficiently integrate workloads running on-premises in Azure or in any cloud"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 18.48,
+      "end": 22.72,
+      "text": " with a workload running in AWS. We'll review several different options for integration and"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 22.72,
+      "end": 27.84,
+      "text": " discuss their advantages and disadvantages. My name is Eoin and I'm joined by Luciano for another"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 27.84,
+      "end": 42.08,
+      "text": " episode of the AWS Bites podcast. AWS Bytes is sponsored, as always, by fourTheorem, an advanced"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 42.08,
+      "end": 46.08,
+      "text": " AWS consulting partner that works together with you on architecture, migration, and cost"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 46.08,
+      "end": 51.92,
+      "text": " optimization. Find out more at fourtheorem.com. That link is in the show notes. Luciano, what are"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 51.92,
+      "end": 57.92,
+      "text": " some of the use cases and examples that might require us to think about authorization and"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 57.92,
+      "end": 64.8,
+      "text": " communication between Azure, some other cloud, and AWS?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 64.8,
+      "end": 70.56,
+      "text": " As much as we like AWS, we don't always run everything on AWS for different reasons. So sometimes you have this situation where you're"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 70.56,
+      "end": 75.68,
+      "text": " running some kind of workload somewhere, can be in another cloud, can be on-premise, can be"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 75.68,
+      "end": 80.16,
+      "text": " in your own home because maybe you have some devices to connect to the internet,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 80.16,
+      "end": 86.72,
+      "text": " and you might want to integrate that particular system with something running in your AWS account."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 86.72,
+      "end": 92.8,
+      "text": " So the question that we want to address today is how can you establish a secure integration between"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 92.8,
+      "end": 98.32,
+      "text": " those two systems? And just to give you some example use cases, for instance, you might have"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 98.32,
+      "end": 104.32,
+      "text": " your own like home NAS where you keep all your personal files and just because you want to be"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 104.32,
+      "end": 108.24,
+      "text": " extra cautious that you're never going to lose anything, maybe you want to backup the same files"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 108.24,
+      "end": 114.56,
+      "text": " in an S3 bucket and possibly even use Glacier to reduce cost. How do you connect a system running"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 114.56,
+      "end": 120.8,
+      "text": " in your own home network with AWS securely so that it can send data to S3 and Glacier? That could be"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 120.8,
+      "end": 125.75999999999999,
+      "text": " one use case. Another use case could be maybe a little bit more business oriented. You might have"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 126.39999999999999,
+      "end": 131.68,
+      "text": " in a big corporate network, maybe physically in an office, you might have some kind of network"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 131.68,
+      "end": 137.44,
+      "text": " security device that collects network metadata. And probably if you're collecting this data,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 137.44,
+      "end": 142,
+      "text": " you want to analyze it. So one way to do that could be you could send this data to a Kinesis stream,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 142,
+      "end": 148,
+      "text": " and then later on you can dynamically analyze this data and record interesting network activities."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 148,
+      "end": 151.92,
+      "text": " Or maybe you can even implement intrusion detection type of algorithms once you have"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 151.92,
+      "end": 159.36,
+      "text": " that kind of data. So again, how do you connect a device running on a local network or in an office"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 160.4,
+      "end": 165.44,
+      "text": " with something that is running on AWS like a Kinesis stream? Another example could be actually"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 165.44,
+      "end": 169.84,
+      "text": " you might have another application running in another cloud. Maybe your company is using"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 169.84,
+      "end": 174.48,
+      "text": " multiple clouds. For instance, you might have like a billing engine that is running on Azure,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 174.48,
+      "end": 179.2,
+      "text": " and this billing engine is producing invoices, but then the rest of the system is running on"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 179.2,
+      "end": 184.48,
+      "text": " AWS. So for instance, you might have an SQS queue where you receive messages coming from Azure."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 185.28,
+      "end": 190,
+      "text": " Then you can take messages from this SQS queue and process them and maybe send emails to your"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 190,
+      "end": 195.12,
+      "text": " customers with the attached invoice using SES. So again, this is kind of an integration where part"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 195.12,
+      "end": 200,
+      "text": " of the system is running on Azure, part of the system is running on AWS. So how do you let,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 200,
+      "end": 206.64000000000001,
+      "text": " for instance, Azure send data to a queue, which is an SQS queue, so running in AWS in a secure"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 206.64000000000001,
+      "end": 212.8,
+      "text": " and simple way? So the question for today is what are the mechanisms? Should we use IAM?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 213.52,
+      "end": 217.6,
+      "text": " Is that secure enough? What are some of the alternatives? So where do we start? What's"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 217.6,
+      "end": 223.68,
+      "text": " the first option?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 223.68,
+      "end": 227.28,
+      "text": " Yeah, I think IAM is generally secure enough as long as you've got the credentials in the right way. And just thinking through what you're saying there, I guess this is"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 227.84,
+      "end": 232.4,
+      "text": " quite valid as well. All of this kind of use case, it's valid in a case where you're migrating to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 232.4,
+      "end": 237.12,
+      "text": " AWS and maybe you're going for a hybrid approach. So you're deciding not to put everything on AWS,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 237.12,
+      "end": 241.12,
+      "text": " or just as you're migrating, you end up in this intermediate hybrid state."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 241.68,
+      "end": 248.32,
+      "text": " So maybe one of the easiest ways or most understood ways is to put a public API in the AWS"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 248.32,
+      "end": 253.52,
+      "text": " side with an authorization method. And that could be something like a API key. And then you just"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 253.52,
+      "end": 258.72,
+      "text": " share the API key with the external side. You can use IAM authorization on that API, but you still"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 258.72,
+      "end": 265.2,
+      "text": " have to figure out how to get that IAM session. Or you can use OAuth or OIDC and get a token that way."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 265.2,
+      "end": 269.76,
+      "text": " And that allows you for secure integration, but it makes the integration side fairly easy"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 269.76,
+      "end": 276.24,
+      "text": " and understood because most people will understand how to call an API. So it's a fairly common way of"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 276.24,
+      "end": 281.28000000000003,
+      "text": " doing it. So on the AWS side, you could use API gateway. API gateway allows you to provision"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 281.28,
+      "end": 286.71999999999997,
+      "text": " API keys and share them with your clients. If you wanted to, you could go with more of a secure"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 286.71999999999997,
+      "end": 292.64,
+      "text": " approach using an authorizer like an OIDC authorization. Then you need to configure the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 292.64,
+      "end": 298.79999999999995,
+      "text": " clients correctly to have some client ID in secret, for example, to be able to perform an"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 298.79999999999995,
+      "end": 303.91999999999996,
+      "text": " OIDC flow and obtain credentials. Similarly, if you just wanted to go with IAM authorization,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 303.91999999999996,
+      "end": 308.47999999999996,
+      "text": " you have to figure out some way of getting IAM credentials. So I suppose a lot of the other"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 308.48,
+      "end": 312.32,
+      "text": " options we're going to go through are going to cover getting IAM credentials anyway, whether"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 312.32,
+      "end": 318.48,
+      "text": " you use the API gateway approach or not. But the advantage of an OIDC approach, if you already have"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 318.48,
+      "end": 323.04,
+      "text": " an identity provider, is that you can hook it into that method and get a JWT token that they can use"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 323.04,
+      "end": 328.08000000000004,
+      "text": " and attach it to the request. So that's public API method. Let's talk a little bit more about"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 328.08000000000004,
+      "end": 333.04,
+      "text": " IAM. And I suppose the first thing people would reach for when they think about IAM is an IAM"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 333.04,
+      "end": 337.68,
+      "text": " user, but we often talk about how this is discouraged. So what do you think? Is it a viable option?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 337.68,
+      "end": 343.44,
+      "text": " I think it's definitely the simplest one."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 343.44,
+      "end": 349.84000000000003,
+      "text": " So for very simple integrations, it's probably the one that I've seen the most, even historically. The idea is that you just go to your own AWS"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 349.84000000000003,
+      "end": 354.48,
+      "text": " console, you create a user, you create credentials for this user, then somehow you propagate these"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 354.48,
+      "end": 359.68,
+      "text": " credentials to your client. And then your client is basically just doing using the SDK or the CLI"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 359.68,
+      "end": 366.64,
+      "text": " with these credentials. Sometimes you can make it a little bit better by just creating an external"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 366.64,
+      "end": 372.24,
+      "text": " role and you give to that particular user only permissions to assume the role. At least you have"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 372.24,
+      "end": 378.24,
+      "text": " another extra step where you can track exactly when the system is assuming the role. And"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 379.2,
+      "end": 382.64,
+      "text": " therefore we have a little bit more control and more visibility on the actions that are"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 382.64,
+      "end": 388.64,
+      "text": " happening there. But with that, you can also have proper logging and alerting, and you can try to"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 388.64,
+      "end": 395.44,
+      "text": " set up automated key rotation to make it a little bit more secure. In reality, I've seen that when"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 395.44,
+      "end": 400.71999999999997,
+      "text": " you have to do all these things, people just say it works and you end up with long-lived credentials,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 400.71999999999997,
+      "end": 405.84,
+      "text": " which at some point might become a very serious security liability. So this is something that"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 405.84,
+      "end": 410.48,
+      "text": " brings us to explore other options just because this can be very convenient and very easy,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 410.48,
+      "end": 416.4,
+      "text": " but also to make it secure requires so much more work. So the risk is that you just stop yourself"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 416.4,
+      "end": 421.36,
+      "text": " at the first step, it works, and don't make it secure until eventually maybe you have an incident"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 421.36,
+      "end": 428.08000000000004,
+      "text": " in production. So just be aware that this solution is always a bit tricky, looks simple, but it's"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 428.08000000000004,
+      "end": 432.64,
+      "text": " dangerous. So let's figure out if there are other options that maybe take a little bit more time to"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 432.64,
+      "end": 438.48,
+      "text": " be set up, but then they will be more secure by default."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 438.48,
+      "end": 441.92,
+      "text": " If you wanted to use the IAM user approach, I would suggest you can use infrastructure as code. So in CloudFormation, you can"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 441.92,
+      "end": 446.56,
+      "text": " create your IAM user and you can also create the access key either in CloudFormation or"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 446.56,
+      "end": 451.6,
+      "text": " programmatically, and then store it in Secrets Manager and some other secret store or vault"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 452.24,
+      "end": 456.4,
+      "text": " that might allow you to share it with the external identity. But yeah, it starts to be a lot of work"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 456.4,
+      "end": 463.44,
+      "text": " if you want to implement rotation and alerting yourself. So another option is IAM roles anywhere."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 463.44,
+      "end": 470.64,
+      "text": " And I think this is probably the purest, most suitable solution today for the problem in many"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 470.64,
+      "end": 476.32,
+      "text": " ways, because it's really designed for this purpose actually. I mean, the hint is in the name."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 476.32,
+      "end": 480.64,
+      "text": " I think the service has been around for about a year or so. And the idea is that it allows you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 480.64,
+      "end": 487.2,
+      "text": " to use your PKI, so your private key infrastructure to exchange a certificate"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 490.15999999999997,
+      "end": 496.32,
+      "text": " and a signature for IAM credentials. So a lot of organizations already have the PKI infrastructure,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 496.32,
+      "end": 500.24,
+      "text": " so sometimes it's a really good fit. They're already issuing private certificates for other"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 500.24,
+      "end": 504.4,
+      "text": " reasons internally. So sometimes it's a really easy jump to roles anywhere."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 504.4,
+      "end": 510.47999999999996,
+      "text": " Once you have your private certificate authority, then you can set up a few resources in roles"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 510.47999999999996,
+      "end": 514.88,
+      "text": " anywhere. So the process works like this. You have your certificate authority, you create a"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 514.88,
+      "end": 518.88,
+      "text": " trust anchor, which is basically creating the trust relationship between your certificate"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 518.88,
+      "end": 524.3199999999999,
+      "text": " authority and IAM. And then you create an IAM role that roles anywhere can assume."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 524.3199999999999,
+      "end": 528.16,
+      "text": " That will give you the permissions you need. And then there's another thing called a profile,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 528.16,
+      "end": 532.64,
+      "text": " which essentially links roles anywhere to that role. Once you have those three things,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 532.64,
+      "end": 538.16,
+      "text": " you can use a tool called the AWS Signing Helper. You can use it, execute it manually, or you can"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 538.8,
+      "end": 544.3199999999999,
+      "text": " use it to pick up credentials in your SDKs. And that will then basically share a signature"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 544.3199999999999,
+      "end": 549.36,
+      "text": " and a public search with IAM roles anywhere, and it'll give you back the IAM credentials."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 550.24,
+      "end": 555.84,
+      "text": " Now, this might sound a little bit complicated or unfamiliar if you haven't come across these"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 555.84,
+      "end": 561.28,
+      "text": " concepts before. So we have put together a very simple demo for this. So there's a demo"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 561.28,
+      "end": 567.28,
+      "text": " for this. So there's a link on GitHub. There's a repository we created, and you can check it out."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 567.28,
+      "end": 572.72,
+      "text": " And it'll give you steps to create like a dummy private CA on your laptop with open SSL,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 572.72,
+      "end": 576.4,
+      "text": " and then a CloudFormation template to deploy everything else. And once you have that,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 576.4,
+      "end": 579.4399999999999,
+      "text": " you can set it all up in about five minutes, and then you can get these credentials."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 582.24,
+      "end": 587.1999999999999,
+      "text": " If you don't have a private CA already, it's setting one up and maintaining it and securing"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 587.2,
+      "end": 592.08,
+      "text": " it is not for the faint-hearted, and I wouldn't generally recommend it. So the good news there"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 592.08,
+      "end": 598,
+      "text": " is that you can use AWS certificate manager, private certificate authority, and that will"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 598,
+      "end": 601.9200000000001,
+      "text": " manage all of that for you. It's a managed service. There's always a bit of bad news,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 601.9200000000001,
+      "end": 607.36,
+      "text": " though, and the bad news with that is that it costs $400 per month per certificate authority."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 607.36,
+      "end": 611.12,
+      "text": " So be careful creating multiple certificate authorities for different development and"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 611.12,
+      "end": 618.72,
+      "text": " test environments. You do get one for free per month, but I was recently given a bit of bill"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 618.72,
+      "end": 626.16,
+      "text": " shock when I was creating certificate authorities and only ever creating one at a time, but following"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 626.16,
+      "end": 632.32,
+      "text": " best practices, creating immutable stacks with infrastructure as code. And when I created and"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 632.32,
+      "end": 641.2800000000001,
+      "text": " deleted three times, I saw an $800 forecasted bill on Cost Explorer. Now, I think this was more of a"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 641.2800000000001,
+      "end": 646.48,
+      "text": " overestimate in the forecasting of Cost Explorer, but I did have to go to AWS support and open a"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 646.48,
+      "end": 651.12,
+      "text": " case and check that I wasn't going to be billed for that. So just be careful of the cost there."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 651.12,
+      "end": 656.1600000000001,
+      "text": " But if you do have to create one, I would say try and create one and share it amongst multiple"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 656.16,
+      "end": 663.76,
+      "text": " environments. So roles anywhere. If you're going to leverage a lot of instances externally,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 663.76,
+      "end": 669.04,
+      "text": " over time, looking for IAM permissions, I think that's a good one. What else have we got?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 669.04,
+      "end": 674.8,
+      "text": " Anything else useful?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 675.6,
+      "end": 682.88,
+      "text": " Another approach that we consider is OIDC federated identities, which again, if you have an OIDC provider like Azure AD, that can be easy to set up because"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 682.88,
+      "end": 686.88,
+      "text": " you are already using that system. So it's more creating the integration between that system and AWS."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 686.88,
+      "end": 694.32,
+      "text": " And the idea is that you create managed identities in Azure and link them to whichever"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 694.32,
+      "end": 699.04,
+      "text": " compute you are running in Azure, for instance, IBM or Azure functions. So you don't really have"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 699.04,
+      "end": 705.68,
+      "text": " to generate explicitly some kind of credentials or secrets and keep them stored somewhere because"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 705.68,
+      "end": 709.92,
+      "text": " the managed identity will do all of that transparently for you."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 709.92,
+      "end": 716.8,
+      "text": " Then you also need to create this integration between the OIDC provider in AWS, so inside IAM, pointing it to your own"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 716.8,
+      "end": 724.0799999999999,
+      "text": " Azure AD. And then as a client, you just need to perform the authentication flow, the OIDC"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 724.0799999999999,
+      "end": 732.16,
+      "text": " authentication flow. That will give you a token. And basically with that token, then you can use"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 732.16,
+      "end": 737.4399999999999,
+      "text": " the AWS SDK to do a similar role with web identity, pass the token, and at that point you have"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 737.44,
+      "end": 742.6400000000001,
+      "text": " AWS credentials that are associated with that particular role that you are assuming,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 742.6400000000001,
+      "end": 747.6800000000001,
+      "text": " which will give you the permissions that are defined in that role."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 747.6800000000001,
+      "end": 752.72,
+      "text": " So it seems a little bit convoluted, but the idea is that you already have Azure ID, so it's more about creating the trust"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 752.72,
+      "end": 757.6800000000001,
+      "text": " relationship. On the Azure side, it's made easier because you have the concept of managed identity,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 757.6800000000001,
+      "end": 763.84,
+      "text": " so you automatically or easily enough you get access to that token. Then you can use the SDK"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 763.84,
+      "end": 768.5600000000001,
+      "text": " to exchange the token for basically assuming a role and getting the credentials for that role."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 768.5600000000001,
+      "end": 772.5600000000001,
+      "text": " And at that point, these are short-lived credentials, so you can have that peace of mind"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 772.5600000000001,
+      "end": 778.72,
+      "text": " that if the gate's leaked, the blast radius is very limited. And in this particular case,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 778.72,
+      "end": 783.44,
+      "text": " we found a blog post that has very good instructions and examples, so we'll make sure"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 783.44,
+      "end": 789.2800000000001,
+      "text": " to have the link in the show notes. And we also have a previous episode about how the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 789.28,
+      "end": 795.6,
+      "text": " integration between OIDC providers and IAM works that goes into more detail about the protocols,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 795.6,
+      "end": 802,
+      "text": " the different ideas, and why all of this approach is secure. So if you are really curious to go a"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 802,
+      "end": 806.16,
+      "text": " little bit deeper into the details, we recommend checking out that episode, and again we'll have the link in the show notes."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 806.16,
+      "end": 810.56,
+      "text": " So in general, the advantage of this approach is that you don't have"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 810.56,
+      "end": 815.12,
+      "text": " to store any secret, which is great from a security perspective because every time you're"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 815.12,
+      "end": 820,
+      "text": " storing secrets, you need to make sure you have a process around it, you need to make sure you are"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 820,
+      "end": 824.48,
+      "text": " auditing it, you need to make sure you have to do some kind of rotation. So in this case, you are"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 824.48,
+      "end": 830.5600000000001,
+      "text": " kind of relieved from all these concerns. And it's especially good if you already use Azure ID or"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 830.5600000000001,
+      "end": 835.36,
+      "text": " some other form of OIDC provider because you don't have to set up all of that."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 835.36,
+      "end": 841.6800000000001,
+      "text": " It's already an organization, it's just a matter of connecting it with AWS. So that's another option and I"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 841.68,
+      "end": 846.0799999999999,
+      "text": " actually quite like this one, but is there anything else worth considering?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 846.0799999999999,
+      "end": 851.12,
+      "text": " One that might not occur to everyone, at least didn't occur to us until the very end, but then we"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 852.2399999999999,
+      "end": 858.4799999999999,
+      "text": " reached into the back of our memories and found reference to SSM hybrid activations. So what are"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 858.4799999999999,
+      "end": 862.9599999999999,
+      "text": " SSM hybrid activations, you might ask. We've talked about SSM a good bit recently because we've"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 862.9599999999999,
+      "end": 869.3599999999999,
+      "text": " been talking about Session Manager in the context of Bastion hosts and ECS and EC2, and it's a nice"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 869.36,
+      "end": 876.32,
+      "text": " way for accessing EC2 instances. But SSM also supports hybrid cloud setups as well through"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 876.32,
+      "end": 883.2,
+      "text": " this hybrid activations method. So the idea here is that by running the SSM agent on the external"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 883.2,
+      "end": 889.04,
+      "text": " host, you can SSM shell into them or just use some of the other SSM things like patching or run"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 889.04,
+      "end": 894.24,
+      "text": " command. And this, the typical use case for this isn't really what we're talking about here, but"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 894.24,
+      "end": 898.64,
+      "text": " it's if you've got a fleet of Windows machines and you need to run patches on them, then you can"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 898.64,
+      "end": 904.72,
+      "text": " activate these hybrid activations and then you can run your patching automatically from SSM in AWS"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 904.72,
+      "end": 909.84,
+      "text": " and that will cover your AWS instances as well as your external instances. So that's pretty useful."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 910.88,
+      "end": 915.12,
+      "text": " But it works in this case as well because you can just install the SSM agent on the Azure side or"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 915.12,
+      "end": 921.12,
+      "text": " in your data center. Then you go into AWS and with any of the usual ways, you can create this"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 921.12,
+      "end": 927.28,
+      "text": " activation resource and the activation resource will be linked to an IAM role. It needs some"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 927.28,
+      "end": 931.28,
+      "text": " specific SSM related permissions and then whatever other permissions you need for your use case."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 931.92,
+      "end": 938.16,
+      "text": " Once you create that activation, you get a code and an ID. So these are kind of your secrets in"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 938.16,
+      "end": 943.92,
+      "text": " this case. And when you start the SSM agent on the instance, you provide that code and ID,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 944.56,
+      "end": 950.24,
+      "text": " it will register the instance in SSM and all of a sudden it'll appear in your SSM console"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 950.24,
+      "end": 956,
+      "text": " and you can shell into it if you turn on that option or you can just do run command."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 956,
+      "end": 961.76,
+      "text": " And if you have this role and you have SSM agent running on your Azure instance, then all of a"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 961.76,
+      "end": 967.2,
+      "text": " sudden you can do a run command from the AWS side and that can trigger some logic on the Azure side,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 967.2,
+      "end": 971.28,
+      "text": " which can then call back to AWS with the permissions you've given it. And that would"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 971.28,
+      "end": 977.84,
+      "text": " achieve our goal as well. Now the SSM hybrid activations, there's two tiers, standard tiers,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 977.84,
+      "end": 983.04,
+      "text": " free for up to a thousand instances. Then the advanced tier starts to get a bit spicy in terms"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 983.04,
+      "end": 989.1999999999999,
+      "text": " of cost. So I think it looks like $5 per instance per month. So if you wanted, I think you don't"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 989.1999999999999,
+      "end": 993.5999999999999,
+      "text": " need that for generally the kind of case we're talking about. So don't worry too much, but just"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 993.5999999999999,
+      "end": 997.5999999999999,
+      "text": " be aware, like if you want to actually SSM into your instances using start session, you need the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 997.5999999999999,
+      "end": 1003.04,
+      "text": " advanced mode and that's when it can get expensive if you've got a lot of instances. So what else"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1003.04,
+      "end": 1010.4,
+      "text": " have we got?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1010.4,
+      "end": 1015.4399999999999,
+      "text": " I think this ties nicely with another idea, which is a little bit different from most of the other ones we explored today, because in all of them, basically the idea is that you have this"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1015.4399999999999,
+      "end": 1020.24,
+      "text": " external system, then you have AWS and you are always starting the communication from the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1020.24,
+      "end": 1027.84,
+      "text": " external system to basically call some kind of action into AWS. So in a way it's kind of a"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1027.84,
+      "end": 1032.96,
+      "text": " push model, right? But it doesn't have to be a push model. If we look at it from the perspective of"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1032.96,
+      "end": 1038.8,
+      "text": " AWS, it could also be a pull model. Maybe we can initiate the communication from AWS itself."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1038.8,
+      "end": 1046.8,
+      "text": " Nothing is really stopping us to use that approach. So the idea could be that rather than"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1046.8,
+      "end": 1053.44,
+      "text": " implementing an API in AWS, which is the option one we explored today, we could implement an API"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1053.44,
+      "end": 1059.84,
+      "text": " in the other side. Let's say it's Azure. On Azure we can expose an API and then from AWS we call that"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1059.84,
+      "end": 1065.84,
+      "text": " API to start to trigger some kind of integration. Again, you still need to figure out some kind of"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1065.84,
+      "end": 1070.48,
+      "text": " authentication because if that Azure API is running on the public, is exposed on the public"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1070.48,
+      "end": 1075.84,
+      "text": " internet, then potentially anyone could call it. So you might still want to make sure that it's only"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1075.84,
+      "end": 1081.1999999999998,
+      "text": " your trusted AWS side that is actually calling that API and sending data that you can actually"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1081.1999999999998,
+      "end": 1086.8799999999999,
+      "text": " trust. But that might not be the only way of solving this problem because maybe that connection"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1086.8799999999999,
+      "end": 1091.4399999999998,
+      "text": " is not really on the public internet. Maybe you have some kind of private network connection"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1091.44,
+      "end": 1098,
+      "text": " and maybe you can just trust that that network connection is good enough to give you guarantees"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1098,
+      "end": 1102.8,
+      "text": " that it's fine. Maybe you are, I don't know, white listing IP addresses or maybe you have some other"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1102.8,
+      "end": 1108.72,
+      "text": " form of network security. In general, I think today we focused on more of a zero trust"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1108.72,
+      "end": 1116.24,
+      "text": " approach where every call is authenticated strongly with tokens and specific mechanisms where"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1116.24,
+      "end": 1121.92,
+      "text": " you are never assuming that the network is secure. So I think we had a little bit of a bias towards"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1121.92,
+      "end": 1127.04,
+      "text": " this kind of solutions, but I think there is an entire realm of more kind of network-based"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1127.04,
+      "end": 1131.92,
+      "text": " security approaches that could be considered as well. I don't know if you have any idea in that"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1131.92,
+      "end": 1137.36,
+      "text": " sense, but I think that that's also worth calling out anyway."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1137.36,
+      "end": 1142.72,
+      "text": " We've really been talking more about how to get IAM credentials where possible and trying to do it based on fine-grained authorization."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1142.72,
+      "end": 1147.52,
+      "text": " But there's a whole other set of options we didn't cover, I suppose, network-based solutions,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1147.52,
+      "end": 1154.32,
+      "text": " like a site-to-site VPN between your other cloud and AWS or data center. You could have a direct"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1154.32,
+      "end": 1158.4,
+      "text": " connect link or something else in place already. So there are lots of network-based approaches"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1158.4,
+      "end": 1161.68,
+      "text": " that you could try and do if you have some secure tunnel between the two environments."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1162.8,
+      "end": 1167.68,
+      "text": " We still think it's a good idea to have IAM or some authorization if possible. You could also"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1167.68,
+      "end": 1173.92,
+      "text": " think about IoT as well. AWS IoT also has methods similar to roles anywhere and hybrid activations"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1173.92,
+      "end": 1180.48,
+      "text": " where you can use certificates to get credentials to talk to AWS. But they're really more geared for"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1180.48,
+      "end": 1186.5600000000002,
+      "text": " lots of different sensor devices or other IoT devices. I think in general, we've presented,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1186.5600000000002,
+      "end": 1192.4,
+      "text": " I think, six options in total. The OADC identity provider and the roles anywhere approaches are"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1192.4,
+      "end": 1197.44,
+      "text": " kind of the preferred ones, I would suggest, just because of the fact that you're looking at"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1197.44,
+      "end": 1202.48,
+      "text": " limiting the need to store and rotate secrets. The API one is a nice one as well, but you just have"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1202.48,
+      "end": 1207.6000000000001,
+      "text": " to make sure you have some authorization method in place. So there's six options in total you might"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1207.6000000000001,
+      "end": 1212.8,
+      "text": " need to reach for some of the password or secret-based ones, just depending on your"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1212.8,
+      "end": 1216.48,
+      "text": " context and your restrictions. So let us know what you think. And if we've missed any other"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1216.48,
+      "end": 1221.92,
+      "text": " options as well, if there's any other cool ideas for integrating Azure and AWS. If you like the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1221.92,
+      "end": 1226.48,
+      "text": " podcast, please do leave a review wherever you listen to your podcasts because our audience is"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1226.48,
+      "end": 1230.96,
+      "text": " growing, but we can always reach more people and get lots more feedback and grow the community. So"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1230.96,
+      "end": 1257.52,
+      "text": " we'd love to hear more from you. Thanks for listening and we'll see you in the next episode."
+    }
+  ]
+}

@@ -1,0 +1,3704 @@
+{
+  "speakers": {
+    "spk_0": "Luciano",
+    "spk_1": "Eoin"
+  },
+  "segments": [
+    {
+      "speakerLabel": "spk_0",
+      "start": 0,
+      "end": 3.12,
+      "text": " Lambdas are a great abstraction to write event-driven logic"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 3.12,
+      "end": 5.44,
+      "text": " and to split this logic into small, composable,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 5.44,
+      "end": 6.84,
+      "text": " and maintainable units."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 6.84,
+      "end": 8.78,
+      "text": " But as developers, we are not only sleeping bad"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 8.78,
+      "end": 11.16,
+      "text": " at abusing technology, or at least I am."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 11.16,
+      "end": 12.8,
+      "text": " In today's episode, I want to tell you the story"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 12.8,
+      "end": 15.52,
+      "text": " of how I ended up creating a terrible monolith Lambda"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 15.52,
+      "end": 18.16,
+      "text": " and how five years later, doomed by the shame and guilt"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 18.16,
+      "end": 20.88,
+      "text": " of having done that, I am now decomposing that Lambda"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 20.88,
+      "end": 22.48,
+      "text": " using Step Functions."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 22.48,
+      "end": 24,
+      "text": " My name is Luciano, and I'm joined by Eoin"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 24,
+      "end": 26.240000000000002,
+      "text": " for another episode of AWS Bites podcast."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 26.24,
+      "end": 33.239999999999995,
+      "text": " AWS Bites is made possible by the support of fourTheorem,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 33.239999999999995,
+      "end": 35.519999999999996,
+      "text": " an AWS consulting partner that works with you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 35.519999999999996,
+      "end": 37.36,
+      "text": " to make AWS migration, architecture,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 37.36,
+      "end": 38.8,
+      "text": " and development a success."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 38.8,
+      "end": 40.8,
+      "text": " See fourtheorem.com to find out more."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 40.8,
+      "end": 42.56,
+      "text": " The link is in the show notes."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 42.56,
+      "end": 44.959999999999994,
+      "text": " Let me start by telling you a little bit"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 44.959999999999994,
+      "end": 47.28,
+      "text": " what's the context of this episode."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 47.28,
+      "end": 49.64,
+      "text": " I'm talking about a side project that I've been working on"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 49.64,
+      "end": 51.76,
+      "text": " for a few years called Full Stack Bulletin,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 51.76,
+      "end": 57.28,
+      "text": " and it's a free weekly newsletter that you can subscribe"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 57.28,
+      "end": 60.08,
+      "text": " if you go at fullstackbulletin.com."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 60.08,
+      "end": 62.239999999999995,
+      "text": " And the idea is that if you are a full stack web developer,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 62.239999999999995,
+      "end": 64.6,
+      "text": " then you might want to subscribe because you will receive"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 64.6,
+      "end": 66.16,
+      "text": " some interesting information every week,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 66.16,
+      "end": 68.08,
+      "text": " and you can try to keep up with this field"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 68.08,
+      "end": 69.96,
+      "text": " that evolves very quickly."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 69.96,
+      "end": 73.16,
+      "text": " And it's always very hard to find interesting information"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 73.16,
+      "end": 75.92,
+      "text": " and try to stay up to date with the latest news."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 75.92,
+      "end": 77.52,
+      "text": " I guess that's the context, right?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 77.52,
+      "end": 79.96,
+      "text": " And let's try to figure out a little bit more"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 79.96,
+      "end": 81.03999999999999,
+      "text": " about the implementation."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 81.04,
+      "end": 83.32000000000001,
+      "text": " This is a serverless project."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 83.32000000000001,
+      "end": 85.68,
+      "text": " As I said, something I built a long time ago."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 85.68,
+      "end": 89.84,
+      "text": " And the way I built it is a Lambda project"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 89.84,
+      "end": 92.80000000000001,
+      "text": " effectively triggered on a schedule every week."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 92.80000000000001,
+      "end": 95.96000000000001,
+      "text": " And the idea is that I want to automate as much as possible"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 95.96000000000001,
+      "end": 97.96000000000001,
+      "text": " because it's something that I want to keep doing every week,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 97.96000000000001,
+      "end": 99.72,
+      "text": " and I might be busy."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 99.72,
+      "end": 101.4,
+      "text": " I cannot spend too much time on this."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 101.4,
+      "end": 103.32000000000001,
+      "text": " It's a free activity after all."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 103.32000000000001,
+      "end": 104.76,
+      "text": " I think automation helps a lot."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 104.76,
+      "end": 106.44000000000001,
+      "text": " And the idea of this Lambda is that it's going to do"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 106.44000000000001,
+      "end": 109.96000000000001,
+      "text": " as much work as possible to try to pre-combine a draft version"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 109.96,
+      "end": 111.16,
+      "text": " of the next newsletter."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 111.16,
+      "end": 114.19999999999999,
+      "text": " And then I can edit it manually and improve things."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 114.19999999999999,
+      "end": 116.32,
+      "text": " So what this Lambda is doing, the newsletter"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 116.32,
+      "end": 117.88,
+      "text": " is basically made up of three parts."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 117.88,
+      "end": 119,
+      "text": " There is a book suggestion."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 119,
+      "end": 120.39999999999999,
+      "text": " There is an inspirational quote."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 120.39999999999999,
+      "end": 121.88,
+      "text": " And there are seven links that might"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 121.88,
+      "end": 125.44,
+      "text": " come from articles, videos, or GitHub"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 125.44,
+      "end": 129.12,
+      "text": " repositories, or other projects that might be relevant."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 129.12,
+      "end": 132.51999999999998,
+      "text": " How do we fetch all this information?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 132.51999999999998,
+      "end": 134.72,
+      "text": " From different sources, but the most complicated one"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 134.72,
+      "end": 137.35999999999999,
+      "text": " is fetching the links."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 137.36,
+      "end": 140.56,
+      "text": " And fetching the links is a bit of an involved process."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 140.56,
+      "end": 143.12,
+      "text": " So the idea is that I'm going to be finding"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 143.12,
+      "end": 145.04000000000002,
+      "text": " interesting information throughout the week,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 145.04000000000002,
+      "end": 146.88000000000002,
+      "text": " and I will be tweeting it on Twitter,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 146.88000000000002,
+      "end": 148.8,
+      "text": " sharing these links on specific profiles."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 148.8,
+      "end": 151.64000000000001,
+      "text": " There is a full-stack bulletin profile on Twitter."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 151.64000000000001,
+      "end": 153.96,
+      "text": " Now, to differentiate these tweets"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 153.96,
+      "end": 157.60000000000002,
+      "text": " from other regular tweets, I generally use Hootsuite."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 157.60000000000002,
+      "end": 159.16000000000003,
+      "text": " And Hootsuite is a service that allows"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 159.16000000000003,
+      "end": 160.60000000000002,
+      "text": " you to schedule the tweets."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 160.60000000000002,
+      "end": 165.52,
+      "text": " And these tweets are also spread out during the week using"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 165.52,
+      "end": 167.60000000000002,
+      "text": " Hootsuite, because you can just put them on a queue,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 167.60000000000002,
+      "end": 169.68,
+      "text": " and they will be automatically spread out."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 169.68,
+      "end": 172.92000000000002,
+      "text": " So this automation needs to connect to Twitter,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 172.92000000000002,
+      "end": 175,
+      "text": " discriminate between the interesting tweets coming"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 175,
+      "end": 177.12,
+      "text": " from Hootsuite and the regular ones."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 177.12,
+      "end": 180.24,
+      "text": " Then it's going to take all the ones that contain links."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 180.24,
+      "end": 182.76000000000002,
+      "text": " It's going to filter out all the invalid links or the ones"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 182.76000000000002,
+      "end": 185.44,
+      "text": " that have been used already in previous newsletters."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 185.44,
+      "end": 187.20000000000002,
+      "text": " Then it's going to try to rank them."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 187.20000000000002,
+      "end": 188.60000000000002,
+      "text": " There is a super secret algorithm,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 188.60000000000002,
+      "end": 191.48000000000002,
+      "text": " which is just counting the number of shares"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 191.48000000000002,
+      "end": 192.92000000000002,
+      "text": " of that particular URL."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 192.92000000000002,
+      "end": 194.8,
+      "text": " And then it takes the top seven."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 194.8,
+      "end": 197.36,
+      "text": " And for every link that is selected,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 197.36,
+      "end": 198.56,
+      "text": " we need to get some metadata."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 198.56,
+      "end": 200.64000000000001,
+      "text": " So there is a process that scrapes every link,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 200.64000000000001,
+      "end": 202.4,
+      "text": " extra the title, description, and it"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 202.4,
+      "end": 204.28,
+      "text": " tries to get a relevant image."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 204.28,
+      "end": 206.96,
+      "text": " Sometimes the image is not available, not every article"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 206.96,
+      "end": 208,
+      "text": " has an image."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 208,
+      "end": 212.48000000000002,
+      "text": " So there is a fallback step that uses a placeholder image that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 212.48000000000002,
+      "end": 214.60000000000002,
+      "text": " is related to technology, something very generic,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 214.60000000000002,
+      "end": 217.48000000000002,
+      "text": " but that still fits nicely with the overall theme."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 217.48000000000002,
+      "end": 219.56,
+      "text": " Then these images are uploaded to Cloudinary,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 219.56,
+      "end": 222.54000000000002,
+      "text": " which takes care of doing a CDN, downscaling the picture,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 222.54000000000002,
+      "end": 224.20000000000002,
+      "text": " and all that kind of stuff."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 224.2,
+      "end": 228.04,
+      "text": " So all this stuff is then taken together and used"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 228.04,
+      "end": 228.79999999999998,
+      "text": " with Mailchimp."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 228.79999999999998,
+      "end": 231.23999999999998,
+      "text": " So there is another step that takes all this information,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 231.23999999999998,
+      "end": 232.16,
+      "text": " sends it to Mailchimp."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 232.16,
+      "end": 233.92,
+      "text": " There is already a template in Mailchimp."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 233.92,
+      "end": 235.51999999999998,
+      "text": " A draft campaign is created."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 235.51999999999998,
+      "end": 238.48,
+      "text": " And then I receive a preview by email."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 238.48,
+      "end": 240.76,
+      "text": " Wow, there's quite a lot of steps involved there."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 240.76,
+      "end": 244.35999999999999,
+      "text": " And I'm interested in knowing, I've seen Fullstack Bulletin,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 244.35999999999999,
+      "end": 246.6,
+      "text": " and it's really useful and looks really slick."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 246.6,
+      "end": 248.64,
+      "text": " It looks like there's a lot of time put into it."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 248.64,
+      "end": 250.16,
+      "text": " So how much of that is manual?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 250.16,
+      "end": 252.56,
+      "text": " I mean, I can imagine that just taking the top seven tweets"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 252.56,
+      "end": 255.52,
+      "text": " based on the number of shares is probably good in the most case."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 255.52,
+      "end": 256.96,
+      "text": " But sometimes you end up with things"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 256.96,
+      "end": 258.72,
+      "text": " that are not so relevant, or maybe they've"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 258.72,
+      "end": 260.4,
+      "text": " gone viral for the wrong reason."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 260.4,
+      "end": 261.68,
+      "text": " So how do you manage that?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 261.68,
+      "end": 263.24,
+      "text": " Is it just a manual process where"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 263.24,
+      "end": 264.56,
+      "text": " you have to curate all of this?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 264.56,
+      "end": 265.96,
+      "text": " Is it fully automated?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 267.68,
+      "end": 269.9,
+      "text": " So I think my goal has always been that I want to keep the curation."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 269.9,
+      "end": 272.24,
+      "text": " So I don't want to get random stuff."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 272.24,
+      "end": 275.04,
+      "text": " I still want every single piece of content"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 275.04,
+      "end": 279.28,
+      "text": " that comes out to be something that I somehow selected before."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 279.28,
+      "end": 282.2,
+      "text": " So every week, everything I read that I think is relevant,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 282.2,
+      "end": 283.08,
+      "text": " I will be sharing it."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 283.08,
+      "end": 285.36,
+      "text": " And I think that's part of the curation process."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 285.36,
+      "end": 288.2,
+      "text": " Then ideally, I wouldn't want to spend more than 15 minutes"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 288.2,
+      "end": 291.08,
+      "text": " every weekend, because I generally"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 291.08,
+      "end": 294,
+      "text": " do the process where I receive the email, the draft,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 294,
+      "end": 295.2,
+      "text": " every Friday evening."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 295.2,
+      "end": 297.84,
+      "text": " And then I have a couple of days just to review and refine."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 297.84,
+      "end": 300.64,
+      "text": " And then the next Monday afternoon, the new issue"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 300.64,
+      "end": 301.71999999999997,
+      "text": " will go out."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 301.71999999999997,
+      "end": 304.64,
+      "text": " So in my mind, I would like to spend no more than 15 minutes."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 304.64,
+      "end": 306.8,
+      "text": " In reality, I will be spending a bit more,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 306.8,
+      "end": 309.24,
+      "text": " because generally, the draft is not perfect."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 309.24,
+      "end": 312.15999999999997,
+      "text": " I will need to change images that are not relevant."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 312.16,
+      "end": 314.08000000000004,
+      "text": " Some articles might not be very relevant,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 314.08000000000004,
+      "end": 316.46000000000004,
+      "text": " so I might want to swap them out with other ones."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 316.46000000000004,
+      "end": 317.96000000000004,
+      "text": " Or sometimes there are a few articles"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 317.96000000000004,
+      "end": 319.20000000000005,
+      "text": " that are very similar."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 319.20000000000005,
+      "end": 323.08000000000004,
+      "text": " So I don't want just one topic to be a recurring thing"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 323.08000000000004,
+      "end": 324.8,
+      "text": " in the newsletter for the week."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 324.8,
+      "end": 328.24,
+      "text": " So that's also another reason to try to find different articles."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 328.24,
+      "end": 329.64000000000004,
+      "text": " And then for every single article,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 329.64000000000004,
+      "end": 331.92,
+      "text": " I try to change the description a little bit,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 331.92,
+      "end": 335.40000000000003,
+      "text": " because the style is always very different between one"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 335.40000000000003,
+      "end": 336.68,
+      "text": " description and the other."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 336.68,
+      "end": 339.18,
+      "text": " And also, I would like to add a little bit of personal touch."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 339.18,
+      "end": 341.52000000000004,
+      "text": " Why did I think that that particular link was interesting?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 341.52,
+      "end": 344.08,
+      "text": " Was it something that I played with during that week?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 344.08,
+      "end": 346.84,
+      "text": " Or is it some technology that I want to experiment more with?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 346.84,
+      "end": 349.24,
+      "text": " Or is it maybe something new that I think is, I don't know,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 349.24,
+      "end": 351.24,
+      "text": " revolutionizing some kind of field,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 351.24,
+      "end": 353.52,
+      "text": " and therefore is going to be something to watch out for?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 353.52,
+      "end": 355.44,
+      "text": " So I try to add the kind of bit of,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 355.44,
+      "end": 357.71999999999997,
+      "text": " this is why I think this link is something that should"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 357.71999999999997,
+      "end": 358.85999999999996,
+      "text": " be worth your attention."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 358.85999999999996,
+      "end": 362.32,
+      "text": " And that ends up taking a lot of time sometimes."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 362.32,
+      "end": 364.76,
+      "text": " Some weeks is really 15 minutes, but most of the time,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 364.76,
+      "end": 366.64,
+      "text": " it's probably one hour a week that I just spent"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 366.64,
+      "end": 368.68,
+      "text": " refining the newsletter."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 368.68,
+      "end": 371.4,
+      "text": " That sounds like a really nice process, but I suppose"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 371.4,
+      "end": 373.12,
+      "text": " one of the things about the process that I'm kind of"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 373.12,
+      "end": 375.79999999999995,
+      "text": " thinking might be problematic is that you're dependent on"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 375.79999999999995,
+      "end": 377.53999999999996,
+      "text": " third party systems."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 377.53999999999996,
+      "end": 381.32,
+      "text": " So we're talking about Hootsuite and Twitter and Cloudinary."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 381.32,
+      "end": 383.52,
+      "text": " And I guess when you have external systems in the mix,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 383.52,
+      "end": 386.56,
+      "text": " you have to think about fault tolerance and also what"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 386.56,
+      "end": 389.88,
+      "text": " happens when they change their contract and their API."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 389.88,
+      "end": 392.15999999999997,
+      "text": " So what has the implementation been like?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 392.15999999999997,
+      "end": 393.35999999999996,
+      "text": " And what have the problems been with it?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 393.35999999999996,
+      "end": 396.03999999999996,
+      "text": " Because I know you've been live streaming stuff on this"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 396.03999999999996,
+      "end": 397.52,
+      "text": " recently."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 397.52,
+      "end": 399.15999999999997,
+      "text": " Maybe you can give people a bit of background."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 399.16,
+      "end": 402.12,
+      "text": " Yeah, I think that this Lambda is something that I wrote,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 402.12,
+      "end": 404.96000000000004,
+      "text": " I don't know, five years ago, if not more."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 404.96000000000004,
+      "end": 407.90000000000003,
+      "text": " And I didn't really have to change it much since then."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 407.90000000000003,
+      "end": 410.8,
+      "text": " So even if today I'm not super happy with that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 410.8,
+      "end": 414.16,
+      "text": " implementation, it hasn't really been a problem so far."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 414.16,
+      "end": 417.20000000000005,
+      "text": " Lately, it has become a problem because lots of things"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 417.20000000000005,
+      "end": 418.04,
+      "text": " started to break."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 418.04,
+      "end": 420.76000000000005,
+      "text": " And as you said, you depend on external services and things"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 420.76000000000005,
+      "end": 422.64000000000004,
+      "text": " might change with external services."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 422.64000000000004,
+      "end": 425.12,
+      "text": " Funny enough, lots of them change at the same time,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 425.12,
+      "end": 425.96000000000004,
+      "text": " more or less."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 425.96000000000004,
+      "end": 428.8,
+      "text": " So I was left with a lot of problems to try to solve"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 428.8,
+      "end": 431.04,
+      "text": " in a very short amount of time."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 431.04,
+      "end": 434,
+      "text": " One problem was Twitter, not only made it very difficult"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 434,
+      "end": 436.84000000000003,
+      "text": " to use their APIs, very expensive as well."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 436.84000000000003,
+      "end": 439.04,
+      "text": " There are some free APIs that you can use,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 439.04,
+      "end": 441.88,
+      "text": " but I think it was very hard for me, first of all,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 441.88,
+      "end": 445.28000000000003,
+      "text": " to understand how do you even get API keys."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 445.28000000000003,
+      "end": 448.40000000000003,
+      "text": " I wasn't able to get API keys for my own personal account."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 448.40000000000003,
+      "end": 451,
+      "text": " I was able to get them eventually for the full stack"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 451,
+      "end": 452.2,
+      "text": " bulletin account."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 452.2,
+      "end": 455.28000000000003,
+      "text": " But then with those free API keys,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 455.28000000000003,
+      "end": 458.52,
+      "text": " supposedly you can only read user information"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 458.52,
+      "end": 459.96,
+      "text": " but not even the tweets."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 459.96,
+      "end": 463.84,
+      "text": " So it wasn't really useful at the end to do anything, right?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 463.84,
+      "end": 466.28,
+      "text": " So I had to change strategy there."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 466.28,
+      "end": 467.88,
+      "text": " And we'll talk about that in a second."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 467.88,
+      "end": 471.59999999999997,
+      "text": " Then also, OotSuite decided to revoke any free plan."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 471.59999999999997,
+      "end": 473.52,
+      "text": " I was able to use the free plan for a while"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 473.52,
+      "end": 476.59999999999997,
+      "text": " because I was tweeting something around 20 maybe"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 476.59999999999997,
+      "end": 477.32,
+      "text": " tweets per week."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 477.32,
+      "end": 478.15999999999997,
+      "text": " So it was not a lot."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 478.15999999999997,
+      "end": 480.59999999999997,
+      "text": " It was definitely in the realm of the free plan."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 480.59999999999997,
+      "end": 482.15999999999997,
+      "text": " But now there is no free plan at all."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 482.15999999999997,
+      "end": 485.47999999999996,
+      "text": " And I think that the cheapest one starts at $50 or $60,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 485.47999999999996,
+      "end": 487.4,
+      "text": " which is definitely not worth it for something"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 487.4,
+      "end": 489.08,
+      "text": " I'm doing basically for free."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 489.08,
+      "end": 491.52,
+      "text": " And then there was another service called Place Image,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 491.52,
+      "end": 494.28,
+      "text": " which is one of those thumbnail generator services"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 494.28,
+      "end": 495.2,
+      "text": " that you would use."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 495.2,
+      "end": 497.32,
+      "text": " I don't know if you are sketching out a landing page"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 497.32,
+      "end": 499.56,
+      "text": " and you want to have some place on the image, which"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 499.56,
+      "end": 501.28,
+      "text": " was really nice because just by composing"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 501.28,
+      "end": 503.35999999999996,
+      "text": " a URL with specific parameters, you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 503.35999999999996,
+      "end": 506.84,
+      "text": " could get a random image, for instance, technology, right,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 506.84,
+      "end": 508.35999999999996,
+      "text": " through different categories."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 508.35999999999996,
+      "end": 511.15999999999997,
+      "text": " That service was a free service and now it's shut down."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 511.15999999999997,
+      "end": 514.0799999999999,
+      "text": " So I needed to figure out an alternative for that one."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 514.0799999999999,
+      "end": 516.68,
+      "text": " And with all these things starting to break,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 516.68,
+      "end": 518.7199999999999,
+      "text": " initially it was a bit tricky to understand why is"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 518.7199999999999,
+      "end": 520.88,
+      "text": " the newsletter failing this week?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 520.88,
+      "end": 522.92,
+      "text": " Why is this Lambda not sending me the preview?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 522.92,
+      "end": 525.3599999999999,
+      "text": " And I would log in into AWS, look at the errors"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 525.3599999999999,
+      "end": 528.64,
+      "text": " in the console, and it would be just a random JavaScript error"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 528.64,
+      "end": 529.16,
+      "text": " somewhere."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 529.16,
+      "end": 532.0799999999999,
+      "text": " I'm very apt to tell why that was happening."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 532.0799999999999,
+      "end": 533.1999999999999,
+      "text": " And for a few reasons."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 533.1999999999999,
+      "end": 536.7199999999999,
+      "text": " Admittedly, this Lambda was in a very bad state code-wise."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 536.7199999999999,
+      "end": 538.9599999999999,
+      "text": " It was written five years ago."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 538.9599999999999,
+      "end": 541.12,
+      "text": " Async-await wasn't even available in Node.js."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 541.12,
+      "end": 544.28,
+      "text": " So I was using Babel and Webpack to transpile everything"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 544.28,
+      "end": 547.16,
+      "text": " and be able to still use Async-await to make the code"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 547.16,
+      "end": 549.4,
+      "text": " a little bit easier to write."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 549.4,
+      "end": 552.24,
+      "text": " But that made it so that when you have a stack trace,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 552.24,
+      "end": 554.9599999999999,
+      "text": " even though I was trying to use one of those source map"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 554.9599999999999,
+      "end": 558.3199999999999,
+      "text": " libraries that were available five years ago,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 558.3199999999999,
+      "end": 560.1999999999999,
+      "text": " it doesn't always resolve correctly."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 560.1999999999999,
+      "end": 561.52,
+      "text": " So sometimes you get stack traces"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 561.52,
+      "end": 563.16,
+      "text": " that they don't make sense at all."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 563.16,
+      "end": 565.16,
+      "text": " They will just point you to a random place, which"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 565.16,
+      "end": 567.24,
+      "text": " is not really the place where the error is happening."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 567.24,
+      "end": 569.16,
+      "text": " So you just need to rely on the error message"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 569.16,
+      "end": 572.04,
+      "text": " and try to simulate things locally and try to figure out,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 572.04,
+      "end": 573.6,
+      "text": " OK, where is this really breaking?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 573.6,
+      "end": 575.32,
+      "text": " Because if you just look at the stack trace,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 575.32,
+      "end": 577.72,
+      "text": " it's not really telling you the truth sometimes."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 577.72,
+      "end": 580.28,
+      "text": " So definitely I had to get my ends dirty"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 580.28,
+      "end": 582,
+      "text": " and try to fix all these things."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 582,
+      "end": 584.16,
+      "text": " And at that point, I realized, well,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 584.16,
+      "end": 586.24,
+      "text": " why did I put everything in one Lambda"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 586.24,
+      "end": 590,
+      "text": " when there are clearly a bunch of different separated logical"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 590,
+      "end": 590.72,
+      "text": " steps?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 590.72,
+      "end": 593.24,
+      "text": " So maybe a Step Function there could have been much better."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 593.24,
+      "end": 594.12,
+      "text": " I hope you don't mind."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 594.12,
+      "end": 596.6800000000001,
+      "text": " But I'm looking at an old version of the Lambda function"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 596.6800000000001,
+      "end": 598.08,
+      "text": " handler from 2020."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 598.08,
+      "end": 600.28,
+      "text": " I just picked one at random just to see what you're"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 600.28,
+      "end": 601,
+      "text": " getting at here."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 601,
+      "end": 602.84,
+      "text": " And it looks like it's pretty well structured."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 602.84,
+      "end": 606.2,
+      "text": " I mean, it actually reminds me of the kind of orchestration"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 606.2,
+      "end": 608.4,
+      "text": " logic you might have in a web service endpoint"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 608.4,
+      "end": 610.36,
+      "text": " where you've got lots of modules."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 610.36,
+      "end": 612.1600000000001,
+      "text": " You've broken down each step in the process"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 612.1600000000001,
+      "end": 613.4,
+      "text": " into different node modules."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 613.4,
+      "end": 615.24,
+      "text": " And then you're calling them one after another"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 615.24,
+      "end": 616.84,
+      "text": " in using async await."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 616.84,
+      "end": 618.6,
+      "text": " And it's very easy to actually understand."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 618.6,
+      "end": 620.2,
+      "text": " And this is the nice thing about it"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 620.2,
+      "end": 622,
+      "text": " is that you can kind of see it top to bottom."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 622,
+      "end": 624.52,
+      "text": " And the process is pretty clear, at least"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 624.52,
+      "end": 627.2800000000001,
+      "text": " from a kind of code understandability point of view."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 627.2800000000001,
+      "end": 631,
+      "text": " So what is the motivation then to move to Step Functions?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 631,
+      "end": 633.4,
+      "text": " And what is your thinking there?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 633.4,
+      "end": 635.24,
+      "text": " Let me try to describe first what"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 635.24,
+      "end": 636.64,
+      "text": " I am thinking in terms of what is"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 636.64,
+      "end": 638.64,
+      "text": " going to be the final state of the Step Function."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 638.64,
+      "end": 640.56,
+      "text": " And big disclaimer, this is still in progress."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 640.56,
+      "end": 643.76,
+      "text": " I have done some steps, but it's not fully completed."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 643.76,
+      "end": 646.28,
+      "text": " So what I have in mind for the final design"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 646.28,
+      "end": 648.64,
+      "text": " is that basically this will be a Step Function"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 648.64,
+      "end": 650.04,
+      "text": " with a bunch of different steps."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 650.04,
+      "end": 653.88,
+      "text": " The first one is going to be like a parallel step where"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 653.88,
+      "end": 656.76,
+      "text": " we are fetching information from three different data sources,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 656.76,
+      "end": 658.72,
+      "text": " one for the book, one for the quote,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 658.72,
+      "end": 660.08,
+      "text": " and then we have all the links."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 660.08,
+      "end": 662.88,
+      "text": " So that could be three different branches."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 662.88,
+      "end": 665.0400000000001,
+      "text": " And each and every one would fetch their own information"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 665.0400000000001,
+      "end": 666.08,
+      "text": " in parallel."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 666.08,
+      "end": 668.6,
+      "text": " Now, the book and the quote will be relatively easy,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 668.6,
+      "end": 671.0400000000001,
+      "text": " but fetching the links is a little bit involved"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 671.0400000000001,
+      "end": 673.44,
+      "text": " because inside that branch, technically, there"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 673.44,
+      "end": 677.12,
+      "text": " could be multiple steps, maybe one step all in sequence, one"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 677.12,
+      "end": 677.96,
+      "text": " after the other."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 677.96,
+      "end": 680.44,
+      "text": " Maybe the first step fetches the link from Twitter,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 680.44,
+      "end": 682.48,
+      "text": " which now has been replaced with Mastodon,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 682.48,
+      "end": 684.9200000000001,
+      "text": " just because I cannot use Twitter anymore."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 684.9200000000001,
+      "end": 686.5600000000001,
+      "text": " So fetch all the base links."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 686.5600000000001,
+      "end": 688.0400000000001,
+      "text": " And then there might be another step"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 688.04,
+      "end": 690.76,
+      "text": " that tries to filter out the ones that are broken or not"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 690.76,
+      "end": 694.76,
+      "text": " relevant or used before, and another step where maybe you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 694.76,
+      "end": 696.04,
+      "text": " do the top seven."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 696.04,
+      "end": 697.56,
+      "text": " And then once you have the top seven,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 697.56,
+      "end": 699.8399999999999,
+      "text": " you could do a map step to try to scrape all of them"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 699.8399999999999,
+      "end": 703.04,
+      "text": " in parallel and get the metadata for each and every one of them."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 703.04,
+      "end": 705.04,
+      "text": " At that point, outside the big parallel step,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 705.04,
+      "end": 706.92,
+      "text": " we could have an extra step that just takes"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 706.92,
+      "end": 708.76,
+      "text": " all of this information from the state"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 708.76,
+      "end": 711.24,
+      "text": " and use it to create the MailChimp preview"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 711.24,
+      "end": 712.88,
+      "text": " and send it by email."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 712.88,
+      "end": 714.24,
+      "text": " So that would be the structure."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 714.24,
+      "end": 720.48,
+      "text": " And I think with this idea, the point is basically,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 720.48,
+      "end": 723.12,
+      "text": " if something fails, it's going to be very easy for me to figure"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 723.12,
+      "end": 724.52,
+      "text": " out exactly which step is failing."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 724.52,
+      "end": 726.0600000000001,
+      "text": " So that's already a big advantage,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 726.0600000000001,
+      "end": 728.5600000000001,
+      "text": " because you visually see the representation of the step"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 728.5600000000001,
+      "end": 729.0600000000001,
+      "text": " function."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 729.0600000000001,
+      "end": 730.12,
+      "text": " You see the execution."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 730.12,
+      "end": 731.84,
+      "text": " You can see all the green nodes, and you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 731.84,
+      "end": 733.52,
+      "text": " can see where the nodes are read."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 733.52,
+      "end": 735.6,
+      "text": " And then you can click and start to zoom in exactly"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 735.6,
+      "end": 736.6800000000001,
+      "text": " on that particular Lambda."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 736.6800000000001,
+      "end": 738.84,
+      "text": " So that reduces the scope for the error."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 738.84,
+      "end": 741.12,
+      "text": " The other thing is that if something fails in a transit"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 741.12,
+      "end": 742.6800000000001,
+      "text": " way, for instance, I don't know, maybe"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 742.68,
+      "end": 744.3599999999999,
+      "text": " a service as a networking glitch."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 744.3599999999999,
+      "end": 746.56,
+      "text": " You are not able to complete a request."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 746.56,
+      "end": 748.7199999999999,
+      "text": " But if you retry, that time will go well."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 748.7199999999999,
+      "end": 750.56,
+      "text": " So withStep Function, it's actually very easy"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 750.56,
+      "end": 752.5999999999999,
+      "text": " to define this retry logic without having"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 752.5999999999999,
+      "end": 753.92,
+      "text": " to write custom code for it."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 753.92,
+      "end": 755.92,
+      "text": " So that's another reason."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 755.92,
+      "end": 758.4,
+      "text": " And in general, I think the fact that you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 758.4,
+      "end": 761.3599999999999,
+      "text": " can structure all the parallel steps so easily"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 761.3599999999999,
+      "end": 763.3599999999999,
+      "text": " should make everything faster, because you are not"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 763.3599999999999,
+      "end": 765.5999999999999,
+      "text": " creating that sequential logic."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 765.5999999999999,
+      "end": 767.4799999999999,
+      "text": " Or you are not making your code more complicated"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 767.4799999999999,
+      "end": 770.4,
+      "text": " to try to do things in parallel at the level of your code."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 770.4,
+      "end": 772.5999999999999,
+      "text": " But you let the Step Function do all the parallel"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 772.6,
+      "end": 774.9200000000001,
+      "text": "ization and dealing with concurrent stuff"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 774.9200000000001,
+      "end": 776.6800000000001,
+      "text": " wherever possible."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 776.6800000000001,
+      "end": 778.0400000000001,
+      "text": " That makes a lot of sense to me."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 778.0400000000001,
+      "end": 780.2,
+      "text": " Just since you're talking about Mastodon,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 780.2,
+      "end": 781.96,
+      "text": " I mean, I'm on Mastodon too, but I"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 781.96,
+      "end": 784.48,
+      "text": " don't think I've reached the same level engagement as we"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 784.48,
+      "end": 789.72,
+      "text": " had previously on Twitter before it went the way it is."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 789.72,
+      "end": 792.5600000000001,
+      "text": " Where it just seems, I don't know,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 792.5600000000001,
+      "end": 795.32,
+      "text": " every time I open Twitter, it's worse"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 795.32,
+      "end": 796.48,
+      "text": " in lots of different ways."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 796.48,
+      "end": 798.6800000000001,
+      "text": " But let's maybe share our handles"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 798.6800000000001,
+      "end": 801.6800000000001,
+      "text": " for Mastodon and the full stack one as well in the show notes"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 801.68,
+      "end": 803.7199999999999,
+      "text": " for all the listeners who are living in the Fediverse,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 803.7199999999999,
+      "end": 805.9599999999999,
+      "text": " and we can try and grow the engagement that way."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 805.9599999999999,
+      "end": 807.8399999999999,
+      "text": " I'm also wondering, are you planning on,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 807.8399999999999,
+      "end": 811.2399999999999,
+      "text": " are you thinking about Blue Sky, Threads, LinkedIn,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 811.2399999999999,
+      "end": 814.1999999999999,
+      "text": " or other platforms as well for full stack bulletin?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 814.1999999999999,
+      "end": 817.04,
+      "text": " Because it seems like things are going to spread out and move"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 817.04,
+      "end": 819.9599999999999,
+      "text": " beyond just one platform for this kind of interaction."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 819.9599999999999,
+      "end": 820.7199999999999,
+      "text": " Yeah, absolutely."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 820.7199999999999,
+      "end": 823.7199999999999,
+      "text": " I did think about using pretty much all of them."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 823.7199999999999,
+      "end": 826.4399999999999,
+      "text": " I think I ended up with Mastodon just because the APIs are"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 826.4399999999999,
+      "end": 827.76,
+      "text": " so easy to use."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 827.76,
+      "end": 831.64,
+      "text": " And there is a very good Node.js client that pretty much was"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 831.64,
+      "end": 834.88,
+      "text": " like everything I needed to do in one function call."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 834.88,
+      "end": 837.04,
+      "text": " Also, you don't have a complicated authentication"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 837.04,
+      "end": 837.56,
+      "text": " process."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 837.56,
+      "end": 840.56,
+      "text": " You create an app, and then you can get an application token."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 840.56,
+      "end": 843.6,
+      "text": " So you don't need to do like an OAuth 2 kind of process"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 843.6,
+      "end": 845.76,
+      "text": " just to be able to get your own tokens."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 845.76,
+      "end": 848.24,
+      "text": " So it was really easy to set up for this particular use case,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 848.24,
+      "end": 850.4,
+      "text": " and I was able to do that transition"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 850.4,
+      "end": 851.8,
+      "text": " in a couple of hours."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 851.8,
+      "end": 854.72,
+      "text": " So I was impressed how easy it was to use that API."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 854.72,
+      "end": 857.3199999999999,
+      "text": " And I think going with LinkedIn or Blue Sky or others"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 857.3199999999999,
+      "end": 859.3199999999999,
+      "text": " would have been more involved."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 859.32,
+      "end": 861.8000000000001,
+      "text": " So I just went for the one that was giving me"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 861.8000000000001,
+      "end": 864.36,
+      "text": " the easiest path to migration."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 864.36,
+      "end": 866.84,
+      "text": " Even though the platform itself, I'm"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 866.84,
+      "end": 868.36,
+      "text": " not getting a lot of engagement yet."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 868.36,
+      "end": 871.08,
+      "text": " So maybe that's something that will grow, but I don't know."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 871.08,
+      "end": 872.5200000000001,
+      "text": " I have some doubts that it's going"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 872.5200000000001,
+      "end": 874.5200000000001,
+      "text": " to get at the levels of Twitter, to be honest."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 876.0400000000001,
+      "end": 877.5200000000001,
+      "text": " The fact that you have it now or you're moving towards a Step Function means"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 877.5200000000001,
+      "end": 879.9200000000001,
+      "text": " that it will be easier to modularize it and orchestrate"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 879.9200000000001,
+      "end": 881.6400000000001,
+      "text": " multiple platforms in the future."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 881.6400000000001,
+      "end": 883,
+      "text": " So what's the plan to migrate?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 883,
+      "end": 885.1600000000001,
+      "text": " Are you looking at a big migration effort"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 885.1600000000001,
+      "end": 886.5600000000001,
+      "text": " here to get to the end state?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 888.92,
+      "end": 891.1999999999999,
+      "text": " Yeah, I think the key here is that this is a side project, and I'm not going to be investing more than a couple"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 891.1999999999999,
+      "end": 893.24,
+      "text": " of hours a week on it."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 893.24,
+      "end": 895.7199999999999,
+      "text": " And the refactoring is probably about one hour a week"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 895.7199999999999,
+      "end": 897.4399999999999,
+      "text": " when I'm doing my live streams."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 897.4399999999999,
+      "end": 899.56,
+      "text": " So I need to be strategic about that."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 899.56,
+      "end": 903.8399999999999,
+      "text": " I cannot do a big bang type of migration where I'd be spending"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 903.8399999999999,
+      "end": 905.9599999999999,
+      "text": " hundreds of hours, and maybe two years later, I"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 905.9599999999999,
+      "end": 907.88,
+      "text": " will swap the thing entirely."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 907.88,
+      "end": 909.52,
+      "text": " Also because it was broken at the time."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 909.52,
+      "end": 911.8,
+      "text": " So I needed to figure out how to do a migration that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 911.8,
+      "end": 913.76,
+      "text": " will fix the problem while progressing"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 913.76,
+      "end": 915.68,
+      "text": " in that direction of the migration."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 915.68,
+      "end": 918.9599999999999,
+      "text": " So the idea was that every time I do a change,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 918.9599999999999,
+      "end": 923.8399999999999,
+      "text": " I need to figure out what is the minimum valuable, I guess,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 923.8399999999999,
+      "end": 926.0799999999999,
+      "text": " change in the direction that I want to go so that I don't"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 926.0799999999999,
+      "end": 928,
+      "text": " break things, and I can ship it to production"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 928,
+      "end": 931.68,
+      "text": " and make sure that I got some extra value."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 931.68,
+      "end": 934.3199999999999,
+      "text": " I went a little step forward in that direction"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 934.3199999999999,
+      "end": 936.5999999999999,
+      "text": " while still keeping something that works."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 936.5999999999999,
+      "end": 939.56,
+      "text": " So the idea there was let's try to extract."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 939.56,
+      "end": 942.1999999999999,
+      "text": " The first step was, OK, let's just take the monolith Lambda"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 942.1999999999999,
+      "end": 943.4399999999999,
+      "text": " and wrap it in a Step Function."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 943.4399999999999,
+      "end": 945.04,
+      "text": " This Step Function doesn't do anything special."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 945.04,
+      "end": 946.28,
+      "text": " It's just one state."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 946.28,
+      "end": 948.48,
+      "text": " But at least now we are in the realm of Step Function."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 948.48,
+      "end": 950.16,
+      "text": " That was my first change."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 950.16,
+      "end": 951.76,
+      "text": " Then after that change was in place,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 951.76,
+      "end": 954.0799999999999,
+      "text": " I was still able to deploy and run it."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 954.0799999999999,
+      "end": 955.12,
+      "text": " It was still failing."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 955.12,
+      "end": 958.4,
+      "text": " Meanwhile, I had to fix in that Lambda some of the problems."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 958.4,
+      "end": 960.64,
+      "text": " Like for instance, I swapped Twitter for Mastodon."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 960.64,
+      "end": 961.76,
+      "text": " I removed Hootsuite."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 961.76,
+      "end": 964.28,
+      "text": " I changed place image with Unsplash,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 964.28,
+      "end": 968.3199999999999,
+      "text": " which also has nice APIs and a free tier that you can use."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 968.3199999999999,
+      "end": 970.36,
+      "text": " And at that point, I had everything"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 970.36,
+      "end": 971.56,
+      "text": " working in a Step Function."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 971.56,
+      "end": 973.4,
+      "text": " Still very monolithic, but was something"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 973.4,
+      "end": 976.16,
+      "text": " that I could use to produce the next newsletter."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 976.16,
+      "end": 978.88,
+      "text": " From there, it's very easy to start to extract states."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 978.88,
+      "end": 980.76,
+      "text": " For instance, the first state that I extracted,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 980.76,
+      "end": 982.6,
+      "text": " I didn't even create a parallel step yet."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 982.6,
+      "end": 984.52,
+      "text": " I just created two sequential states"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 984.52,
+      "end": 988.16,
+      "text": " where I think I started first either the quote or the book."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 988.16,
+      "end": 989,
+      "text": " I'm not sure."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 989,
+      "end": 990.6,
+      "text": " But basically, there were two steps."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 990.6,
+      "end": 992.12,
+      "text": " One extracted the quote and adding it"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 992.12,
+      "end": 994,
+      "text": " to the global state of the Step Function."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 994,
+      "end": 995.84,
+      "text": " And then everything else was pretty much"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 995.84,
+      "end": 998.52,
+      "text": " the same monolithic Lambda, except that rather than taking"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 998.52,
+      "end": 1001.8,
+      "text": " the book itself, it was just reading it from the state."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1001.8,
+      "end": 1003.3199999999999,
+      "text": " At that point, the next step was, OK,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1003.32,
+      "end": 1008.1600000000001,
+      "text": " let's start to create a parallel step at the beginning, where"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1008.1600000000001,
+      "end": 1009.6800000000001,
+      "text": " I can do multiple things together."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1009.6800000000001,
+      "end": 1013.2,
+      "text": " So not just fetch the book, but fetch the book and the quote,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1013.2,
+      "end": 1015.72,
+      "text": " and then use them and put them in the global state"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1015.72,
+      "end": 1018.9200000000001,
+      "text": " and make the current monolithic Lambda a little bit slimmer,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1018.9200000000001,
+      "end": 1020.96,
+      "text": " because it can just read things from the state,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1020.96,
+      "end": 1022.6800000000001,
+      "text": " rather than doing more stuff."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1022.6800000000001,
+      "end": 1025.56,
+      "text": " And the next steps would be to start to branch out also"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1025.56,
+      "end": 1029,
+      "text": " the link fetching step and processing step"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1029,
+      "end": 1031.28,
+      "text": " into another branch into the parallel step"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1031.28,
+      "end": 1034.08,
+      "text": " and remove all of that code from the monolithic Lambda."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1034.08,
+      "end": 1035.52,
+      "text": " So basically, the monolithic Lambda"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1035.52,
+      "end": 1038.28,
+      "text": " is still leaving us the last step of the Step Function,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1038.28,
+      "end": 1040.12,
+      "text": " but it's becoming slimmer and slimmer"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1040.12,
+      "end": 1044.12,
+      "text": " as I extract out steps that will go into their own dedicated"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1044.12,
+      "end": 1045.28,
+      "text": " Lambda functions."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1045.28,
+      "end": 1047.68,
+      "text": " Given that you're talking about changing a single Lambda"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1047.68,
+      "end": 1051,
+      "text": " function into Step Function with multiple Lambda functions being"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1051,
+      "end": 1052.8799999999999,
+      "text": " orchestrated, do you have to think more"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1052.8799999999999,
+      "end": 1056.08,
+      "text": " then about observability and how to monitor"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1056.08,
+      "end": 1057.16,
+      "text": " when things go wrong?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1057.16,
+      "end": 1061.2,
+      "text": " Yeah, so I think that just by virtue of being a Step Function"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1061.2,
+      "end": 1063.56,
+      "text": " is already a little bit more observable,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1063.56,
+      "end": 1065.04,
+      "text": " because if something goes wrong, you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1065.04,
+      "end": 1066.32,
+      "text": " can just open that execution."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1066.32,
+      "end": 1068.88,
+      "text": " It's very easy to see where things are failing"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1068.88,
+      "end": 1070.92,
+      "text": " and what is the error."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1070.92,
+      "end": 1072.76,
+      "text": " If I look at the code, at the time,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1072.76,
+      "end": 1076.2,
+      "text": " I used this debug module from Node.js,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1076.2,
+      "end": 1080.28,
+      "text": " which allows you to create effectively logs,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1080.28,
+      "end": 1081.96,
+      "text": " and then you can select a log level,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1081.96,
+      "end": 1083.8,
+      "text": " and you can make it more or less verbose,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1083.8,
+      "end": 1085.4,
+      "text": " depending on what you want to see."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1085.4,
+      "end": 1087.28,
+      "text": " So that's something that is already in place."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1087.28,
+      "end": 1088.32,
+      "text": " It's not perfect."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1088.32,
+      "end": 1090.3600000000001,
+      "text": " There might be some refinement work there"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1090.36,
+      "end": 1092.9599999999998,
+      "text": " to make it nicer, maybe using structured logs,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1092.9599999999998,
+      "end": 1094.9599999999998,
+      "text": " just to make it easier to send it to CloudWatch"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1094.9599999999998,
+      "end": 1097.7199999999998,
+      "text": " and then use CloudWatch logs to query the logs."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1097.7199999999998,
+      "end": 1099.9199999999998,
+      "text": " But I think overall, it's a good starting point."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1099.9199999999998,
+      "end": 1101.36,
+      "text": " We can improve it."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1101.36,
+      "end": 1103.24,
+      "text": " Other things could be create custom alarms."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1103.24,
+      "end": 1104.56,
+      "text": " Like right now, there is no alarm."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1104.56,
+      "end": 1106.7199999999998,
+      "text": " I think I just get worried if it's Friday evening"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1106.7199999999998,
+      "end": 1108.24,
+      "text": " and I didn't get the preview email,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1108.24,
+      "end": 1110.6,
+      "text": " and I have to go in and check out, OK, why did it fail?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1110.6,
+      "end": 1112.1999999999998,
+      "text": " It would be nice to just have an alarm"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1112.1999999999998,
+      "end": 1114.6799999999998,
+      "text": " if the Step Function fails that sends me an email anyway,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1114.6799999999998,
+      "end": 1116.8,
+      "text": " saying, you're not getting it because it failed"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1116.8,
+      "end": 1118.3999999999999,
+      "text": " and it failed for this reason."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1118.4,
+      "end": 1121.4,
+      "text": " So definitely, there is some room for improvement there."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1121.4,
+      "end": 1123.8000000000002,
+      "text": " And one tool that we have been talking about"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1123.8000000000002,
+      "end": 1125.72,
+      "text": " that we built at fourTheorem is SLIC Watch."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1125.72,
+      "end": 1127.16,
+      "text": " So it will be very easy because I'm"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1127.16,
+      "end": 1129.1200000000001,
+      "text": " using SAM to integrate SLIC Watch"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1129.1200000000001,
+      "end": 1131.88,
+      "text": " and get some of that done automatically"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1131.88,
+      "end": 1133.2,
+      "text": " for me at the stack level."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1133.2,
+      "end": 1133.76,
+      "text": " That's true."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1133.76,
+      "end": 1135.76,
+      "text": " If you've got a SNS topic, you can just"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1135.76,
+      "end": 1139,
+      "text": " get alerts for any failing Step Functions or Lambda functions,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1139,
+      "end": 1140.72,
+      "text": " APIs, anything else."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1140.72,
+      "end": 1142.96,
+      "text": " This sounds like it's really going in a nice direction,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1142.96,
+      "end": 1145.1200000000001,
+      "text": " and it's quite a professional approach you're taking,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1145.1200000000001,
+      "end": 1147.0800000000002,
+      "text": " given that it's kind of a side project."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1147.08,
+      "end": 1149.1599999999999,
+      "text": " But since you want to run it once a week,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1149.1599999999999,
+      "end": 1150.96,
+      "text": " it's a fairly controlled environment,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1150.96,
+      "end": 1152.6,
+      "text": " and you're in control of it."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1152.6,
+      "end": 1154.6,
+      "text": " So does it really all matter that much"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1154.6,
+      "end": 1156.28,
+      "text": " to take this migration approach?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1156.28,
+      "end": 1159.12,
+      "text": " Is it just an interesting exercise for you?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1159.12,
+      "end": 1160.84,
+      "text": " Or is there some higher level lesson"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1160.84,
+      "end": 1163.8,
+      "text": " that we can extrapolate from this for more serious production"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1163.8,
+      "end": 1165.9199999999998,
+      "text": " workloads, where there might be users relying"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1165.9199999999998,
+      "end": 1168,
+      "text": " on the feature 24-7?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1168,
+      "end": 1168.84,
+      "text": " Indeed, you're right."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1168.84,
+      "end": 1171.52,
+      "text": " I mean, I could definitely afford to let this fail,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1171.52,
+      "end": 1173.32,
+      "text": " and I have a weekend to fix it."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1173.32,
+      "end": 1175.8799999999999,
+      "text": " And even if it doesn't, I don't fix it,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1175.88,
+      "end": 1177.2,
+      "text": " the worst that happens is that I'm not"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1177.2,
+      "end": 1178.92,
+      "text": " going to be publishing a newsletter for a week, which"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1178.92,
+      "end": 1180.7600000000002,
+      "text": " is not the end of the world."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1180.7600000000002,
+      "end": 1183.68,
+      "text": " So I'm probably over-engineering this thing a little bit"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1183.68,
+      "end": 1185.1200000000001,
+      "text": " as an interesting exercise."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1185.1200000000001,
+      "end": 1186.7600000000002,
+      "text": " But I think that there are lessons there"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1186.7600000000002,
+      "end": 1190.1200000000001,
+      "text": " that we can extrapolate for more serious production"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1190.1200000000001,
+      "end": 1191.7600000000002,
+      "text": " type of workflows."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1191.7600000000002,
+      "end": 1194.8000000000002,
+      "text": " And one lesson I think is that I've rarely"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1194.8000000000002,
+      "end": 1197.5200000000002,
+      "text": " seen in my career Big Bang migration succeed."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1197.5200000000002,
+      "end": 1200.92,
+      "text": " I think you end up spending way too much time, budget,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1200.92,
+      "end": 1203.1200000000001,
+      "text": " energies into Big Bang migrations."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1203.1200000000001,
+      "end": 1205.0400000000002,
+      "text": " And very often what happens is that when"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1205.04,
+      "end": 1206.36,
+      "text": " you are very close to completion,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1206.36,
+      "end": 1208.28,
+      "text": " somebody is just going to cancel the project,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1208.28,
+      "end": 1210.04,
+      "text": " because it has been years in the making,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1210.04,
+      "end": 1212.2,
+      "text": " and nobody has seen value so far."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1212.2,
+      "end": 1214.72,
+      "text": " So yeah, that's always the way they go."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1214.72,
+      "end": 1216.8799999999999,
+      "text": " So try not to make another Big Bang migration."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1216.8799999999999,
+      "end": 1219.04,
+      "text": " I think in itself is a good exercise."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1219.04,
+      "end": 1221.3999999999999,
+      "text": " And I think I can use that practice a little bit more just"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1221.3999999999999,
+      "end": 1225.32,
+      "text": " to force myself to think into, OK, even if it seems longer,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1225.32,
+      "end": 1227.32,
+      "text": " because you are doing small incremental steps,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1227.32,
+      "end": 1229.92,
+      "text": " and sometimes you have to work around things a little bit just"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1229.92,
+      "end": 1232.04,
+      "text": " to make it incremental, it's still functional."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1232.04,
+      "end": 1235,
+      "text": " But you get to see value every single time you do a change."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1235,
+      "end": 1237.92,
+      "text": " I think it's something that I need to push myself to think"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1237.92,
+      "end": 1239.44,
+      "text": " into those terms a little bit more."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1239.44,
+      "end": 1242.04,
+      "text": " So in that sense, the exercise is good."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1242.04,
+      "end": 1244.12,
+      "text": " And in general, it's a lesson for every migration."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1244.12,
+      "end": 1246,
+      "text": " Try to think that way whenever possible,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1246,
+      "end": 1248.44,
+      "text": " even if it seems you're doing more work,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1248.44,
+      "end": 1250.04,
+      "text": " but you are doing work incrementally,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1250.04,
+      "end": 1253.24,
+      "text": " and every single change gives you value immediately."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1253.24,
+      "end": 1256.44,
+      "text": " Then the other thing is that moving to Step Function"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1256.44,
+      "end": 1259.36,
+      "text": " has a bunch of advantages that we described."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1259.36,
+      "end": 1264,
+      "text": " So I think by doing that, I will be having something"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1264,
+      "end": 1267.52,
+      "text": " that it is more observable by default, as we said."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1267.52,
+      "end": 1270.84,
+      "text": " And it is something that long term I can maintain more easily."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1270.84,
+      "end": 1272.92,
+      "text": " And another idea there is that if I"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1272.92,
+      "end": 1275.44,
+      "text": " manage to split everything out into the wrong functions,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1275.44,
+      "end": 1277.56,
+      "text": " then if something changes, for instance, as you said,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1277.56,
+      "end": 1279.6,
+      "text": " I want maybe to swap master for something else,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1279.6,
+      "end": 1282.44,
+      "text": " or maybe I want to start to include multiple sources,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1282.44,
+      "end": 1284.76,
+      "text": " it should be easier to do it with a Step Function where"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1284.76,
+      "end": 1287.88,
+      "text": " you can just create more steps or change very specific steps"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1287.88,
+      "end": 1290.44,
+      "text": " rather than thinking, OK, there is a massive monolithic code"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1290.44,
+      "end": 1290.92,
+      "text": " base."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1290.92,
+      "end": 1292,
+      "text": " Where do I do the changes?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1292,
+      "end": 1293.36,
+      "text": " How do I change the tests?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1293.36,
+      "end": 1295.04,
+      "text": " How do I test everything again?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1295.04,
+      "end": 1297.08,
+      "text": " While if you can do all these things in isolation"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1297.08,
+      "end": 1299.8799999999999,
+      "text": " and then just compose them, it should be a little bit easier."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1299.8799999999999,
+      "end": 1301.3999999999999,
+      "text": " And another idea there which could"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1301.3999999999999,
+      "end": 1303.1599999999999,
+      "text": " be relevant in production environment"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1303.1599999999999,
+      "end": 1305.12,
+      "text": " is let's just imagine that at some point"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1305.12,
+      "end": 1307.04,
+      "text": " you realize that you have a bottleneck,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1307.04,
+      "end": 1309.4399999999998,
+      "text": " and you have a Lambda that takes forever because you're doing"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1309.4399999999998,
+      "end": 1311.4799999999998,
+      "text": " maybe something very confusing, dense,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1311.4799999999998,
+      "end": 1313.84,
+      "text": " you could decide to swap the Lambda for something else,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1313.84,
+      "end": 1315.7199999999998,
+      "text": " or you could rewrite it in another language."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1315.7199999999998,
+      "end": 1317.3999999999999,
+      "text": " I think that that composability gives you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1317.3999999999999,
+      "end": 1318.8,
+      "text": " a lot of opportunities for change"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1318.8,
+      "end": 1321.3999999999999,
+      "text": " where optimizations opportunities arise."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1321.4,
+      "end": 1323.64,
+      "text": " So maybe you want to rewrite something you've asked for fun"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1323.64,
+      "end": 1326.2800000000002,
+      "text": " or for performance, you can rewrite one Lambda at a time,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1326.2800000000002,
+      "end": 1329.4,
+      "text": " for instance, or maybe just very specific Lambdas."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1329.4,
+      "end": 1332.24,
+      "text": " I like the way you're taking the one bite at a time approach"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1332.24,
+      "end": 1333.3200000000002,
+      "text": " to eating this elephant."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1333.3200000000002,
+      "end": 1335.48,
+      "text": " And I think it's going to be fascinating to watch"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1335.48,
+      "end": 1338.5600000000002,
+      "text": " the rest of the live streams and see where this ends up."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1340.88,
+      "end": 1342.8000000000002,
+      "text": " Yeah, and on that note, I want to mention that we will have some links in the show notes"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1342.8000000000002,
+      "end": 1344.2800000000002,
+      "text": " because all the code is open source,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1344.2800000000002,
+      "end": 1345.8400000000001,
+      "text": " has been open source since day one."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1345.8400000000001,
+      "end": 1348,
+      "text": " So if you're curious, you can see all the evolution"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1348,
+      "end": 1349.3600000000001,
+      "text": " by just looking at the history."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1349.36,
+      "end": 1352.9199999999998,
+      "text": " And we'll have the link of the repository on the show notes."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1352.9199999999998,
+      "end": 1354.6399999999999,
+      "text": " I'm doing the live streams on Twitch,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1354.6399999999999,
+      "end": 1356.9199999999998,
+      "text": " so you can check out my Twitch profile."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1356.9199999999998,
+      "end": 1358.36,
+      "text": " If you're interested, generally it's"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1358.36,
+      "end": 1362,
+      "text": " every Monday afternoon in Irish time zone."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1362,
+      "end": 1364.28,
+      "text": " And there is also a playlist on YouTube"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1364.28,
+      "end": 1365.4399999999998,
+      "text": " with the previous recording."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1365.4399999999998,
+      "end": 1367.12,
+      "text": " So if you want to check out the previous episodes,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1367.12,
+      "end": 1370.4799999999998,
+      "text": " just see the incremental changes, you can do that there."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1370.4799999999998,
+      "end": 1372.1999999999998,
+      "text": " So on that note, I think we've reached"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1372.1999999999998,
+      "end": 1373.32,
+      "text": " the end of this episode."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1373.32,
+      "end": 1375.04,
+      "text": " I hope that this migration story is going"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1375.04,
+      "end": 1376.12,
+      "text": " to be interesting for you."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1376.12,
+      "end": 1377.56,
+      "text": " If you have done something similar,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1377.56,
+      "end": 1379.76,
+      "text": " be curious to know what did you do."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1379.76,
+      "end": 1383.04,
+      "text": " Maybe you took a different path using different services"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1383.04,
+      "end": 1384.6,
+      "text": " or maybe a different architecture."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1384.6,
+      "end": 1386.44,
+      "text": " So definitely share your experience with us"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1386.44,
+      "end": 1389.12,
+      "text": " in the comments or reach out to us online on Twitter"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1389.12,
+      "end": 1392.12,
+      "text": " or LinkedIn or master as well."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1392.12,
+      "end": 1393.3999999999999,
+      "text": " All right, thank you very much."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1393.3999999999999,
+      "end": 1394.8799999999999,
+      "text": " We'll see you in the next episode."
+    }
+  ]
+}

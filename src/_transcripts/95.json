@@ -1,0 +1,998 @@
+{
+  "speakers": {
+    "spk_0": "spk_0",
+    "spk_1": "spk_1"
+  },
+  "segments": [
+    {
+      "speakerLabel": "spk_0",
+      "start": 0,
+      "end": 3.52,
+      "text": " Everyone loves the simplicity of S3 for storing and retrieving data."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 3.52,
+      "end": 7.28,
+      "text": " But when you start pushing the boundaries and want really large objects, high throughput,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 7.28,
+      "end": 13.040000000000001,
+      "text": " and faster access, it can start to become a bit of a minefield. AWS recently released Mountpoint"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 13.040000000000001,
+      "end": 18.400000000000002,
+      "text": " for S3, a new client that promises to make fast access to S3 as simple as any file system."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 18.400000000000002,
+      "end": 22.48,
+      "text": " Today, we're going to take a look at Mountpoint for S3. And by the end, you should know where"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 22.48,
+      "end": 27.36,
+      "text": " you might use it and when you should give this a hard pass. I'm Eoin. I'm joined by Luciano"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 27.36,
+      "end": 40.480000000000004,
+      "text": " for another episode of AWS Bites. 4thiram is the company that makes AWS Bytes possible."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 40.480000000000004,
+      "end": 43.92,
+      "text": " If you're looking for a partner to accompany you on your cloud journey,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 43.92,
+      "end": 49.760000000000005,
+      "text": " check them out at 4thiram.com. Luciano, why would you need something like Mountpoint for S3?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 49.760000000000005,
+      "end": 52.16,
+      "text": " What do you think? What are the use cases that it might solve?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 52.96,
+      "end": 56,
+      "text": " Yeah, that's a good question."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 56,
+      "end": 61.52,
+      "text": " So we were reading through the announcement, and there are some use cases that are detailed there. And the first one is big data application,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 61.52,
+      "end": 67.52,
+      "text": " specifically when big data application like data lakes, they don't directly support S3. So you can"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 67.52,
+      "end": 73.68,
+      "text": " effectively use Mountpoint to mount S3 as a file system, like a FUSE file system, and then just"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 73.68,
+      "end": 78.16,
+      "text": " give it to the application you're using. But this is a bit of an interesting use case because for"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 78.16,
+      "end": 83.28,
+      "text": " the kind of big data application that we have been using, like Dremio, Snowflake, and others,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 83.28,
+      "end": 88.4,
+      "text": " like all of them have already S3 integration, so it wasn't really convincing. But it seems that"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 88.4,
+      "end": 92.08,
+      "text": " there are other advantages. For instance, it's very optimized for performance. So if you're"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 92.08,
+      "end": 98.56,
+      "text": " dealing with large objects, or if you need to have very high read throughput, or if you need to read"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 98.56,
+      "end": 104.16,
+      "text": " without downloading an object entirely, you just need a subset of the data. In all those use cases,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 104.16,
+      "end": 108.88,
+      "text": " I think Mountpoint can give you ideal performance. So maybe this is already good enough to justify"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 108.88,
+      "end": 114.56,
+      "text": " using Mountpoint. We were also trying to figure out some potentially additional use cases where"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 114.56,
+      "end": 119.6,
+      "text": " Mountpoint can be useful. And we were thinking, okay, what if you have created a script, maybe"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 119.6,
+      "end": 124.08,
+      "text": " you were doing something quick and dirty locally, and now you need to do it using data that is"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 124.08,
+      "end": 129.51999999999998,
+      "text": " available in S3. You're probably going to be fast enough just using Mountpoint rather than changing"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 129.51999999999998,
+      "end": 135.51999999999998,
+      "text": " all your code to actually use an SDK or the CLI. So that could be another use case. And a common"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 135.52,
+      "end": 139.60000000000002,
+      "text": " use case is like you have a Unix pipeline, you read from S3, you do some kind of manipulation,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 139.60000000000002,
+      "end": 144.72,
+      "text": " you save to S3. And if you were doing that on a local file system, you can immediately support"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 144.72,
+      "end": 152,
+      "text": " S3 that way. And similarly, we have seen people doing a lot of work analyzing CSV files or Parquet"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 152,
+      "end": 157.84,
+      "text": " files using notebooks or logarithms, so all sorts of kind of analytics. And often enough, people"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 157.84,
+      "end": 162.4,
+      "text": " are just working off of logarithm files, and then they need to use real data in S3. And they have"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 162.4,
+      "end": 167.52,
+      "text": " all the code written for using generic file system operations. They don't want to change their code"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 167.52,
+      "end": 173.6,
+      "text": " to use maybe Porto3 or maybe some other kind of direct integration with S3. So in that case,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 173.6,
+      "end": 181.04000000000002,
+      "text": " you have another valid use case for Mountpoint. And finally, this is always our... something we"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 181.04000000000002,
+      "end": 186.4,
+      "text": " like to remark that if you need to explore what you have in an S3 bucket and you are not very"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 186.4,
+      "end": 193.68,
+      "text": " familiar with AWS CLI, because maybe you haven't used AWS that much, you can just mount the S3"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 193.68,
+      "end": 198.88,
+      "text": " Mountpoint and then you can explore the files using familiar bash commands like ls, for instance."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 198.88,
+      "end": 203.92000000000002,
+      "text": " So that could be another use case, and it might be much more convenient than just browsing through"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 203.92000000000002,
+      "end": 210.08,
+      "text": " the AWS web console, especially when you have lots and lots of files in the bucket. So should we talk"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 210.08,
+      "end": 216.24,
+      "text": " a little bit more about how it is really implemented and some of the modulated characteristics of"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 216.24,
+      "end": 219.84,
+      "text": " this implementation?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 219.84,
+      "end": 226.08,
+      "text": " Yeah, this is where it gets actually kind of interesting in looking at how they're implementing this new client. It's written in Rust, like a lot of the new performance critical"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 226.08,
+      "end": 230.64000000000001,
+      "text": " things that they're doing at Amazon, they seem to be favoring Rust. And now it's only supported for"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 230.64000000000001,
+      "end": 237.92000000000002,
+      "text": " Linux at the moment. But the idea of using Rust is to reduce latency, the binary size, good for"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 237.92000000000002,
+      "end": 242.64000000000001,
+      "text": " serverless applications, thinking about cold starts, reducing resource consumption. And it"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 242.64,
+      "end": 248.39999999999998,
+      "text": " provides then a file system operation that is intended to deliver optimal S3 performance. So"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 248.39999999999998,
+      "end": 252.23999999999998,
+      "text": " the idea is that you get a simple interface, but you don't compromise on speed because they're"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 252.23999999999998,
+      "end": 258.88,
+      "text": " providing this level of abstraction. And it uses the Linux FUSE subsystem. So that's the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 260,
+      "end": 264.71999999999997,
+      "text": " subsystem that you might've used before if you're a Linux user for providing user space file systems."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 266.32,
+      "end": 270.71999999999997,
+      "text": " Now, one of the things, I was a little bit confused because there are alternatives that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 270.72,
+      "end": 275.84000000000003,
+      "text": " already do this kind of thing in FUSE. I was wondering what this provides us slightly different."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 275.84000000000003,
+      "end": 279.20000000000005,
+      "text": " And it seems from reading through the documentation and the code base, that the whole"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 279.20000000000005,
+      "end": 285.20000000000005,
+      "text": " philosophy here is to intentionally not implement operations that would result in suboptimal"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 285.20000000000005,
+      "end": 290.32000000000005,
+      "text": " performance. So to remove those foot guns where you might try and do a simple operation on the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 290.32000000000005,
+      "end": 295.52000000000004,
+      "text": " file system that might result in thousands of operations with S3 under the hood that might take"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 295.52000000000004,
+      "end": 300.64000000000004,
+      "text": " days and might end up costing you a lot. So I think that is a little bit reassuring to see that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 300.64,
+      "end": 307.12,
+      "text": " in practice. I will have to see how it plays out. And it's also built on top of the native CRT."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 307.12,
+      "end": 312.88,
+      "text": " So CRT is something you might come across very rarely, but the CRT is common runtime. It's a"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 312.88,
+      "end": 317.84,
+      "text": " set of libraries that Amazon provide. And we can maybe talk a little bit about that further on."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 317.84,
+      "end": 323.03999999999996,
+      "text": " So when doesn't it work? Given this implementation and design, when does it not work? Well, we've"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 323.03999999999996,
+      "end": 327.52,
+      "text": " already mentioned it doesn't work on anything that is in Linux because it uses FUSE. So it's not"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 327.52,
+      "end": 334.79999999999995,
+      "text": " supported on OSX. When I was playing around with it, I had to use Docker on Mac. And it doesn't"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 334.79999999999995,
+      "end": 340.64,
+      "text": " work in Fargate because it needs special permissions. And that's explicitly called out"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 340.64,
+      "end": 345.12,
+      "text": " in the documentation. Fargate doesn't provide the special permissions needed for the FUSE device."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 346.08,
+      "end": 352.88,
+      "text": " So if you wanted to use S3 with Fargate today, you're left with using the object paradigm,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 352.88,
+      "end": 357.6,
+      "text": " or you're just doing get object and put object yourself. Or you can use something like EFS with"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 357.6,
+      "end": 363.68,
+      "text": " data sync to sync up data from S3. And then when it comes to the specific operations,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 364.32,
+      "end": 368.48,
+      "text": " you wouldn't use it when you need to do edits on an existing object. So you can't"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 368.48,
+      "end": 373.2,
+      "text": " change the middle of an object. You can only do sequential writes when you're writing an object"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 373.2,
+      "end": 379.2,
+      "text": " for the first time. You can't do symlinks because those aren't supported in S3. You can't do"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 379.2,
+      "end": 385.2,
+      "text": " directory renames. And in general, you wouldn't use it for something like web serving either."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 385.2,
+      "end": 388.24,
+      "text": " I mean, you can do it, but performance is not going to be the best because you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 388.24,
+      "end": 395.28,
+      "text": " generally want caching there. So maybe before we go into the CRT and some of those things,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 395.28,
+      "end": 398.88,
+      "text": " Luciano, do you want to talk about some of the alternatives that are out there from Mountpoint"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 398.88,
+      "end": 404.4,
+      "text": " or other kind of use cases in this realm? Yeah."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 404.4,
+      "end": 409.91999999999996,
+      "text": " One that I've been using in the past is S3FS FUSE that I think you already mentioned before. It has been around for a long time. Seems"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 409.91999999999996,
+      "end": 416.15999999999997,
+      "text": " pretty reliable, but again, they try to make it as possible. So sometimes you might find this"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 416.15999999999997,
+      "end": 420.88,
+      "text": " kind of footcance where you try to do a simple operation and it results in something that's not"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 420.88,
+      "end": 426.47999999999996,
+      "text": " very optimal in S3. So it might be a little bit dangerous. And while we were researching for this"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 426.47999999999996,
+      "end": 431.03999999999996,
+      "text": " episode, we found out that there is an alternative called GOOFYS, which is written in Go. And in"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 431.04,
+      "end": 435.68,
+      "text": " terms of design principle, it's somewhat similar to Mountpoint, meaning that they don't try to"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 435.68,
+      "end": 441.52000000000004,
+      "text": " implement everything in a POSIX compliant way, but they try to keep it as performant as possible."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 442.32,
+      "end": 449.28000000000003,
+      "text": " And in general, I would say the real alternative is don't try to do this stuff if you can. Try to"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 449.28000000000003,
+      "end": 455.84000000000003,
+      "text": " stick with the object storage paradigm and use the CLI or the SDK and do the specific operations"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 455.84000000000003,
+      "end": 460.8,
+      "text": " that the actual service is providing you. Don't try to simulate with different abstraction,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 460.8,
+      "end": 467.44,
+      "text": " the same things, because all these abstractions are a bit leaky and they don't always map"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 467.44,
+      "end": 471.92,
+      "text": " one-to-one and you might end up in this kind of weird situation where either it doesn't work or"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 471.92,
+      "end": 478.24,
+      "text": " it's too expensive or it's too slow. And yeah, so the alternative is try not to do that whenever you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 478.24,
+      "end": 485.92,
+      "text": " can. So speaking about performance, what can we say? Because that seems to be one of the main,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 485.92,
+      "end": 489.52,
+      "text": " on one side, one of the main concerns because it might be a little bit obscure,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 489.52,
+      "end": 493.35999999999996,
+      "text": " but on the other end, it's a bit of a promise that by using this kind of tool,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 493.35999999999996,
+      "end": 495.91999999999996,
+      "text": " you get the best performance that you can possibly get."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 499.12,
+      "end": 502.56,
+      "text": " Yeah, we mentioned that it's fairly simple just to read and write from S3 at the beginning, but when you start pushing the boundaries with large objects and high throughput,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 502.56,
+      "end": 507.2,
+      "text": " that's when it gets a little bit trickier. And S3 will give you performance tips in the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 507.2,
+      "end": 513.6,
+      "text": " documentation, like saying you should use byte range requests in parallel in order to get your"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 513.6,
+      "end": 519.12,
+      "text": " object faster rather than reading from start to finish. There's lots of other tricks like using"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 519.12,
+      "end": 526.72,
+      "text": " multi-part uploads to upload and even using multiple IP addresses. So if you're just using"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 526.72,
+      "end": 533.04,
+      "text": " DNS with S3, you might get back one IP address that's used for your request. But if you're on a"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 533.04,
+      "end": 537.76,
+      "text": " high bandwidth EC2 instance, you might want to maximize the number of flows you can do because"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 537.76,
+      "end": 541.2,
+      "text": " there's a cap on the bandwidth you can use for an individual flow. So you might want to use multiple"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 541.2,
+      "end": 545.6800000000001,
+      "text": " IP addresses. So this is how it starts to become a little bit of a minefield. And this was really"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 545.68,
+      "end": 552,
+      "text": " well illustrated in the Cloudanaut podcast when Michael and Andreas Fittig went through this whole"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 553.1999999999999,
+      "end": 558.88,
+      "text": " pain in order to try and download five terabyte objects, the maximum object size, really quickly."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 558.88,
+      "end": 563.92,
+      "text": " And I'd really recommend checking out that episode. And they were using Node.js and ended"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 563.92,
+      "end": 568.88,
+      "text": " up creating their own custom Node.js client because the AWS SDK wasn't giving them the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 568.88,
+      "end": 574.4,
+      "text": " bandwidth they needed to read these large objects quickly. So mount point is a little bit different"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 574.4,
+      "end": 579.84,
+      "text": " because it's not just using like the JavaScript SDK. It's using the CRT libraries we mentioned."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 579.84,
+      "end": 585.92,
+      "text": " And CRT is like written in C native high performance libraries from AWS for lots of"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 585.92,
+      "end": 591.28,
+      "text": " different things, including they've built like a high performance HTTP client and MQTT client."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 591.28,
+      "end": 597.36,
+      "text": " And they've also built an S3 client. And it's designed for low overhead, high throughput,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 598,
+      "end": 602.24,
+      "text": " automatically uses byte range requests, parallelization, multi-part uploads."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 602.24,
+      "end": 607.76,
+      "text": " And I think ultimately the goal with this CRT is to provide a common code base that all of the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 607.76,
+      "end": 613.6,
+      "text": " SDKs can use so they don't have to implement all of this optimization in every language separately."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 614.24,
+      "end": 620.32,
+      "text": " Now, right now, CRT can integrate fairly easily with the Java SDK. And it's possible with the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 620.32,
+      "end": 625.12,
+      "text": " Python Boto3 one as well. But it seems to be very vague how to do it with other languages,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 625.12,
+      "end": 630.48,
+      "text": " even though they provide kind of bindings for all languages. One of the interesting claims here is"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 630.48,
+      "end": 636.24,
+      "text": " that the team says that they prove algorithmic correctness using this fancy automated reasoning"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 636.24,
+      "end": 641.76,
+      "text": " that they're really into at AWS. So there's a link to that in the show notes. Now, going back"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 641.76,
+      "end": 646.96,
+      "text": " to mount point, mount point is built on top of CRT. So performance should be pretty optimal. But"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 647.6,
+      "end": 653.12,
+      "text": " as of yet, we don't see any published benchmarks. I don't see any benchmarks, even from the S3FS"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 653.12,
+      "end": 659.52,
+      "text": " FUSE teams showing what the difference is. So it would be really interesting. Setting up benchmarks"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 659.52,
+      "end": 664,
+      "text": " and running them on S3, there's a lot of effort to put into it. So we haven't had a chance to do"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 664,
+      "end": 668.24,
+      "text": " that yet. But if anyone out there feels like it, I'd be really interested to see what it would be"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 668.24,
+      "end": 672.96,
+      "text": " like. Are you optimistic Luciano, or do you see any potential problems with mount point?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 673.6,
+      "end": 677.4399999999999,
+      "text": " Yeah, I think on one side, it's fair to say that it's a relatively new project."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 678.16,
+      "end": 683.1999999999999,
+      "text": " So it will improve over time for sure. And it will get better, I imagine. So"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 684.8,
+      "end": 689.36,
+      "text": " although there are some potential problems that we have observed in this experimentation that we"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 689.36,
+      "end": 694.08,
+      "text": " did in the last few days, and one interesting thing is that we were wondering, because this"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 694.08,
+      "end": 700.64,
+      "text": " is an abstraction, how it's going to impact cost for me. Like what kind of S3 requests are actually"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 700.64,
+      "end": 706.4,
+      "text": " happening behind the scenes, right? So initially, we didn't really found a way to see that."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 706.4,
+      "end": 711.04,
+      "text": " Eventually, we figured out that there is a CLI flag that you can enable to get advanced logs,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 711.04,
+      "end": 715.76,
+      "text": " like you get more verbose logs. And these logs will give you a fair number of details about"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 715.76,
+      "end": 719.84,
+      "text": " the S3 operations that are happening. For instance, if you do a put, or if you do a get,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 720.4,
+      "end": 725.4399999999999,
+      "text": " and you get details like how many parts are being used, for instance, when you do a put."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 726.08,
+      "end": 731.28,
+      "text": " And that could be very useful to understand exactly what kind of operations are happening,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 731.28,
+      "end": 735.04,
+      "text": " how fast they are, and can give you an indication of cost. The only annoying"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 735.04,
+      "end": 740.4,
+      "text": " gotcha there is that you don't see the parts being used in S3. So if you just look at the logs,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 740.4,
+      "end": 745.52,
+      "text": " it's a little bit out of context. If you try to correlate the different operations with what you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 745.52,
+      "end": 751.76,
+      "text": " were trying to do, you need to stick together your, I guess, common line history with the logs"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 751.76,
+      "end": 756.0799999999999,
+      "text": " that you see there to make sense of everything. But this is probably just something that's missing."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 756.0799999999999,
+      "end": 760.8,
+      "text": " It could be easily added by the team. Or maybe if somebody is willing to do a PR, that's probably"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 760.8,
+      "end": 764.96,
+      "text": " an easy feature to try to add to the project, which after all is an open source project."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 765.68,
+      "end": 769.1999999999999,
+      "text": " And the other problem, and we have been saying that over and over during this episode,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 769.2,
+      "end": 776.24,
+      "text": " but I think it's worth reiterating that, is that we are using a POSIX model, which is not really"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 776.24,
+      "end": 781.36,
+      "text": " POSIX. So lots of footcans there. It could be dangerous. It's probably wrong in the first place."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 781.36,
+      "end": 786.08,
+      "text": " So if you use it, use it with moderation and be aware of exactly the kind of trade-offs"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 786.08,
+      "end": 791.12,
+      "text": " you are buying into. Because if you try to use it as a general file system, you are going to have"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 791.12,
+      "end": 796.4000000000001,
+      "text": " problems for sure. What do you think is that? Should we say that the final verdict is to use"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 796.4,
+      "end": 802.48,
+      "text": " it or not to use it? Generally not."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 802.48,
+      "end": 806.48,
+      "text": " I would say right now, then again, if people have found it interesting and want to try it out for their own use cases, they'll probably already have a good"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 806.48,
+      "end": 810.56,
+      "text": " feeling from what we've said so far. I think it's better to stick with the object paradigm when"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 810.56,
+      "end": 817.28,
+      "text": " you're talking about an object store rather than trying to shoehorn it into a file system model."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 817.28,
+      "end": 822.72,
+      "text": " But look, you could use it for a period of time during a migration while you work on the changes"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 822.72,
+      "end": 827.6800000000001,
+      "text": " in order to use an object storage paradigm. I think you gave a good example of that back in the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 827.6800000000001,
+      "end": 836.24,
+      "text": " episode where we talked about migrating like a CMS or for a legal firm to AWS and using something"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 836.24,
+      "end": 842.48,
+      "text": " like S3FS views at the time. It's better, I think, to try and use more native S3 integrations."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 843.0400000000001,
+      "end": 847.9200000000001,
+      "text": " I'm curious to hear if there's cases where you really need something like this. But look,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 847.9200000000001,
+      "end": 852.32,
+      "text": " if you need to use it, you can use it as a last resource, understand the risks and put your logging"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 852.32,
+      "end": 857.6,
+      "text": " and metrics in place. If you wanted to use it for web serving, ultimately, you're really better off"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 857.6,
+      "end": 863.12,
+      "text": " using a CTN in front of S3. So I think in general, the jury is still out. If there are very compelling"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 863.12,
+      "end": 867.5200000000001,
+      "text": " use cases that we haven't spotted, let us know because we're really curious. And if you've done"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 867.5200000000001,
+      "end": 871.9200000000001,
+      "text": " any benchmarking, please share them with everybody because I think the whole area of S3 performance,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 871.9200000000001,
+      "end": 877.44,
+      "text": " when it gets into really optimizing it, it can take a lot of time. But if you've got any data"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 877.44,
+      "end": 881.44,
+      "text": " on that, I'd love to see it because we can all benefit from it. So thanks very much for listening."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 881.44,
+      "end": 884.8800000000001,
+      "text": " Please like and subscribe and share with your friends and we'll see you in the next episode."
+    }
+  ]
+}

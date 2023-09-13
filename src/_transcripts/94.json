@@ -1,0 +1,1424 @@
+{
+  "speakers": {
+    "spk_0": "Luciano",
+    "spk_1": "Eoin"
+  },
+  "segments": [
+    {
+      "speakerLabel": "spk_0",
+      "start": 0,
+      "end": 4.72,
+      "text": " Keeping track of what's going on in AWS organization accounts can be very tricky."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 4.72,
+      "end": 8.72,
+      "text": " You might have potentially hundreds or thousands of changes happening every day."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 8.72,
+      "end": 12.8,
+      "text": " There is a tool called CloudTrail, which makes it possible to log all of this activity."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 12.8,
+      "end": 15.44,
+      "text": " But how do you best get insights into it?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 15.44,
+      "end": 20.400000000000002,
+      "text": " Today, we're going to drill down into how you can use CloudTrail and also Athena together"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 20.400000000000002,
+      "end": 22.96,
+      "text": " to ask questions about what's going on, troubleshoot issues,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 22.96,
+      "end": 25.52,
+      "text": " and answer questions for security and compliance."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 25.52,
+      "end": 30.72,
+      "text": " We will also touch on AWS Glue, and we will go deep diving into Athena,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 30.72,
+      "end": 33.2,
+      "text": " infrastructure as code, and AWS organization trails."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 33.2,
+      "end": 36.8,
+      "text": " My name is Luciano, and I'm joined by Eoin for another episode of AWS Bites."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 44.96,
+      "end": 47.84,
+      "text": " fourTheorem is the company that makes AWS Bites possible."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 47.84,
+      "end": 50.64,
+      "text": " If you're looking for a partner to accompany you on your cloud journey,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 50.64,
+      "end": 53.84,
+      "text": " check them out at fourtheorem.com. The link is in the show notes."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 53.84,
+      "end": 55.92,
+      "text": " I'd like to start today by giving some definitions."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 55.92,
+      "end": 58.720000000000006,
+      "text": " So what is CloudTrail and what is Athena?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 61.2,
+      "end": 63.68000000000001,
+      "text": " I think it's a fundamental service in AWS, actually, and useful for developers and administrators alike,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 63.68000000000001,
+      "end": 68.4,
+      "text": " because it lets you keep track of what's going on for audit and compliance purposes,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 68.4,
+      "end": 70.4,
+      "text": " but also, like you say, for troubleshooting."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 70.4,
+      "end": 73.68,
+      "text": " And as a developer, it's a pretty useful tool to have in your toolkit."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 73.68,
+      "end": 75.44,
+      "text": " So it captures mainly management events,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 75.44,
+      "end": 80.4,
+      "text": " like those relating to create and update and delete actions on AWS resources."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 80.4,
+      "end": 82.48,
+      "text": " Every account gets a trail for free,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 82.48,
+      "end": 84.64,
+      "text": " but then you can also pay if you want multiple trails,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 84.64,
+      "end": 86.96000000000001,
+      "text": " or if you also want to capture some data events as well."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 87.68,
+      "end": 89.44,
+      "text": " So it stores logs in JSON."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 90.32000000000001,
+      "end": 92.72,
+      "text": " You can look at them in the CloudTrail console themselves."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 92.72,
+      "end": 95.76,
+      "text": " So you just store it, look at them in CloudTrail for more recent events,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 95.76,
+      "end": 98.72,
+      "text": " but then you can send them off to CloudWatch Logs."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 102.96000000000001,
+      "end": 106.4,
+      "text": " I remember we spoke in a previous episode at length about CloudWatch Logs and how you can do ninja stuff with the syntax that it gives you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 106.4,
+      "end": 109.60000000000001,
+      "text": " to do all sorts of kind of queries and aggregations and filtering."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 109.6,
+      "end": 113.67999999999999,
+      "text": " So that seems like a reasonable thing that you would want to do, I guess."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 113.67999999999999,
+      "end": 115.67999999999999,
+      "text": " But given that we have all these tools in CloudTrail,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 115.67999999999999,
+      "end": 118.08,
+      "text": " why should we consider S3 and Athena instead?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 118.08,
+      "end": 120.47999999999999,
+      "text": " Actually, let's start by defining what even is Athena."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 124.88,
+      "end": 128.07999999999998,
+      "text": " Athena is a distributed query engine used to query data in object stores like S3, and it's based on the open source Presto and Trino projects."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 128.88,
+      "end": 130.88,
+      "text": " Trino is a fork of Presto."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 130.88,
+      "end": 137.68,
+      "text": " And using Athena, you're basically running SQL queries on JSON, CSV, Parquet, or ORC data."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 137.68,
+      "end": 141.36,
+      "text": " And when you execute queries in Athena, it's basically making a query plan,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 141.36,
+      "end": 146.16,
+      "text": " and in a distributed way, scanning parts of that data concurrently in chunks"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 146.16,
+      "end": 149.36,
+      "text": " and doing additional steps to filter and aggregate that data."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 149.36,
+      "end": 151.76000000000002,
+      "text": " CloudTrail logs are stored in JSON format."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 151.76000000000002,
+      "end": 154.96,
+      "text": " So they show you things like the account and the region and the date,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 154.96,
+      "end": 158.56,
+      "text": " the identity, who's making the request, what's the user agent and the IP address."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 158.56,
+      "end": 162.32,
+      "text": " It gives you the event name, and you can see the request parameters"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 162.32,
+      "end": 165.20000000000002,
+      "text": " and some of the elements that come back in the response as well."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 165.2,
+      "end": 169.35999999999999,
+      "text": " You have the ability, like you say, to query CloudWatch Logs and Logs Insights,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 169.35999999999999,
+      "end": 172.72,
+      "text": " but the storage for CloudWatch Logs is going to be more expensive."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 172.72,
+      "end": 175.44,
+      "text": " So if you want to retain data for a longer period of time,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 175.44,
+      "end": 180.79999999999998,
+      "text": " generally what people do is store the data in S3 and query it with Athena,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 180.79999999999998,
+      "end": 186.79999999999998,
+      "text": " and maybe just use CloudWatch Logs insights for more recent activity like the last week or two."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 186.79999999999998,
+      "end": 188.32,
+      "text": " Okay, that makes sense."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 191.04,
+      "end": 195.28,
+      "text": " So I suppose the main difference is that with Athena, you can query directly into S3 as long as you're storing structured files,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 195.28,
+      "end": 199.12,
+      "text": " which is something that CloudTrail allows you to do anyway by giving JSON support."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 199.12,
+      "end": 200.39999999999998,
+      "text": " That sounds pretty interesting."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 200.39999999999998,
+      "end": 202.07999999999998,
+      "text": " How do we get started?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 204.88,
+      "end": 207.92,
+      "text": " Well, there is an easy way, not necessarily the best in the long run, but from the AWS console, if you go into CloudTrail,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 207.92,
+      "end": 213.35999999999999,
+      "text": " you have a button there that if you've got a trail set up already with S3 bucket logs,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 213.35999999999999,
+      "end": 215.6,
+      "text": " it'll give you a button that says create Athena table."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 216.23999999999998,
+      "end": 218.64,
+      "text": " And when you click on that button, it immediately shows you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 218.64,
+      "end": 222.72,
+      "text": " CTAS statement is what they call it in SQL, create table as select."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 222.72,
+      "end": 226.23999999999998,
+      "text": " So it's basically creating a table by selecting data from this S3 bucket."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 226.23999999999998,
+      "end": 234.48,
+      "text": " And in this big SQL DDL statement, it's basically saying which fields in the CloudTrail JSON"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 234.48,
+      "end": 238.56,
+      "text": " map to table columns in this virtual table that it's basically going to create for you."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 238.56,
+      "end": 244.16,
+      "text": " Right."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 244.16,
+      "end": 247.76,
+      "text": " That's also a bit different from what we are used to do with CloudWatch Logs insights, because with CloudWatch Logs inside, you just create a table from the S3 bucket."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 247.76,
+      "end": 251.04,
+      "text": " You just query like you don't have to worry about creating a table."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 251.04,
+      "end": 254.48,
+      "text": " But I suppose that's something that will come up when we start to talk about more details"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 254.48,
+      "end": 255.76,
+      "text": " on how Athena works."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 255.76,
+      "end": 257.2,
+      "text": " So right now I have another question."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 257.2,
+      "end": 259.44,
+      "text": " This seems simple enough for a single account."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 259.44,
+      "end": 262.32,
+      "text": " You just go to CloudTrail, click a button, and then you're ready."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 262.32,
+      "end": 264.96,
+      "text": " Select the table definition and then you're ready to query."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 264.96,
+      "end": 266.64,
+      "text": " But what if you have multiple accounts?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 266.64,
+      "end": 271.44,
+      "text": " Because we often advise companies to create their own landing zone,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 271.44,
+      "end": 274.15999999999997,
+      "text": " structure their deployments across multiple accounts."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 274.15999999999997,
+      "end": 277.52,
+      "text": " That seems kind of a more production-related solution."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 277.52,
+      "end": 277.76,
+      "text": " Mm-hmm."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 277.76,
+      "end": 279.2,
+      "text": " What do we do in that case?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 279.2,
+      "end": 282,
+      "text": " That's all solved basically in how you set up the trail itself."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 282,
+      "end": 284.24,
+      "text": " So you don't really have to do anything additional in Athena."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 284.24,
+      "end": 286.64,
+      "text": " You can either set up accounts to log to a central bucket."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 286.64,
+      "end": 289.03999999999996,
+      "text": " So rather than every trail logging to a separate bucket,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 289.03999999999996,
+      "end": 292.24,
+      "text": " you can have a shared bucket with the right permissions and they all log into a different"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 292.24,
+      "end": 293.12,
+      "text": " prefix."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 293.12,
+      "end": 297.84,
+      "text": " But there's actually an easier way still, which is to set up an organization-wide trail."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 297.84,
+      "end": 302.47999999999996,
+      "text": " And that way you do it from your management account or from a delegated administrator account."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 302.47999999999996,
+      "end": 305.12,
+      "text": " And you say, create a trail for my whole organization,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 305.12,
+      "end": 309.68,
+      "text": " and it will capture all the events from all accounts and put them into one bucket for"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 309.68,
+      "end": 310,
+      "text": " you."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 310,
+      "end": 312.24,
+      "text": " That's the way we typically do it at Fourth Hirm."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 312.24,
+      "end": 317.84000000000003,
+      "text": " And it's easy then to set up Athena to query from that one single bucket."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 317.84000000000003,
+      "end": 321.12,
+      "text": " And then you've got Insights and you can do queries across all accounts."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 321.12,
+      "end": 327.6,
+      "text": " Like find out, okay, who did a terminate instance on EC2 in any account today?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 327.6,
+      "end": 331.6,
+      "text": " Yeah, I suppose accounts at that point is just another field that you can query from."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 331.6,
+      "end": 332.08,
+      "text": " Yep."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 332.08,
+      "end": 337.59999999999997,
+      "text": " At the beginning, we also mentioned Glue. So how does Glue come into the picture with"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 337.59999999999997,
+      "end": 338.56,
+      "text": " this setup?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 338.56,
+      "end": 343.91999999999996,
+      "text": " So when you create a table in Athena using this CTAS statement we talked about, this"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 343.91999999999996,
+      "end": 347.44,
+      "text": " is actually creating a Glue data catalog table under the hood."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 348.15999999999997,
+      "end": 352.71999999999997,
+      "text": " If you haven't looked at Glue or Glue data catalog, Glue has a number of different features,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 352.71999999999997,
+      "end": 355.36,
+      "text": " but we're just going to talk about the data catalog in this context."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 355.36,
+      "end": 358.47999999999996,
+      "text": " And it's basically a meta store for your tables."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 358.48,
+      "end": 364,
+      "text": " So you can use those meta store tables outside of Athena, but every time you're using Athena,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 364,
+      "end": 365.28000000000003,
+      "text": " you have to have one of these."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 365.28000000000003,
+      "end": 370.64000000000004,
+      "text": " It comes from the Apache Hive ecosystem where you had this ability back from the big data"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 370.64000000000004,
+      "end": 376.32,
+      "text": " ecosystem to define virtual tables for data that was stored on a file system or an object"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 376.32,
+      "end": 376.64000000000004,
+      "text": " store."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 377.20000000000005,
+      "end": 381.44,
+      "text": " So when you do this, create table as, and you're mapping the columns to the fields in"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 381.44,
+      "end": 385.44,
+      "text": " your data, this is basically just creating a data catalog table in Glue."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 385.44,
+      "end": 389.44,
+      "text": " So once you do this, create table as select statement, you can go over to Glue and you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 389.44,
+      "end": 392.71999999999997,
+      "text": " can see the table appearing in your Glue console as well."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 392.71999999999997,
+      "end": 395.04,
+      "text": " So this is just a schema representation of your table."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 395.04,
+      "end": 396.96,
+      "text": " There's no data copied into Glue or anything."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 396.96,
+      "end": 402.4,
+      "text": " It's just really a schema definition and it allows you to map SQL concepts to an underlying"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 402.4,
+      "end": 403.68,
+      "text": " data store in S3."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 403.68,
+      "end": 407.84,
+      "text": " Now, instead of actually using that create table approach, you can just go and create"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 407.84,
+      "end": 409.92,
+      "text": " the table include data catalog directly."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 409.92,
+      "end": 415.92,
+      "text": " This means we can create it visually in the console or we can use CloudFormation or Terraform,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 415.92,
+      "end": 416.48,
+      "text": " et cetera."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 416.48,
+      "end": 416.72,
+      "text": " Right."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 416.72,
+      "end": 417.76,
+      "text": " That makes a lot of sense."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 417.76,
+      "end": 422.72,
+      "text": " I imagine that it's also something that allows for a lot of optimizations because you are"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 422.72,
+      "end": 427.36,
+      "text": " going to be writing SQL statements and the system underneath needs to understand which"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 427.36,
+      "end": 432.48,
+      "text": " files can actually have the data that you're looking for and to scan the files in a smart"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 432.48,
+      "end": 436.96000000000004,
+      "text": " way rather than always reading everything, which might be very expensive and time consuming."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 436.96,
+      "end": 441.91999999999996,
+      "text": " So I suppose that's why we go through this extra step of setting up the stable definition"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 441.91999999999996,
+      "end": 443.84,
+      "text": " and recording all of that into a catalog."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 443.84,
+      "end": 447.91999999999996,
+      "text": " We do use that setup a lot for data analytics for theorem."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 448.47999999999996,
+      "end": 454.56,
+      "text": " And I know that you can get good performances if you store the data in a very specific way."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 454.56,
+      "end": 458.64,
+      "text": " So what kind of suggestions can we give to people to try to get the best performances"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 458.64,
+      "end": 459.76,
+      "text": " with this kind of setup?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 463.67999999999995,
+      "end": 465.76,
+      "text": " Performance you get with CloudTrail queries with Athena really is going to vary hugely depending on the amount of data you're scanning."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 465.76,
+      "end": 468.64,
+      "text": " So it could be a few seconds or it could be 15 minutes."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 468.64,
+      "end": 472.32,
+      "text": " It depends on the query and how you optimize the Glue catalog table."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 472.32,
+      "end": 475.68,
+      "text": " Sometimes Athena will have to scan all of your data depending on what the query is."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 475.68,
+      "end": 477.28,
+      "text": " And that's clearly not optimal."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 477.28,
+      "end": 479.2,
+      "text": " So there's a couple of things you can do to make it faster."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 479.2,
+      "end": 481.68,
+      "text": " One is by setting up partitioning."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 481.68,
+      "end": 485.36,
+      "text": " This is a typical optimization when you're using Glue data catalogs in Athena."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 485.36,
+      "end": 488.56,
+      "text": " It allows you to have different partitions for specific fields."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 488.56,
+      "end": 490.71999999999997,
+      "text": " For example, you could partition the logs by day."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 491.36,
+      "end": 495.12,
+      "text": " And if you have a day in your where clause, then Athena only has to scan that limited"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 495.12,
+      "end": 497.68,
+      "text": " set of data because it's like an index basically."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 497.68,
+      "end": 500.08,
+      "text": " Creating partitions, there's actually a few different ways of doing this."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 500.08,
+      "end": 504.16,
+      "text": " You can use the Glue API to create a partition every time you have a new one, like every"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 504.16,
+      "end": 504.4,
+      "text": " day."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 504.96,
+      "end": 509.84000000000003,
+      "text": " Or there's an alter table add partition command you can do to do it through the Athena SQL"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 509.84000000000003,
+      "end": 510.32,
+      "text": " interface."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 510.88,
+      "end": 514.48,
+      "text": " And there's also actually another one which is MSCK repair table."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 514.48,
+      "end": 520.16,
+      "text": " And that will tell Athena to go off and scan and find partitions automatically."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 520.16,
+      "end": 522.5600000000001,
+      "text": " And that's the same as doing a Glue crawler."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 522.56,
+      "end": 526.7199999999999,
+      "text": " So in the Glue data catalog world, there's also the concept of a crawler, which is like"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 526.7199999999999,
+      "end": 531.28,
+      "text": " an automated process that scans your S3 objects and finds partitions."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 531.92,
+      "end": 534.64,
+      "text": " So you can use this to create the table in the first place, actually."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 534.64,
+      "end": 538.88,
+      "text": " It can try and derive the schema for you based on the columns in your data."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 538.88,
+      "end": 543.1199999999999,
+      "text": " But it can also identify partitions and find new partitions once you've created that table."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 543.1199999999999,
+      "end": 547.1199999999999,
+      "text": " For CloudTrail, there's another feature in Athena which you can use called partition"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 547.1199999999999,
+      "end": 547.68,
+      "text": " projection."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 548.2399999999999,
+      "end": 549.28,
+      "text": " And this is quite nice."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 549.28,
+      "end": 552.4,
+      "text": " And this is the one I usually set people up with the first time."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 552.4,
+      "end": 555.6,
+      "text": " Because you don't have to add partitions as data arrives."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 555.6,
+      "end": 560,
+      "text": " Instead, when you create the table, you just specify ranges of values that are possible"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 560,
+      "end": 561.12,
+      "text": " for certain fields."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 561.12,
+      "end": 564.16,
+      "text": " So you mentioned that you might want to query on account ID, right?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 564.16,
+      "end": 565.28,
+      "text": " And this is just another field."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 565.28,
+      "end": 569.28,
+      "text": " But if you know all of your account IDs, you can tell Athena in advance, this is my range"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 569.28,
+      "end": 570.0799999999999,
+      "text": " of account IDs."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 570.64,
+      "end": 575.4399999999999,
+      "text": " And then it doesn't have to go to Glue data catalog to find out what the partitions are."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 575.4399999999999,
+      "end": 579.4399999999999,
+      "text": " It can basically project those values and use them to build its query in an optimal"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 579.4399999999999,
+      "end": 579.68,
+      "text": " way."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 579.68,
+      "end": 583.52,
+      "text": " And it can also do the same thing for date values or for the region field, right?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 583.52,
+      "end": 587.92,
+      "text": " Because we're all generally working with a fixed set of supported regions."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 587.92,
+      "end": 590.2399999999999,
+      "text": " Partition projection would be my first recommendation."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 590.2399999999999,
+      "end": 591.5999999999999,
+      "text": " It makes things easier."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 591.5999999999999,
+      "end": 593.68,
+      "text": " And once you set it up, it just works."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 593.68,
+      "end": 597.3599999999999,
+      "text": " Another thing you can do with optimization is use the limit clause."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 597.3599999999999,
+      "end": 600.4799999999999,
+      "text": " That's always a good one to reduce the volume of data returned."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 600.4799999999999,
+      "end": 604.9599999999999,
+      "text": " One last optimization is actually if you want it to be really performant."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 604.9599999999999,
+      "end": 608.7199999999999,
+      "text": " JSON is the slowest data format for Athena by far."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 608.72,
+      "end": 612,
+      "text": " It's significantly slower than all the other options, even CSV."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 612,
+      "end": 618.08,
+      "text": " What you can do is just build a pipeline to convert that data into Parquet, which would"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 618.08,
+      "end": 619.76,
+      "text": " be the most optimal format."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 619.76,
+      "end": 624.64,
+      "text": " And you can use that using Lambda or EMR or Glue, or you can even use it."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 624.64,
+      "end": 626.72,
+      "text": " You can use a Glue crawler to do that as well."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 626.72,
+      "end": 630.48,
+      "text": " So that's something if you really want fast query performance, you could set that up."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 630.48,
+      "end": 631.44,
+      "text": " That's really cool."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 631.44,
+      "end": 631.76,
+      "text": " Okay."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 631.76,
+      "end": 636.4,
+      "text": " So far, we are talking about setting things up in the console and creating resources pretty"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 636.4,
+      "end": 637.84,
+      "text": " much by clicking around."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 637.84,
+      "end": 641.2800000000001,
+      "text": " So click ups and then doing SQL queries."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 641.2800000000001,
+      "end": 647.0400000000001,
+      "text": " Is there any recommendation in terms of let's do this in a more production ready way and"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 647.0400000000001,
+      "end": 651.76,
+      "text": " maybe use infrastructure as code so that we end up with something that is easily reproducible"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 651.76,
+      "end": 653.76,
+      "text": " between accounts or customers?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 653.76,
+      "end": 656,
+      "text": " You can, and I would prefer to do it that way."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 656,
+      "end": 660.4,
+      "text": " I think Athena is nice because it allows analysts to be able to create things on the fly, ephemeral"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 660.4,
+      "end": 663.36,
+      "text": " resources and tables without having to worry about infrastructure as code."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 663.36,
+      "end": 665.44,
+      "text": " And that's a really valid workflow."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 665.44,
+      "end": 669.6,
+      "text": " But if you want something like this, Cloud Trail queries for your whole organization,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 669.6,
+      "end": 671.84,
+      "text": " it makes sense to put it into infrastructure as code."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 671.84,
+      "end": 676.24,
+      "text": " The process of creating tables in CloudFormation or Terraform is a little bit complex and it's"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 676.24,
+      "end": 678.24,
+      "text": " not something that's very well documented."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 678.8000000000001,
+      "end": 682.96,
+      "text": " Most documentation ends up pointing to the create table method, which isn't really like"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 682.96,
+      "end": 685.2800000000001,
+      "text": " proper declarative infrastructure as code."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 685.2800000000001,
+      "end": 689.6800000000001,
+      "text": " So in CloudFormation, you need to specify the table columns and serialization parameters"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 689.6800000000001,
+      "end": 691.44,
+      "text": " using your YAML or JSON."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 691.44,
+      "end": 694.32,
+      "text": " And it's a little bit strange, this syntax."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 694.32,
+      "end": 697.6,
+      "text": " So we've actually figured this out for Cloud Trail, so you don't have to."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 697.6,
+      "end": 701.5200000000001,
+      "text": " There is code in a gist and we'll link the gist in the show notes and you can give this"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 701.5200000000001,
+      "end": 702.88,
+      "text": " a try and let us know how you get on."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 707.6,
+      "end": 711.12,
+      "text": " It's always fun when you're defining resources and there is some kind of special syntax that you haven't seen before, which is unique for that particular type of resource."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 711.12,
+      "end": 713.36,
+      "text": " But I guess that's the reality with the cloud."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 713.36,
+      "end": 717.84,
+      "text": " So many resources that sometimes there are these kind of exceptions and we just need"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 717.84,
+      "end": 719.36,
+      "text": " to figure out how to deal with them."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 719.36,
+      "end": 723.2800000000001,
+      "text": " But in general, I think Athena looks really nice and really powerful for the way you are"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 723.28,
+      "end": 724.64,
+      "text": " describing it."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 724.64,
+      "end": 729.36,
+      "text": " In some projects we saw that you can use it as a data source for QuickSight and at that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 729.36,
+      "end": 731.04,
+      "text": " point you can create nice dashboards."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 732.16,
+      "end": 737.36,
+      "text": " So is that something that you would use together with Cloud Trail to create some kind of visualization"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 737.36,
+      "end": 741.28,
+      "text": " that, I don't know, will give you a very quick overview, like a single pane of glass that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 741.28,
+      "end": 745.76,
+      "text": " you can go to and have a feeling for what's going on in your set of accounts that you're"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 745.76,
+      "end": 746.4,
+      "text": " monitoring?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 746.4,
+      "end": 746.8,
+      "text": " Exactly."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 750.8,
+      "end": 753.68,
+      "text": " This is a very powerful integration type and stops you having to jump into the Athena console the whole time and you can just, if you've got data that you just want to keep"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 753.68,
+      "end": 757.52,
+      "text": " an eye on all the time on the activity in the account, this is a pretty nice integration"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 757.52,
+      "end": 758,
+      "text": " to set up."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 764.7199999999999,
+      "end": 768.4799999999999,
+      "text": " That covers a very nice overview on how you can achieve a good level of observability and auditing over or across your accounts for your organization."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 768.4799999999999,
+      "end": 773.1999999999999,
+      "text": " If you set up this method, then you can have kind of a centralized way of queering and"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 773.1999999999999,
+      "end": 778.24,
+      "text": " understanding what's going on and even building dashboards that you can just look and see"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 778.24,
+      "end": 781.12,
+      "text": " if there are things that you should be worried about."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 781.12,
+      "end": 784.16,
+      "text": " So I think for today, that's all we have to share."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 784.16,
+      "end": 788.32,
+      "text": " But if you have any other tip, maybe have used different setups, maybe use different"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 788.32,
+      "end": 793.12,
+      "text": " tools, maybe you have different ways of provisioning all this infrastructure, definitely share"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 793.12,
+      "end": 793.76,
+      "text": " it with us."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 793.76,
+      "end": 797.04,
+      "text": " We are always looking for alternatives and for learning."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 797.04,
+      "end": 798.96,
+      "text": " Definitely looking forward to hearing more from you."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 798.96,
+      "end": 810.88,
+      "text": " And until then, we'll see you in the next episode."
+    }
+  ]
+}

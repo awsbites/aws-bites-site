@@ -3,7 +3,7 @@ episode: 95
 title: "Mounting S3 as a Filesystem"
 youtube_id: "ArM0XaAwkrY"
 spotify_link: "https://podcasters.spotify.com/pod/show/aws-bites/episodes/95--Mounting-S3-as-a-Filesystem-e297kre"
-publish_date: 2023-09-16
+publish_date: 2023-09-15
 ---
 
 Saddle up for a cloud adventure like no other in this episode of AWS Bites, where Eoin and Luciano explore the untamed world of AWS S3 Mountpoint.

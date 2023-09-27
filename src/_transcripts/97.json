@@ -1,0 +1,5030 @@
+{
+  "speakers": {
+    "spk_0": "Eoin",
+    "spk_1": "Luciano"
+  },
+  "segments": [
+    {
+      "speakerLabel": "spk_0",
+      "start": 0,
+      "end": 2.64,
+      "text": " One of the things that's very common for web applications running in the cloud"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2.64,
+      "end": 4.96,
+      "text": " is that you will need to handle configuration."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 4.96,
+      "end": 7.2,
+      "text": " You're probably running your application in different environments,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 7.2,
+      "end": 8.96,
+      "text": " dev, staging, production, etc."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 8.96,
+      "end": 11,
+      "text": " And most likely you'll need to provide simple things"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 11,
+      "end": 12.88,
+      "text": " like database connection details,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 12.88,
+      "end": 16.16,
+      "text": " various secrets for things like API keys, session storage,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 16.16,
+      "end": 19.8,
+      "text": " or simply referencing different S3 buckets or DynamoDB tables."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 19.8,
+      "end": 23.240000000000002,
+      "text": " Most likely these values will be different for every environment."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 23.240000000000002,
+      "end": 25.560000000000002,
+      "text": " In this episode, we'll discuss which AWS services"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 25.560000000000002,
+      "end": 28.48,
+      "text": " you can leverage to store configuration for your web apps."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 28.48,
+      "end": 32.160000000000004,
+      "text": " We will discuss simple strategies such as just using environment variables"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 32.160000000000004,
+      "end": 35.88,
+      "text": " or services such as SSM, Secrets Managerr, App Config,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 35.88,
+      "end": 38.84,
+      "text": " and even how you can even roll your own configuration storage."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 38.84,
+      "end": 41.08,
+      "text": " We'll discuss the pros and cons of every approach."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 41.08,
+      "end": 43.04,
+      "text": " And if you stick till the end of the episode,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 43.04,
+      "end": 45.72,
+      "text": " we'll also give you our recommendation on what's the best strategy"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 45.72,
+      "end": 47.84,
+      "text": " for different kinds of applications."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 47.84,
+      "end": 48.68,
+      "text": " My name is Eoin."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 48.68,
+      "end": 60.04,
+      "text": " I'm joined by Luciano for another episode of the AWS Bites podcast."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 60.04,
+      "end": 62.84,
+      "text": " fourTheorem is the company that makes AWS Bites possible."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 62.84,
+      "end": 65.92,
+      "text": " If you're looking for a partner to accompany you on your cloud journey,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 65.92,
+      "end": 68.2,
+      "text": " check them out at fourtherem.com."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 68.2,
+      "end": 69.88,
+      "text": " Now Luciano, before we start, as usual,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 69.88,
+      "end": 72.68,
+      "text": " we should probably begin by clarifying the use case a little bit more."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 72.68,
+      "end": 75.96000000000001,
+      "text": " Almost every application needs some degree of configuration."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 75.96,
+      "end": 79.19999999999999,
+      "text": " As we mentioned in the intro, what is really configuration?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 79.19999999999999,
+      "end": 82.75999999999999,
+      "text": " It's generally something environment specific that your software needs"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 82.75999999999999,
+      "end": 86.88,
+      "text": " as an input to be able to perform whatever task it needs to perform."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 86.88,
+      "end": 90.36,
+      "text": " And just to give you some examples that can be different kinds of configuration,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 90.36,
+      "end": 93.44,
+      "text": " maybe your application needs to call a specific third party API."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 93.44,
+      "end": 98.11999999999999,
+      "text": " So you need to have an API key for that that is injected somehow at runtime."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 98.11999999999999,
+      "end": 102.28,
+      "text": " It can be database credentials if you need your application to connect to a database,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 102.28,
+      "end": 105.24,
+      "text": " or maybe you need your application to do some kind of client side"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 105.24,
+      "end": 108.19999999999999,
+      "text": " TLS under shake, so you need to have client TLS certificates."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 108.19999999999999,
+      "end": 111.6,
+      "text": " So you need to have a way to also provide those as parameters."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 111.6,
+      "end": 114.19999999999999,
+      "text": " Or in AWS, it's very common that you build, I don't know,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 114.19999999999999,
+      "end": 116.83999999999999,
+      "text": " a Lambda or a container running on Fargate,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 116.83999999999999,
+      "end": 120.75999999999999,
+      "text": " and they often need to use other services like S3 or DynamoDB."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 120.75999999999999,
+      "end": 123.8,
+      "text": " So you might create everything together in a stack,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 123.8,
+      "end": 125.88,
+      "text": " and then you need to have a way to tell the application,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 125.88,
+      "end": 130.44,
+      "text": " OK, which DynamoDB table do you need to use or which S3 bucket do you need to use,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 130.44,
+      "end": 132.76,
+      "text": " and somehow be able to provide that reference."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 132.76,
+      "end": 136.51999999999998,
+      "text": " But it can be also something more like application configuration level,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 136.51999999999998,
+      "end": 138.84,
+      "text": " like what kind of logging level do you want?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 138.84,
+      "end": 140.95999999999998,
+      "text": " You might want to provide that as a parameter"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 140.95999999999998,
+      "end": 144.12,
+      "text": " because maybe in a development environment you want to be very, very verbose."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 144.12,
+      "end": 146.39999999999998,
+      "text": " But in production, you don't need to be as verbose"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 146.39999999999998,
+      "end": 150.92,
+      "text": " because otherwise you might collect too many logs that you don't really need all the time."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 150.92,
+      "end": 153.23999999999998,
+      "text": " And other more functional parameters could be, I don't know,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 153.23999999999998,
+      "end": 157,
+      "text": " timeouts when doing HTTP requests or different kinds of connection."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 157,
+      "end": 159.84,
+      "text": " Or if you really buy into this mental model,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 159.84,
+      "end": 164.12,
+      "text": " you can start to do things like feature flags to enable or disable specific features"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 164.12,
+      "end": 167.96,
+      "text": " or maintain allow list or deny list to expose certain capabilities"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 167.96,
+      "end": 172.28,
+      "text": " only to specific users or customers that maybe have different tiers."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 172.28,
+      "end": 174.88,
+      "text": " So really, there is no limit to imagination."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 174.88,
+      "end": 179.12,
+      "text": " You can use different kinds of parameters for all sorts of different things."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 179.12,
+      "end": 183,
+      "text": " So traditionally, configuration was stored mostly in code."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 183,
+      "end": 187.36,
+      "text": " So you would have one configuration file that will contain all this information,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 187.36,
+      "end": 191.64000000000001,
+      "text": " maybe multiple configuration files, one for a different environment."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 191.64000000000001,
+      "end": 195.52,
+      "text": " And this is a simple and effective practice, but it comes with a problem."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 195.52,
+      "end": 200,
+      "text": " And the problem is that you are effectively maintaining all your configuration as code."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 200,
+      "end": 203.4,
+      "text": " And therefore, every time you need to change even one single configuration value,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 203.4,
+      "end": 205.68,
+      "text": " that means you need to go through a code change"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 205.68,
+      "end": 209.16000000000003,
+      "text": " and through the full lifecycle of deploying that code change."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 209.16000000000003,
+      "end": 211.48000000000002,
+      "text": " And this is still not necessarily too bad,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 211.48000000000002,
+      "end": 213.68,
+      "text": " but it becomes really bad when you need to store secrets"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 213.68,
+      "end": 219.92000000000002,
+      "text": " because maintaining secrets in plain text in your Git or whatever other source control tool you use"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 219.92000000000002,
+      "end": 222.44,
+      "text": " is not always easy to do securely."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 222.44,
+      "end": 226.32,
+      "text": " Most likely you are going to end up disclosing stuff that should be sensitive"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 226.32,
+      "end": 228.04000000000002,
+      "text": " and should be managed more properly."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 228.04000000000002,
+      "end": 231.24,
+      "text": " So definitely, there needs to be a better way to manage configuration."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 231.24,
+      "end": 233.04000000000002,
+      "text": " And today, this is what we want to talk about."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 233.04000000000002,
+      "end": 235.56,
+      "text": " So what would be the first option Eoin?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 235.56,
+      "end": 238.52,
+      "text": " Well, there's an old document at this stage called the 12-Factor App,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 238.52,
+      "end": 240.84,
+      "text": " which is very popular, I think, still."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 240.84,
+      "end": 245.52,
+      "text": " And it's all about best practices for designing running applications."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 245.52,
+      "end": 247.56,
+      "text": " One of the things in there is that they say"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 247.56,
+      "end": 250.6,
+      "text": " you should store your configuration as environment variables."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 250.6,
+      "end": 252.48000000000002,
+      "text": " So maybe we can talk about that one first."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 252.48000000000002,
+      "end": 254.4,
+      "text": " So what are environment variables?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 254.4,
+      "end": 255.44,
+      "text": " Probably have used them."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 255.44,
+      "end": 261.28000000000003,
+      "text": " But when you start a process on any system, Windows, Linux, any Unix system,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 261.28000000000003,
+      "end": 264,
+      "text": " you're provided with access to a set of key value pairs"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 264,
+      "end": 266.52,
+      "text": " that are in the environment of the running process."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 266.52,
+      "end": 270.56,
+      "text": " So you might have seen AWS credentials, for example, like AWS_REGION,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 270.56,
+      "end": 274.4,
+      "text": " AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, standard Unix ones,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 274.4,
+      "end": 278.48,
+      "text": " like PATH, USER, PWD for the current directory, hostname, etc."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 278.48,
+      "end": 281.6,
+      "text": " And then different runtimes have their own ones as well."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 281.6,
+      "end": 284.28000000000003,
+      "text": " Like in Java, you'll have CLASS_PATH and JAVA_HOME."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 284.28000000000003,
+      "end": 285.92,
+      "text": " In Python, you'll have PYTHONPATH."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 285.92,
+      "end": 288.48,
+      "text": " In AWS, you can use environment variables with Lambda,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 288.48,
+      "end": 290.92,
+      "text": " with Fargate, EC2, any process really."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 290.92,
+      "end": 294.52,
+      "text": " AWS generally provide mechanisms for you to configure the environment variables"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 294.52,
+      "end": 297.76,
+      "text": " when you deploy runtime."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 297.76,
+      "end": 299.64,
+      "text": " Now, it's convenient with infrastructure as code as well"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 299.64,
+      "end": 301.28,
+      "text": " when you're creating resources in the same stack,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 301.28,
+      "end": 304.12,
+      "text": " you can define them in your infrastructure as code,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 304.12,
+      "end": 305.68,
+      "text": " so you can reference them when you need."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 305.68,
+      "end": 308.47999999999996,
+      "text": " So it's quite typical that you'd have an environment variable"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 308.47999999999996,
+      "end": 309.64,
+      "text": " to point to an S3 bucket,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 309.64,
+      "end": 312.28,
+      "text": " so the process will know which bucket to write to and read from,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 312.28,
+      "end": 315.08,
+      "text": " or an SQS queue or a DynamoDB table."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 315.08,
+      "end": 317.44,
+      "text": " This allows you to use auto-generated names,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 317.44,
+      "end": 320.28,
+      "text": " names that are generated by your infrastructure as code,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 320.28,
+      "end": 323.52,
+      "text": " and your infrastructure as code tools will then track dependencies"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 323.52,
+      "end": 327.76,
+      "text": " and make sure to create all the necessary resources before the compute one,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 327.76,
+      "end": 330.2,
+      "text": " so that you have the right environment variables."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 330.2,
+      "end": 331.4,
+      "text": " So what are the pros and cons then?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 331.4,
+      "end": 334.32,
+      "text": " Well, they're very simple to use and often very effective."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 334.32,
+      "end": 335.28,
+      "text": " They're free, right?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 335.28,
+      "end": 338.24,
+      "text": " They're a built-in concept for most operating systems,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 338.24,
+      "end": 340.8,
+      "text": " so you don't need to buy into a particular service and pay for it."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 340.8,
+      "end": 343.52,
+      "text": " On the other hand, they're not great for secrets, right?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 343.52,
+      "end": 345.56,
+      "text": " So environment variables are clear text."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 345.56,
+      "end": 348.71999999999997,
+      "text": " You can obviously put an encrypted version in your environment variables,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 348.71999999999997,
+      "end": 351.36,
+      "text": " but then you need to have a key somewhere."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 351.36,
+      "end": 353.68,
+      "text": " You can generally see these values from the web console"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 353.68,
+      "end": 355.71999999999997,
+      "text": " or querying resources from the CLI."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 355.72,
+      "end": 360.52000000000004,
+      "text": " It's also risky in that environment variables may be logged to a log file,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 360.52000000000004,
+      "end": 363.6,
+      "text": " or anyone with access to the host can inspect the process"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 363.6,
+      "end": 365.24,
+      "text": " and find out what the environment variables are."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 365.24,
+      "end": 368.8,
+      "text": " So in general, it's not a good practice to use environment variables for secrets."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 368.8,
+      "end": 371.12,
+      "text": " They can also only be strings, which can be a bit tricky"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 371.12,
+      "end": 373.88000000000005,
+      "text": " if your configuration is complex with some sort of structure."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 373.88000000000005,
+      "end": 377.68,
+      "text": " Different runtimes will provide their own interminable environment variables as well,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 377.68,
+      "end": 380.52000000000004,
+      "text": " so there might be a risk of collision if you're not careful with naming."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 380.52000000000004,
+      "end": 384.04,
+      "text": " Even though this 12-factor app, which I mentioned at the start of this bit,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 384.04,
+      "end": 385.92,
+      "text": " is recommending environment variables,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 385.92,
+      "end": 389.92,
+      "text": " I find that to be a little bit dated and also not very effective for secrets."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 389.92,
+      "end": 392.92,
+      "text": " And I think we've moved on a little bit and we've got a lot more options now."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 392.92,
+      "end": 397,
+      "text": " So in AWS, we've got a few different options for storing configuration."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 397,
+      "end": 399.12,
+      "text": " All with our pros and cons, so let's get started on those."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 399.12,
+      "end": 400.08000000000004,
+      "text": " What's the first one?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 400.08000000000004,
+      "end": 403.32000000000005,
+      "text": " The first one that comes to mind is Systems Manager Parameter Store,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 403.32000000000005,
+      "end": 405.8,
+      "text": " or SSM parameters for short."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 405.8,
+      "end": 409.84000000000003,
+      "text": " And it's a managed service that it's a little bit like a key value pair storage,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 409.84000000000003,
+      "end": 413.20000000000005,
+      "text": " where basically you can store as many parameters as you want"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 413.2,
+      "end": 415.44,
+      "text": " and it gives you a very simple mental model."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 415.44,
+      "end": 419.47999999999996,
+      "text": " You can store one parameter at a time, you decide the key, you decide the value,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 419.47999999999996,
+      "end": 420.64,
+      "text": " and that's pretty much it."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 420.64,
+      "end": 423.88,
+      "text": " It's up to you to organize the keys in a manageable way,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 423.88,
+      "end": 426.56,
+      "text": " maybe by application, maybe by environment."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 426.56,
+      "end": 429.56,
+      "text": " Maybe you find some kind of convention where you say,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 429.56,
+      "end": 433.96,
+      "text": " OK, I'm going to try to stick to a tree of different things"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 433.96,
+      "end": 438.12,
+      "text": " where I always start with slash an environment, slash an application name,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 438.12,
+      "end": 441.88,
+      "text": " slash maybe database, slash maybe different parameters"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 441.88,
+      "end": 443.56,
+      "text": " that are relevant to your database."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 443.56,
+      "end": 446.4,
+      "text": " So you can build a structure that way, but it's totally up to you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 446.4,
+      "end": 451.6,
+      "text": " to define that convention and actually implement it correctly and consistently."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 451.6,
+      "end": 454.76,
+      "text": " It can give you values in different formats,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 454.76,
+      "end": 458.4,
+      "text": " so you can store strings, of course, but you can also store strings lists."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 458.4,
+      "end": 462.4,
+      "text": " So if you have an array, that could be a more ideal way of doing that."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 462.4,
+      "end": 466.04,
+      "text": " And if you do that, there are certain conventions that you can use"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 466.04,
+      "end": 469.4,
+      "text": " when you do infrastructure as code with CloudFormations or with SAM"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 469.4,
+      "end": 473.59999999999997,
+      "text": " so that you can easily iterate through all the values in an array list."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 473.59999999999997,
+      "end": 477.2,
+      "text": " And you can also store secure strings, which are encrypted values,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 477.2,
+      "end": 481.52,
+      "text": " which give you some degree of extra security and control"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 481.52,
+      "end": 483.4,
+      "text": " in case you are storing sensitive information,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 483.4,
+      "end": 486.4,
+      "text": " because that value is not going to be visible in clear text"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 486.4,
+      "end": 490.4,
+      "text": " unless you have access to the key that allows you to decrypt that clear text."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 490.4,
+      "end": 493.88,
+      "text": " And also, that gives you a bunch of tools and automation"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 493.88,
+      "end": 495.79999999999995,
+      "text": " that can make integration more seamless,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 495.79999999999995,
+      "end": 499,
+      "text": " so you don't really need to manually encrypt and decrypt that information."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 499,
+      "end": 501.8,
+      "text": " One of the downsides is that there is no validation built in."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 501.8,
+      "end": 504.12,
+      "text": " So again, this is something else that is up to you to make sure"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 504.12,
+      "end": 508.36,
+      "text": " that every time you insert the values for the first time or change them over time,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 508.36,
+      "end": 511.88,
+      "text": " you are actually doing that, respecting whatever is the correct format"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 511.88,
+      "end": 515.36,
+      "text": " for that particular key value pair."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 515.36,
+      "end": 518.2,
+      "text": " On the good side, you also get an audit trail of changes."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 518.2,
+      "end": 522.08,
+      "text": " So every time you change something, you can see that the value is changing"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 522.08,
+      "end": 525.16,
+      "text": " and you can keep track of values being changed,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 525.16,
+      "end": 526.68,
+      "text": " which is something that can be very important,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 526.68,
+      "end": 529.8,
+      "text": " especially again when dealing with security sensitive information,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 529.8,
+      "end": 531.88,
+      "text": " like maybe you are changing an API key,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 531.88,
+      "end": 535.28,
+      "text": " it's important to know that that API key is changing."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 535.28,
+      "end": 538.04,
+      "text": " In terms of service, it comes in two tiers."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 538.04,
+      "end": 541.4,
+      "text": " The first one is called standard tier, and we also have advanced tier,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 541.4,
+      "end": 544.8,
+      "text": " and you just get slightly different features and different pricing."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 544.8,
+      "end": 551.4,
+      "text": " The standard tier is free and allows you to store a maximum of 4 kilobytes in size."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 551.4,
+      "end": 554,
+      "text": " So I think that's generally more than enough,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 554,
+      "end": 556.72,
+      "text": " but if you really need to store more information in a key,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 556.72,
+      "end": 558.04,
+      "text": " you need to use the advanced tier,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 558.04,
+      "end": 563.28,
+      "text": " which can go as high as 8 kilobytes per key value pair."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 563.28,
+      "end": 566,
+      "text": " The advanced tier is also more interesting because you can use policies,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 566,
+      "end": 568.4,
+      "text": " so you can add additional rules."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 568.4,
+      "end": 571.28,
+      "text": " For instance, you can say this particular parameter is going to expire"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 571.28,
+      "end": 575.04,
+      "text": " after a certain amount of days or months, whatever,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 575.04,
+      "end": 576.48,
+      "text": " but it comes with an extra cost"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 576.48,
+      "end": 578.56,
+      "text": " because when you switch to the advanced tier,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 578.56,
+      "end": 582.04,
+      "text": " you have to pay $0.00 per parameter,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 582.04,
+      "end": 584.4,
+      "text": " so $0.05 per parameter."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 584.4,
+      "end": 588.12,
+      "text": " And there is also an interesting caveat that is that you can,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 588.12,
+      "end": 590.04,
+      "text": " if you switch to the advanced tier,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 590.04,
+      "end": 592.8399999999999,
+      "text": " you can easily upgrade basically from the standard to the advanced,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 592.8399999999999,
+      "end": 594.28,
+      "text": " but you cannot go back."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 594.28,
+      "end": 596.76,
+      "text": " So of course, when you decide to buy into the advanced tier,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 596.76,
+      "end": 599.76,
+      "text": " you need to consider it's not as easy to go back again."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 599.76,
+      "end": 601.16,
+      "text": " And if you think about that, it makes sense"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 601.16,
+      "end": 604.68,
+      "text": " because you might start to store an 8 kilobyte value."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 604.68,
+      "end": 606.76,
+      "text": " So how would you transition back at that point?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 606.76,
+      "end": 608.52,
+      "text": " You will lose some information."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 608.52,
+      "end": 610.76,
+      "text": " So AWS doesn't really give you a way to do that"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 610.76,
+      "end": 613.4399999999999,
+      "text": " as a, I guess, a preventative mechanism"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 613.4399999999999,
+      "end": 616.68,
+      "text": " to avoid you losing data in your parameters."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 616.68,
+      "end": 617.84,
+      "text": " Now, how do you use it?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 617.84,
+      "end": 619.28,
+      "text": " Is it, it is actually really easy."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 619.28,
+      "end": 622.88,
+      "text": " Like you can do an API called get parameter"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 622.88,
+      "end": 625.52,
+      "text": " where you provide the key for the specific value"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 625.52,
+      "end": 628.4,
+      "text": " you want to read and you get back the value."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 628.4,
+      "end": 630.96,
+      "text": " And of course, you can do that from the CLI,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 630.96,
+      "end": 634.12,
+      "text": " you can do that from the different SDKs,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 634.12,
+      "end": 637.72,
+      "text": " or you can even see the values from the web console."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 637.72,
+      "end": 639.4399999999999,
+      "text": " You need to have the right permissions."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 639.4399999999999,
+      "end": 640.72,
+      "text": " This is actually a really good thing."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 640.72,
+      "end": 643.36,
+      "text": " That you can define fine grained permissions with IAM"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 643.36,
+      "end": 645.84,
+      "text": " to effectively say which principles can have access"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 645.84,
+      "end": 647.08,
+      "text": " to which keys."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 647.08,
+      "end": 648.6,
+      "text": " And if you have created that structure,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 648.6,
+      "end": 650.8000000000001,
+      "text": " there's like a tree using prefixes,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 650.8000000000001,
+      "end": 652.76,
+      "text": " you can use the asterisk just to say, okay,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 652.76,
+      "end": 655.28,
+      "text": " I'm going to give you access to this specific sub-tree"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 655.28,
+      "end": 656.1600000000001,
+      "text": " of configuration."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 656.1600000000001,
+      "end": 658.44,
+      "text": " So maybe just by environment and application"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 658.44,
+      "end": 661.24,
+      "text": " and not every single parameter in your account."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 663.72,
+      "end": 667,
+      "text": " There is also, if you're using it with Lambda,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 667,
+      "end": 669.44,
+      "text": " it is a bit of extra code that you need to write"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 669.44,
+      "end": 670.28,
+      "text": " at bootstrap time."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 670.28,
+      "end": 672.52,
+      "text": " So when the Lambda is doing the first call start,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 672.52,
+      "end": 674.68,
+      "text": " you probably want to fetch some of this parameter"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 674.68,
+      "end": 676.4399999999999,
+      "text": " and you need also to have some piece of logic,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 676.4399999999999,
+      "end": 678.9399999999999,
+      "text": " maybe to try to refresh them every once in a while."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 678.9399999999999,
+      "end": 681.4399999999999,
+      "text": " So it might be a bit complex to do it in a Lambda"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 681.4399999999999,
+      "end": 683.16,
+      "text": " because the Lambda is generally more focused"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 683.16,
+      "end": 684,
+      "text": " on the business logic."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 684,
+      "end": 685.4,
+      "text": " You don't want to pollute it too much"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 685.4,
+      "end": 687.12,
+      "text": " with all this extra management code"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 687.12,
+      "end": 688.8199999999999,
+      "text": " just to fetch configuration."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 688.8199999999999,
+      "end": 691.6,
+      "text": " So one idea there is if you don't want to do all of that"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 691.6,
+      "end": 695,
+      "text": " yourself, you can use an AWS provided Lambda extension,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 695,
+      "end": 696.1999999999999,
+      "text": " which once you install it,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 696.1999999999999,
+      "end": 698,
+      "text": " is going to do all of this work in the background"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 698,
+      "end": 700.56,
+      "text": " and in your Lambda you already have immediate access"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 700.56,
+      "end": 704.16,
+      "text": " to the value coming from SSN parameters."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 704.16,
+      "end": 707.04,
+      "text": " If you do Node.js and if you're using Middy"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 707.04,
+      "end": 710,
+      "text": " as a middleware system for your Lambda,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 710,
+      "end": 712.7,
+      "text": " there is actually a middleware that you can just enable"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 712.7,
+      "end": 715.66,
+      "text": " and it does exactly the same thing as the extension."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 715.66,
+      "end": 717.44,
+      "text": " I am of course biased because being involved"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 717.44,
+      "end": 719.8,
+      "text": " in the Middy project, I tend to prefer this option,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 719.8,
+      "end": 721.6,
+      "text": " but I think it's a little bit easier"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 721.6,
+      "end": 723.32,
+      "text": " because you don't need to install an extra extension,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 723.32,
+      "end": 725.12,
+      "text": " it's just dependencies in your Lambda."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 725.12,
+      "end": 726.72,
+      "text": " So if you already have dependencies,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 726.72,
+      "end": 728.88,
+      "text": " you can easily just do an MPM install"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 728.88,
+      "end": 730.88,
+      "text": " and everything is then packaged together"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 730.88,
+      "end": 733.6,
+      "text": " without needing additional extensions."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 733.6,
+      "end": 736.08,
+      "text": " If you use Python, there is something similar,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 736.08,
+      "end": 739.2,
+      "text": " I think by Alex Casalboni, which is called SSM cache"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 739.2,
+      "end": 741.76,
+      "text": " and it's pretty much a library that again you install"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 741.76,
+      "end": 743.76,
+      "text": " and it can do all of this stuff seamlessly for you."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 743.76,
+      "end": 745.64,
+      "text": " So with very minimal configuration,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 745.64,
+      "end": 748.32,
+      "text": " it takes care of all the life cycle of fetching"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 748.32,
+      "end": 749.96,
+      "text": " the parameters and making them available"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 749.96,
+      "end": 751.52,
+      "text": " to your Lambda handler."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 751.52,
+      "end": 754.88,
+      "text": " And there is also something similar in Lambda power tools."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 754.88,
+      "end": 757.4,
+      "text": " I think there is definitely support for TypeScript."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 757.4,
+      "end": 759,
+      "text": " I imagine there is also for Python,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 759,
+      "end": 760.7,
+      "text": " but worth double checking that."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 761.56,
+      "end": 766.12,
+      "text": " And then if you're using tools for infrastructure as code,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 766.12,
+      "end": 768.52,
+      "text": " such as SAM or serverless,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 768.52,
+      "end": 771.36,
+      "text": " there are often very interesting pieces of syntax"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 771.36,
+      "end": 774.16,
+      "text": " that can facilitate fetching SSM parameters"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 774.16,
+      "end": 775.4,
+      "text": " at different stages."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 775.4,
+      "end": 778.84,
+      "text": " Of course you can reference SSM parameters at deploy time,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 778.84,
+      "end": 780.52,
+      "text": " but the more interesting thing is that sometimes"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 780.52,
+      "end": 782.4,
+      "text": " you can also prefetch this parameter"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 782.4,
+      "end": 783.7,
+      "text": " before the deployment time."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 783.7,
+      "end": 787.76,
+      "text": " So you can effectively interpolate the actual values"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 787.76,
+      "end": 788.6,
+      "text": " into your templates,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 788.6,
+      "end": 791,
+      "text": " which sometimes allows you to do more dynamic things"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 791,
+      "end": 792.8000000000001,
+      "text": " like, I don't know, conditionals,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 792.8000000000001,
+      "end": 795.24,
+      "text": " where you could say if the value of this SSM parameter"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 795.24,
+      "end": 798.36,
+      "text": " is something that maybe you change the template slightly"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 798.36,
+      "end": 800.9200000000001,
+      "text": " to deploy something rather than referencing something"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 800.9200000000001,
+      "end": 802.9200000000001,
+      "text": " that exists already in another stack."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 802.9200000000001,
+      "end": 805.1600000000001,
+      "text": " So it can be actually a very powerful model."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 805.1600000000001,
+      "end": 807.32,
+      "text": " And actually I believe Eoin that you have an article on that"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 807.32,
+      "end": 809.9200000000001,
+      "text": " so we'll make sure to link that in the show notes"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 809.9200000000001,
+      "end": 813.32,
+      "text": " for people that want to deep dive into this approach."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 813.32,
+      "end": 816.6800000000001,
+      "text": " So in summary, let's try to say what are the pros and cons"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 816.6800000000001,
+      "end": 817.84,
+      "text": " of this approach."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 817.84,
+      "end": 819.1600000000001,
+      "text": " I think it's generally a good approach"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 819.1600000000001,
+      "end": 821.32,
+      "text": " because it's relatively simple and cheap"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 821.32,
+      "end": 823.5200000000001,
+      "text": " and you also get a quite good throughput."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 823.5200000000001,
+      "end": 826.5200000000001,
+      "text": " So if you have lots of services, lots of applications,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 826.5200000000001,
+      "end": 829,
+      "text": " reading parameters all the time,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 829,
+      "end": 830.9200000000001,
+      "text": " you should have still significant throughput"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 830.9200000000001,
+      "end": 832.6,
+      "text": " to be able to support all of that."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 833.48,
+      "end": 835.6400000000001,
+      "text": " But of course there are some problems."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 835.6400000000001,
+      "end": 838.12,
+      "text": " It's not great for very structured use cases"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 838.12,
+      "end": 840.2,
+      "text": " because you need to come up with your own structure"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 840.2,
+      "end": 841.7600000000001,
+      "text": " and make sure to be consistent."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 841.7600000000001,
+      "end": 842.96,
+      "text": " You don't get any validation."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 842.96,
+      "end": 845.72,
+      "text": " So you are always at risk that somebody is gonna"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 845.72,
+      "end": 848.2800000000001,
+      "text": " mistype something and then the application breaks"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 848.2800000000001,
+      "end": 851.32,
+      "text": " because you cannot really parse that information at runtime."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 852.82,
+      "end": 856,
+      "text": " It doesn't deal too well with sensitive data."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 856,
+      "end": 858.2,
+      "text": " You can definitely do encryption"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 858.2,
+      "end": 860.76,
+      "text": " using the secrets value approach,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 860.76,
+      "end": 862.4200000000001,
+      "text": " but it's not very structured again."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 862.4200000000001,
+      "end": 865.2800000000001,
+      "text": " So for sensitive data like API keys,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 865.2800000000001,
+      "end": 867.72,
+      "text": " you also don't get a concept of rotation built in."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 867.72,
+      "end": 870.9200000000001,
+      "text": " So it's up to you to create some kind of automation,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 870.92,
+      "end": 873.3399999999999,
+      "text": " maybe a Lambda that runs on a schedule,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 873.3399999999999,
+      "end": 876,
+      "text": " just to make sure that you remember to rotate a key"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 876,
+      "end": 878.28,
+      "text": " that might expire after a while."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 878.28,
+      "end": 880.68,
+      "text": " And speaking again of throughput limits,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 880.68,
+      "end": 882.4399999999999,
+      "text": " you have 40 reads per second,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 883.4799999999999,
+      "end": 885.64,
+      "text": " unless you buy into the higher throughput mode,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 885.64,
+      "end": 889.24,
+      "text": " which is 10,000, I think, reads per second."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 890.5999999999999,
+      "end": 892.16,
+      "text": " But there is an extra cost for that."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 892.16,
+      "end": 894.78,
+      "text": " So I say that it's good because you generally get throughputs"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 894.78,
+      "end": 896.48,
+      "text": " but if that throughput is not enough,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 896.48,
+      "end": 897.68,
+      "text": " it comes with extra costs."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 897.68,
+      "end": 899.12,
+      "text": " So you have options there,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 899.12,
+      "end": 901.24,
+      "text": " but you need to account for all the features"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 901.24,
+      "end": 902.6,
+      "text": " that you need to build yourself"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 902.6,
+      "end": 903.98,
+      "text": " and all the extra costs that you get"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 903.98,
+      "end": 907.04,
+      "text": " when you need the more advanced features."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 907.04,
+      "end": 910.44,
+      "text": " So should we talk about the other approach?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 910.44,
+      "end": 911.96,
+      "text": " Yeah, I think we've got a few other approaches."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 911.96,
+      "end": 915.08,
+      "text": " And the last one is going to be less familiar to people,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 915.08,
+      "end": 918.02,
+      "text": " but Secrets Managerr, which I think we'll talk about next,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 918.02,
+      "end": 919.68,
+      "text": " is probably more familiar."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 919.68,
+      "end": 922.92,
+      "text": " And this is a specific managed distributed service"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 922.92,
+      "end": 924.4,
+      "text": " dedicated to storing secrets, right?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 924.4,
+      "end": 926.64,
+      "text": " So this is about passwords, API tokens,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 926.64,
+      "end": 928.32,
+      "text": " things you want to really protect."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 928.32,
+      "end": 930.6,
+      "text": " Again, you can create key value pairs,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 930.6,
+      "end": 933.2800000000001,
+      "text": " but unlike parameter store, you've got more options."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 933.2800000000001,
+      "end": 934.6800000000001,
+      "text": " You can have structured JSON."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 934.6800000000001,
+      "end": 938.4000000000001,
+      "text": " So if you've got hierarchical document oriented values,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 938.4000000000001,
+      "end": 939.7600000000001,
+      "text": " that's possible too."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 939.7600000000001,
+      "end": 942.44,
+      "text": " The difference between the secret value in parameter store"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 942.44,
+      "end": 944.2,
+      "text": " and a secret in Secrets Managerr"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 944.2,
+      "end": 947.22,
+      "text": " is that Secrets Managerr would use KMS to do the encryption"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 947.22,
+      "end": 949.3000000000001,
+      "text": " rather than that being all hidden from you."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 949.3000000000001,
+      "end": 952.48,
+      "text": " So you need to understand how KMS works a little bit"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 952.48,
+      "end": 957.12,
+      "text": " for the key management and also provide access to the key"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 957.12,
+      "end": 959.76,
+      "text": " as well as to Secrets Managerr for principals"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 959.76,
+      "end": 962.36,
+      "text": " who are trying to retrieve and update secrets."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 962.36,
+      "end": 965,
+      "text": " So to read a secret, you need to use the API,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 965,
+      "end": 968.22,
+      "text": " GetSecretValue with the IAM permission for that."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 968.22,
+      "end": 971.12,
+      "text": " And you can be very granular then as you would want to be"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 971.12,
+      "end": 973.08,
+      "text": " on which gets access to a secret."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 974.24,
+      "end": 977.28,
+      "text": " You can keep data versioned also for auditing,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 977.28,
+      "end": 978.24,
+      "text": " which is important."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 979.12,
+      "end": 981.28,
+      "text": " You can monitor access to secrets thanks to Cloud Trail,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 981.28,
+      "end": 984.2,
+      "text": " which is very important for governance and compliance."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 984.2,
+      "end": 987.1600000000001,
+      "text": " And then the really outstanding feature really"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 987.1600000000001,
+      "end": 988.72,
+      "text": " for Secrets Managerr, I think is the ability"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 988.72,
+      "end": 990.96,
+      "text": " to automate secret rotation."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 990.96,
+      "end": 994.2800000000001,
+      "text": " So it can rotate secrets automatically on a schedule"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 994.2800000000001,
+      "end": 997.44,
+      "text": " for certain types of credentials like access to Redshift,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 997.44,
+      "end": 999.8000000000001,
+      "text": " RDS or DocumentDB."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 999.8000000000001,
+      "end": 1002.6800000000001,
+      "text": " And if you want to customize the nature of that rotation,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1002.6800000000001,
+      "end": 1004.58,
+      "text": " you can use Lambda as well."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1004.58,
+      "end": 1009.58,
+      "text": " So it's more of a complete managed service for secrets."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1009.7800000000001,
+      "end": 1012.5600000000001,
+      "text": " And one of the advantages also when it comes to things"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1012.56,
+      "end": 1016.16,
+      "text": " like databases is that it will integrate into RDS,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1016.16,
+      "end": 1018.64,
+      "text": " DocumentDB and lots of other AWS services"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1018.64,
+      "end": 1020.8,
+      "text": " so that you don't have to go through the dance"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1020.8,
+      "end": 1023.8,
+      "text": " of retrieving a secret, making sure it's stored secretly"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1023.8,
+      "end": 1026.32,
+      "text": " and even in or sensitively in memory"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1026.32,
+      "end": 1028.44,
+      "text": " and then passing it onto another service."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1028.44,
+      "end": 1030.6799999999998,
+      "text": " AWS will glue those things together for you."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1030.6799999999998,
+      "end": 1033.12,
+      "text": " An example of that is you're using CloudFormation"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1033.12,
+      "end": 1034.74,
+      "text": " to create an RDS cluster."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1034.74,
+      "end": 1036.84,
+      "text": " You can set the master password to be a secret"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1036.84,
+      "end": 1038.72,
+      "text": " that's also created in that template."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1038.72,
+      "end": 1040.24,
+      "text": " You can configure the rotation for it."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1040.24,
+      "end": 1042.1,
+      "text": " You never even have to see that password."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1042.1,
+      "end": 1044.28,
+      "text": " It's all just wired together automatically."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1044.28,
+      "end": 1045.6,
+      "text": " So that's pretty nice."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1045.6,
+      "end": 1048.9599999999998,
+      "text": " On the cons, I guess, for Secrets Managerr,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1048.9599999999998,
+      "end": 1050.06,
+      "text": " it can be more expensive,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1050.06,
+      "end": 1053.28,
+      "text": " especially compared to the parameter store free tier."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1053.28,
+      "end": 1056.4399999999998,
+      "text": " If you heard a few people kind of suggesting skeptically"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1056.4399999999998,
+      "end": 1059.8,
+      "text": " that AWS are, you know, realize the parameter store"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1059.8,
+      "end": 1061.52,
+      "text": " was a little bit too cheap, especially with the free tier."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1061.52,
+      "end": 1063.6799999999998,
+      "text": " That's why they invented Secrets Managerr."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1063.6799999999998,
+      "end": 1066.56,
+      "text": " But Secrets Managerr allows you, I suppose, more throughput."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1066.56,
+      "end": 1069.4399999999998,
+      "text": " Yeah, I think you get 30 days free per secret"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1069.44,
+      "end": 1073.8400000000001,
+      "text": " and then it gets into a 5 cents for 10,000 API calls."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1073.8400000000001,
+      "end": 1074.68,
+      "text": " So with all these things,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1074.68,
+      "end": 1076.8,
+      "text": " you really have to think about your throughput, right?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1076.8,
+      "end": 1079.8400000000001,
+      "text": " Parameter store, you've got those throughput limits."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1079.8400000000001,
+      "end": 1080.96,
+      "text": " You need to make sure you're caching."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1080.96,
+      "end": 1082.6000000000001,
+      "text": " You can't be reading too aggressively."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1082.6000000000001,
+      "end": 1084.56,
+      "text": " I've seen lots of teams run into limits"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1084.56,
+      "end": 1086.0800000000002,
+      "text": " with parameter store."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1086.0800000000002,
+      "end": 1088.3200000000002,
+      "text": " With Secrets Managerr, it might be just a question of cost."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1088.3200000000002,
+      "end": 1089.52,
+      "text": " So you need to think about, okay,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1089.52,
+      "end": 1091.16,
+      "text": " how many processes do I have running?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1091.16,
+      "end": 1093.16,
+      "text": " How often are they reading these values?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1093.16,
+      "end": 1094.44,
+      "text": " And what's that gonna cost me?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1094.44,
+      "end": 1096.68,
+      "text": " And will I stay within the throughput quotas?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1096.68,
+      "end": 1099.1200000000001,
+      "text": " So Secrets Managerr has that throughput cost,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1099.1200000000001,
+      "end": 1102.52,
+      "text": " but it also has a 50 cent per secret per month cost as well."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1102.52,
+      "end": 1103.72,
+      "text": " So think about that."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1103.72,
+      "end": 1106.4,
+      "text": " And maybe think about some of the alternatives."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1106.4,
+      "end": 1108.5600000000002,
+      "text": " So where are we when it comes to alternatives?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1108.5600000000002,
+      "end": 1110.2,
+      "text": " I mentioned one that's less familiar for people"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1110.2,
+      "end": 1112.6000000000001,
+      "text": " and I'm definitely interested to hear about App Config."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1112.6000000000001,
+      "end": 1114.1200000000001,
+      "text": " Can you walk us through that one Luciano?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1115.6000000000001,
+      "end": 1117.48,
+      "text": " Yes, App Config is really interesting because I think it tries to give you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1117.48,
+      "end": 1119.48,
+      "text": " a more structured experience,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1119.48,
+      "end": 1121.0800000000002,
+      "text": " trying to fill all the missing gaps"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1121.0800000000002,
+      "end": 1123.4,
+      "text": " of the other approaches we mentioned before."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1123.4,
+      "end": 1125.96,
+      "text": " So let's try to describe everything in order."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1125.96,
+      "end": 1129.44,
+      "text": " So what it is really is an order managed service from AWS"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1129.44,
+      "end": 1131.56,
+      "text": " and it allows you to store configuration."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1131.56,
+      "end": 1132.92,
+      "text": " But this time, rather than thinking"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1132.92,
+      "end": 1134.4,
+      "text": " in terms of key value pairs,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1134.4,
+      "end": 1137.16,
+      "text": " it's more you are storing an entire configuration object"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1137.16,
+      "end": 1140.04,
+      "text": " that makes sense in a specific context."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1140.04,
+      "end": 1142.4,
+      "text": " And this configuration object is of course replicated"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1142.4,
+      "end": 1145.48,
+      "text": " across different ADs, so it's always highly available."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1145.48,
+      "end": 1148.76,
+      "text": " So you don't really have to worry about the storage piece."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1148.76,
+      "end": 1151.68,
+      "text": " It's more, it's there and AWS make sure"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1151.68,
+      "end": 1153.56,
+      "text": " that it's always available for you when you need it"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1153.56,
+      "end": 1156.44,
+      "text": " to reference in your application or your infrastructure"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1156.44,
+      "end": 1157.28,
+      "text": " as code."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1157.28,
+      "end": 1160.52,
+      "text": " And one of the new features compared to the other ones"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1160.52,
+      "end": 1162.9199999999998,
+      "text": " is that it uses a concept called validators"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1162.9199999999998,
+      "end": 1164.6,
+      "text": " that is actually something you can configure"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1164.6,
+      "end": 1165.96,
+      "text": " very, very granularly."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1165.96,
+      "end": 1168.32,
+      "text": " And you can define exactly what are the rules"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1168.32,
+      "end": 1171.08,
+      "text": " that basically say that the values you are inserting"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1171.08,
+      "end": 1173.32,
+      "text": " in this configuration object are actually conformed"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1173.32,
+      "end": 1176.1599999999999,
+      "text": " with what your application is going to look for."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1176.1599999999999,
+      "end": 1177.6399999999999,
+      "text": " So basically that is gonna save you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1177.6399999999999,
+      "end": 1179.36,
+      "text": " from somebody making a typo"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1179.36,
+      "end": 1182,
+      "text": " because maybe they forgot a quote or a semicolon"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1182,
+      "end": 1184.04,
+      "text": " or a curly brace, whatever."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1184.04,
+      "end": 1186.52,
+      "text": " And that is something you will see"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1186.52,
+      "end": 1188.4,
+      "text": " when you try to change the value."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1188.4,
+      "end": 1190.64,
+      "text": " So when you try to deploy the value itself,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1190.64,
+      "end": 1192.16,
+      "text": " not when your application starts"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1192.16,
+      "end": 1193.52,
+      "text": " and then your application is going to crash."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1193.52,
+      "end": 1195,
+      "text": " So basically this measure allows you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1195,
+      "end": 1197.64,
+      "text": " to prevent accidental crashes of your application"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1197.64,
+      "end": 1199.92,
+      "text": " by seeing the issues when you try to change"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1199.92,
+      "end": 1202.12,
+      "text": " the configuration rather than when you deploy"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1202.12,
+      "end": 1204,
+      "text": " the new configuration and the application crashes,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1204,
+      "end": 1205.6,
+      "text": " which I think is really, really cool"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1205.6,
+      "end": 1207.84,
+      "text": " because it can prevent also downtimes,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1207.84,
+      "end": 1210.24,
+      "text": " accidental downtimes just due to human error."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1210.24,
+      "end": 1213.96,
+      "text": " And in that light of trying to make deployment safer,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1213.96,
+      "end": 1216.16,
+      "text": " there is an entire mechanism that allows you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1216.16,
+      "end": 1218.88,
+      "text": " to roll out deployments of configuration changes"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1218.88,
+      "end": 1219.72,
+      "text": " in different ways."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1219.72,
+      "end": 1221.64,
+      "text": " We'll talk a little bit more about that."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1221.64,
+      "end": 1224.32,
+      "text": " But again, the idea is try not just to manage configuration"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1224.32,
+      "end": 1226.04,
+      "text": " in a more structured way, but also to make sure"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1226.04,
+      "end": 1228.32,
+      "text": " that every time you change that configuration,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1228.32,
+      "end": 1230.84,
+      "text": " deploys are actually managed more carefully"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1230.84,
+      "end": 1233.28,
+      "text": " and you try to spot as soon as possible"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1233.28,
+      "end": 1235.76,
+      "text": " if that configuration is gonna break your application"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1235.76,
+      "end": 1238,
+      "text": " and take preventive measures or roll back"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1238,
+      "end": 1238.84,
+      "text": " as soon as possible."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1238.84,
+      "end": 1242.4399999999998,
+      "text": " Again, the service keeps an audit trail"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1242.4399999999998,
+      "end": 1243.76,
+      "text": " of all the configuration changes."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1243.76,
+      "end": 1245.24,
+      "text": " So this is not necessarily new,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1245.24,
+      "end": 1247.1999999999998,
+      "text": " but of course you also have that feature."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1247.1999999999998,
+      "end": 1249.8799999999999,
+      "text": " So let's try to talk more about what is the experience"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1249.8799999999999,
+      "end": 1250.72,
+      "text": " of using it."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1250.72,
+      "end": 1253.1599999999999,
+      "text": " And I think that will describe a little bit more"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1253.1599999999999,
+      "end": 1255.1999999999998,
+      "text": " all the different concepts and how this tool"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1255.1999999999998,
+      "end": 1258.1599999999999,
+      "text": " is a little bit more feature complete than the other ones."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1258.1599999999999,
+      "end": 1259,
+      "text": " So when you start,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1259,
+      "end": 1261.28,
+      "text": " you need to define an application configuration."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1261.28,
+      "end": 1263.3999999999999,
+      "text": " And this is already the first big change"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1263.3999999999999,
+      "end": 1265.04,
+      "text": " because right now we have been talking"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1265.04,
+      "end": 1266.08,
+      "text": " about key value pairs."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1266.08,
+      "end": 1268.8799999999999,
+      "text": " So not necessarily tied to one environment"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1268.8799999999999,
+      "end": 1269.8799999999999,
+      "text": " or one application."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1269.8799999999999,
+      "end": 1272.28,
+      "text": " AppConf immediately makes you think about,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1272.28,
+      "end": 1274.96,
+      "text": " no, this configuration is not something very generic."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1274.96,
+      "end": 1277.72,
+      "text": " It's not one parameter that exists on its own."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1277.72,
+      "end": 1279.52,
+      "text": " You need to think about an application"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1279.52,
+      "end": 1281.6799999999998,
+      "text": " and we are defining the entire configuration"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1281.6799999999998,
+      "end": 1282.8,
+      "text": " for that application."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1282.8,
+      "end": 1285.3999999999999,
+      "text": " So you start by defining this concept of a container"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1285.3999999999999,
+      "end": 1287,
+      "text": " that represents your application."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1288.9199999999998,
+      "end": 1293.28,
+      "text": " You can integrate that basically"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1293.28,
+      "end": 1296.2,
+      "text": " into once you have basically the application stored"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1296.2,
+      "end": 1298.24,
+      "text": " into App Config, of course you need to do something"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1298.24,
+      "end": 1299.96,
+      "text": " at the application level to make sure"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1299.96,
+      "end": 1301.92,
+      "text": " that you can fetch that information."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1301.92,
+      "end": 1304.84,
+      "text": " And this is interesting because it's again a pull mode."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1304.84,
+      "end": 1307.04,
+      "text": " So it's your application that needs to know exactly"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1307.04,
+      "end": 1308.8799999999999,
+      "text": " when to fetch that information."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1308.8799999999999,
+      "end": 1311.04,
+      "text": " And it needs to do that by calling explicit"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1311.04,
+      "end": 1314.16,
+      "text": " the get latest configuration command again."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1314.16,
+      "end": 1315.48,
+      "text": " So you can do from the CLI,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1315.48,
+      "end": 1317.08,
+      "text": " so you can do it from the SDK"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1317.08,
+      "end": 1318.6,
+      "text": " or with a bunch of other helpers"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1318.6,
+      "end": 1320,
+      "text": " that we will describe later."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1320,
+      "end": 1323,
+      "text": " One of these helpers is an extension for AWS Lambda."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1323,
+      "end": 1323.84,
+      "text": " If you use Lambda,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1323.84,
+      "end": 1326.44,
+      "text": " so very similar to the one we described for SSM"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1326.44,
+      "end": 1328.84,
+      "text": " that can fetch the configuration automatically for you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1328.84,
+      "end": 1331.12,
+      "text": " and can try to refetch it after a while"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1331.12,
+      "end": 1332.68,
+      "text": " to make sure it's always kept in sync"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1332.68,
+      "end": 1334.28,
+      "text": " with the latest configuration."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1335.44,
+      "end": 1337.96,
+      "text": " If you use Middy, again, there is a middleware for it."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1337.96,
+      "end": 1340.64,
+      "text": " So very similar to the SSM parameters one,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1340.64,
+      "end": 1343.88,
+      "text": " does auto fetching, caching and refreshing for you."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1344.88,
+      "end": 1346.72,
+      "text": " And another thing that you can do"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1346.72,
+      "end": 1350.1200000000001,
+      "text": " is fetching and refreshing for you."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1350.1200000000001,
+      "end": 1353.04,
+      "text": " And I think from a configuration perspective,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1353.04,
+      "end": 1354.52,
+      "text": " there are some interesting concepts"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1354.52,
+      "end": 1357.56,
+      "text": " that are worth expanding on a little bit more."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1357.56,
+      "end": 1359.84,
+      "text": " So when you define an application configuration,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1359.84,
+      "end": 1361.72,
+      "text": " you also need to define environments."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1361.72,
+      "end": 1364.44,
+      "text": " So again, the approach is very methodical and structured."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1364.44,
+      "end": 1365.92,
+      "text": " You don't have to invent anything."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1365.92,
+      "end": 1367.6000000000001,
+      "text": " You just need to follow the process."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1367.6000000000001,
+      "end": 1369.3600000000001,
+      "text": " So an environment is something like depth,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1369.3600000000001,
+      "end": 1371.32,
+      "text": " staging, production, beta, preview,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1371.32,
+      "end": 1372.16,
+      "text": " whatever you want to call it,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1372.16,
+      "end": 1373.96,
+      "text": " that makes sense for the different stages"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1373.96,
+      "end": 1376.2,
+      "text": " of your application life cycle."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1376.2,
+      "end": 1378.2,
+      "text": " So you can pick different configuration profiles."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1378.2,
+      "end": 1381.3600000000001,
+      "text": " You can pick between freeform and Fisher-Flack,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1381.3600000000001,
+      "end": 1383.3600000000001,
+      "text": " and they give you a very different experience"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1383.3600000000001,
+      "end": 1386.04,
+      "text": " on how to define your entire configuration."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1386.04,
+      "end": 1388.96,
+      "text": " So Fisher-Flack is probably a little bit simpler,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1388.96,
+      "end": 1391.44,
+      "text": " but it's probably more specialized for the cases"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1391.44,
+      "end": 1393.64,
+      "text": " where you are actually really thinking about enabling"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1393.64,
+      "end": 1395.72,
+      "text": " or disabling specific features"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1395.72,
+      "end": 1398.42,
+      "text": " for specific classes of users."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1398.42,
+      "end": 1400.44,
+      "text": " While freeform is a lot more,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1400.44,
+      "end": 1403.28,
+      "text": " you have a big structured configuration file,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1403.28,
+      "end": 1404.72,
+      "text": " I'm going to give you all the tools"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1404.72,
+      "end": 1407.4,
+      "text": " that you need to manage that configuration file."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1407.4,
+      "end": 1408.52,
+      "text": " And it's not really a file,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1408.52,
+      "end": 1410.06,
+      "text": " it's just something you are storing in AWS"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1410.06,
+      "end": 1413,
+      "text": " and you load it when you need that information."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1413,
+      "end": 1416.1200000000001,
+      "text": " So when you use that freeform configuration profile,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1416.1200000000001,
+      "end": 1418.44,
+      "text": " you have a choice of how are you going to define"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1418.44,
+      "end": 1421.04,
+      "text": " the object structure, and you can define plain text,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1421.04,
+      "end": 1424.22,
+      "text": " JSON and YAML as the three available option."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1424.22,
+      "end": 1427.14,
+      "text": " I think JSON is of course the most common."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1427.14,
+      "end": 1430.56,
+      "text": " And if you use JSON, you can even use JSON schemas"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1430.56,
+      "end": 1432.1200000000001,
+      "text": " to create your own validators,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1432.1200000000001,
+      "end": 1433.6000000000001,
+      "text": " which when you do APIs,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1433.6,
+      "end": 1435.12,
+      "text": " they're probably used to JSON schema."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1435.12,
+      "end": 1437.36,
+      "text": " So it can be very convenient way of defining"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1437.36,
+      "end": 1440.1599999999999,
+      "text": " all the validation rules for a piece of JSON."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1440.1599999999999,
+      "end": 1441.84,
+      "text": " But if you use something else,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1441.84,
+      "end": 1444.5,
+      "text": " like if you want to use plain text and use your own format,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1444.5,
+      "end": 1446.8,
+      "text": " because I don't know, maybe you like TOML, let's say,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1446.8,
+      "end": 1448.9599999999998,
+      "text": " which is not really supported out of the box,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1448.9599999999998,
+      "end": 1450.24,
+      "text": " then you can even create a Lambda"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1450.24,
+      "end": 1451.74,
+      "text": " that can do the custom validation for you."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1451.74,
+      "end": 1453.9199999999998,
+      "text": " So it's really an extensible model"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1453.9199999999998,
+      "end": 1456.6399999999999,
+      "text": " where if you really have bespoke use cases,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1456.6399999999999,
+      "end": 1458.56,
+      "text": " let's say maybe you are migrating an application"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1458.56,
+      "end": 1461.4199999999998,
+      "text": " that I don't know, from Java using INE files"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1461.4199999999998,
+      "end": 1462.6,
+      "text": " for configuration,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1462.6,
+      "end": 1463.8799999999999,
+      "text": " you can still use this approach."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1463.8799999999999,
+      "end": 1465.8,
+      "text": " You just need to do a little bit of extra work"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1465.8,
+      "end": 1467.56,
+      "text": " if you want to have validators,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1467.56,
+      "end": 1470.52,
+      "text": " making sure that everything is configured correctly."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1471.6,
+      "end": 1473.7199999999998,
+      "text": " When it comes to deploying a change,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1473.7199999999998,
+      "end": 1474.7199999999998,
+      "text": " as we mentioned before,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1474.7199999999998,
+      "end": 1476.52,
+      "text": " we have different deployment strategies."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1476.52,
+      "end": 1478.1599999999999,
+      "text": " And just to give you an example,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1478.1599999999999,
+      "end": 1481.6799999999998,
+      "text": " you can go for like an immediate rollout where you say,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1481.6799999999998,
+      "end": 1484.36,
+      "text": " every fetch that happens after I click okay,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1484.36,
+      "end": 1486.6,
+      "text": " needs to get the latest version of the application,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1486.6,
+      "end": 1488.08,
+      "text": " of the application configuration."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1488.08,
+      "end": 1490.3999999999999,
+      "text": " This is of course the simplest rollout model,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1490.4,
+      "end": 1492.8400000000001,
+      "text": " where it's like, I'm sure everything is gonna work fine,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1492.8400000000001,
+      "end": 1495.24,
+      "text": " and no worry, just push it to everyone."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1495.24,
+      "end": 1497.22,
+      "text": " But if you want to be a little bit more careful,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1497.22,
+      "end": 1500.3200000000002,
+      "text": " you can use different strategies for software layouts."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1500.3200000000002,
+      "end": 1501.74,
+      "text": " And just to give you an idea,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1501.74,
+      "end": 1503.6000000000001,
+      "text": " for instance, you can say, okay,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1503.6000000000001,
+      "end": 1506.72,
+      "text": " I want to linearly increase the number of clients"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1506.72,
+      "end": 1508.5800000000002,
+      "text": " that see the latest configuration."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1508.5800000000002,
+      "end": 1510.5,
+      "text": " For instance, you might start with 10%,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1510.5,
+      "end": 1512.96,
+      "text": " then after a minute, an additional 10%"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1512.96,
+      "end": 1514.96,
+      "text": " is gonna get the new configuration"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1514.96,
+      "end": 1517.3200000000002,
+      "text": " until you reach the 100%."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1517.3200000000002,
+      "end": 1519.3200000000002,
+      "text": " Or you can even define that by time."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1519.3200000000002,
+      "end": 1520.16,
+      "text": " So you want to say, okay,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1520.16,
+      "end": 1521.68,
+      "text": " I want to gradually rollout everything"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1521.68,
+      "end": 1523.48,
+      "text": " in the next three minutes."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1523.48,
+      "end": 1525.92,
+      "text": " And of course you can monitor the software rollout,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1525.92,
+      "end": 1527.0400000000002,
+      "text": " and if something goes wrong,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1527.0400000000002,
+      "end": 1530.16,
+      "text": " you can basically define in App Config,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1530.16,
+      "end": 1533.44,
+      "text": " you can tell it to watch for a specific CloudWatch alarm."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1533.44,
+      "end": 1535.1000000000001,
+      "text": " If that CloudWatch alarm fires"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1535.1000000000001,
+      "end": 1537.0800000000002,
+      "text": " while you are doing a software rollout,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1537.0800000000002,
+      "end": 1539.16,
+      "text": " then it's gonna assume that something went wrong,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1539.16,
+      "end": 1541.8600000000001,
+      "text": " and it's gonna roll back to the previous configuration."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1541.8600000000001,
+      "end": 1543.96,
+      "text": " So this is actually a very powerful mechanism"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1543.96,
+      "end": 1546.76,
+      "text": " that allows you to safely rollout"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1546.76,
+      "end": 1548.96,
+      "text": " with the least damage possible,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1548.96,
+      "end": 1551.02,
+      "text": " because you have validation upfront,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1551.02,
+      "end": 1552,
+      "text": " you can still break things,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1552,
+      "end": 1554.8400000000001,
+      "text": " because even if your configuration is syntactically valid,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1554.8400000000001,
+      "end": 1557.08,
+      "text": " maybe the content is not correct,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1557.08,
+      "end": 1558.74,
+      "text": " maybe you have the wrong API keys,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1558.74,
+      "end": 1560.1200000000001,
+      "text": " so your application, when it starts,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1560.1200000000001,
+      "end": 1561.28,
+      "text": " is gonna start to fail,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1561.28,
+      "end": 1563.74,
+      "text": " because it cannot call a third party service."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1563.74,
+      "end": 1566.28,
+      "text": " So you can roll back as soon as possible"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1566.28,
+      "end": 1567.8,
+      "text": " while you maybe have impacted"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1567.8,
+      "end": 1569.76,
+      "text": " only a small fraction of your users."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1569.76,
+      "end": 1571.72,
+      "text": " And I think this is the most powerful feature,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1571.72,
+      "end": 1574.28,
+      "text": " and if you would have to replicate that yourself,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1574.28,
+      "end": 1575.64,
+      "text": " it is really a lot of work,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1575.64,
+      "end": 1576.88,
+      "text": " and it's hard to get it right."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1576.88,
+      "end": 1578.16,
+      "text": " So this is definitely, I think,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1578.16,
+      "end": 1580.6000000000001,
+      "text": " the power feature that you get by using App Config."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1581.64,
+      "end": 1582.88,
+      "text": " One last note that I have"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1582.88,
+      "end": 1584.92,
+      "text": " is that it can be integrated with Secret Manager,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1584.92,
+      "end": 1587.3200000000002,
+      "text": " so if you are worried about storing secrets,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1587.3200000000002,
+      "end": 1588.64,
+      "text": " there is a nice integration there"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1588.64,
+      "end": 1591.0600000000002,
+      "text": " where you don't really have to manage secrets yourself"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1591.0600000000002,
+      "end": 1593.3200000000002,
+      "text": " in plain text or encrypt them yourself,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1593.3200000000002,
+      "end": 1595.4,
+      "text": " because you can rely on Secrets Managerr"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1595.4,
+      "end": 1597.22,
+      "text": " doing all of that for you."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1597.22,
+      "end": 1599.28,
+      "text": " And another interesting feature,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1599.28,
+      "end": 1601.88,
+      "text": " which I was not really sure when it could be useful,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1601.88,
+      "end": 1605.5600000000002,
+      "text": " but if you want to store the actual content of the object"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1605.5600000000002,
+      "end": 1607.8000000000002,
+      "text": " in things like S3 or SSM parameter,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1607.8,
+      "end": 1611,
+      "text": " or even SSM documents, you can even do that."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1611,
+      "end": 1614.12,
+      "text": " So the backend doesn't have to be App Config itself,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1614.12,
+      "end": 1616.48,
+      "text": " but you can even rely on using other services"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1616.48,
+      "end": 1617.32,
+      "text": " as the backend."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1618.8,
+      "end": 1620.72,
+      "text": " Finally, let's talk about pricing."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1620.72,
+      "end": 1624.72,
+      "text": " It seems very appealing just from the outside."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1624.72,
+      "end": 1626.22,
+      "text": " I haven't used it really at scale,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1626.22,
+      "end": 1629.54,
+      "text": " so I don't know if there is any hidden surprise with pricing,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1629.54,
+      "end": 1634.2,
+      "text": " but basically it's a usual pay-as-you-use model,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1634.2,
+      "end": 1636.58,
+      "text": " only unfortunately there is no free tier,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1636.58,
+      "end": 1638.76,
+      "text": " but then the price seems relatively low,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1638.76,
+      "end": 1640.84,
+      "text": " so I don't think it's really a problem."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1640.84,
+      "end": 1643.34,
+      "text": " So you basically pay for configuration updates,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1643.34,
+      "end": 1644.72,
+      "text": " which is a very low charge."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1644.72,
+      "end": 1648.24,
+      "text": " Like you will need to do 10,000 changes in a document"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1648.24,
+      "end": 1650.1399999999999,
+      "text": " to get charged $8,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1650.1399999999999,
+      "end": 1652.3999999999999,
+      "text": " and I don't really see most applications"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1652.3999999999999,
+      "end": 1656.04,
+      "text": " doing 10,000 changes even in like 10 years, probably."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1656.04,
+      "end": 1658.8,
+      "text": " So yeah, I think it's a very reasonable charge."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1658.8,
+      "end": 1661.3799999999999,
+      "text": " So most of the time that cost should be neglectable,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1661.3799999999999,
+      "end": 1663.26,
+      "text": " unless you really have huge applications"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1663.26,
+      "end": 1664.62,
+      "text": " that are changing all the time,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1664.62,
+      "end": 1666.84,
+      "text": " because maybe they are extremely highly dynamic,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1666.84,
+      "end": 1668.32,
+      "text": " integrating, I don't know,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1668.32,
+      "end": 1670.7199999999998,
+      "text": " configuration for multiple sources."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1670.7199999999998,
+      "end": 1672.7199999999998,
+      "text": " And then of course you pay per API call,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1672.7199999999998,
+      "end": 1675.4399999999998,
+      "text": " so every time you fetch the configuration, there is a cost."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1675.4399999999998,
+      "end": 1677.3999999999999,
+      "text": " It is relatively low, but again,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1677.3999999999999,
+      "end": 1679.3799999999999,
+      "text": " worth doing some maths there,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1679.3799999999999,
+      "end": 1681.32,
+      "text": " making sure that if you have thousands and thousands"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1681.32,
+      "end": 1683.8799999999999,
+      "text": " of services trying to read the same configuration,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1683.8799999999999,
+      "end": 1685.28,
+      "text": " you have multiple environments,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1685.28,
+      "end": 1687.4799999999998,
+      "text": " so that kind of multiplies even more."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1687.4799999999998,
+      "end": 1690.4399999999998,
+      "text": " Of course, that low cost can easily compound"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1690.4399999999998,
+      "end": 1692.7199999999998,
+      "text": " and get to a point where it's not sustainable anymore."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1692.72,
+      "end": 1695.92,
+      "text": " So always take our recommendation"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1695.92,
+      "end": 1698.04,
+      "text": " when it comes to prices with a pinch of salt,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1698.04,
+      "end": 1700.16,
+      "text": " because every use case is very different,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1700.16,
+      "end": 1701.7,
+      "text": " and you always need to do your own maths"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1701.7,
+      "end": 1704.72,
+      "text": " to make sure that service and that pricing model"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1704.72,
+      "end": 1706.3600000000001,
+      "text": " makes sense for your use case."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1708.02,
+      "end": 1710.78,
+      "text": " Okay, Shu will talk now about the crazy idea"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1710.78,
+      "end": 1713.28,
+      "text": " that you don't like all the other services,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1713.28,
+      "end": 1714.68,
+      "text": " and you are just feeling confident"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1714.68,
+      "end": 1717,
+      "text": " that you can build your own service,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1717,
+      "end": 1718.44,
+      "text": " managing all this configuration."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1721.22,
+      "end": 1723.4,
+      "text": " I think the main reason that anybody would be motivated to roll your own probably based on everything we've said"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1723.4,
+      "end": 1726,
+      "text": " is if the pricing or throughput constraints"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1726,
+      "end": 1727.68,
+      "text": " of any of the services we've mentioned"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1727.68,
+      "end": 1729.72,
+      "text": " don't really fit their access patterns."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1729.72,
+      "end": 1731.72,
+      "text": " Seems like it would be simple to implement,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1731.72,
+      "end": 1733.56,
+      "text": " but not necessarily so."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1733.56,
+      "end": 1735.56,
+      "text": " You could do it, I've seen it"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1735.56,
+      "end": 1737.96,
+      "text": " and built systems like this in the past,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1737.96,
+      "end": 1741.66,
+      "text": " and you can use services like S3 or DynamoDB,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1741.66,
+      "end": 1746.28,
+      "text": " or ElastiCache or Redis or Memcache for this kind of thing."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1746.28,
+      "end": 1749.48,
+      "text": " All depends on what kind of performance you need ultimately."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1749.48,
+      "end": 1752.48,
+      "text": " Then it's up to you to define all the necessary conventions"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1752.48,
+      "end": 1755.4,
+      "text": " to manage the data consistently per app and per environment"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1755.4,
+      "end": 1758.6,
+      "text": " and ensure that the consistency is in place"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1758.6,
+      "end": 1760.16,
+      "text": " according to what you need as you replicate"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1760.16,
+      "end": 1762.16,
+      "text": " across multiple availability zones."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1762.16,
+      "end": 1763.88,
+      "text": " You might need to add validation."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1763.88,
+      "end": 1766.6,
+      "text": " You'd need to think about how to manage sensitive data"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1766.6,
+      "end": 1769.6,
+      "text": " in a secure way and maybe provide rotation support,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1769.6,
+      "end": 1771.8,
+      "text": " and then defining an API to make it easier"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1771.8,
+      "end": 1775.18,
+      "text": " to fetch specific versions or a subset of the configuration."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1775.18,
+      "end": 1777.16,
+      "text": " Then you need to think about controlling access"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1777.16,
+      "end": 1778.58,
+      "text": " to the configuration layer,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1778.58,
+      "end": 1782.1799999999998,
+      "text": " your change log, keeping a history of changes for auditing."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1782.1799999999998,
+      "end": 1785.84,
+      "text": " And if you do, probably in a regulated environment,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1785.84,
+      "end": 1787.6,
+      "text": " you need to then think about getting compliance for that,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1787.6,
+      "end": 1790.1,
+      "text": " which AWS have already taken care of."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1790.1,
+      "end": 1792.6799999999998,
+      "text": " So for simple cases, it might work."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1792.6799999999998,
+      "end": 1795.28,
+      "text": " You can imagine if you look at the SSM Parameter Store API"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1795.28,
+      "end": 1796.12,
+      "text": " and you don't like the cost,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1796.12,
+      "end": 1799.12,
+      "text": " you could say, well, I can implement this with DynamoDB."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1799.12,
+      "end": 1803.48,
+      "text": " I can easily do starts with secondary key match"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1803.48,
+      "end": 1804.8,
+      "text": " to retrieve the values,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1804.8,
+      "end": 1806.8,
+      "text": " and I can pretty easily build an API"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1806.8,
+      "end": 1809.36,
+      "text": " that's compatible with the SSM Parameter Store API,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1809.36,
+      "end": 1811,
+      "text": " but you have to think about all those other pieces"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1811,
+      "end": 1813.34,
+      "text": " and keeping it up to date, et cetera."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1813.34,
+      "end": 1815.48,
+      "text": " Even though you might end up getting very good performance,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1815.48,
+      "end": 1818.02,
+      "text": " throughput and cost with your custom built solution,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1818.02,
+      "end": 1819.96,
+      "text": " you end up with another chunk of code"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1819.96,
+      "end": 1822.36,
+      "text": " that you probably don't really want to maintain"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1822.36,
+      "end": 1825.8,
+      "text": " once the novelty of building such a system has died down."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1825.8,
+      "end": 1828.08,
+      "text": " For simple cases, if you have config files"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1828.08,
+      "end": 1830.8999999999999,
+      "text": " and you just want to store them in S3 or a DynamoDB table,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1830.8999999999999,
+      "end": 1832.48,
+      "text": " there are solutions that help you there."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1832.48,
+      "end": 1834.32,
+      "text": " Even we've mentioned Middy a few times"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1834.32,
+      "end": 1836.3,
+      "text": " and Middy offers a collection of middlewares"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1836.3,
+      "end": 1838.8799999999999,
+      "text": " that make it easy to prefetch and cache configuration"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1838.8799999999999,
+      "end": 1840.32,
+      "text": " that's stored in places like that."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1840.32,
+      "end": 1842.1599999999999,
+      "text": " You can even do that with power tools as well."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1842.1599999999999,
+      "end": 1844.48,
+      "text": " It's one for the people"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1844.48,
+      "end": 1846.08,
+      "text": " that like to build everything themselves, I guess,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1846.08,
+      "end": 1848.44,
+      "text": " but best avoided otherwise."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1848.44,
+      "end": 1849.78,
+      "text": " And I think that's our final one"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1849.78,
+      "end": 1852.6,
+      "text": " in this collection of options for storing configuration."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1852.6,
+      "end": 1854.6,
+      "text": " Luciano, do you want to give people"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1854.6,
+      "end": 1855.6399999999999,
+      "text": " what we promised at the start,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1855.6399999999999,
+      "end": 1858.04,
+      "text": " our recommendations for what approach to take?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1859.8,
+      "end": 1860.8799999999999,
+      "text": " Yeah, I'll try to give a more, it's definitely opinionated,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1860.8799999999999,
+      "end": 1863.04,
+      "text": " but hopefully sensible enough in terms of"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1863.04,
+      "end": 1864.68,
+      "text": " how do you approach even choosing"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1864.68,
+      "end": 1867.04,
+      "text": " between all these different options."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1867.04,
+      "end": 1869.6000000000001,
+      "text": " I think starting simple is always a good recommendation."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1869.6000000000001,
+      "end": 1871.44,
+      "text": " If you're building something small,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1871.44,
+      "end": 1873.3200000000002,
+      "text": " maybe doing infrastructure as code,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1873.3200000000002,
+      "end": 1876.04,
+      "text": " you don't really need to reference anything sensitive,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1876.04,
+      "end": 1877.5600000000002,
+      "text": " but maybe you just want to reference, I don't know,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1877.5600000000002,
+      "end": 1881.44,
+      "text": " DynamoDB table names, S3 packets names,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1881.44,
+      "end": 1883.14,
+      "text": " that you are building the same stack,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1883.14,
+      "end": 1884.64,
+      "text": " going with environment variables"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1884.64,
+      "end": 1886.4,
+      "text": " is going to be super simple,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1886.4,
+      "end": 1888.42,
+      "text": " no problems in terms of security."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1888.42,
+      "end": 1890.5,
+      "text": " Everything's populated by infrastructure as code,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1890.5,
+      "end": 1894.1200000000001,
+      "text": " so even the risk of doing mistakes is very low."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1894.12,
+      "end": 1895.9199999999998,
+      "text": " So why not doing that?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1895.9199999999998,
+      "end": 1898.1999999999998,
+      "text": " It's something that you see a lot in every tutorial"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1898.1999999999998,
+      "end": 1899.02,
+      "text": " when you see, I don't know,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1899.02,
+      "end": 1903.28,
+      "text": " how to get started with Lambda and API Gateway and DynamoDB,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1903.28,
+      "end": 1904.4799999999998,
+      "text": " you will see something like that."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1904.4799999999998,
+      "end": 1906.1,
+      "text": " So also a very common approach"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1906.1,
+      "end": 1908.1999999999998,
+      "text": " and worth using it for the simplest cases."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1908.1999999999998,
+      "end": 1910.56,
+      "text": " You can switch to SSM and Secrets Managerr"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1910.56,
+      "end": 1913.12,
+      "text": " as soon as you start to have more advanced use cases,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1913.12,
+      "end": 1916.84,
+      "text": " where maybe you need to manage a bit more configuration"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1916.84,
+      "end": 1918.6599999999999,
+      "text": " and you want to define your own structure,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1918.6599999999999,
+      "end": 1920.7399999999998,
+      "text": " or maybe when you need to start managing secrets"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1920.7399999999998,
+      "end": 1923.1599999999999,
+      "text": " and you need to manage all the life cycle"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1923.16,
+      "end": 1924.48,
+      "text": " of those secrets correctly,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1924.48,
+      "end": 1928.0400000000002,
+      "text": " make sure that they are stored correctly, rotated correctly,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1928.0400000000002,
+      "end": 1932.3600000000001,
+      "text": " and you have control on who gets to access those secrets."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1932.3600000000001,
+      "end": 1934.1200000000001,
+      "text": " But of course, when you get to work"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1934.1200000000001,
+      "end": 1936.02,
+      "text": " on more complex applications"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1936.02,
+      "end": 1939.64,
+      "text": " and you want to really have a fine-tuned life cycle"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1939.64,
+      "end": 1940.64,
+      "text": " for all the configuration,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1940.64,
+      "end": 1942.78,
+      "text": " I think App Config is really the service"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1942.78,
+      "end": 1944.02,
+      "text": " that you want to use."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1944.02,
+      "end": 1945.28,
+      "text": " It is relatively new,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1945.28,
+      "end": 1948.1200000000001,
+      "text": " so no surprise that tries to fill all the gaps"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1948.1200000000001,
+      "end": 1949.8600000000001,
+      "text": " of the previous services,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1949.8600000000001,
+      "end": 1952.02,
+      "text": " but it seems to give you really an entire life cycle,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1952.02,
+      "end": 1954.36,
+      "text": " so you can have, I guess, a better experience"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1954.36,
+      "end": 1957.48,
+      "text": " and you don't really need to build anything"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1957.48,
+      "end": 1959.24,
+      "text": " to fill the gaps yourself."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1959.24,
+      "end": 1960.58,
+      "text": " Now, finally, we would, of course,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1960.58,
+      "end": 1962.4,
+      "text": " discourage the custom build solution,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1962.4,
+      "end": 1964,
+      "text": " unless you really have good reasons,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1964,
+      "end": 1965.16,
+      "text": " and good reasons, as we said,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1965.16,
+      "end": 1967.28,
+      "text": " it might be cost or performance,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1967.28,
+      "end": 1969.4,
+      "text": " because you might have really bespoke use cases"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1969.4,
+      "end": 1971.08,
+      "text": " where going with the other services"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1971.08,
+      "end": 1972.72,
+      "text": " would be either too expensive,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1972.72,
+      "end": 1973.8799999999999,
+      "text": " or maybe you need a throughput"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1973.8799999999999,
+      "end": 1977.08,
+      "text": " that is not really friendly enough."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1977.08,
+      "end": 1979.8,
+      "text": " Either you cannot do it because there are service quotas"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1979.8,
+      "end": 1981.6399999999999,
+      "text": " or because it gets too expensive again, right?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1981.64,
+      "end": 1984.44,
+      "text": " So considering cost and throughput together,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1984.44,
+      "end": 1985.92,
+      "text": " you might want to build something yourself"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1985.92,
+      "end": 1988.6200000000001,
+      "text": " that might be, I guess, reasonable at that point."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1988.6200000000001,
+      "end": 1990.1200000000001,
+      "text": " Or maybe another use case for this"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1990.1200000000001,
+      "end": 1991.64,
+      "text": " is when you are doing a migration"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1991.64,
+      "end": 1994.0800000000002,
+      "text": " and you already have a very bespoke mechanism"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1994.0800000000002,
+      "end": 1997.0400000000002,
+      "text": " to manage all the configuration for your application,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1997.0400000000002,
+      "end": 1999.8000000000002,
+      "text": " and you don't really want to start to change all of that"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1999.8000000000002,
+      "end": 2001.5800000000002,
+      "text": " as a first step in your migration,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2001.5800000000002,
+      "end": 2004.5,
+      "text": " maybe that's a place where it might make sense"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2004.5,
+      "end": 2005.96,
+      "text": " to do something a little bit custom"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2005.96,
+      "end": 2007.96,
+      "text": " as you continue through your migration."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2007.96,
+      "end": 2010.0800000000002,
+      "text": " But I suppose you still eventually want to migrate"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2010.08,
+      "end": 2012.6,
+      "text": " to something more structured like App Config,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2012.6,
+      "end": 2015.08,
+      "text": " just so that you can clean up all this custom code"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2015.08,
+      "end": 2017.3999999999999,
+      "text": " and keep your application a little bit more focused"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2017.3999999999999,
+      "end": 2018.76,
+      "text": " on what is the business value"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2018.76,
+      "end": 2021.32,
+      "text": " that it's providing for your company."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2021.32,
+      "end": 2024.6799999999998,
+      "text": " And I think that's our generic recommendation."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2024.6799999999998,
+      "end": 2026.28,
+      "text": " Let us know if you agree with it"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2026.28,
+      "end": 2028.96,
+      "text": " and which kind of services have you used already,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2028.96,
+      "end": 2030.82,
+      "text": " and if you have, I guess, a similar experience"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2030.82,
+      "end": 2033.3999999999999,
+      "text": " and perspective on all of those."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2033.3999999999999,
+      "end": 2035.08,
+      "text": " Well, to wrap up, I'm going to point people"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2035.08,
+      "end": 2036.96,
+      "text": " to a few resources that we've found,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2036.96,
+      "end": 2040.88,
+      "text": " and Be a Better Dev has some great videos with deep dives"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2040.88,
+      "end": 2043.88,
+      "text": " and demos on all of the options here."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2043.88,
+      "end": 2045.3600000000001,
+      "text": " Those links will be in the show notes."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2045.3600000000001,
+      "end": 2048.36,
+      "text": " Everything we mentioned with Middy and power tools,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2048.36,
+      "end": 2050.36,
+      "text": " everything else, all the other articles we mentioned"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2050.36,
+      "end": 2051.6,
+      "text": " are also in the show notes."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2051.6,
+      "end": 2053.2,
+      "text": " So once again, thank you very much for joining us"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2053.2,
+      "end": 2054.44,
+      "text": " and listening, we really appreciate it,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2054.44,
+      "end": 2057.12,
+      "text": " and we'll see you in the next episode of AWS Bites."
+    }
+  ]
+}

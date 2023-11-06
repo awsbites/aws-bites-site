@@ -1,0 +1,3233 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:02.880
+What can you do with CloudWatch metrics?
+
+2
+00:00:02.880 --> 00:00:04.800
+In today's episode, we are going to discuss
+
+3
+00:00:04.800 --> 00:00:06.760
+what CloudWatch is, and in particular,
+
+4
+00:00:06.760 --> 00:00:09.320
+we are gonna focus on CloudWatch metrics.
+
+5
+00:00:09.320 --> 00:00:11.160
+We are gonna discuss what are the characteristics
+
+6
+00:00:11.160 --> 00:00:14.140
+of metrics like namespaces, dimensions, units,
+
+7
+00:00:14.140 --> 00:00:15.440
+and even more.
+
+8
+00:00:15.440 --> 00:00:17.800
+Also, what metrics you can get out of the box
+
+9
+00:00:17.800 --> 00:00:19.760
+directly from AWS and how you can create
+
+10
+00:00:19.760 --> 00:00:21.320
+your own custom metrics,
+
+11
+00:00:21.320 --> 00:00:23.440
+how to access and explore all these metrics
+
+12
+00:00:23.440 --> 00:00:25.600
+that you have been collecting for your applications.
+
+13
+00:00:25.600 --> 00:00:27.440
+And finally, we'll try to compare CloudWatch
+
+14
+00:00:27.440 --> 00:00:29.600
+to other providers so that we can assess
+
+15
+00:00:29.600 --> 00:00:31.080
+whether CloudWatch is enough
+
+16
+00:00:31.080 --> 00:00:34.560
+or if you need to use any other third-party service.
+
+17
+00:00:34.560 --> 00:00:36.680
+My name is Ruchano, and today I'm joined by Eoin,
+
+18
+00:00:36.680 --> 00:00:38.920
+and this is AWS Bites Podcast.
+
+19
+00:00:38.920 --> 00:00:40.920
+What is CloudWatch?
+
+20
+00:00:40.920 --> 00:00:42.920
+What are metrics?
+
+21
+00:00:42.920 --> 00:00:44.920
+What are metrics?
+
+22
+00:00:44.920 --> 00:00:46.920
+What are metrics?
+
+23
+00:00:46.920 --> 00:00:50.720
+So, CloudWatch is a service with multiple subcategories.
+
+24
+00:00:50.720 --> 00:00:52.840
+We know it's not just about metrics.
+
+25
+00:00:52.840 --> 00:00:53.920
+There are a number of things
+
+26
+00:00:53.920 --> 00:00:55.520
+that you can do with CloudWatch.
+
+27
+00:00:55.520 --> 00:00:58.280
+We have been discussing many times about,
+
+28
+00:00:58.280 --> 00:01:01.160
+for instance, logs and dashboards or alarms.
+
+29
+00:01:02.120 --> 00:01:05.960
+So let's try to make sense of all these things,
+
+30
+00:01:05.960 --> 00:01:08.720
+but in particular, we want to focus on metrics.
+
+31
+00:01:08.720 --> 00:01:10.520
+One interesting thing that I want to mention
+
+32
+00:01:10.520 --> 00:01:12.760
+just because we said in previous episodes
+
+33
+00:01:12.760 --> 00:01:15.640
+is that there is also a feature
+
+34
+00:01:15.640 --> 00:01:17.880
+related to events in CloudWatch
+
+35
+00:01:17.880 --> 00:01:20.560
+that probably if you've been using AWS long enough,
+
+36
+00:01:20.560 --> 00:01:21.640
+you will remember every time
+
+37
+00:01:21.640 --> 00:01:23.840
+you were trying to create a Lambda on schedule,
+
+38
+00:01:23.840 --> 00:01:26.400
+it will create like a CloudWatch event for you.
+
+39
+00:01:26.400 --> 00:01:29.240
+All the stuff is now under the umbrella of EventBridge.
+
+40
+00:01:29.240 --> 00:01:32.000
+So we have explored that when we spoke about EventBridge.
+
+41
+00:01:32.000 --> 00:01:35.360
+So check out that episode if you haven't done already.
+
+42
+00:01:35.360 --> 00:01:37.440
+So yeah, again, today we are just going to focus
+
+43
+00:01:37.440 --> 00:01:39.920
+on the metrics component of CloudWatch.
+
+44
+00:01:39.920 --> 00:01:42.240
+So why don't we start by trying to describe
+
+45
+00:01:42.240 --> 00:01:44.520
+what a metric is in CloudWatch?
+
+46
+00:01:47.440 --> 00:01:50.120
+Yeah, so a metric is essentially a time series of data points from your systems.
+
+47
+00:01:50.120 --> 00:01:53.120
+And in CloudWatch terms, metrics are defined
+
+48
+00:01:53.120 --> 00:01:55.840
+by some of the things you mentioned, like a namespace.
+
+49
+00:01:55.840 --> 00:01:59.040
+You have a unit, a value for each metric,
+
+50
+00:01:59.040 --> 00:02:02.280
+and then you have dimensions as well.
+
+51
+00:02:02.280 --> 00:02:04.520
+So let's talk about what each of these terms means.
+
+52
+00:02:04.520 --> 00:02:07.320
+So a namespace, you'll always see at the top level.
+
+53
+00:02:07.320 --> 00:02:10.360
+So namespace is a container for all your metrics.
+
+54
+00:02:10.360 --> 00:02:13.640
+For an example, if you have some of the services metrics
+
+55
+00:02:13.640 --> 00:02:16.240
+coming from AWS itself, like for EC2,
+
+56
+00:02:16.240 --> 00:02:19.520
+you'll have a namespace of AWS forward slash EC2.
+
+57
+00:02:20.400 --> 00:02:22.240
+And you can create your own metrics
+
+58
+00:02:22.240 --> 00:02:25.280
+and give them your own namespace as well.
+
+59
+00:02:25.280 --> 00:02:27.000
+Now beyond that, you can have dimensions.
+
+60
+00:02:27.000 --> 00:02:29.800
+And for every metric, you can have up to 10 dimensions.
+
+61
+00:02:29.800 --> 00:02:31.120
+And that's essentially a different way
+
+62
+00:02:31.120 --> 00:02:32.760
+of categorizing your metric.
+
+63
+00:02:32.760 --> 00:02:35.760
+And when you store a metric with multiple dimensions,
+
+64
+00:02:35.760 --> 00:02:37.880
+CloudWatch is actually storing multiple copies
+
+65
+00:02:37.880 --> 00:02:39.840
+of that metric just with different dimensions.
+
+66
+00:02:39.840 --> 00:02:41.920
+So some examples of that are,
+
+67
+00:02:41.920 --> 00:02:44.520
+if you look at the duration metric
+
+68
+00:02:44.520 --> 00:02:46.160
+you get for Lambda functions,
+
+69
+00:02:46.160 --> 00:02:48.320
+that metric is actually stored by function name.
+
+70
+00:02:48.320 --> 00:02:49.440
+So you can create by functioning,
+
+71
+00:02:49.440 --> 00:02:52.600
+but you can also query it by functioning plus version.
+
+72
+00:02:52.600 --> 00:02:54.640
+And a lot of AWS service metrics are stored
+
+73
+00:02:54.640 --> 00:02:55.880
+in multiple different dimensions.
+
+74
+00:02:55.880 --> 00:02:58.880
+So you can query them depending on what you know
+
+75
+00:02:58.880 --> 00:03:00.920
+about what you're trying to query.
+
+76
+00:03:00.920 --> 00:03:02.760
+And the important thing to be aware of there
+
+77
+00:03:02.760 --> 00:03:04.360
+is that each dimension is stored separately.
+
+78
+00:03:04.360 --> 00:03:07.520
+So it's also priced as an additional metric.
+
+79
+00:03:07.520 --> 00:03:09.080
+If you've got too many dimensions,
+
+80
+00:03:09.080 --> 00:03:11.080
+you try to create dimensions dynamically
+
+81
+00:03:11.080 --> 00:03:12.880
+based on something that changes frequently
+
+82
+00:03:12.880 --> 00:03:14.120
+within your application,
+
+83
+00:03:14.120 --> 00:03:15.800
+that can result in escalating cost.
+
+84
+00:03:15.800 --> 00:03:17.880
+And that's one of the things that can catch people out.
+
+85
+00:03:17.880 --> 00:03:19.680
+So try to reduce the number of dimensions
+
+86
+00:03:19.680 --> 00:03:21.640
+and keep them constant.
+
+87
+00:03:21.640 --> 00:03:24.680
+So apart from dimensions and namespace,
+
+88
+00:03:24.680 --> 00:03:26.240
+you can also specify the unit.
+
+89
+00:03:26.240 --> 00:03:28.040
+So when you store a metric in CloudWatch,
+
+90
+00:03:28.040 --> 00:03:31.320
+you can specify that it represents a number of seconds
+
+91
+00:03:31.320 --> 00:03:35.720
+or account bytes and percent.
+
+92
+00:03:35.720 --> 00:03:39.760
+It can also change the way the data is stored internally
+
+93
+00:03:39.760 --> 00:03:41.560
+and what kind of queries you can do on it,
+
+94
+00:03:41.560 --> 00:03:43.800
+but it's also useful metadata that you can use
+
+95
+00:03:43.800 --> 00:03:46.880
+when you're creating graphs and dashboards.
+
+96
+00:03:46.880 --> 00:03:50.960
+So those are the main properties of a CloudWatch metric.
+
+97
+00:03:50.960 --> 00:03:55.440
+And it's important to understand how they're stored
+
+98
+00:03:55.440 --> 00:03:56.280
+and how you can query them.
+
+99
+00:03:56.280 --> 00:03:57.640
+So we'll get to that and we can talk in detail
+
+100
+00:03:57.640 --> 00:03:59.600
+about how you can explore these metrics.
+
+101
+00:03:59.600 --> 00:04:01.720
+But maybe we should talk about the different types
+
+102
+00:04:01.720 --> 00:04:02.600
+of metrics as well, right?
+
+103
+00:04:02.600 --> 00:04:04.240
+So we mentioned EC2 and Lambda.
+
+104
+00:04:04.240 --> 00:04:06.000
+So you can get those out of the box metrics,
+
+105
+00:04:06.000 --> 00:04:07.320
+but you can also create your own.
+
+106
+00:04:07.320 --> 00:04:10.880
+So how would you categorize those two things Luciano?
+
+107
+00:04:10.880 --> 00:04:13.680
+Yeah, so as you said, we have out of the box metrics
+
+108
+00:04:13.680 --> 00:04:16.360
+that are things that you would expect to see
+
+109
+00:04:16.360 --> 00:04:19.240
+for the kind of AWS services you use.
+
+110
+00:04:19.240 --> 00:04:21.280
+For instance, if you spin up an EC2,
+
+111
+00:04:21.280 --> 00:04:23.920
+anytime you can see what is the CPU usage,
+
+112
+00:04:23.920 --> 00:04:26.320
+you can see a bunch of things like that
+
+113
+00:04:26.320 --> 00:04:29.360
+and same for Lambda, you can see for instance,
+
+114
+00:04:29.360 --> 00:04:31.760
+I don't know, average Lambda direction.
+
+115
+00:04:31.760 --> 00:04:34.160
+All of these things are stored in CloudWatch
+
+116
+00:04:34.160 --> 00:04:35.480
+as metrics out of the box.
+
+117
+00:04:35.480 --> 00:04:37.600
+You don't need to do anything to enable them.
+
+118
+00:04:37.600 --> 00:04:40.200
+So anytime you can just go in, check this metrics,
+
+119
+00:04:40.200 --> 00:04:43.880
+build dashboards, build alarms based on those metrics.
+
+120
+00:04:43.880 --> 00:04:46.600
+And most importantly, they are given to you for free
+
+121
+00:04:46.600 --> 00:04:49.760
+and every service will have a long list of metrics.
+
+122
+00:04:49.760 --> 00:04:52.160
+So just go in the documentation and you will find
+
+123
+00:04:52.160 --> 00:04:54.280
+what kind of metrics have to be supported,
+
+124
+00:04:54.280 --> 00:04:55.760
+what do they mean?
+
+125
+00:04:55.760 --> 00:04:59.120
+I have to say sometimes the naming is not extremely obvious
+
+126
+00:04:59.120 --> 00:05:01.680
+what the metric actually means.
+
+127
+00:05:01.680 --> 00:05:03.640
+For instance, I don't know, if you look at SQS,
+
+128
+00:05:03.640 --> 00:05:07.080
+there are some naming that might be a little bit confusing.
+
+129
+00:05:07.080 --> 00:05:08.680
+So make sure to check the documentation
+
+130
+00:05:08.680 --> 00:05:10.880
+because there you can find a good description
+
+131
+00:05:10.880 --> 00:05:12.920
+of what the metric actually means.
+
+132
+00:05:12.920 --> 00:05:14.680
+Again, the name sometimes is not enough
+
+133
+00:05:14.680 --> 00:05:16.920
+to make entirely sense of the metric.
+
+134
+00:05:20.360 --> 00:05:22.320
+What else can we say there that,
+
+135
+00:05:24.440 --> 00:05:28.600
+yeah, so sometimes there are metrics that I wish were there,
+
+136
+00:05:28.600 --> 00:05:29.520
+but they aren't.
+
+137
+00:05:29.520 --> 00:05:33.320
+So you can kind of fill that gap
+
+138
+00:05:33.320 --> 00:05:35.400
+by providing your own custom metrics.
+
+139
+00:05:35.400 --> 00:05:39.880
+So there are of course ways and APIs
+
+140
+00:05:39.880 --> 00:05:41.200
+that you can use to basically say
+
+141
+00:05:41.200 --> 00:05:43.480
+when I'm recording a certain unit
+
+142
+00:05:43.480 --> 00:05:46.720
+and I would like to see these in the future as a metric,
+
+143
+00:05:46.720 --> 00:05:49.280
+maybe because I want to build a dashboard
+
+144
+00:05:49.280 --> 00:05:51.360
+or maybe because I want to build custom alarms
+
+145
+00:05:51.360 --> 00:05:54.040
+based on these metrics, you can do that.
+
+146
+00:05:54.040 --> 00:05:56.280
+And of course it takes a little bit of work,
+
+147
+00:05:56.280 --> 00:05:57.680
+but you can definitely do that.
+
+148
+00:05:57.680 --> 00:05:59.480
+And another case where this is useful
+
+149
+00:05:59.480 --> 00:06:02.560
+is not just for technical metrics, maybe, I don't know.
+
+150
+00:06:02.560 --> 00:06:04.640
+If you want to keep track of resources
+
+151
+00:06:04.640 --> 00:06:07.200
+that you're spinning up and certain characteristics
+
+152
+00:06:07.200 --> 00:06:10.120
+of those resources that are not supported out of the box,
+
+153
+00:06:10.120 --> 00:06:13.240
+you can also use custom metrics for business reasons,
+
+154
+00:06:13.240 --> 00:06:14.080
+for instance, I don't know,
+
+155
+00:06:14.080 --> 00:06:17.120
+you might want to know how many users are logged in
+
+156
+00:06:17.120 --> 00:06:19.520
+in your platform at a given moment in time,
+
+157
+00:06:19.520 --> 00:06:23.320
+or how many purchases are you generating in,
+
+158
+00:06:23.320 --> 00:06:24.840
+I don't know, a unit of time.
+
+159
+00:06:24.840 --> 00:06:26.680
+So you can definitely use CloudWatch also
+
+160
+00:06:26.680 --> 00:06:29.160
+for more business oriented kind of metrics
+
+161
+00:06:29.160 --> 00:06:31.400
+and use the custom metrics for that.
+
+162
+00:06:31.400 --> 00:06:33.320
+I think that's really useful actually.
+
+163
+00:06:33.320 --> 00:06:34.480
+And sometimes more useful
+
+164
+00:06:34.480 --> 00:06:36.760
+than the custom technical metrics,
+
+165
+00:06:36.760 --> 00:06:39.560
+because the metrics at a technical level
+
+166
+00:06:39.560 --> 00:06:40.920
+can sometimes create a lot of noise
+
+167
+00:06:40.920 --> 00:06:42.160
+because there are so many of them.
+
+168
+00:06:42.160 --> 00:06:43.600
+But if you look at in your business,
+
+169
+00:06:43.600 --> 00:06:45.280
+what's actually important to you,
+
+170
+00:06:45.280 --> 00:06:47.640
+and like you say, if you have an e-commerce application
+
+171
+00:06:47.640 --> 00:06:50.400
+and you're tracking how many purchases have been made,
+
+172
+00:06:50.400 --> 00:06:53.240
+you generally know that the number of purchases you expect
+
+173
+00:06:53.240 --> 00:06:55.840
+in a given hour or a minute is going to be,
+
+174
+00:06:55.840 --> 00:06:57.640
+let's say 20,000.
+
+175
+00:06:57.640 --> 00:07:00.640
+And you can create an alarm on that metric that says,
+
+176
+00:07:00.640 --> 00:07:02.960
+okay, if the number of purchases,
+
+177
+00:07:02.960 --> 00:07:05.920
+it drops below a certain threshold,
+
+178
+00:07:05.920 --> 00:07:07.880
+or maybe even exceeds a certain threshold,
+
+179
+00:07:07.880 --> 00:07:09.600
+then let me know with an alarm.
+
+180
+00:07:09.600 --> 00:07:10.840
+And sometimes that's a lot more useful
+
+181
+00:07:10.840 --> 00:07:12.760
+than looking at detailed technical metrics,
+
+182
+00:07:12.760 --> 00:07:14.800
+which can be very noisy because it's telling you
+
+183
+00:07:14.800 --> 00:07:17.240
+that something actually important to your business
+
+184
+00:07:17.240 --> 00:07:18.600
+is being affected here.
+
+185
+00:07:18.600 --> 00:07:21.240
+So like if you suddenly have half the number
+
+186
+00:07:21.240 --> 00:07:24.800
+of e-commerce transactions being processed,
+
+187
+00:07:24.800 --> 00:07:26.680
+that's something that you can act on pretty quickly
+
+188
+00:07:26.680 --> 00:07:29.080
+and you know what that means for your business.
+
+189
+00:07:29.080 --> 00:07:30.800
+So I think that's a really good one.
+
+190
+00:07:30.800 --> 00:07:32.960
+Another example that I have in the past,
+
+191
+00:07:32.960 --> 00:07:35.520
+this was not built on CloudWatch metrics actually,
+
+192
+00:07:35.520 --> 00:07:37.240
+but I think the same example applies.
+
+193
+00:07:37.240 --> 00:07:38.680
+You can build it with CloudWatch metrics,
+
+194
+00:07:38.680 --> 00:07:40.640
+but I was working on an application
+
+195
+00:07:40.640 --> 00:07:43.080
+that had some custom metrics looking at the number
+
+196
+00:07:43.080 --> 00:07:44.680
+of logged in users.
+
+197
+00:07:44.680 --> 00:07:47.960
+And there were good number of users constantly
+
+198
+00:07:47.960 --> 00:07:49.160
+throughout the day,
+
+199
+00:07:49.160 --> 00:07:52.040
+but suddenly we saw that the number dropped to zero
+
+200
+00:07:52.040 --> 00:07:54.720
+and that helped us to realize that there was an issue
+
+201
+00:07:54.720 --> 00:07:56.200
+with the login system.
+
+202
+00:07:56.200 --> 00:07:57.920
+When we didn't have other alarms
+
+203
+00:07:57.920 --> 00:07:59.200
+that could tell us otherwise,
+
+204
+00:07:59.200 --> 00:08:01.240
+so having the custom metric was very useful
+
+205
+00:08:01.240 --> 00:08:02.720
+because we could immediately see
+
+206
+00:08:02.720 --> 00:08:04.240
+that something looked wrong there
+
+207
+00:08:04.240 --> 00:08:06.000
+and we could investigate, find the issue
+
+208
+00:08:06.000 --> 00:08:08.560
+and fix it as fast as possible.
+
+209
+00:08:08.560 --> 00:08:09.520
+Really good.
+
+210
+00:08:09.520 --> 00:08:14.200
+When you mentioned as well these missing service metrics,
+
+211
+00:08:14.200 --> 00:08:16.440
+one of the things I find is really missing
+
+212
+00:08:16.440 --> 00:08:20.120
+from AWS metrics is if you had everything,
+
+213
+00:08:20.120 --> 00:08:22.320
+AWS billing as we know is very complex,
+
+214
+00:08:22.320 --> 00:08:24.720
+but everything is built based on a certain unit
+
+215
+00:08:24.720 --> 00:08:26.320
+of consumption.
+
+216
+00:08:26.320 --> 00:08:29.640
+I would really like if CloudWatch metrics out of the box
+
+217
+00:08:29.640 --> 00:08:32.120
+gave you everything that was billable as a metric
+
+218
+00:08:32.120 --> 00:08:34.560
+so that you could create alarms
+
+219
+00:08:34.560 --> 00:08:36.720
+and observe trends in usage.
+
+220
+00:08:36.720 --> 00:08:38.960
+So for example, a very basic one
+
+221
+00:08:38.960 --> 00:08:40.440
+would be give me a metric on the number
+
+222
+00:08:40.440 --> 00:08:43.520
+of running EC2 instances per instance type
+
+223
+00:08:43.520 --> 00:08:46.880
+or the number of running containers per ECS cluster.
+
+224
+00:08:47.760 --> 00:08:49.560
+But those things don't exist out of the box
+
+225
+00:08:49.560 --> 00:08:54.040
+and I've had many situations where as part of cost control,
+
+226
+00:08:54.040 --> 00:08:57.040
+you end up using event bridge events
+
+227
+00:08:58.200 --> 00:09:01.240
+to keep track of when things start and stop
+
+228
+00:09:01.240 --> 00:09:03.880
+and then you can increment your own counter,
+
+229
+00:09:03.880 --> 00:09:05.840
+create running containers metrics
+
+230
+00:09:05.840 --> 00:09:08.600
+and then use that to anticipate billing problems
+
+231
+00:09:08.600 --> 00:09:11.600
+before they occur because billing data is,
+
+232
+00:09:11.600 --> 00:09:13.560
+there's always a lag before you get
+
+233
+00:09:13.560 --> 00:09:15.000
+billing utilization data.
+
+234
+00:09:15.000 --> 00:09:17.480
+So I'd really like if everything that was billable,
+
+235
+00:09:17.480 --> 00:09:19.560
+if it was just a hard and fast rule in AWS,
+
+236
+00:09:19.560 --> 00:09:21.840
+everything that was billable was also available as a metric
+
+237
+00:09:21.840 --> 00:09:24.640
+and that would help you keep an eye on costs much better.
+
+238
+00:09:26.120 --> 00:09:28.920
+Yeah, that would be really useful, absolutely.
+
+239
+00:09:29.920 --> 00:09:31.520
+One for the AWS wishlist.
+
+240
+00:09:31.520 --> 00:09:34.960
+Yes, we'll send something that way.
+
+241
+00:09:34.960 --> 00:09:37.080
+So how do you access metrics then?
+
+242
+00:09:37.080 --> 00:09:41.200
+Let's say you have custom metrics that you created
+
+243
+00:09:41.200 --> 00:09:43.760
+or you just want to look at the metrics
+
+244
+00:09:43.760 --> 00:09:46.920
+that you get out of the box from AWS, how do we access them?
+
+245
+00:09:47.960 --> 00:09:50.560
+Yeah, so you can use the, there's a, as with everything,
+
+246
+00:09:50.560 --> 00:09:52.040
+you can use the API and the SDK
+
+247
+00:09:52.040 --> 00:09:53.880
+to read these metric data.
+
+248
+00:09:53.880 --> 00:09:55.720
+More commonly, this is one of the cases
+
+249
+00:09:55.720 --> 00:09:57.920
+where you'll jump into the AWS console
+
+250
+00:09:57.920 --> 00:10:01.680
+and use the metrics explorer and the metrics dashboard
+
+251
+00:10:01.680 --> 00:10:05.640
+to create graphs or yeah, to create graphs
+
+252
+00:10:05.640 --> 00:10:09.120
+and look at them in different chart types,
+
+253
+00:10:09.120 --> 00:10:12.120
+line graphs, bar graphs, or just numeric values.
+
+254
+00:10:13.200 --> 00:10:14.280
+But it's important to understand
+
+255
+00:10:14.280 --> 00:10:15.840
+that when you're accessing these metrics,
+
+256
+00:10:15.840 --> 00:10:19.560
+you don't access individual data points in the time series,
+
+257
+00:10:19.560 --> 00:10:21.560
+you're always accessing statistics.
+
+258
+00:10:21.560 --> 00:10:22.960
+So when you store metrics,
+
+259
+00:10:22.960 --> 00:10:25.560
+AWS is accumulating all these different statistics for you
+
+260
+00:10:25.560 --> 00:10:28.360
+at different levels of granularity
+
+261
+00:10:28.360 --> 00:10:29.840
+and that's what you can query.
+
+262
+00:10:29.840 --> 00:10:31.480
+You're not querying individual records.
+
+263
+00:10:31.480 --> 00:10:32.920
+So it's not like you're running queries
+
+264
+00:10:32.920 --> 00:10:35.400
+against this time series database.
+
+265
+00:10:35.400 --> 00:10:37.760
+So that's something that it's a fundamental concept
+
+266
+00:10:37.760 --> 00:10:38.840
+that's important to understand.
+
+267
+00:10:38.840 --> 00:10:41.800
+So when you store like the account,
+
+268
+00:10:41.800 --> 00:10:44.760
+it's going to internally record like the average
+
+269
+00:10:44.760 --> 00:10:46.040
+and the minimum and the maximum
+
+270
+00:10:46.040 --> 00:10:48.760
+and the sum per minute, for example.
+
+271
+00:10:48.760 --> 00:10:51.520
+But it also has a lot more kind of in-depth
+
+272
+00:10:52.600 --> 00:10:53.720
+statistics functions.
+
+273
+00:10:53.720 --> 00:10:56.600
+So it'll store the sample count, but also percentiles.
+
+274
+00:10:56.600 --> 00:10:58.920
+So you can query any percentile
+
+275
+00:10:58.920 --> 00:11:00.280
+and there's also some more complex one,
+
+276
+00:11:00.280 --> 00:11:01.680
+like trimmed mean and stuff.
+
+277
+00:11:01.680 --> 00:11:05.520
+You can look into the AWS documentation for that.
+
+278
+00:11:05.520 --> 00:11:08.280
+So the user interface is not as slick
+
+279
+00:11:08.280 --> 00:11:09.400
+as some of the third-party offerings,
+
+280
+00:11:09.400 --> 00:11:11.400
+but it is practically very useful.
+
+281
+00:11:11.400 --> 00:11:13.240
+So if you understand what you're doing
+
+282
+00:11:13.240 --> 00:11:14.960
+and get a bit of familiarity with it,
+
+283
+00:11:14.960 --> 00:11:16.920
+it is really, really quite good.
+
+284
+00:11:16.920 --> 00:11:18.760
+You can also perform some mathematical operations.
+
+285
+00:11:18.760 --> 00:11:20.720
+So you can do metric math
+
+286
+00:11:20.720 --> 00:11:22.880
+to combine multiple statistics together
+
+287
+00:11:22.880 --> 00:11:25.040
+and do a formula on them.
+
+288
+00:11:26.760 --> 00:11:29.920
+So we mentioned that we're storing statistics, right?
+
+289
+00:11:29.920 --> 00:11:31.600
+And not individual values.
+
+290
+00:11:31.600 --> 00:11:34.480
+So then it's kind of important to talk about resolution
+
+291
+00:11:34.480 --> 00:11:36.800
+and metrics are typically stored
+
+292
+00:11:36.800 --> 00:11:40.400
+at one minute level aggregations.
+
+293
+00:11:40.400 --> 00:11:41.760
+Now for EC2 metrics,
+
+294
+00:11:41.760 --> 00:11:43.960
+it used to be that the default was five minutes.
+
+295
+00:11:43.960 --> 00:11:46.640
+So for EC2, if you want one minute granularity,
+
+296
+00:11:46.640 --> 00:11:48.640
+you have to enable detailed metrics
+
+297
+00:11:48.640 --> 00:11:50.600
+and there's a cost implication of that.
+
+298
+00:11:51.760 --> 00:11:53.200
+So that's important to realize,
+
+299
+00:11:53.200 --> 00:11:56.080
+but you also have the ability for some metrics
+
+300
+00:11:56.080 --> 00:11:59.080
+like custom metrics to specify one second granularity.
+
+301
+00:11:59.080 --> 00:12:01.520
+So those are called high resolution metrics.
+
+302
+00:12:01.520 --> 00:12:03.320
+And there's an extra cost of that
+
+303
+00:12:03.320 --> 00:12:05.480
+because you're storing essentially 60 times
+
+304
+00:12:05.480 --> 00:12:09.040
+the volume as you would with minute level aggregations.
+
+305
+00:12:10.320 --> 00:12:12.560
+There is a recent feature called
+
+306
+00:12:12.560 --> 00:12:14.600
+CloudWatch Metrics Insights as well,
+
+307
+00:12:14.600 --> 00:12:16.880
+which is just another way of accessing those metrics.
+
+308
+00:12:16.880 --> 00:12:20.560
+And that allows you to write SQL-like queries on metrics
+
+309
+00:12:20.560 --> 00:12:23.880
+instead of just using the UI to build metrics.
+
+310
+00:12:25.880 --> 00:12:30.880
+I guess just one point to note about one second granularity
+
+311
+00:12:30.880 --> 00:12:34.560
+is these high resolution metrics, they're not very common,
+
+312
+00:12:34.560 --> 00:12:35.840
+but when you go to the dashboard
+
+313
+00:12:35.840 --> 00:12:38.640
+and you're building graphs in AWS console,
+
+314
+00:12:38.640 --> 00:12:40.200
+there's a dropdown where you can specify
+
+315
+00:12:40.200 --> 00:12:42.320
+the period of granularity
+
+316
+00:12:42.320 --> 00:12:44.200
+you're trying to present in your graph.
+
+317
+00:12:45.040 --> 00:12:46.600
+One of the options there is one second
+
+318
+00:12:46.600 --> 00:12:48.960
+and that option appears whether those metrics
+
+319
+00:12:48.960 --> 00:12:51.320
+are available at one second granularity or not,
+
+320
+00:12:51.320 --> 00:12:52.360
+but more often than not,
+
+321
+00:12:52.360 --> 00:12:56.040
+it's just going to show you one minute granularity.
+
+322
+00:12:56.040 --> 00:12:58.200
+Yeah, and that can be confusing because for instance,
+
+323
+00:12:58.200 --> 00:13:02.080
+sometimes you have using the mathematical formula as well,
+
+324
+00:13:02.080 --> 00:13:05.000
+you have graphs that are trying to display,
+
+325
+00:13:05.000 --> 00:13:07.160
+I don't know, for instance, limits in Kinesis, right?
+
+326
+00:13:07.160 --> 00:13:08.240
+True-good limits.
+
+327
+00:13:08.240 --> 00:13:10.120
+And you get like a red bar that shows you
+
+328
+00:13:10.120 --> 00:13:12.200
+how close you are getting to the limit.
+
+329
+00:13:12.200 --> 00:13:14.320
+That red bar is used,
+
+330
+00:13:14.320 --> 00:13:15.840
+is basically built using a formula
+
+331
+00:13:15.840 --> 00:13:18.000
+that uses the resolution.
+
+332
+00:13:18.000 --> 00:13:20.720
+And if you switch to seconds, it gets pretty confusing
+
+333
+00:13:20.720 --> 00:13:23.080
+because the bar will be calibrated for the second.
+
+334
+00:13:23.080 --> 00:13:25.320
+So you get a certain level,
+
+335
+00:13:25.320 --> 00:13:27.080
+but while the data that you are still seeing
+
+336
+00:13:27.080 --> 00:13:28.920
+is by the minute, so yeah,
+
+337
+00:13:28.920 --> 00:13:31.360
+it doesn't immediately make sense and it can be confusing.
+
+338
+00:13:31.360 --> 00:13:34.720
+So just be aware of this particular thing
+
+339
+00:13:34.720 --> 00:13:38.400
+and make sure you are looking at the,
+
+340
+00:13:38.400 --> 00:13:41.680
+basically the aggregation unit that you actually expect
+
+341
+00:13:41.680 --> 00:13:43.000
+that at the moment in time.
+
+342
+00:13:44.920 --> 00:13:46.280
+Yeah, and it's important to be aware
+
+343
+00:13:46.280 --> 00:13:49.240
+of the metrics retention then.
+
+344
+00:13:49.240 --> 00:13:53.480
+So different granularities are retained by CloudWatch
+
+345
+00:13:53.480 --> 00:13:55.720
+for different periods of time, isn't that right?
+
+346
+00:13:55.720 --> 00:13:57.800
+Yes, that's something actually we can discuss
+
+347
+00:13:57.800 --> 00:13:59.280
+in a little bit more detail.
+
+348
+00:13:59.280 --> 00:14:02.320
+So for instance, if you have data points
+
+349
+00:14:02.320 --> 00:14:04.560
+for a period that is less than 60 seconds,
+
+350
+00:14:04.560 --> 00:14:06.320
+they are available for three hours.
+
+351
+00:14:06.320 --> 00:14:08.560
+And this is also something that sometimes is confusing
+
+352
+00:14:08.560 --> 00:14:11.080
+because it looks like if you are looking,
+
+353
+00:14:11.080 --> 00:14:11.920
+I don't know, for instance,
+
+354
+00:14:11.920 --> 00:14:14.920
+you had a daily run of something
+
+355
+00:14:14.920 --> 00:14:17.480
+and then the next day you want to look back at it.
+
+356
+00:14:17.480 --> 00:14:22.280
+And depending on the level of what kind of period
+
+357
+00:14:22.280 --> 00:14:25.680
+do you select, basically it looks like you are missing data
+
+358
+00:14:25.680 --> 00:14:27.520
+or something was not actually running.
+
+359
+00:14:27.520 --> 00:14:29.440
+But in reality, if you increase the period,
+
+360
+00:14:29.440 --> 00:14:31.320
+you are gonna see data just aggregated
+
+361
+00:14:31.320 --> 00:14:32.520
+at a different period.
+
+362
+00:14:32.520 --> 00:14:34.040
+So just be careful with that.
+
+363
+00:14:34.040 --> 00:14:36.160
+If you're looking at the very small periods,
+
+364
+00:14:36.160 --> 00:14:39.640
+you need to look not too way behind in the past,
+
+365
+00:14:39.640 --> 00:14:41.640
+otherwise the data will be missing.
+
+366
+00:14:41.640 --> 00:14:43.120
+So it makes sense to look at this data
+
+367
+00:14:43.120 --> 00:14:46.840
+just a few hours after the data was recorded.
+
+368
+00:14:46.840 --> 00:14:50.040
+So yeah, let's mention the other ones
+
+369
+00:14:50.040 --> 00:14:51.200
+because I think it can be interesting
+
+370
+00:14:51.200 --> 00:14:53.000
+just to understand this concept better.
+
+371
+00:14:53.000 --> 00:14:54.280
+So if you are looking data points
+
+372
+00:14:54.280 --> 00:14:56.840
+with a period of 60 seconds,
+
+373
+00:14:56.840 --> 00:14:58.280
+they are available for 15 days.
+
+374
+00:14:58.280 --> 00:15:00.840
+So that's generally, I think, a good average.
+
+375
+00:15:00.840 --> 00:15:02.960
+Like if you generally look at 60 seconds,
+
+376
+00:15:02.960 --> 00:15:04.240
+I think that will work well enough
+
+377
+00:15:04.240 --> 00:15:06.080
+for most of the use cases.
+
+378
+00:15:06.080 --> 00:15:08.880
+But of course, if you want to look even more in the past,
+
+379
+00:15:08.880 --> 00:15:12.800
+like more than 15 days, you can aggregate by five minutes.
+
+380
+00:15:12.800 --> 00:15:16.520
+So in that case, you get retention for 63 days.
+
+381
+00:15:16.520 --> 00:15:19.920
+And if you even want to look even more than that in the past,
+
+382
+00:15:19.920 --> 00:15:22.760
+you can look at one hour aggregation,
+
+383
+00:15:22.760 --> 00:15:25.880
+which will be available for 15 months.
+
+384
+00:15:25.880 --> 00:15:26.720
+That makes sense.
+
+385
+00:15:26.720 --> 00:15:28.720
+And I guess then it's just a question of understanding
+
+386
+00:15:28.720 --> 00:15:30.840
+which statistic function you need to select
+
+387
+00:15:30.840 --> 00:15:32.400
+when you're looking at messages.
+
+388
+00:15:32.400 --> 00:15:34.920
+So if you're looking at duration for a Lambda function,
+
+389
+00:15:34.920 --> 00:15:35.760
+what do you want to see?
+
+390
+00:15:35.760 --> 00:15:37.840
+Do you want to see the average duration per period,
+
+391
+00:15:37.840 --> 00:15:39.960
+or do you want to see the maximum duration?
+
+392
+00:15:39.960 --> 00:15:42.120
+Maybe for duration, you actually want to look at a percentile.
+
+393
+00:15:42.120 --> 00:15:44.480
+That makes more sense, like the 95th percentile.
+
+394
+00:15:45.560 --> 00:15:49.160
+But if you're looking at Lambda invocations,
+
+395
+00:15:49.160 --> 00:15:53.120
+you might look at the sum of invocations for a period.
+
+396
+00:15:53.120 --> 00:15:55.080
+But if you're looking at concurrent executions,
+
+397
+00:15:55.080 --> 00:15:56.640
+that doesn't make sense to look at a sum
+
+398
+00:15:56.640 --> 00:15:59.520
+because concurrent executions is already
+
+399
+00:15:59.520 --> 00:16:01.200
+like a sum in its own right.
+
+400
+00:16:01.200 --> 00:16:03.400
+So you might look at the maximum concurrent executions.
+
+401
+00:16:03.400 --> 00:16:04.960
+So you have to kind of understand the nature
+
+402
+00:16:04.960 --> 00:16:08.360
+of these metrics and what they mean
+
+403
+00:16:08.360 --> 00:16:10.440
+in order to pick the right statistical function.
+
+404
+00:16:10.440 --> 00:16:12.320
+But the documentation for all of these metrics
+
+405
+00:16:12.320 --> 00:16:13.160
+will kind of help you.
+
+406
+00:16:13.160 --> 00:16:14.960
+And it'll tell you for each metric,
+
+407
+00:16:14.960 --> 00:16:19.160
+kind of which function you should be using to explore them.
+
+408
+00:16:19.160 --> 00:16:21.160
+Also, this is something we'll be mentioning probably
+
+409
+00:16:21.160 --> 00:16:22.440
+later on during the episode,
+
+410
+00:16:22.440 --> 00:16:24.600
+but I think similar concept applies
+
+411
+00:16:24.600 --> 00:16:27.000
+even if you use third-party alternatives,
+
+412
+00:16:27.000 --> 00:16:28.720
+like I don't know, Datadog.
+
+413
+00:16:28.720 --> 00:16:32.080
+Or even if you use your own StatsD and Grafana,
+
+414
+00:16:32.080 --> 00:16:34.200
+you need to know exactly what kind of data
+
+415
+00:16:34.200 --> 00:16:36.200
+are you storing, how we structure it,
+
+416
+00:16:36.200 --> 00:16:38.120
+and then you'll be using different functions
+
+417
+00:16:38.120 --> 00:16:41.040
+to fetch this data and make sense of it.
+
+418
+00:16:41.040 --> 00:16:43.920
+So this is not unique to CloudWatch.
+
+419
+00:16:43.920 --> 00:16:46.840
+Okay, so let's say that now we want to create
+
+420
+00:16:46.840 --> 00:16:48.200
+some custom metrics.
+
+421
+00:16:48.200 --> 00:16:49.720
+How do we create one?
+
+422
+00:16:49.720 --> 00:16:51.520
+And there are a bunch of different ways.
+
+423
+00:16:51.520 --> 00:16:52.800
+Where do we want to start?
+
+424
+00:16:54.600 --> 00:16:57.160
+Maybe we can start with the most obvious,
+
+425
+00:16:57.160 --> 00:16:58.840
+the fundamental operation there,
+
+426
+00:16:58.840 --> 00:17:00.480
+which is the PutMetricsData API.
+
+427
+00:17:00.480 --> 00:17:01.680
+So if you want to create a metric,
+
+428
+00:17:01.680 --> 00:17:05.720
+you call the API with your SDK and you can put a metric
+
+429
+00:17:05.720 --> 00:17:07.680
+and you'll specify the namespace, the dimensions,
+
+430
+00:17:07.680 --> 00:17:10.080
+the unit, the value.
+
+431
+00:17:10.080 --> 00:17:11.800
+I'm not sure if I'm forgetting anything else,
+
+432
+00:17:11.800 --> 00:17:13.920
+but that's fundamentally it.
+
+433
+00:17:14.840 --> 00:17:18.800
+This one is interesting because it has a lot of limits.
+
+434
+00:17:18.800 --> 00:17:23.280
+So if you want to use it like one-off, it's probably fine.
+
+435
+00:17:23.280 --> 00:17:26.560
+It's a good way to create one-off metric.
+
+436
+00:17:26.560 --> 00:17:28.640
+But if you want to have a process
+
+437
+00:17:28.640 --> 00:17:30.760
+that is constantly ingesting metric this way,
+
+438
+00:17:30.760 --> 00:17:33.240
+it's very easy if you're going to bump into limits.
+
+439
+00:17:33.240 --> 00:17:35.440
+We'll be mentioning an article in the show notes
+
+440
+00:17:35.440 --> 00:17:37.360
+that explore some of these limits,
+
+441
+00:17:37.360 --> 00:17:39.320
+how you can work around some of them.
+
+442
+00:17:39.320 --> 00:17:40.680
+You can also use compression
+
+443
+00:17:40.680 --> 00:17:43.040
+if you want to overcome some of the limitations
+
+444
+00:17:43.040 --> 00:17:44.960
+around the payload size.
+
+445
+00:17:44.960 --> 00:17:46.120
+So it's an interesting word,
+
+446
+00:17:46.120 --> 00:17:48.360
+but I wouldn't say is the most convenient
+
+447
+00:17:48.360 --> 00:17:52.080
+if you really want to start a lot of metrics over time.
+
+448
+00:17:53.080 --> 00:17:54.360
+Yeah, it's a pain when you have to work
+
+449
+00:17:54.360 --> 00:17:55.560
+around all those limits.
+
+450
+00:17:56.480 --> 00:17:59.080
+I know you've got the CloudWatch agent as well,
+
+451
+00:17:59.080 --> 00:18:03.840
+which is one of the older mechanisms for posting metrics,
+
+452
+00:18:03.840 --> 00:18:05.160
+particularly if you're on EC2
+
+453
+00:18:05.160 --> 00:18:08.240
+and you want to collect metrics from your EC2 instance,
+
+454
+00:18:08.240 --> 00:18:10.000
+custom metrics and post them.
+
+455
+00:18:10.000 --> 00:18:14.040
+So you can use like StatsD or CollectD
+
+456
+00:18:14.040 --> 00:18:17.160
+and the CloudWatch agent can pick those up
+
+457
+00:18:17.160 --> 00:18:18.720
+and post them into CloudWatch.
+
+458
+00:18:19.760 --> 00:18:21.680
+And that also supports something called EMF,
+
+459
+00:18:21.680 --> 00:18:23.600
+which is Embedded Metrics Format.
+
+460
+00:18:23.600 --> 00:18:26.800
+And that is one of the newer features.
+
+461
+00:18:26.800 --> 00:18:28.400
+Well, maybe it's been around a few years now,
+
+462
+00:18:28.400 --> 00:18:30.480
+but I think it's one of the most useful additions
+
+463
+00:18:30.480 --> 00:18:32.440
+to the whole space of CloudWatch metrics.
+
+464
+00:18:32.440 --> 00:18:34.960
+Do you want to describe what EMF metrics is
+
+465
+00:18:34.960 --> 00:18:36.560
+and why it makes such a difference
+
+466
+00:18:36.560 --> 00:18:40.280
+in how it compares to just using metric data?
+
+467
+00:18:40.280 --> 00:18:42.880
+Yeah, so I suppose the way we can think about EMF
+
+468
+00:18:42.880 --> 00:18:45.960
+is like rather than calling a specific API
+
+469
+00:18:45.960 --> 00:18:49.720
+with a specific structure to store all the information,
+
+470
+00:18:49.720 --> 00:18:52.600
+you're just going to log a JSON structure
+
+471
+00:18:52.600 --> 00:18:54.160
+that contains all that information.
+
+472
+00:18:54.160 --> 00:18:56.240
+Then something else will pick up those logs
+
+473
+00:18:56.240 --> 00:18:58.840
+and make sure that all that information is translated
+
+474
+00:18:58.840 --> 00:19:01.440
+into CloudWatch and stored for you.
+
+475
+00:19:01.440 --> 00:19:04.440
+And this is something that works out of the box,
+
+476
+00:19:04.440 --> 00:19:06.120
+for instance, with AWS Lambda.
+
+477
+00:19:06.120 --> 00:19:09.680
+So in Lambda, if you produce logs that are JSON object
+
+478
+00:19:09.680 --> 00:19:12.320
+that conform the EMF specification,
+
+479
+00:19:12.320 --> 00:19:15.000
+then something, some process around Lambda
+
+480
+00:19:15.000 --> 00:19:16.720
+will pick up those logs line
+
+481
+00:19:16.720 --> 00:19:18.720
+and you will see the metrics appearing
+
+482
+00:19:18.720 --> 00:19:20.880
+in CloudWatch metrics for you.
+
+483
+00:19:20.880 --> 00:19:24.960
+And they are not priced like put metric data.
+
+484
+00:19:24.960 --> 00:19:27.720
+I'm not sure if you still pay something
+
+485
+00:19:27.720 --> 00:19:29.000
+or if they are entirely free.
+
+486
+00:19:29.000 --> 00:19:30.280
+Do you remember about that?
+
+487
+00:19:30.280 --> 00:19:32.040
+You still pay for having the metrics.
+
+488
+00:19:32.040 --> 00:19:35.040
+So we could talk about the pricing a little bit,
+
+489
+00:19:35.040 --> 00:19:38.440
+but the metrics, you avoid the cost
+
+490
+00:19:38.440 --> 00:19:39.880
+of the put metrics data API
+
+491
+00:19:39.880 --> 00:19:42.480
+because the API requests are priced separately.
+
+492
+00:19:42.480 --> 00:19:44.000
+You avoid the cost and also the latency
+
+493
+00:19:44.000 --> 00:19:46.040
+because put metrics data will have a latency
+
+494
+00:19:46.040 --> 00:19:47.360
+because there's a network request there.
+
+495
+00:19:47.360 --> 00:19:49.640
+So if you can imagine you're performing
+
+496
+00:19:49.640 --> 00:19:52.760
+some time sensitive function,
+
+497
+00:19:52.760 --> 00:19:54.080
+every time you call put metrics data,
+
+498
+00:19:54.080 --> 00:19:56.040
+you've got an HTTP request in there.
+
+499
+00:19:56.040 --> 00:19:58.240
+But if you're just writing to the console
+
+500
+00:19:58.240 --> 00:20:01.480
+and that's going to be logged into CloudWatch logs,
+
+501
+00:20:01.480 --> 00:20:03.680
+that's a much more efficient operation.
+
+502
+00:20:03.680 --> 00:20:07.320
+So it gets around all of that.
+
+503
+00:20:07.320 --> 00:20:09.960
+It gets around the cost, it gets around the latency
+
+504
+00:20:09.960 --> 00:20:11.840
+and it's just way better for performance
+
+505
+00:20:11.840 --> 00:20:13.960
+and you don't have to worry about limits.
+
+506
+00:20:13.960 --> 00:20:16.280
+Yeah, that's to me the biggest selling point
+
+507
+00:20:16.280 --> 00:20:18.880
+that it's way friendlier when you,
+
+508
+00:20:18.880 --> 00:20:20.280
+because you don't have to think as much
+
+509
+00:20:20.280 --> 00:20:22.360
+about all the different types of limits
+
+510
+00:20:22.360 --> 00:20:23.960
+and all the different dimensions
+
+511
+00:20:23.960 --> 00:20:26.480
+that will make you hit the limits.
+
+512
+00:20:26.480 --> 00:20:27.760
+You just log these lines
+
+513
+00:20:27.760 --> 00:20:29.160
+and you are pretty much guaranteed
+
+514
+00:20:29.160 --> 00:20:32.280
+that eventually your metrics will appear
+
+515
+00:20:32.280 --> 00:20:33.920
+in CloudWatch metrics.
+
+516
+00:20:33.920 --> 00:20:35.720
+Yeah, it's like magic.
+
+517
+00:20:35.720 --> 00:20:39.640
+And I think it has the side effect then
+
+518
+00:20:39.640 --> 00:20:42.000
+of because it becomes so easy to create custom metrics,
+
+519
+00:20:42.000 --> 00:20:43.760
+then people tend to create more
+
+520
+00:20:43.760 --> 00:20:46.040
+and you end up with much more insight into your system.
+
+521
+00:20:46.040 --> 00:20:47.520
+So it has that nice side effect.
+
+522
+00:20:47.520 --> 00:20:49.920
+The only drawback I'd say is that the structure
+
+523
+00:20:49.920 --> 00:20:53.240
+you need to create for EMF metrics is quite strange.
+
+524
+00:20:53.240 --> 00:20:56.000
+It's quite unwieldy.
+
+525
+00:20:56.000 --> 00:20:58.800
+If you were to design a nested JSON structure
+
+526
+00:20:58.800 --> 00:21:01.200
+for story metrics, you wouldn't exactly do it this way,
+
+527
+00:21:01.200 --> 00:21:02.800
+but I'm sure there's logic behind it.
+
+528
+00:21:02.800 --> 00:21:04.160
+It's a small price to pay.
+
+529
+00:21:04.160 --> 00:21:05.000
+And there are libraries.
+
+530
+00:21:05.000 --> 00:21:07.320
+AWS do provide libraries for generating this format
+
+531
+00:21:07.320 --> 00:21:10.280
+in JavaScript and Java and Python.
+
+532
+00:21:10.280 --> 00:21:11.480
+And if you're using Python,
+
+533
+00:21:11.480 --> 00:21:14.560
+the AWS Lambda Power Tools makes this really easy.
+
+534
+00:21:14.560 --> 00:21:17.080
+It's really nice, has some really nice support for it.
+
+535
+00:21:17.080 --> 00:21:18.840
+Yeah, and I suppose that will also help you
+
+536
+00:21:18.840 --> 00:21:21.560
+to avoid mistakes because if you are trying
+
+537
+00:21:21.560 --> 00:21:24.120
+to create that object structure yourself,
+
+538
+00:21:24.120 --> 00:21:25.840
+most likely you might do some mistakes
+
+539
+00:21:25.840 --> 00:21:28.080
+in particular edge cases using a library,
+
+540
+00:21:28.080 --> 00:21:29.680
+all the stuff will be covered for you
+
+541
+00:21:29.680 --> 00:21:33.440
+and you just have a simpler interface that you can rely on.
+
+542
+00:21:33.440 --> 00:21:34.280
+Yeah.
+
+543
+00:21:34.280 --> 00:21:36.720
+One thing that I have on this one is that
+
+544
+00:21:36.720 --> 00:21:40.520
+this is not supported, I suppose, everywhere.
+
+545
+00:21:40.520 --> 00:21:44.120
+Like if you want to use this on Fargate or EC2,
+
+546
+00:21:44.120 --> 00:21:46.160
+you'll need to figure out different ways
+
+547
+00:21:46.160 --> 00:21:48.760
+of making sure that the data is ingested.
+
+548
+00:21:48.760 --> 00:21:51.920
+For instance, we mentioned in EC2, you can use the agent.
+
+549
+00:21:51.920 --> 00:21:55.760
+But if you are using ECS or Fargate,
+
+550
+00:21:55.760 --> 00:21:58.120
+I don't know if you can use the agent straight away,
+
+551
+00:21:58.120 --> 00:22:01.520
+but what you could do is you could ingest this data
+
+552
+00:22:01.520 --> 00:22:03.840
+some way like using a Kinesis stream
+
+553
+00:22:03.840 --> 00:22:05.240
+and then process it through a Lambda
+
+554
+00:22:05.240 --> 00:22:07.160
+that will actually meet these logs
+
+555
+00:22:07.160 --> 00:22:08.960
+and then these logs will be picked up.
+
+556
+00:22:08.960 --> 00:22:10.680
+So there is a little bit of indirection,
+
+557
+00:22:10.680 --> 00:22:12.760
+but you can find other ways to make sure
+
+558
+00:22:12.760 --> 00:22:15.360
+that the EMF format gets ingested.
+
+559
+00:22:15.360 --> 00:22:17.440
+I wish that there will be a better support
+
+560
+00:22:17.440 --> 00:22:20.000
+across all the compute services.
+
+561
+00:22:20.000 --> 00:22:21.520
+I completely agree.
+
+562
+00:22:21.520 --> 00:22:23.280
+Especially with something like Fargate, right,
+
+563
+00:22:23.280 --> 00:22:24.640
+which is a serverless container,
+
+564
+00:22:24.640 --> 00:22:26.760
+it would be nice if it just supported EMF metrics
+
+565
+00:22:26.760 --> 00:22:28.760
+out of the box like you get with Lambda.
+
+566
+00:22:28.760 --> 00:22:30.400
+But I think the way you can do it,
+
+567
+00:22:30.400 --> 00:22:32.560
+I've seen this done on one of our projects
+
+568
+00:22:32.560 --> 00:22:35.640
+where you can create a task definition
+
+569
+00:22:35.640 --> 00:22:37.160
+that has two containers.
+
+570
+00:22:37.160 --> 00:22:38.680
+One is your main application container
+
+571
+00:22:38.680 --> 00:22:40.320
+and the other one is like a sidecar
+
+572
+00:22:40.320 --> 00:22:42.160
+for the CloudWatch agent.
+
+573
+00:22:42.160 --> 00:22:44.400
+And the CloudWatch agent can then pick up the logs
+
+574
+00:22:44.400 --> 00:22:48.120
+and create the EMF metrics for you automatically.
+
+575
+00:22:48.120 --> 00:22:49.760
+I think there's also another driver.
+
+576
+00:22:49.760 --> 00:22:51.800
+So this is using, normally with a container,
+
+577
+00:22:51.800 --> 00:22:54.440
+most people would use AWS Log driver.
+
+578
+00:22:54.440 --> 00:22:58.200
+There's also a FireLens driver that AWS provide
+
+579
+00:22:58.200 --> 00:23:00.000
+and it's not widely used,
+
+580
+00:23:00.000 --> 00:23:02.160
+but I believe it also supports EMF metrics.
+
+581
+00:23:02.160 --> 00:23:04.600
+Oh, that's interesting. Okay.
+
+582
+00:23:04.600 --> 00:23:06.560
+So it's great for Lambda.
+
+583
+00:23:06.560 --> 00:23:09.360
+Another reason maybe just to use Lambda for everything.
+
+584
+00:23:11.600 --> 00:23:13.880
+But one of the, actually,
+
+585
+00:23:13.880 --> 00:23:16.080
+it seems like we're going on about EMF metrics quite a lot,
+
+586
+00:23:16.080 --> 00:23:18.560
+but maybe there's a good reason for that.
+
+587
+00:23:18.560 --> 00:23:20.800
+One of the great benefits is that while we said
+
+588
+00:23:20.800 --> 00:23:23.560
+you can only access metrics as statistical values
+
+589
+00:23:23.560 --> 00:23:25.440
+in the console,
+
+590
+00:23:25.440 --> 00:23:27.480
+bear in mind that once you log your metrics
+
+591
+00:23:27.480 --> 00:23:29.760
+as individual records like this,
+
+592
+00:23:29.760 --> 00:23:31.160
+because you want to use EMF,
+
+593
+00:23:31.160 --> 00:23:34.160
+you also get the site benefit that you can now query them
+
+594
+00:23:34.160 --> 00:23:36.720
+in your logs as individual data points.
+
+595
+00:23:36.720 --> 00:23:39.960
+So you can actually select individual metrics there
+
+596
+00:23:39.960 --> 00:23:42.880
+and you can, I think, actually extend that structure
+
+597
+00:23:42.880 --> 00:23:45.600
+to add in other fields like annotations or labels
+
+598
+00:23:45.600 --> 00:23:47.440
+that you might use for querying.
+
+599
+00:23:47.440 --> 00:23:51.080
+So if you find that, okay, your metrics aren't available
+
+600
+00:23:51.080 --> 00:23:53.160
+because the resolution or the retention
+
+601
+00:23:53.160 --> 00:23:55.560
+means they've expired, if you retain your logs,
+
+602
+00:23:55.560 --> 00:23:57.200
+you can actually pull them in with Athena
+
+603
+00:23:57.200 --> 00:23:59.240
+or you can use CloudWatch Logs Insights
+
+604
+00:23:59.240 --> 00:24:01.840
+and you can do really advanced aggregations
+
+605
+00:24:01.840 --> 00:24:02.920
+and queries on them there.
+
+606
+00:24:02.920 --> 00:24:04.440
+So it's very powerful.
+
+607
+00:24:05.960 --> 00:24:08.200
+Yeah, probably will be a little bit more bespoke
+
+608
+00:24:08.200 --> 00:24:11.400
+data extraction and aggregation.
+
+609
+00:24:11.400 --> 00:24:14.880
+And maybe it's not as easy to beat graph out of that,
+
+610
+00:24:14.880 --> 00:24:17.040
+but nonetheless, you retain the granularity
+
+611
+00:24:17.040 --> 00:24:18.880
+of that single metric information
+
+612
+00:24:18.880 --> 00:24:20.960
+and you can use it anytime.
+
+613
+00:24:20.960 --> 00:24:23.440
+Yeah, yeah, for sure.
+
+614
+00:24:23.440 --> 00:24:26.640
+Okay, so should we quickly explore pricing?
+
+615
+00:24:26.640 --> 00:24:29.520
+So we already say that there are metrics
+
+616
+00:24:29.520 --> 00:24:31.920
+that are out of the box available
+
+617
+00:24:31.920 --> 00:24:35.320
+and they are pretty much free, if I remember correctly,
+
+618
+00:24:35.320 --> 00:24:38.280
+and you get a five minutes frequency.
+
+619
+00:24:38.280 --> 00:24:41.600
+You can have detailed monitoring metrics.
+
+620
+00:24:41.600 --> 00:24:43.480
+This is, I think, only for EC2, right?
+
+621
+00:24:43.480 --> 00:24:44.320
+EC2, yeah.
+
+622
+00:24:44.320 --> 00:24:45.600
+Apply to all, okay?
+
+623
+00:24:45.600 --> 00:24:47.800
+Yeah, the pricing page is quite confusing on that,
+
+624
+00:24:47.800 --> 00:24:49.880
+but the way I understand it is you only pay
+
+625
+00:24:49.880 --> 00:24:51.560
+for detailed monitoring metrics for one minute
+
+626
+00:24:51.560 --> 00:24:55.120
+of frequency for EC2, because you get them out of the box
+
+627
+00:24:55.120 --> 00:24:56.120
+for everything else.
+
+628
+00:24:57.880 --> 00:25:01.920
+And then you can do 1 million API requests for free
+
+629
+00:25:01.920 --> 00:25:06.360
+to get metric data or get metric widget image,
+
+630
+00:25:06.360 --> 00:25:09.440
+which I believe is like one way that you can create an image
+
+631
+00:25:09.440 --> 00:25:12.160
+for a dashboard basically, or a graph
+
+632
+00:25:12.160 --> 00:25:13.920
+and use it somewhere else.
+
+633
+00:25:15.080 --> 00:25:17.640
+Yes, your free tier gives you a billion API requests.
+
+634
+00:25:17.640 --> 00:25:20.440
+I think get metric data and get metric widget image
+
+635
+00:25:20.440 --> 00:25:23.120
+are the ones that don't come under the free tier.
+
+636
+00:25:24.120 --> 00:25:27.440
+So those are just ones to be mindful of.
+
+637
+00:25:27.440 --> 00:25:31.560
+So for most API requests, you're gonna pay like a dollar cent
+
+638
+00:25:31.560 --> 00:25:34.920
+for each 1000 requests, something around that order.
+
+639
+00:25:36.760 --> 00:25:39.280
+And then if you want to create your own custom metrics,
+
+640
+00:25:39.280 --> 00:25:42.120
+that is, I suppose, a little bit hard to tell exactly
+
+641
+00:25:42.120 --> 00:25:43.760
+how much it's going to cost you.
+
+642
+00:25:43.760 --> 00:25:47.480
+I think we estimate, yeah, we estimated between two cents
+
+643
+00:25:47.480 --> 00:25:50.080
+and 30 cents per metric, depending on volume
+
+644
+00:25:50.080 --> 00:25:52.200
+and probably depending on the number of dimensions
+
+645
+00:25:52.200 --> 00:25:55.120
+that you're gonna create for every metric.
+
+646
+00:25:55.120 --> 00:25:57.800
+So yeah, that's something that requires a little bit
+
+647
+00:25:57.800 --> 00:26:00.600
+of an exercise for you if you really want to be accurate
+
+648
+00:26:00.600 --> 00:26:02.240
+about estimating the cost.
+
+649
+00:26:03.120 --> 00:26:06.120
+And then there is the usual API requests.
+
+650
+00:26:06.120 --> 00:26:10.640
+So if you do 1000 requests, you're gonna be paying one cent
+
+651
+00:26:10.640 --> 00:26:12.760
+per every 1000 requests.
+
+652
+00:26:12.760 --> 00:26:16.880
+So again, another reason not to use the put metric data
+
+653
+00:26:16.880 --> 00:26:19.680
+massively, because probably you're gonna create thousands
+
+654
+00:26:19.680 --> 00:26:22.000
+of metrics over a short amount of time,
+
+655
+00:26:22.000 --> 00:26:24.160
+so that will affect your cost.
+
+656
+00:26:25.920 --> 00:26:28.240
+There is another feature called metrics streams.
+
+657
+00:26:28.240 --> 00:26:30.280
+Do you want to mention what that is
+
+658
+00:26:30.280 --> 00:26:32.400
+and how can it be useful?
+
+659
+00:26:33.240 --> 00:26:35.960
+Yeah, metrics streams is another relatively new addition
+
+660
+00:26:35.960 --> 00:26:37.000
+to CloudWatch metrics.
+
+661
+00:26:37.000 --> 00:26:40.080
+And the idea there is if you've got a third party
+
+662
+00:26:40.080 --> 00:26:42.560
+application or something else where you need to,
+
+663
+00:26:42.560 --> 00:26:45.640
+that you want to use as a sync for CloudWatch metrics,
+
+664
+00:26:45.640 --> 00:26:48.640
+the traditional means of doing that was to kind of pull
+
+665
+00:26:48.640 --> 00:26:51.520
+on an interval and pull metrics in on some sort
+
+666
+00:26:51.520 --> 00:26:53.720
+of pre-configured interval.
+
+667
+00:26:53.720 --> 00:26:56.800
+And if you've got a third party, like you're using Datadog
+
+668
+00:26:56.800 --> 00:26:59.400
+as you mentioned, or using U Relic or something else,
+
+669
+00:27:00.440 --> 00:27:02.480
+it often ended up in really significant today.
+
+670
+00:27:02.480 --> 00:27:04.440
+It's like sometimes you could, people reported, you know,
+
+671
+00:27:04.440 --> 00:27:08.480
+15 minutes before they could see their metrics in their APM,
+
+672
+00:27:08.480 --> 00:27:10.040
+I think that's what they call it, right?
+
+673
+00:27:10.040 --> 00:27:14.000
+So that's, you know, not very usable for, you know,
+
+674
+00:27:14.000 --> 00:27:15.360
+real time troubleshooting.
+
+675
+00:27:15.360 --> 00:27:18.960
+So the idea with metric streams is that AWS will create
+
+676
+00:27:18.960 --> 00:27:22.160
+a literally a stream of metrics through either Firehose.
+
+677
+00:27:22.160 --> 00:27:25.560
+So Kinesis, Firehose, and then you can put them in Redshift
+
+678
+00:27:25.560 --> 00:27:29.280
+or S3 bucket from there, or you can stream them
+
+679
+00:27:29.280 --> 00:27:30.680
+through a third party like Datadog.
+
+680
+00:27:30.680 --> 00:27:33.440
+So I'm not sure exactly which third parties are integrating
+
+681
+00:27:33.440 --> 00:27:35.520
+with metric streams, but the idea there is to give you
+
+682
+00:27:35.520 --> 00:27:37.400
+faster time to insight on your metrics.
+
+683
+00:27:37.400 --> 00:27:40.480
+So that's the problem I believe that feature
+
+684
+00:27:40.480 --> 00:27:41.560
+was designed to solve.
+
+685
+00:27:47.560 --> 00:27:52.560
+Yeah, and I think that they have also ways to easily integrate that stream from your AWS account into Datadog
+
+686
+00:27:52.680 --> 00:27:53.640
+or whatever other service.
+
+687
+00:27:53.640 --> 00:27:57.680
+Yeah, yeah, yeah, yeah, totally, yeah.
+
+688
+00:27:57.680 --> 00:27:59.200
+That's a good point actually,
+
+689
+00:27:59.200 --> 00:28:01.200
+because we're talking all about CloudWatch metrics
+
+690
+00:28:01.200 --> 00:28:04.680
+and a lot of people out there probably have used
+
+691
+00:28:04.680 --> 00:28:06.200
+CloudWatch metrics from time to time,
+
+692
+00:28:06.200 --> 00:28:08.000
+but actually have a third party solution
+
+693
+00:28:08.000 --> 00:28:11.640
+that's their chosen vendor for performance management.
+
+694
+00:28:11.640 --> 00:28:12.920
+What do you think?
+
+695
+00:28:12.920 --> 00:28:14.560
+Should people be going for the CloudWatch
+
+696
+00:28:14.560 --> 00:28:16.560
+instead of using something like Datadog
+
+697
+00:28:16.560 --> 00:28:18.480
+or is there something else you,
+
+698
+00:28:18.480 --> 00:28:20.000
+is there a limit beyond which you might say,
+
+699
+00:28:20.000 --> 00:28:22.440
+okay, CloudWatch isn't really gonna serve my needs anymore.
+
+700
+00:28:22.440 --> 00:28:24.960
+I need to use something more complete.
+
+701
+00:28:24.960 --> 00:28:27.480
+What's the story there these days?
+
+702
+00:28:27.480 --> 00:28:30.080
+Yeah, if you asked me this question a couple of years ago,
+
+703
+00:28:30.080 --> 00:28:33.000
+I would probably tell you don't use CloudWatch at all.
+
+704
+00:28:33.000 --> 00:28:34.600
+Just do something else.
+
+705
+00:28:34.600 --> 00:28:36.120
+And honestly, it's not because CloudWatch
+
+706
+00:28:36.120 --> 00:28:37.920
+doesn't have the capabilities that you need.
+
+707
+00:28:41.360 --> 00:28:44.800
+It's mostly because the UI is, well, it used to be way behind the competitors.
+
+708
+00:28:44.800 --> 00:28:46.920
+Now I think that CloudWatch is,
+
+709
+00:28:46.920 --> 00:28:48.400
+the theme is investing a lot
+
+710
+00:28:48.400 --> 00:28:50.280
+and trying to catch up with the competitors.
+
+711
+00:28:50.280 --> 00:28:54.440
+So I am seeing a lot of innovation and a lot of improvement,
+
+712
+00:28:54.440 --> 00:28:57.120
+and I'm confident that they will get there
+
+713
+00:28:57.120 --> 00:28:59.480
+and you will have a very good service
+
+714
+00:29:00.480 --> 00:29:02.160
+also from the UI perspective.
+
+715
+00:29:02.160 --> 00:29:04.480
+So I'm confident it's a good investment
+
+716
+00:29:04.480 --> 00:29:06.920
+to try to learn CloudWatch and use it.
+
+717
+00:29:06.920 --> 00:29:09.400
+And it can probably, for most use cases,
+
+718
+00:29:09.400 --> 00:29:11.520
+the only service you need,
+
+719
+00:29:11.520 --> 00:29:13.920
+but I still think that they are still a little bit behind
+
+720
+00:29:13.920 --> 00:29:15.280
+what the competition has to offer.
+
+721
+00:29:15.280 --> 00:29:18.160
+For instance, I've used Datadog
+
+722
+00:29:18.160 --> 00:29:20.720
+at a quite decent scale, I think.
+
+723
+00:29:20.720 --> 00:29:22.600
+And I have to say that most of the UIs
+
+724
+00:29:22.600 --> 00:29:23.880
+were much more intuitive.
+
+725
+00:29:23.880 --> 00:29:26.400
+It was way easier to understand the data.
+
+726
+00:29:26.400 --> 00:29:29.360
+Also, you get a lot more dashboards out of the box,
+
+727
+00:29:29.360 --> 00:29:31.760
+so you don't have to configure as many things
+
+728
+00:29:31.760 --> 00:29:34.320
+as you need to configure today in CloudWatch.
+
+729
+00:29:34.320 --> 00:29:36.120
+So I suppose your mileage might vary
+
+730
+00:29:36.120 --> 00:29:38.280
+if you are starting off
+
+731
+00:29:38.280 --> 00:29:40.080
+and you need to just build a few dashboards
+
+732
+00:29:40.080 --> 00:29:41.200
+because it's a small project.
+
+733
+00:29:41.200 --> 00:29:44.000
+Probably you're not gonna notice any big difference,
+
+734
+00:29:44.000 --> 00:29:47.360
+but if you have multiple teams using multiple products
+
+735
+00:29:47.360 --> 00:29:50.200
+and producing a lot of magic dashboards alarms,
+
+736
+00:29:50.200 --> 00:29:53.760
+probably going with something like Datadog will make,
+
+737
+00:29:53.760 --> 00:29:57.120
+on one side, your life a little bit easier, like as a user.
+
+738
+00:29:57.120 --> 00:29:58.440
+On the other side, you need to make sure
+
+739
+00:29:58.440 --> 00:30:00.680
+that all the integrations are configured correctly.
+
+740
+00:30:00.680 --> 00:30:02.360
+You are not missing any data.
+
+741
+00:30:02.360 --> 00:30:07.160
+Probably, yeah, there are features that will require you
+
+742
+00:30:07.160 --> 00:30:09.480
+some fine-tuned integration.
+
+743
+00:30:09.480 --> 00:30:11.800
+So you need to make sure that all the setup is done right,
+
+744
+00:30:11.800 --> 00:30:13.280
+basically, but at that point,
+
+745
+00:30:13.280 --> 00:30:15.640
+it's probably gonna be easier for the people in your team
+
+746
+00:30:15.640 --> 00:30:17.840
+to avail of that information.
+
+747
+00:30:18.920 --> 00:30:20.160
+Do you have a similar opinion
+
+748
+00:30:20.160 --> 00:30:22.280
+or do you have a different one?
+
+749
+00:30:22.280 --> 00:30:23.640
+Yeah, I agree.
+
+750
+00:30:23.640 --> 00:30:25.840
+It really comes down to user experience.
+
+751
+00:30:25.840 --> 00:30:29.160
+And also, if you've got multiple systems outside of AWS
+
+752
+00:30:29.160 --> 00:30:30.240
+that you're monitoring,
+
+753
+00:30:30.240 --> 00:30:31.560
+then it might make sense to have it all
+
+754
+00:30:31.560 --> 00:30:33.040
+in kind of unified dashboards,
+
+755
+00:30:33.040 --> 00:30:35.080
+unified performance management systems,
+
+756
+00:30:35.080 --> 00:30:37.360
+and also your logs, think about that.
+
+757
+00:30:37.360 --> 00:30:40.600
+But I would say that once you get familiar
+
+758
+00:30:40.600 --> 00:30:42.880
+with the user interface in CloudWatch,
+
+759
+00:30:42.880 --> 00:30:44.320
+you can be very productive with it.
+
+760
+00:30:44.320 --> 00:30:46.800
+It just takes a little bit of investment in time
+
+761
+00:30:46.800 --> 00:30:48.120
+because you have to overcome
+
+762
+00:30:48.120 --> 00:30:51.840
+the less fluid user experience that you get with it.
+
+763
+00:30:51.840 --> 00:30:53.760
+But like you say, the features are there,
+
+764
+00:30:53.760 --> 00:30:55.680
+and you certainly benefit from the fact
+
+765
+00:30:55.680 --> 00:30:57.440
+that you don't have to worry about sending your data
+
+766
+00:30:57.440 --> 00:30:59.880
+to a third party and what that entails,
+
+767
+00:30:59.880 --> 00:31:01.400
+the latency involved with it,
+
+768
+00:31:01.400 --> 00:31:03.240
+the separate pricing arrangement.
+
+769
+00:31:03.240 --> 00:31:06.960
+If you want to keep everything under your AWS bill with IAM,
+
+770
+00:31:06.960 --> 00:31:09.240
+you can do quite a lot with CloudWatch metrics,
+
+771
+00:31:09.240 --> 00:31:12.400
+and I think it is worth persisting with
+
+772
+00:31:12.400 --> 00:31:17.080
+if you don't want to have to bother with another third party.
+
+773
+00:31:17.080 --> 00:31:18.480
+But at the same time, there's a lot of innovation
+
+774
+00:31:18.480 --> 00:31:19.480
+in third parties as well.
+
+775
+00:31:19.480 --> 00:31:21.360
+Like if we see the amount of innovation
+
+776
+00:31:21.360 --> 00:31:23.360
+that comes out of tools like Honeycomb,
+
+777
+00:31:23.360 --> 00:31:25.200
+they're really pushing the boundaries
+
+778
+00:31:25.200 --> 00:31:26.640
+of what observability means
+
+779
+00:31:26.640 --> 00:31:28.520
+and kind of leading the way as well.
+
+780
+00:31:28.520 --> 00:31:32.560
+So I think it is worth exploring the space for sure
+
+781
+00:31:32.560 --> 00:31:34.280
+and making your own decisions on it.
+
+782
+00:31:35.640 --> 00:31:37.720
+One thing we didn't cover is, I guess,
+
+783
+00:31:37.720 --> 00:31:40.560
+Grafana and Prometheus are very prominent
+
+784
+00:31:40.560 --> 00:31:43.240
+in this space as well for metrics, logs,
+
+785
+00:31:43.240 --> 00:31:46.120
+and like Grafana particularly for presentation.
+
+786
+00:31:46.120 --> 00:31:49.680
+And you can actually do both, right?
+
+787
+00:31:49.680 --> 00:31:54.000
+So AWS has managed services for both Grafana and Prometheus,
+
+788
+00:31:54.000 --> 00:31:55.960
+and you can use them to visualize,
+
+789
+00:31:55.960 --> 00:31:58.360
+you can use Grafana to visualize your CloudWatch metrics.
+
+790
+00:31:58.360 --> 00:32:02.400
+And you can build a lot more in terms of useful dashboards
+
+791
+00:32:02.400 --> 00:32:04.120
+with Grafana than you can with CloudWatch.
+
+792
+00:32:04.120 --> 00:32:05.920
+So maybe there's a middle ground
+
+793
+00:32:05.920 --> 00:32:07.040
+where you can combine these things,
+
+794
+00:32:07.040 --> 00:32:09.560
+especially if you've already got Grafana and Prometheus
+
+795
+00:32:09.560 --> 00:32:10.560
+in the organization.
+
+796
+00:32:11.680 --> 00:32:12.880
+Yeah, that's a good one.
+
+797
+00:32:13.880 --> 00:32:15.160
+Okay, so I think with this,
+
+798
+00:32:15.160 --> 00:32:17.880
+we covered everything we wanted to cover today.
+
+799
+00:32:17.880 --> 00:32:21.200
+Of course, we mentioned that you can do a lot more
+
+800
+00:32:21.200 --> 00:32:24.400
+with CloudWatch, you can do dashboards, you can do alarms,
+
+801
+00:32:24.400 --> 00:32:26.560
+probably topics that we will be discussing
+
+802
+00:32:26.560 --> 00:32:27.920
+in future episodes.
+
+803
+00:32:27.920 --> 00:32:31.840
+So make sure to subscribe, follow in whatever platform
+
+804
+00:32:31.840 --> 00:32:34.280
+you are using so you can stay in touch with us
+
+805
+00:32:34.280 --> 00:32:37.320
+and be up to date when we publish the next episode.
+
+806
+00:32:37.320 --> 00:32:39.720
+Until then, let us know if you have any question
+
+807
+00:32:39.720 --> 00:32:42.200
+or if you have any comment, and yeah,
+
+808
+00:32:42.200 --> 00:32:58.120
+we look forward to seeing you in the next episode.

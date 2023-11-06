@@ -1,0 +1,1449 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:04.800
+In the age of distributed systems, we produce tons and tons of logs.
+
+2
+00:00:04.800 --> 00:00:08.160
+This is especially true for AWS when you use CloudWatch logs.
+
+3
+00:00:08.720 --> 00:00:13.680
+So how do we make sense of all these logs and how can we find useful information in them?
+
+4
+00:00:14.240 --> 00:00:18.560
+My name is Luciano and today I'm joined by Eoin and this is AWS Bites podcast.
+
+5
+00:00:18.560 --> 00:00:32.240
+So if you use AWS, chances are that we have been using CloudWatch and you have probably seen that
+
+6
+00:00:32.240 --> 00:00:37.360
+CloudWatch is a service that allows you to do a bunch of different things. In previous episodes,
+
+7
+00:00:37.360 --> 00:00:42.560
+we have been talking about metrics and alarms and today we're going to focus on logs, which is the
+
+8
+00:00:42.560 --> 00:00:50.320
+next big topics when you deal with CloudWatch. So an interesting thing is that for a long time,
+
+9
+00:00:50.320 --> 00:00:57.840
+at least in my career, I was using third-party tools because my opinion, take it with a pinch
+
+10
+00:00:57.840 --> 00:01:02.400
+of salt, CloudWatch logs was a little bit underwhelming in terms of functionality,
+
+11
+00:01:02.400 --> 00:01:07.440
+in terms of ability to actually make sense and use the log data. I don't know Eoin,
+
+12
+00:01:07.440 --> 00:01:12.800
+if you share the same opinion. Definitely, especially when you want to read them.
+
+13
+00:01:12.800 --> 00:01:17.120
+It was pretty good for storing logs, but the main challenge then is how do you get useful information
+
+14
+00:01:17.120 --> 00:01:20.160
+out of them? And for a long time, there was really nothing you could do there.
+
+15
+00:01:20.800 --> 00:01:24.800
+Yeah, I think now this has changed a lot, especially in the last couple of years. So
+
+16
+00:01:24.800 --> 00:01:30.400
+in this episode, we're going to try to give you a few insights on how you can get the most out of
+
+17
+00:01:30.400 --> 00:01:35.680
+CloudWatch logs and maybe you don't need to use a third-party tool for logs anymore. So do we want
+
+18
+00:01:35.680 --> 00:01:41.120
+to start maybe by describing what are the main concepts when it comes to CloudWatch logs?
+
+19
+00:01:41.120 --> 00:01:46.560
+Yeah, I can give that a go.
+
+20
+00:01:46.560 --> 00:01:52.080
+With a lot of log aggregators, so you talk about third-party log aggregators, and when you send all your logs, people used to, it was pretty common that you'd
+
+21
+00:01:52.080 --> 00:01:56.160
+have log groups in CloudWatch, you'd send everything into Elasticsearch, for example, with
+
+22
+00:01:56.720 --> 00:02:01.520
+an ELK stack or Elastic stack where you funnel all your logs into one place. And then you've got a
+
+23
+00:02:01.520 --> 00:02:06.720
+big stream of all your logs from all your microservices, all your distributed applications.
+
+24
+00:02:06.720 --> 00:02:12.240
+So it's just one thing, but CloudWatch, it's quite fragmented the way they're stored. So
+
+25
+00:02:12.240 --> 00:02:16.320
+there's a two-level structure. You've got these log groups, and that's like the primary folder
+
+26
+00:02:16.320 --> 00:02:21.760
+structure for logs from a given application usually, or a given Lambda function or a given
+
+27
+00:02:21.760 --> 00:02:28.400
+container. So that's a log group. Imagine that like a folder structure. And then within the log
+
+28
+00:02:28.400 --> 00:02:33.200
+group, you've got log streams. So the number of streams you have kind of depends on the service,
+
+29
+00:02:33.200 --> 00:02:37.280
+but your log stream is like a file within that folder. When you're looking for logs,
+
+30
+00:02:37.280 --> 00:02:41.360
+because you've got multiple files, you've got multiple folders with streams and log groups,
+
+31
+00:02:41.360 --> 00:02:44.720
+you don't know where to look necessarily if you've just got those resources.
+
+32
+00:02:45.440 --> 00:02:50.720
+One other thing that it might be worthwhile mentioning for log groups is that some services
+
+33
+00:02:50.720 --> 00:02:57.680
+allow you to log to log groups. For example, you can log step functions, state executions and state
+
+34
+00:02:57.680 --> 00:03:02.160
+changes to a log group. You have to make sure that the log group starts with a certain prefix.
+
+35
+00:03:02.160 --> 00:03:06.080
+And this is something that isn't very clear in the documentation. So for Lambda, your function,
+
+36
+00:03:06.080 --> 00:03:10.560
+your log group name should start with slash AWS slash Lambda. And for step functions,
+
+37
+00:03:10.560 --> 00:03:15.840
+they should start with AWS slash states. And then for event bridge, it should be AWS slash events.
+
+38
+00:03:16.640 --> 00:03:21.040
+Sometimes it lets you use something that has a different naming convention, but it doesn't tell
+
+39
+00:03:21.040 --> 00:03:26.800
+you why your logs aren't being written. So that's one thing I'd call out just in case it helps save
+
+40
+00:03:26.800 --> 00:03:30.960
+people some time. So then you've got log streams and log groups. So the question is, how do you
+
+41
+00:03:30.960 --> 00:03:34.960
+view them? So maybe we can talk about what the case used to be like a couple of years ago, and
+
+42
+00:03:34.960 --> 00:03:37.600
+you didn't really have a lot of options. What would you use, Ligiana?
+
+43
+00:03:37.600 --> 00:03:46.080
+Yeah, mostly AWS logs tailing from the CLI.
+
+44
+00:03:46.080 --> 00:03:50.640
+That used to be one way, but to be honest, I was more in the camp, less in just everything in a big Elasticsearch cluster, because there
+
+45
+00:03:50.640 --> 00:03:55.360
+we can just keep BANA and that's a much nicer experience to use and find information that way.
+
+46
+00:03:55.360 --> 00:04:02.080
+So I think that was my preferred way to operate when I was building any sensible application.
+
+47
+00:04:05.600 --> 00:04:09.680
+For something like the serverless framework, when you deploy a Lambda function, you can use serverless framework to tell the logs in the console. That works pretty well.
+
+48
+00:04:09.680 --> 00:04:14.560
+AWS CLI has AWS logs tail command, which also works. And that allows you to,
+
+49
+00:04:15.120 --> 00:04:18.320
+saves you from going through the console and clicking through individual streams,
+
+50
+00:04:18.320 --> 00:04:23.440
+looking for logs, which is just too painful. But I was always kind of, I always found it a little
+
+51
+00:04:23.440 --> 00:04:28.320
+bit of an effort to create that Elasticsearch cluster just so you could store your logs. It
+
+52
+00:04:28.320 --> 00:04:32.400
+seems like too much infrastructure for what you were trying to do. That kind of led me to try
+
+53
+00:04:32.400 --> 00:04:38.160
+different things like log entries or Splunk or many of the other solutions out there. There are,
+
+54
+00:04:38.160 --> 00:04:42.880
+there's probably a hundred of them at this stage. And they're all pretty good in terms of user
+
+55
+00:04:42.880 --> 00:04:47.920
+interface. One of the things that stops people from using them sometimes I think is, well,
+
+56
+00:04:47.920 --> 00:04:51.440
+there are probably two things actually. One is that people don't always feel comfortable with
+
+57
+00:04:51.440 --> 00:04:55.600
+putting all of their logs in a third party. Now that depends on what kind of logs you have and
+
+58
+00:04:55.600 --> 00:04:59.600
+what kind of data is in those logs. And the other thing is that sometimes there's just a propagation
+
+59
+00:04:59.600 --> 00:05:03.920
+delay from the time logs go into CloudWatch logs and then into your third party vendor before you
+
+60
+00:05:03.920 --> 00:05:09.840
+can query them. And when you're in a production troubleshooting scenario, seconds matter.
+
+61
+00:05:10.480 --> 00:05:10.880
+Absolutely.
+
+62
+00:05:10.880 --> 00:05:16.080
+When it comes to the time for logs. So we were always on the lookout for ways you could
+
+63
+00:05:16.080 --> 00:05:22.160
+improve the experience with CloudWatch logs. So maybe before we get into the game-changing feature
+
+64
+00:05:22.160 --> 00:05:26.400
+that enabled that, should we talk about some of the other features that might be less commonly
+
+65
+00:05:26.400 --> 00:05:31.040
+used like metrics filters? It's not something I use very often, but it is pretty useful. Do you
+
+66
+00:05:31.040 --> 00:05:31.920
+want to talk about that one?
+
+67
+00:05:31.920 --> 00:05:36.800
+I'll try my best. There's also not a feature that I've been using a lot.
+
+68
+00:05:36.800 --> 00:05:43.120
+So let me know if you think I'm missing anything important. But the idea is that you can basically define a filter that is
+
+69
+00:05:43.120 --> 00:05:49.760
+like an expression that is constantly analyzing logs coming in and trying to see if your filter
+
+70
+00:05:49.760 --> 00:05:55.120
+matches the log lines. And then you can create metrics better than it. For instance, an example
+
+71
+00:05:55.120 --> 00:06:01.600
+could be count the number of 404 errors just by looking at access logs, right? Doesn't have to be
+
+72
+00:06:01.600 --> 00:06:06.320
+an API gateway. Maybe you want to count from an NGINX instance that you are running on an EC2 or
+
+73
+00:06:06.320 --> 00:06:13.120
+a container. You could create your own custom metric filter and have metrics this way.
+
+74
+00:06:13.120 --> 00:06:17.120
+Okay. So that's different to the last time we were talking about embedded metrics format, right?
+
+75
+00:06:17.120 --> 00:06:18.640
+But this is not the same thing.
+
+76
+00:06:18.640 --> 00:06:25.200
+It's not the same thing. Yeah, exactly.
+
+77
+00:06:25.200 --> 00:06:30.320
+Embedded metrics format is basically when you create log lines that are a JSON object effectively. Like you are printing a JSON object that follows a
+
+78
+00:06:30.320 --> 00:06:37.520
+specific structure that AWS recognizes. And then AWS will use that particular structure to create
+
+79
+00:06:37.520 --> 00:06:42.000
+metrics for you. So you have in that structure all the information that is needed to actually
+
+80
+00:06:42.000 --> 00:06:48.560
+push a metric into CloudWatch metrics. And that is integrated well with Lambda. And we spoke about
+
+81
+00:06:48.560 --> 00:06:54.480
+ideas that you can basically use that to integrate it with containers. Or you can use the CloudWatch
+
+82
+00:06:54.480 --> 00:07:00.400
+agent, for instance, in an EC2 instance to ingest it from this kind of log ingest metrics into
+
+83
+00:07:00.400 --> 00:07:05.920
+CloudWatch. Yeah, there is a little bit of, I guess, terminology confusion there between filter
+
+84
+00:07:05.920 --> 00:07:10.720
+and EMF metrics. But at the end of the day, the idea is that you can use logs to also create
+
+85
+00:07:10.720 --> 00:07:16.800
+metrics for still in CloudWatch, but from logs, you also create custom metrics. As we think more
+
+86
+00:07:16.800 --> 00:07:22.480
+about now that I have logs and I understand the structure of the logs, how can we
+
+87
+00:07:22.480 --> 00:07:29.440
+use these logs in different types of processing logic?
+
+88
+00:07:29.440 --> 00:07:34.880
+So you got the option to create subscriptions with CloudWatch log groups. So if you want to programmatically process them, send them
+
+89
+00:07:34.880 --> 00:07:38.640
+somewhere else, you can create subscriptions. It used to be that you could only have one subscription
+
+90
+00:07:38.640 --> 00:07:44.240
+for a log group, and then they increased that limit to two. So you can have two subscriptions.
+
+91
+00:07:45.280 --> 00:07:50.160
+I think I've heard of people having that limit raised further still, so that might be worth a try.
+
+92
+00:07:50.160 --> 00:07:55.120
+But the idea is that you can subscribe and then you can send all your logs to Lambda or to Kinesis
+
+93
+00:07:55.120 --> 00:08:00.160
+or to Kinesis Firehose. So Lambda is a good way you can process logs directly, but if you want to
+
+94
+00:08:00.160 --> 00:08:05.040
+batch things before you process them, it's a good idea to put them into a Kinesis data stream first.
+
+95
+00:08:05.040 --> 00:08:09.360
+Then you can have lots of log entries in one message and process them in Lambda from that point.
+
+96
+00:08:09.360 --> 00:08:12.880
+But you can also subscribe directly into Kinesis Firehose and Firehose will...
+
+97
+00:08:13.520 --> 00:08:17.200
+If you want to put your logs into an S3 bucket, the Firehose approach is a good way to do it.
+
+98
+00:08:17.200 --> 00:08:21.760
+But Firehose can also go to Elasticsearch. So that's one way of going into Elasticsearch.
+
+99
+00:08:21.760 --> 00:08:25.200
+And you can use Firehose to go to Splunk as well.
+
+100
+00:08:25.200 --> 00:08:28.880
+So there's lots of options there. Depending on what you've got in your logs, you can use them
+
+101
+00:08:28.880 --> 00:08:33.440
+to create metrics. Like you say, you can use EMF metrics, but if you have your own metrics format,
+
+102
+00:08:33.440 --> 00:08:37.120
+and people used to do this before EMF metrics existed, people would have a...
+
+103
+00:08:37.680 --> 00:08:42.000
+Use the StatsD format for metrics or custom format, and then you could use Lambda
+
+104
+00:08:42.000 --> 00:08:44.240
+to create the metrics with the CloudWatch API.
+
+105
+00:08:44.240 --> 00:08:47.280
+That's the story when it comes to integrating with other services.
+
+106
+00:08:47.280 --> 00:08:51.760
+We mentioned the game-changing feature for CloudWatch logs then.
+
+107
+00:08:51.760 --> 00:08:58.080
+So a year or two ago, probably two years ago, the CloudWatch logs insights feature was announced.
+
+108
+00:08:58.080 --> 00:09:00.400
+For me, this ended up being a big deal. What do you think?
+
+109
+00:09:05.040 --> 00:09:10.320
+Yeah, I consider you a CloudWatch log insights ninja, because every time I have to search something CloudWatch, I struggle with the syntax,
+
+110
+00:09:10.320 --> 00:09:15.040
+because of course it's a new syntax and you need to know all the different features.
+
+111
+00:09:15.040 --> 00:09:18.560
+And Eoin already mastered all of that, so he's my reference.
+
+112
+00:09:18.560 --> 00:09:22.000
+But yeah, other than that, I think it's a pretty powerful thing,
+
+113
+00:09:22.000 --> 00:09:25.600
+because it really gives you effectively a query language that you can use to go
+
+114
+00:09:26.400 --> 00:09:31.360
+and search for stuff, not just in a log stream, but you can even look for things
+
+115
+00:09:31.360 --> 00:09:34.480
+in multiple log streams together. So it's very powerful, for instance,
+
+116
+00:09:34.480 --> 00:09:37.040
+when you're trying to troubleshoot a problem,
+
+117
+00:09:37.040 --> 00:09:41.040
+on a particular distributed system, maybe you have all sorts of different components,
+
+118
+00:09:41.040 --> 00:09:46.240
+multiple lambdas, containers running, and you know more or less what's the time
+
+119
+00:09:46.240 --> 00:09:50.880
+where you are looking for particular evidence of an issue or try to understand the problem.
+
+120
+00:09:50.880 --> 00:09:54.560
+You can construct queries using all sorts of different properties.
+
+121
+00:09:54.560 --> 00:09:57.280
+We'll talk more about how to have structured logs.
+
+122
+00:09:58.000 --> 00:10:03.280
+And with CloudWatch logs insight, you literally have all the power to do that from
+
+123
+00:10:03.280 --> 00:10:07.760
+a web interface and you get the results and you can use that to dig deeper
+
+124
+00:10:07.760 --> 00:10:11.200
+until you find the results you're looking for or the evidence you're looking for.
+
+125
+00:10:15.200 --> 00:10:20.320
+You mentioned that the syntax you use for querying with CloudWatch logs insights, and I really like it actually. Maybe for a lot of people it would be nice if you could
+
+126
+00:10:20.320 --> 00:10:24.320
+use the Lucene syntax that people are familiar with from Elasticsearch and Kibana,
+
+127
+00:10:24.880 --> 00:10:29.440
+but I never really got to grips with that fully. So I actually prefer this syntax
+
+128
+00:10:29.440 --> 00:10:34.080
+and it's pretty easy to remember once you have got to grips with some of the things you can do.
+
+129
+00:10:34.080 --> 00:10:39.680
+So it's essentially like a Unix pipe format where you create different,
+
+130
+00:10:39.680 --> 00:10:43.280
+it's like a pipeline for filtering and searching your logs. So you can say filter
+
+131
+00:10:44.160 --> 00:10:49.840
+a given field for a given string or a numeric value or Boolean operator or regex.
+
+132
+00:10:50.720 --> 00:10:55.520
+And then you can extract fields, you can parse strings and actually,
+
+133
+00:10:55.520 --> 00:11:01.600
+even if it's unstructured text, you can parse numbers, strings, or whatever from
+
+134
+00:11:01.600 --> 00:11:06.160
+an arbitrary piece of text, again using regular expressions. And then you can do statistics.
+
+135
+00:11:06.160 --> 00:11:13.360
+So you can almost treat it like a metrics query engine then. So you can extract numbers and do,
+
+136
+00:11:14.160 --> 00:11:18.240
+it's almost like SQL in that case. So you could find the number of users
+
+137
+00:11:18.240 --> 00:11:23.520
+who have logged into your system in five second buckets. And then you can do
+
+138
+00:11:23.520 --> 00:11:30.480
+five second buckets using this syntax. And then you can sort and you get the results back in the
+
+139
+00:11:30.480 --> 00:11:35.920
+AWS console. You can use the API for this as well, but the API I find is a little bit cumbersome for
+
+140
+00:11:35.920 --> 00:11:42.160
+Dog Insights. But if you have some programmatic cases, you can give that a try as well.
+
+141
+00:11:42.880 --> 00:11:50.160
+So I really like it actually. I only wish there were a few extra features that would really
+
+142
+00:11:50.160 --> 00:11:57.040
+make this as usable as all the third party systems out there. So I use this every day. I use this
+
+143
+00:11:57.040 --> 00:12:00.800
+multiple times a day across multiple different applications, but there are some limits and those
+
+144
+00:12:00.800 --> 00:12:08.000
+limits get to me. Yeah.
+
+145
+00:12:08.000 --> 00:12:15.120
+One example that comes to mind when we just want to present a case where this was useful is in a project I worked on recently where in particular workflows, we write
+
+146
+00:12:15.120 --> 00:12:20.400
+a lot of files to S3. We needed to troubleshoot something related to the creation of these files.
+
+147
+00:12:20.960 --> 00:12:26.560
+And one of the things we do, we have a common utility library that allows us to write all
+
+148
+00:12:26.560 --> 00:12:32.480
+these files in S3 in a consistent way. And this library also happens to write logs in a somewhat
+
+149
+00:12:32.480 --> 00:12:37.840
+structured way. There is always a line saying something like creating a file called blah in
+
+150
+00:12:37.840 --> 00:12:45.760
+this bucket called blah and the size of the file is this. And what we did, that was the easiest way
+
+151
+00:12:45.760 --> 00:12:49.760
+to find the results we were looking for was literally, okay, let's go to CloudWatch Insights.
+
+152
+00:12:49.760 --> 00:12:55.040
+We know we produce all these logs consistently. We know that the time span we are trying to
+
+153
+00:12:55.040 --> 00:12:59.840
+understand this particular problem. So let's just set CloudWatch logs inside this time span. Let's
+
+154
+00:12:59.840 --> 00:13:05.840
+just create a parse expression to find these particular lines and extrapolate the number
+
+155
+00:13:05.840 --> 00:13:10.800
+of kilobytes I think we were looking for. So we basically managed to build a query that way
+
+156
+00:13:10.800 --> 00:13:14.800
+and figure out, okay, we are creating this many files in this amount of time and this is the size
+
+157
+00:13:14.800 --> 00:13:19.360
+of files that we are creating. So this is just a random example of the kind of things you could do.
+
+158
+00:13:19.920 --> 00:13:24.080
+And it's very flexible because in that case, we didn't even have structured logs, but we were able
+
+159
+00:13:24.080 --> 00:13:29.520
+to extrapolate information from text effectively by using the parse functionality.
+
+160
+00:13:30.400 --> 00:13:34.800
+That's nice. We talked about these metric logs before.
+
+161
+00:13:34.800 --> 00:13:40.400
+So we talked about EMF metrics and then other less structured ones or not JSON structured like StatsD format where you start with monitoring
+
+162
+00:13:40.400 --> 00:13:45.600
+pipe, the metric name pipe, the unit pipe value. So you could use CloudWatch logs insights to parse
+
+163
+00:13:45.600 --> 00:13:50.240
+that, extracted all the fields, extracted the metric, the value of the unit, and then say,
+
+164
+00:13:50.240 --> 00:13:58.960
+give me the maximum metric value for a five minute value and group by the time segment, but also
+
+165
+00:13:58.960 --> 00:14:06.320
+the user's country code. And that kind of stuff works really well. You can do with EMF metrics.
+
+166
+00:14:06.320 --> 00:14:10.480
+And if we go back to our metrics episode, we were talking about how CloudWatch metrics
+
+167
+00:14:11.360 --> 00:14:15.200
+only gives you like one minute aggregations. Usually you can't get any finer grain than
+
+168
+00:14:15.200 --> 00:14:19.680
+that unless you have high cardinality custom metrics. But once you've got those metrics
+
+169
+00:14:19.680 --> 00:14:26.000
+in your logs, you can query and do really powerful things with this interface, CloudWatch logs insights.
+
+170
+00:14:26.000 --> 00:14:28.240
+So some of the limitations... Sorry, go ahead, Lucio.
+
+171
+00:14:34.240 --> 00:14:39.840
+Before we go into the limitation, another useful feature is the fact that you can save the queries persistently. And one of the things we did with one of our customers is that we have an operational
+
+172
+00:14:39.840 --> 00:14:46.240
+playbook for some of the alarms that we have created. And when those alarms fire, we go in
+
+173
+00:14:46.240 --> 00:14:51.680
+kind of an incident mode where we need to try to troubleshoot and resolve the particular problem.
+
+174
+00:14:51.680 --> 00:14:57.600
+And we have in this playbook links to the CloudWatch logs inside page that point specifically
+
+175
+00:14:57.600 --> 00:15:03.840
+to particular queries where we have effectively some placeholders that we can fill to try to find
+
+176
+00:15:03.840 --> 00:15:09.600
+the answers on what's actually going on for that incident. So that's another very useful feature.
+
+177
+00:15:09.600 --> 00:15:14.000
+It's something that you can do also, for instance, in Kibana. So it's not like an innovation in the
+
+178
+00:15:14.000 --> 00:15:19.120
+market, but again, it kind of remarks the point that now that the reason for using a third party
+
+179
+00:15:19.120 --> 00:15:24.480
+system is becoming less and less relevant, right? Because you can do all these things natively in
+
+180
+00:15:24.480 --> 00:15:29.440
+AWS. Yeah, I agree. That's a useful one.
+
+181
+00:15:29.440 --> 00:15:35.760
+And another useful feature worth mentioning is that you can export the data. So you can export it right now. Interestingly enough, exporting it
+
+182
+00:15:35.760 --> 00:15:41.280
+log lines, you can export to CSV or Markdown. And I don't know why these are the first two chosen
+
+183
+00:15:41.280 --> 00:15:48.000
+options. A text file would have been the immediate first option I'd prefer because I end up like
+
+184
+00:15:48.000 --> 00:15:56.160
+downloading the CSV and turning the CSV into a text file. So maybe this brings us onto some of
+
+185
+00:15:56.160 --> 00:16:01.760
+the gaps and the limitations of CloudWatch logs insights. So in terms of limitations, one of the
+
+186
+00:16:01.760 --> 00:16:07.120
+ones people cite often saying that it's kind of a barrier for the adoption is the limit of 20 log
+
+187
+00:16:07.120 --> 00:16:10.640
+groups. As you mentioned, it's good that you can query across multiple log groups in a distributed
+
+188
+00:16:10.640 --> 00:16:17.440
+system, but why is the limit 20? I personally find that it doesn't cause me a problem often because
+
+189
+00:16:17.440 --> 00:16:22.000
+20 log groups is generally quite a broad area. But if you compare it to something like Cabana where
+
+190
+00:16:22.000 --> 00:16:26.880
+all of your logs are in one place, then it's a difference, right? So you have to be more selective.
+
+191
+00:16:28.800 --> 00:16:34.000
+So it would be good to see the limit raised on that. And it would also be good if you could kind
+
+192
+00:16:34.000 --> 00:16:38.800
+of save those groups of logs. So you can run multiple... You could have say a collection of
+
+193
+00:16:38.800 --> 00:16:44.000
+log groups that related to part of your application. And then you can run different
+
+194
+00:16:44.000 --> 00:16:47.520
+queries against that collection of log groups. So another kind of safe feature.
+
+195
+00:16:48.080 --> 00:16:52.880
+And the other limitation that you can run into sometimes is that the results you're limited to
+
+196
+00:16:53.520 --> 00:17:00.960
+10,000 log entries, 9,999 to be precise. But I mean, that's okay if you're browsing in the
+
+197
+00:17:00.960 --> 00:17:04.960
+console, that's more than you generally want to read. But if you wanted to programmatically
+
+198
+00:17:04.960 --> 00:17:10.240
+extract a large volume, then once you hit that limit, you end up having to try and use time
+
+199
+00:17:10.240 --> 00:17:17.520
+ranges to extend it to another page. There's not an inbuilt support for pagination across
+
+200
+00:17:17.520 --> 00:17:22.320
+volumes greater than 10,000, which is a pity. Yeah.
+
+201
+00:17:22.320 --> 00:17:27.520
+And that's, I think, something a little bit confusing when combined with the export data functionality, because it's not obvious that you
+
+202
+00:17:27.520 --> 00:17:33.600
+are exporting only that much as a maximum bound. So sometimes you feel like, okay, this is just
+
+203
+00:17:33.600 --> 00:17:39.360
+generating a big file. It gave me all the data. Now be careful, you might have missed some data.
+
+204
+00:17:39.360 --> 00:17:42.800
+If you hit that limit, it's not going to go more than that particular limit.
+
+205
+00:17:49.280 --> 00:17:53.360
+So in the user interface, one of the things I miss is when you find some error, for example, often what you want to do and what you can do with some of the third parties is find nearby
+
+206
+00:17:53.360 --> 00:17:57.920
+related logs. So if you can imagine you're searching across 20 log groups and you found
+
+207
+00:17:57.920 --> 00:18:02.400
+an error, then you got a stack trace, but you're only seeing the errors at that point. So immediately
+
+208
+00:18:02.400 --> 00:18:07.360
+you want to say, okay, well, I want to see all the other messages related to that request in that
+
+209
+00:18:07.360 --> 00:18:12.640
+Lambda function five seconds before and five seconds afterwards. And the only way to do that
+
+210
+00:18:12.640 --> 00:18:19.120
+right now is to find the request ID and put it into a new query and to continually start editing
+
+211
+00:18:19.120 --> 00:18:25.520
+your query to do drill downs from an error back to related logs and then into another log stream.
+
+212
+00:18:25.520 --> 00:18:29.440
+So it would be nice to have a little bit more of a user experience improvement where you could
+
+213
+00:18:31.040 --> 00:18:34.400
+click on a request and find your via related logs very quickly, for example.
+
+214
+00:18:34.400 --> 00:18:40.080
+Yeah, that would be very useful. I think I had a few occasions where I wished I had that feature.
+
+215
+00:18:40.080 --> 00:18:45.760
+One thing that I want to remark is that because we mentioned a few times that this is something
+
+216
+00:18:45.760 --> 00:18:50.160
+that can give you capabilities that are very close to metrics because you can get this kind
+
+217
+00:18:50.160 --> 00:18:56.000
+of information. But one thing to really understand is that the model of storing this information
+
+218
+00:18:56.000 --> 00:19:00.160
+and receiving the data is entirely different when you are using CloudWatch logs inside
+
+219
+00:19:00.160 --> 00:19:04.800
+and when you're using metrics. Metrics are already highly optimized for quick retrieval
+
+220
+00:19:04.800 --> 00:19:09.440
+and quick aggregation, just the way that this data is stored. Logs are effectively not. You
+
+221
+00:19:09.440 --> 00:19:13.680
+can imagine them as being text files somewhere. And every time you run a query, you are literally
+
+222
+00:19:13.680 --> 00:19:18.640
+scanning through all these text files. I know that AWS is probably very, very smart because
+
+223
+00:19:18.640 --> 00:19:23.280
+you get results in pretty reasonable time. So probably they parallelize this data in some very
+
+224
+00:19:23.280 --> 00:19:28.480
+efficient way. But nonetheless, you are scanning through large amounts of data. And actually,
+
+225
+00:19:28.480 --> 00:19:33.280
+interesting enough, from the UI, you can see how much data you are actually scanning for every
+
+226
+00:19:33.280 --> 00:19:38.560
+single query you run. And the reason why I wanted to remark this point, which is maybe not so
+
+227
+00:19:38.560 --> 00:19:43.840
+obvious, because of course, this has a direct impact on cost because of course, every query
+
+228
+00:19:43.840 --> 00:19:47.440
+is not necessarily cheap depending on how much data you are scanning.
+
+229
+00:19:51.520 --> 00:19:58.080
+Yeah, it's actually one of the few areas in the AWS console where you can see the billing units update in real time because the volume of data scanned is being updated multiple times.
+
+230
+00:19:58.080 --> 00:20:00.960
+Multiple times per second as the query is running.
+
+231
+00:20:06.000 --> 00:20:11.920
+Yeah, one thing actually I found myself doing very often is when I'm building a new query, of course, I'm not confident in my log insight skills as you probably are. So it takes me a while,
+
+232
+00:20:11.920 --> 00:20:15.600
+a little bit of trial and error before I fine tune my query to do what I want to do.
+
+233
+00:20:15.600 --> 00:20:20.080
+So I just run a very generic query, but then I try to stop it as soon as I see some results.
+
+234
+00:20:20.080 --> 00:20:24.240
+Because of course, it doesn't make sense to keep it going for a large amount of time if I know this
+
+235
+00:20:24.240 --> 00:20:29.120
+is not going to be my final query. So I kind of progress in small increments and I found it very
+
+236
+00:20:29.120 --> 00:20:33.760
+nice that you can stop the queries before you actually keep scanning gigabytes and gigabytes
+
+237
+00:20:33.760 --> 00:20:40.960
+of logs. So that's a neat trick and it's good to see that indicator going up that reminds you,
+
+238
+00:20:40.960 --> 00:20:45.120
+you maybe don't want to pay for this query if you don't have your final query right there.
+
+239
+00:20:46.480 --> 00:20:51.520
+Yeah, and the queries can run for up to 15 minutes, right? So that gives an idea of the
+
+240
+00:20:51.520 --> 00:20:56.640
+volumes it can process, but also the potential cost. So maybe that's a good segue into the
+
+241
+00:20:56.640 --> 00:21:02.720
+pricing topic. I know that you can scan up to five gigabytes of data for free in the free tier.
+
+242
+00:21:03.280 --> 00:21:09.040
+After that, we're looking at 57 cents for ingestion of data into CloudWatch logs, right?
+
+243
+00:21:09.040 --> 00:21:15.840
+So this is, sorry, this is storage, right? So storage and ingestion, over 50 cents to ingest,
+
+244
+00:21:15.840 --> 00:21:22.240
+and then 3 cents per gigabyte per for storing your logs. So you can compare that to your third
+
+245
+00:21:22.240 --> 00:21:28.480
+party log aggregator and see how the cost compares. Then when it comes to log insights queries,
+
+246
+00:21:28.480 --> 00:21:34.720
+there's a price per gigabyte scanned, which is like just over half a cent per gigabyte.
+
+247
+00:21:34.720 --> 00:21:40.880
+So you can imagine terabytes that starts to escalate. It kind of scared me a little bit when
+
+248
+00:21:40.880 --> 00:21:44.320
+I saw this first and when I started running queries at log insights for the first time,
+
+249
+00:21:44.320 --> 00:21:48.080
+the fact that all of a sudden you start running queries, you can run into big bills.
+
+250
+00:21:48.080 --> 00:21:54.000
+It hasn't materialized in any kind of bill shock yet. I found that the cost, especially compared
+
+251
+00:21:54.000 --> 00:21:56.880
+to the value when you're troubleshooting and looking for insights with issues,
+
+252
+00:21:56.880 --> 00:22:01.680
+I found this to be a good value for money feature personally. It's one of the areas where I wouldn't
+
+253
+00:22:01.680 --> 00:22:06.400
+gripe too much about the pricing.
+
+254
+00:22:06.400 --> 00:22:11.520
+Yeah, especially if you already have done your work in terms of structuring metrics and alarms, or you already have other indicators for what you're looking for,
+
+255
+00:22:11.520 --> 00:22:15.440
+you can probably just be very selective, for instance, with the time ranges.
+
+256
+00:22:16.000 --> 00:22:20.400
+And that will limit the amount of logs you're going to be scanning every time you run a query.
+
+257
+00:22:21.040 --> 00:22:26.880
+Yeah, yeah, absolutely. Yeah. And I would say compare it to the third party options out there.
+
+258
+00:22:26.880 --> 00:22:30.320
+Some of them may offer a much cheaper option depending on your usage, because it would be down
+
+259
+00:22:30.320 --> 00:22:36.480
+to volume ingested, volume storage, the retention, and then also other third party options might be
+
+260
+00:22:36.480 --> 00:22:40.400
+related to the number of users you have on the system as well. So there's different dimensions
+
+261
+00:22:40.400 --> 00:22:45.920
+to consider. And here might as well vary.
+
+262
+00:22:45.920 --> 00:22:51.280
+Yeah, maybe one final topic before we wrap up this episode is to discuss, I don't know, suggestions or tips that we might have in terms of
+
+263
+00:22:51.840 --> 00:22:56.880
+when you produce your logs, is there anything you might do that will make your life easier
+
+264
+00:22:56.880 --> 00:23:00.560
+in the future? Right? Do you have any recommendation in that sense?
+
+265
+00:23:02.160 --> 00:23:06.800
+I would always start with using structured JSON logs.
+
+266
+00:23:06.800 --> 00:23:11.280
+And I think this has been a major improvement when it comes to being able to run queries. It means you don't have to parse
+
+267
+00:23:11.840 --> 00:23:16.560
+logs yourself. So previously there used to be kind of a trade-off between human readable logs
+
+268
+00:23:16.560 --> 00:23:22.000
+and structured logs. I think now people tend to favor structured logs because it's much easier
+
+269
+00:23:22.000 --> 00:23:26.000
+to query and parse and programmatically interpret. And if you need to present them for human
+
+270
+00:23:26.000 --> 00:23:31.440
+readability, you can process them. What do you think is that? Would you also agree that structured
+
+271
+00:23:31.440 --> 00:23:36.640
+logs are the way to go? I would agree.
+
+272
+00:23:36.640 --> 00:23:41.040
+And for a long time, I've seen those Apache Access Log format standards, which I think is exactly what you described. It was a good compromise
+
+273
+00:23:41.040 --> 00:23:46.160
+between readability, but also something that you can easily parse. But of course, that comes with
+
+274
+00:23:46.720 --> 00:23:50.880
+the problem that once you have the kind of standard, the standard is very limited. There
+
+275
+00:23:50.880 --> 00:23:55.520
+is only so many fields that the standard is giving you. While in real life, if you want to go outside
+
+276
+00:23:55.520 --> 00:24:00.880
+the domain, for instance, of access logs, you probably want to log a lot more details in terms
+
+277
+00:24:00.880 --> 00:24:07.200
+of fields and attributes and things that you care about for troubleshooting. So going with JSON is
+
+278
+00:24:07.200 --> 00:24:12.000
+kind of an obvious strategy at that point, because we have total freedom of logging all sorts of
+
+279
+00:24:12.000 --> 00:24:17.280
+different fields that might make sense for your application. And then, as you said, CloudWatch logs
+
+280
+00:24:17.280 --> 00:24:22.240
+inside will already have parse every single field for you. And those fields are already available
+
+281
+00:24:22.240 --> 00:24:28.480
+for you to query. So that's a great way. And I've seen even web frameworks starting to go in this
+
+282
+00:24:28.480 --> 00:24:34.160
+direction. For instance, if you use loggers like Pino in the Node.js land, Pino will automatically
+
+283
+00:24:34.160 --> 00:24:38.720
+give you JSON logging, but also has a bunch of utilities that allow you to pre-deprint those
+
+284
+00:24:38.720 --> 00:24:43.600
+JSON logs. So they are kind of coming at the problem from the two different angles of let's
+
+285
+00:24:43.600 --> 00:24:47.600
+make it useful and easy to process. But at the same time, if you need to read those logs, you
+
+286
+00:24:47.600 --> 00:24:54.480
+have all the tooling that allows you to do that. Yeah, I love Pino. It's a really good logger.
+
+287
+00:24:54.480 --> 00:24:59.120
+And I've used it a lot for things like Lambda functions. So I know that Pino allows you to say
+
+288
+00:24:59.680 --> 00:25:06.080
+have nested loggers and to put contextual data into your logs as well. So what kind of
+
+289
+00:25:07.360 --> 00:25:11.440
+additional data helps you to get better results when you start querying later?
+
+290
+00:25:12.400 --> 00:25:17.600
+Yeah, I think definitely given that in AWS, we are building more and more distributed systems.
+
+291
+00:25:17.600 --> 00:25:21.840
+One thing that you would definitely need to make sure you have is a correlation like this.
+
+292
+00:25:21.840 --> 00:25:28.160
+So for every log, if that log is something that you can consider part of a transaction in a way
+
+293
+00:25:28.160 --> 00:25:33.200
+or a request from a user and you have a unique ID for that particular transaction or request,
+
+294
+00:25:33.200 --> 00:25:37.920
+make sure that it is propagated through all the different components that are trying to satisfy
+
+295
+00:25:37.920 --> 00:25:42.800
+that particular request. Because at that point, if you have a correlation ID for something that
+
+296
+00:25:42.800 --> 00:25:48.560
+went wrong, maybe a specific request failed, you can easily query and get a unified view of all
+
+297
+00:25:48.560 --> 00:25:53.520
+the logs with that particular correlation ID. And that's literally just one filter looking at one
+
+298
+00:25:53.520 --> 00:25:59.200
+field where you know correlation ID equal a specific value. So that's something I found
+
+299
+00:25:59.200 --> 00:26:03.760
+extremely useful, especially recently to troubleshoot particular issues.
+
+300
+00:26:03.760 --> 00:26:07.520
+It takes a little bit of diligence to make sure that you have that information is propagated
+
+301
+00:26:07.520 --> 00:26:12.240
+correctly everywhere. But as you say, if you use loggers like Pino, they have built-in features
+
+302
+00:26:12.240 --> 00:26:18.480
+that can help you to make sure that information is correctly propagated everywhere. Other things
+
+303
+00:26:18.480 --> 00:26:26.080
+is similarly you can have trace IDs if you're using tracing like X-ray or maybe if you use
+
+304
+00:26:26.080 --> 00:26:30.640
+open tracing, you can also put that trace information in your logs and that can help you
+
+305
+00:26:30.640 --> 00:26:37.120
+out to correlate logs with traces. I remember for instance, one thing I really liked from using
+
+306
+00:26:37.120 --> 00:26:42.480
+data log in the past is that they push you to do that. And also when you look for traces,
+
+307
+00:26:42.480 --> 00:26:46.560
+for every single trace, you see like a window with all the logs that have the same trace ID.
+
+308
+00:26:46.560 --> 00:26:50.720
+And sometimes that can be very useful. So hopefully we'll have something similar eventually
+
+309
+00:26:50.720 --> 00:26:54.080
+in CloudWatch. I don't know if it's already possible in some other way, but.
+
+310
+00:27:01.680 --> 00:27:06.720
+I know that the service lens part of the AWS console is a going in this direction, but I still, I haven't really played with it very extensively. So I know the idea is to show you all
+
+311
+00:27:06.720 --> 00:27:11.360
+these things at the same time, but I don't know if it's up to the level of some of the third parties
+
+312
+00:27:11.360 --> 00:27:16.480
+out there with a really slick responsive user interface for that. I still tend to do that.
+
+313
+00:27:16.480 --> 00:27:22.640
+Do things manually and dive from one tab to the other to correlate things.
+
+314
+00:27:24.000 --> 00:27:29.040
+Yeah.
+
+315
+00:27:29.040 --> 00:27:34.160
+One last thing to be aware about is that of course, when you log in a structured way, you might be very tempted to just log entire objects without even thinking like,
+
+316
+00:27:34.160 --> 00:27:39.200
+what are you actually printing? Right. Because it's like, okay, just, if something bad happens,
+
+317
+00:27:39.200 --> 00:27:43.520
+chances are, I want to see these entire objects. I think it's a reasonable way of thinking about
+
+318
+00:27:43.520 --> 00:27:49.280
+logs, but be careful with that mindset because you might be end up logging sensitive information.
+
+319
+00:27:49.280 --> 00:27:53.920
+What happens if it's, I don't know, a payment lambda, and you might end up logging credit
+
+320
+00:27:53.920 --> 00:28:00.400
+card details or personal information about the user. So there are ways, and again, it comes to
+
+321
+00:28:00.400 --> 00:28:05.680
+different libraries. There are ways that you can anonymize this data before it gets logged.
+
+322
+00:28:05.680 --> 00:28:12.560
+So just, I don't have like a silver bullet type of solution for you, but just be aware of the
+
+323
+00:28:12.560 --> 00:28:17.200
+problem and check out different libraries and what kind of support they give you and try to see if
+
+324
+00:28:17.200 --> 00:28:23.280
+they can be applied to your use case.
+
+325
+00:28:23.280 --> 00:28:27.920
+Completely agree with investing some time in X-Ray and trying to get the trace IDs in there. Cause I really like the way X-Ray really kind of
+
+326
+00:28:27.920 --> 00:28:32.320
+covers all the services now and gives you a very, very good view. Not only is it good for
+
+327
+00:28:32.320 --> 00:28:38.480
+troubleshooting, but it's also in distributed world when you've got lots of tiny components
+
+328
+00:28:38.480 --> 00:28:42.320
+running together and event-based communication with each other, it's sometimes very difficult
+
+329
+00:28:42.320 --> 00:28:45.920
+to visualize your architecture and keep your architecture diagrams up to date. But X-Ray is
+
+330
+00:28:45.920 --> 00:28:51.520
+actually good for that too, because it will almost, the diagrams emerge from your traces
+
+331
+00:28:51.520 --> 00:28:56.480
+and then you can get very good performance data as well as troubleshooting for errors in X-Ray too.
+
+332
+00:28:56.480 --> 00:29:00.880
+And then if you link it to your logs, you've got a very, I would say high level of maturity when
+
+333
+00:29:00.880 --> 00:29:06.400
+it comes to troubleshooting.
+
+334
+00:29:06.400 --> 00:29:12.080
+Yeah, I think the ideal goal is that if you imagine, like you are giving a user-facing experience, like somebody calling an API or loading a webpage, if you could
+
+335
+00:29:12.080 --> 00:29:18.560
+kind of leave the same experience that you gave to your user, to your observability stack, I think
+
+336
+00:29:18.560 --> 00:29:23.520
+that's the ultimate dream where you can literally say, okay, this is what was happening. And this
+
+337
+00:29:23.520 --> 00:29:27.360
+was the speed and this was the components involved. And these are the logs for the component.
+
+338
+00:29:27.360 --> 00:29:31.200
+And then you see that the entire architecture respond into that request and everything that
+
+339
+00:29:31.200 --> 00:29:36.880
+happened. I think we are getting close. I think these days we have all the tooling, maybe takes
+
+340
+00:29:36.880 --> 00:29:41.040
+a little bit of effort in configuring everything correctly, but I think that this kind of
+
+341
+00:29:41.040 --> 00:29:45.760
+observability dream is not a dream anymore. It's something that it is achievable with a little bit
+
+342
+00:29:45.760 --> 00:29:52.800
+of effort. So definitely something to look forward, especially for heavy user-facing products where
+
+343
+00:29:52.800 --> 00:29:56.320
+you really want to make sure you are always giving the best possible user experience.
+
+344
+00:29:56.320 --> 00:30:02.000
+Exactly. And it is part of the well-architected framework to get this level of observability.
+
+345
+00:30:02.000 --> 00:30:08.080
+And it's probably the days of looking in a single access dot log with grep and awk are well behind
+
+346
+00:30:08.080 --> 00:30:14.000
+us with a distributed serverless architecture or microservices architecture. So to address some of
+
+347
+00:30:14.000 --> 00:30:18.880
+the complexity that these modern architectures give you, you have to fill that gap with good
+
+348
+00:30:18.880 --> 00:30:24.400
+observability. So it is worth investing the time and probably upfront actually. So if you're
+
+349
+00:30:24.400 --> 00:30:30.080
+starting a new project, adding X-ray, structured logs, metrics, the tools, the plugins we talked
+
+350
+00:30:30.080 --> 00:30:35.840
+about in the previous episode, they're all there and it's pretty low barrier to entry to get going.
+
+351
+00:30:35.840 --> 00:30:41.200
+It takes more time if you're retrofitting it to an application you've already been running in
+
+352
+00:30:41.200 --> 00:30:46.640
+production for a year or more. Yeah, I totally agree with that.
+
+353
+00:30:46.640 --> 00:30:53.680
+So yeah, I think with this, we have covered probably a lot. So this is probably a good point to try to summarize this
+
+354
+00:30:53.680 --> 00:30:59.280
+episode and then finish up. I don't know if you're feeling that you are now closer to be a CloudWatch,
+
+355
+00:30:59.280 --> 00:31:04.320
+Log Insights Ninja or Log Ninja in general. Probably not, but nonetheless, I hope that we
+
+356
+00:31:04.320 --> 00:31:09.440
+gave you a lot of good suggestions and that you can get value out of them. And by the way, as with
+
+357
+00:31:09.440 --> 00:31:14.640
+any other episodes of this podcast, if you think that there are better ways to do the things that
+
+358
+00:31:14.640 --> 00:31:19.440
+we are recommending, definitely let us know in the chat or comments in whatever platform you're
+
+359
+00:31:19.440 --> 00:31:23.920
+using or reach out to us on Twitter, because we'd be more than interested in having a conversation.
+
+360
+00:31:23.920 --> 00:31:30.080
+We are sure we can always learn a thing or two from our audience. So thank you very much for
+
+361
+00:31:30.080 --> 00:31:34.480
+being with us. We definitely recommend you to check out the metrics episode if we haven't done
+
+362
+00:31:34.480 --> 00:32:01.120
+it already and we'll see you at the next episode. Bye.

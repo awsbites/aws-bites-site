@@ -1,0 +1,793 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:02.760
+In today's episode, we'll be discussing a fascinating topic,
+
+2
+00:00:02.860 --> 00:00:04.760
+the benefits of functionless applications.
+
+3
+00:00:04.860 --> 00:00:06.000
+Yep, you heard that right.
+
+4
+00:00:06.100 --> 00:00:08.840
+We'll be exploring how to reduce the number of Lambda functions.
+
+5
+00:00:08.940 --> 00:00:10.680
+Don't worry, we still love Lambda.
+
+6
+00:00:10.780 --> 00:00:12.740
+But let's be fair, reducing the number of Lambda functions
+
+7
+00:00:12.840 --> 00:00:15.480
+can simplify your applications, resulting in lower latency,
+
+8
+00:00:15.580 --> 00:00:17.740
+no cold starts, and cheaper costs.
+
+9
+00:00:17.840 --> 00:00:20.680
+So today we'll learn how to use service proxies to forward requests
+
+10
+00:00:20.780 --> 00:00:24.060
+directly to AWS services without the need for a Lambda function.
+
+11
+00:00:24.160 --> 00:00:26.220
+My name is Eoin, and I'm here with Luciano
+
+12
+00:00:26.320 --> 00:00:28.620
+for another episode of the AWS Bites podcast.
+
+13
+00:00:28.620 --> 00:00:30.620
+AWS Bites is sponsored by fourTheorem.
+
+14
+00:00:30.720 --> 00:00:34.300
+fourTheorem is an AWS partner for migration, architecture, and training.
+
+15
+00:00:34.400 --> 00:00:36.300
+Find out more at fortheorem.com.
+
+16
+00:00:36.400 --> 00:00:38.200
+The link is in the show notes.
+
+17
+00:00:38.300 --> 00:00:40.300
+So what are we talking about today?
+
+18
+00:00:40.400 --> 00:00:43.100
+Well, let's say you've built an API with API Gateway,
+
+19
+00:00:43.200 --> 00:00:46.440
+and you want to forward the request to another AWS service like SQS.
+
+20
+00:00:46.540 --> 00:00:47.940
+This is a really common pattern.
+
+21
+00:00:48.040 --> 00:00:50.140
+Your Lambda function isn't necessarily doing that much
+
+22
+00:00:50.240 --> 00:00:52.780
+except wiring the database to the other server.
+
+23
+00:00:52.880 --> 00:00:55.380
+So let's say you're building an API with API Gateway,
+
+24
+00:00:55.380 --> 00:00:58.720
+your Lambda function isn't necessarily doing that much except wiring the data
+
+25
+00:00:58.820 --> 00:01:01.820
+you get from the API into the service at the backend.
+
+26
+00:01:01.920 --> 00:01:05.420
+So you don't necessarily need to use a Lambda function to do this at all.
+
+27
+00:01:05.520 --> 00:01:07.960
+You can use service proxies instead.
+
+28
+00:01:08.060 --> 00:01:11.060
+You're still using API Gateway, but you're skipping the Lambda step
+
+29
+00:01:11.160 --> 00:01:14.240
+and forwarding the request directly to the destination service.
+
+30
+00:01:14.340 --> 00:01:17.140
+So Luciano, are there some example use cases
+
+31
+00:01:17.240 --> 00:01:19.680
+that this is particularly good for?
+
+32
+00:01:22.540 --> 00:01:25.320
+Yeah, this seems pretty exciting, and I'm already thinking about some potentially interesting use cases.
+
+33
+00:01:25.420 --> 00:01:29.480
+For instance, I think a very common one is you want to store click data
+
+34
+00:01:29.580 --> 00:01:32.580
+on an e-commerce is one we always mention, right?
+
+35
+00:01:32.680 --> 00:01:34.680
+And if you do that through an API,
+
+36
+00:01:34.780 --> 00:01:37.260
+because you want to collect this data through the web,
+
+37
+00:01:37.360 --> 00:01:40.420
+most often you create a Lambda, and then you send that data to Kinesis.
+
+38
+00:01:40.520 --> 00:01:44.360
+So why do we have that Lambda in the first place just to do this mapping, right?
+
+39
+00:01:44.460 --> 00:01:47.160
+If you could remove that Lambda, it would be nice if you could just send the data
+
+40
+00:01:47.260 --> 00:01:50.000
+from API Gateway directly to Kinesis.
+
+41
+00:01:50.000 --> 00:01:53.000
+So that would be a really cool example, I believe.
+
+42
+00:01:53.100 --> 00:01:56.380
+Similarly, other examples we've mentioned many times
+
+43
+00:01:56.480 --> 00:01:58.840
+is you just need to put records to DynamoDB.
+
+44
+00:01:58.940 --> 00:02:02.340
+So there is a very specific type of request you receive through an API call
+
+45
+00:02:02.440 --> 00:02:06.780
+and probably want to store most of it in a DynamoDB type as a record
+
+46
+00:02:06.880 --> 00:02:09.460
+with some maybe minimal data manipulation.
+
+47
+00:02:09.560 --> 00:02:12.460
+We generally used to do that with a Lambda. Do we really need that Lambda?
+
+48
+00:02:12.560 --> 00:02:16.500
+Maybe we can do the data manipulation by using this new feature.
+
+49
+00:02:16.500 --> 00:02:22.600
+And another one could be if you want to do some kind of event-based system,
+
+50
+00:02:22.700 --> 00:02:27.400
+maybe you are receiving, I don't know, jobs that you can process from an SQS queue.
+
+51
+00:02:27.500 --> 00:02:30.480
+So you receive that request through the web, API Gateway receives the request,
+
+52
+00:02:30.580 --> 00:02:34.080
+you just want to send that payload to SQS.
+
+53
+00:02:34.180 --> 00:02:37.280
+That's one example. Or similarly, you might be using SNS or Event Bridge
+
+54
+00:02:37.380 --> 00:02:39.920
+just to propagate an event.
+
+55
+00:02:40.020 --> 00:02:44.820
+And I think it's important to call out what are the pros and cons of this approach,
+
+56
+00:02:44.820 --> 00:02:47.720
+because of course it's not a silver bullet for everything.
+
+57
+00:02:47.820 --> 00:02:50.560
+I think we still use Lambda for many other use cases.
+
+58
+00:02:50.660 --> 00:02:53.860
+So let's try to figure out when this kind of approach is useful
+
+59
+00:02:53.960 --> 00:02:57.200
+and when it gets a little bit more challenging.
+
+60
+00:02:57.300 --> 00:03:00.340
+So in terms of pros, for sure, lower latency,
+
+61
+00:03:00.440 --> 00:03:04.240
+because you have a direct integration between two services.
+
+62
+00:03:04.340 --> 00:03:09.040
+You are not waiting for a Lambda to spin up, to execute and do all the API calls,
+
+63
+00:03:09.140 --> 00:03:11.720
+but that API call will be done directly by AWS.
+
+64
+00:03:11.720 --> 00:03:15.260
+So most likely much lower latency if you use this approach.
+
+65
+00:03:15.360 --> 00:03:17.960
+And again, that means no call starts.
+
+66
+00:03:18.060 --> 00:03:22.200
+So, and not creating a new Lambda for that specific use case.
+
+67
+00:03:22.300 --> 00:03:27.060
+So that's probably giving you more capacity available in your Lambda pool to do other stuff.
+
+68
+00:03:27.160 --> 00:03:29.740
+So if you're not in your account, you have lots of Lambdas,
+
+69
+00:03:29.840 --> 00:03:33.780
+that's kind of giving you more space to do more useful work with your Lambdas.
+
+70
+00:03:33.880 --> 00:03:36.840
+It's going to be cheaper because again, you are not executing that compute
+
+71
+00:03:36.940 --> 00:03:38.380
+and you're going to be paying for that compute.
+
+72
+00:03:38.480 --> 00:03:40.580
+So that's going to lower down your cost.
+
+73
+00:03:40.580 --> 00:03:44.820
+And in general, I think there is a concept of you are going to be maintaining less code.
+
+74
+00:03:44.920 --> 00:03:47.960
+You will have less code to understand, write, deploy.
+
+75
+00:03:48.060 --> 00:03:51.060
+So I think in general, the cognitive load of the team
+
+76
+00:03:51.160 --> 00:03:55.600
+or people working in this project in general, it's going to be much lower.
+
+77
+00:03:55.700 --> 00:03:58.400
+Now, it seems amazing. So where does it fall down?
+
+78
+00:03:58.500 --> 00:04:00.500
+What are the cons of this approach?
+
+79
+00:04:00.600 --> 00:04:05.200
+Well, the first one and the most obvious one is that you have to use this VTL templating language,
+
+80
+00:04:05.300 --> 00:04:09.180
+which I haven't heard anyone actually loving it so far.
+
+81
+00:04:09.180 --> 00:04:11.940
+So that's going to be definitely on the con side.
+
+82
+00:04:12.040 --> 00:04:16.120
+So it's basically a language that allows you to do some kind of templating to map
+
+83
+00:04:16.220 --> 00:04:21.480
+how are you going to reshape the input data to send the request to the downstream AWS service.
+
+84
+00:04:21.580 --> 00:04:24.660
+And then also you have to send a response back to the client.
+
+85
+00:04:24.760 --> 00:04:28.420
+So how do you manipulate data to create that response as well?
+
+86
+00:04:28.520 --> 00:04:31.360
+So to define all this mapping, you need to use VTL.
+
+87
+00:04:31.460 --> 00:04:33.960
+And again, it's not the most intuitive language ever.
+
+88
+00:04:34.060 --> 00:04:37.740
+It's not super easy to learn. People complain a lot about that.
+
+89
+00:04:37.740 --> 00:04:40.400
+And it's also a little bit tricky to find a good example.
+
+90
+00:04:40.500 --> 00:04:44.540
+So that's maybe one of the reasons why nobody's really loving VTL.
+
+91
+00:04:44.640 --> 00:04:50.540
+It might be a bit complicated to set up and it's not well supported by some serverless framework.
+
+92
+00:04:50.640 --> 00:04:54.680
+So you might need to be spending a little bit of time there just to figure out how do you make it work.
+
+93
+00:04:54.780 --> 00:04:59.420
+And the other bit is not going to be super straightforward to debug
+
+94
+00:04:59.520 --> 00:05:03.020
+because maybe you set up something, then it doesn't really work.
+
+95
+00:05:03.120 --> 00:05:07.100
+Where do you even start looking for trying to figure out what did you do wrong?
+
+96
+00:05:07.100 --> 00:05:09.960
+And we'll have some suggestions later on on this.
+
+97
+00:05:10.060 --> 00:05:14.140
+I remember using VTL or Velocity template language,
+
+98
+00:05:14.240 --> 00:05:17.780
+I think it was like back in 2006 or something like that,
+
+99
+00:05:17.880 --> 00:05:20.080
+like building a custom reporting solution.
+
+100
+00:05:20.180 --> 00:05:21.980
+So there's lots of templating languages out there.
+
+101
+00:05:22.080 --> 00:05:23.380
+Velocity is one of the older ones.
+
+102
+00:05:23.480 --> 00:05:24.940
+So it's an interesting choice.
+
+103
+00:05:25.040 --> 00:05:28.580
+It's based on an Apache project from the Java ecosystem.
+
+104
+00:05:28.680 --> 00:05:32.320
+And it's okay when you're just using it as a templating system.
+
+105
+00:05:32.420 --> 00:05:35.360
+You have your inputs, you can run the template, generate the outputs.
+
+106
+00:05:35.360 --> 00:05:37.220
+But when it's tightly integrated into API Gateway,
+
+107
+00:05:37.320 --> 00:05:39.900
+it can definitely be difficult to troubleshoot.
+
+108
+00:05:40.000 --> 00:05:43.500
+So the whole experience of building this end to end, let's give an example.
+
+109
+00:05:43.600 --> 00:05:46.900
+Let's say you want to build an API to receive some data from a sensor.
+
+110
+00:05:47.000 --> 00:05:50.880
+So for example, let's say in my greenhouse and growing tomatoes,
+
+111
+00:05:50.980 --> 00:05:53.080
+and I want to monitor the temperature of this greenhouse.
+
+112
+00:05:53.180 --> 00:05:54.480
+So I've got a sensor in there.
+
+113
+00:05:54.580 --> 00:05:58.920
+And this supports sending the data from the sensor to a HTTPS endpoint.
+
+114
+00:05:59.020 --> 00:06:02.280
+So I want to bring up a HTTPS endpoint where it can send the data,
+
+115
+00:06:02.380 --> 00:06:04.520
+then I can monitor the temperature of the greenhouse,
+
+116
+00:06:04.520 --> 00:06:08.460
+find out it's not getting too hot and turning my tomatoes into pizza sauce.
+
+117
+00:06:08.560 --> 00:06:10.260
+So how would we do this?
+
+118
+00:06:10.360 --> 00:06:14.760
+Well, you'd start off by creating your REST API resource in CloudFormation,
+
+119
+00:06:14.860 --> 00:06:16.460
+as we would normally do.
+
+120
+00:06:16.560 --> 00:06:20.360
+You normally have to create the API and a stage and then a resource type,
+
+121
+00:06:20.460 --> 00:06:23.700
+all this usual kind of hierarchy of resources
+
+122
+00:06:23.800 --> 00:06:26.400
+until you get down to the actual HTTP method.
+
+123
+00:06:26.500 --> 00:06:29.940
+So at that point, you want to say, okay, here's my post action
+
+124
+00:06:30.040 --> 00:06:32.920
+for this sensor readings resource.
+
+125
+00:06:32.920 --> 00:06:38.080
+And it's in this method where you configure this AWS service proxy integration.
+
+126
+00:06:38.180 --> 00:06:42.320
+So with these integrations, there are different types you can choose from.
+
+127
+00:06:42.420 --> 00:06:46.460
+And then one you'd normally use for a Lambda function is AWS proxy.
+
+128
+00:06:46.560 --> 00:06:52.160
+But you can also have a HTTP type that's just used for proxying the request
+
+129
+00:06:52.260 --> 00:06:53.700
+to another web server.
+
+130
+00:06:53.800 --> 00:06:56.740
+You have the Mock one, which is also quite commonly used,
+
+131
+00:06:56.840 --> 00:07:01.840
+especially for just generating static responses like options,
+
+132
+00:07:01.840 --> 00:07:04.080
+method responses for cores.
+
+133
+00:07:04.180 --> 00:07:05.280
+That's quite common.
+
+134
+00:07:05.380 --> 00:07:07.520
+If you use the serverless framework or SAM,
+
+135
+00:07:07.620 --> 00:07:09.520
+it'll normally generate those ones for you
+
+136
+00:07:09.620 --> 00:07:11.480
+and you don't even have to worry about it.
+
+137
+00:07:11.580 --> 00:07:13.880
+And then there's the AWS integration type.
+
+138
+00:07:13.980 --> 00:07:17.060
+So when you use the AWS integration type, that's the one that says,
+
+139
+00:07:17.160 --> 00:07:22.000
+okay, I want you to integrate this API gateway method into an AWS service.
+
+140
+00:07:22.100 --> 00:07:27.240
+And then you specify a URI, and that's essentially an ARN for the AWS API.
+
+141
+00:07:27.340 --> 00:07:31.500
+So it's something like SQS actions send message.
+
+142
+00:07:31.500 --> 00:07:34.180
+Because you're making that API request,
+
+143
+00:07:34.280 --> 00:07:37.580
+you need to give this method a role that it can assume.
+
+144
+00:07:37.680 --> 00:07:40.880
+So it's a role with a trust policy that trusts API gateway
+
+145
+00:07:40.980 --> 00:07:45.160
+and allows you to perform whatever action you want, like a SQS send message.
+
+146
+00:07:45.260 --> 00:07:49.060
+And then you could basically use your velocity templating language, your VTL,
+
+147
+00:07:49.160 --> 00:07:54.660
+to map the input you get into the input that is required by that API.
+
+148
+00:07:54.760 --> 00:07:59.540
+And that's usually a little bit where it starts to get difficult,
+
+149
+00:07:59.540 --> 00:08:02.140
+difficult to develop, difficult to troubleshoot,
+
+150
+00:08:02.240 --> 00:08:07.440
+especially because sometimes you need to basically generate
+
+151
+00:08:07.540 --> 00:08:10.740
+form encoded syntax.
+
+152
+00:08:10.840 --> 00:08:14.720
+So it's not as easy as just generating JSON always.
+
+153
+00:08:14.820 --> 00:08:17.480
+But once you've done that, you can also do the same thing with the response.
+
+154
+00:08:17.580 --> 00:08:19.480
+So if you get a response back from this API,
+
+155
+00:08:19.580 --> 00:08:23.320
+you can either return a static response for different error codes
+
+156
+00:08:23.420 --> 00:08:26.220
+and different even content type headers,
+
+157
+00:08:26.220 --> 00:08:29.460
+you can return different responses back to your client.
+
+158
+00:08:29.560 --> 00:08:33.600
+So there's nothing you can shield the underlying implementation completely
+
+159
+00:08:33.700 --> 00:08:35.000
+from your API consumers.
+
+160
+00:08:35.100 --> 00:08:39.640
+They don't have to know SQS or Kinesis or whatever it is under the hood.
+
+161
+00:08:39.740 --> 00:08:43.040
+So in a lot of ways, many people who've worked with AppSync
+
+162
+00:08:43.140 --> 00:08:44.880
+are actually a lot more familiar with this
+
+163
+00:08:44.980 --> 00:08:46.820
+than people who are working with API gateway
+
+164
+00:08:46.920 --> 00:08:52.180
+because with AppSync resolvers traditionally are also using VTL.
+
+165
+00:08:52.280 --> 00:08:54.360
+The difference is now in AppSync,
+
+166
+00:08:54.360 --> 00:08:57.160
+you have the great new option of using JavaScript resolvers.
+
+167
+00:08:57.260 --> 00:08:59.820
+That option isn't there yet in API gateway,
+
+168
+00:08:59.920 --> 00:09:02.160
+but it's something that might come, who knows?
+
+169
+00:09:02.260 --> 00:09:04.760
+And by the way, this kind of integration is supported
+
+170
+00:09:04.860 --> 00:09:08.160
+in the version one and version two of API gateway.
+
+171
+00:09:08.260 --> 00:09:13.340
+So the rest API method and in the HTTP API method.
+
+172
+00:09:13.440 --> 00:09:18.240
+We did mention that debugging all of this stuff can be tricky,
+
+173
+00:09:18.340 --> 00:09:20.980
+but you can use the test feature in API gateway console,
+
+174
+00:09:20.980 --> 00:09:25.080
+which can give you some details on all the steps of your API
+
+175
+00:09:25.180 --> 00:09:28.980
+as it goes through the different life cycles and gives you logs as well.
+
+176
+00:09:29.080 --> 00:09:31.960
+And also you'd want to probably set up some good local development tooling
+
+177
+00:09:32.060 --> 00:09:34.820
+where you can run these templates with sample inputs as well.
+
+178
+00:09:34.920 --> 00:09:36.260
+That just makes sense.
+
+179
+00:09:36.360 --> 00:09:39.800
+Almost the same as if you're doing a step function development really.
+
+180
+00:09:41.160 --> 00:09:44.000
+I think that's probably everything we can cover on the topic,
+
+181
+00:09:44.100 --> 00:09:45.900
+but there are some really good resources out there actually.
+
+182
+00:09:46.000 --> 00:09:49.080
+So there are some people who have been talking about this functionless approach
+
+183
+00:09:49.080 --> 00:09:51.100
+to developing serverless applications.
+
+184
+00:09:51.200 --> 00:09:54.680
+There's a really good blog post from a few years ago from Alex DeBrie
+
+185
+00:09:54.780 --> 00:09:57.720
+with a great example of doing this with SNS.
+
+186
+00:09:57.820 --> 00:10:01.620
+Sheen Brisals also has a great article on writing functionless applications,
+
+187
+00:10:01.720 --> 00:10:05.420
+writing less code and covers a lot of ways to reduce the number of lambda functions
+
+188
+00:10:05.520 --> 00:10:08.900
+in your architecture, including a service proxy example.
+
+189
+00:10:09.000 --> 00:10:15.200
+And there's a great article on this style of development as well from Paul Swail
+
+190
+00:10:15.300 --> 00:10:17.900
+called Some Code is More Equal than Others.
+
+191
+00:10:17.900 --> 00:10:20.100
+So we'll link all of those in the show notes.
+
+192
+00:10:20.200 --> 00:10:23.200
+And we're very interested to hear if anybody there has done something really cool
+
+193
+00:10:23.300 --> 00:10:25.240
+with service proxies as well.
+
+194
+00:10:25.340 --> 00:10:26.840
+🍅 Like growing tomatoes, right?
+
+195
+00:10:26.940 --> 00:10:27.940
+🤣 Mm-hmm.
+
+196
+00:10:28.040 --> 00:10:29.540
+So that's all we have for this episode.
+
+197
+00:10:29.640 --> 00:10:31.780
+Thanks very much. Don't forget to like and subscribe.
+
+198
+00:10:31.880 --> 00:10:33.520
+And we'll see you in the next episode.

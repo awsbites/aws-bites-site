@@ -1,0 +1,1101 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:04.560
+How do you get the most out of CloudWatch alarms? Last time we covered CloudWatch metrics and with
+
+2
+00:00:04.560 --> 00:00:08.880
+CloudWatch metrics you can get out of the box metrics for AWS services and you can create your
+
+3
+00:00:08.880 --> 00:00:13.520
+own custom metrics for technical data points as well as business level metrics. But in this
+
+4
+00:00:13.520 --> 00:00:17.280
+episode we're going to discuss what can you do with alarms? So what are the different types of
+
+5
+00:00:17.280 --> 00:00:21.840
+alarms? How do you create them? What can you do when your alarm gets triggered? We're going to go
+
+6
+00:00:21.840 --> 00:00:26.320
+through a few useful examples, types of alarms you can create and we'll also talk about some of the
+
+7
+00:00:26.320 --> 00:00:31.680
+drawbacks of CloudWatch alarms and tips to overcome them. My name is Eoin, I'm joined by Luciano and
+
+8
+00:00:31.680 --> 00:00:44.560
+this is the AWS Bites podcast. Last time that we discussed CloudWatch metrics and one of the most
+
+9
+00:00:44.560 --> 00:00:49.520
+important things you can do with those metrics is to create alarms and that is our topic for today.
+
+10
+00:00:49.520 --> 00:00:53.520
+Luciano what are the different types of alarms you can create with CloudWatch alarms?
+
+11
+00:00:53.520 --> 00:00:59.520
+Yeah there are essentially two types of alarms. What we call metric alarm is the first time which is basically
+
+12
+00:00:59.520 --> 00:01:04.800
+an alarm based on a single metric and if you want to make it a little bit fancier you can also use
+
+13
+00:01:04.800 --> 00:01:11.200
+mathematical expression to basically announce the value that you extrapolate for the metric and do
+
+14
+00:01:11.200 --> 00:01:16.480
+some calculation with it. And another type of alarms is what we can call composite alarms
+
+15
+00:01:17.040 --> 00:01:22.080
+and those are effectively what the name says so you take different alarms and you combine them
+
+16
+00:01:22.080 --> 00:01:28.000
+together and you can build additional alarm on top of that. So as an example you can say if this
+
+17
+00:01:28.000 --> 00:01:33.680
+alarm fire and this other alarm fire I want to fire another alarm. What do we want to say first
+
+18
+00:01:33.680 --> 00:01:39.840
+how do metrics work? Maybe we can give an example of how to create one alarm.
+
+19
+00:01:39.840 --> 00:01:45.200
+Yeah that sounds good so there's a couple of things you need to specify when you create one. First of all you pick your
+
+20
+00:01:45.200 --> 00:01:50.800
+metric. If we're just talking about a simple metric alarm example let's say we want to monitor CPU
+
+21
+00:01:50.800 --> 00:01:57.040
+usage on our EC2 instances then we'll pick the metric AWS slash EC2 that's the namespace
+
+22
+00:01:57.680 --> 00:02:02.800
+and the metric is CPU utilization. So once you pick the metric then you need to specify your
+
+23
+00:02:02.800 --> 00:02:09.280
+threshold so are you going to put an alarm on 90 utilization for example and you pick then a
+
+24
+00:02:09.280 --> 00:02:15.120
+comparison operator greater than greater or equal to less than and then you can specify the period.
+
+25
+00:02:15.120 --> 00:02:20.720
+So we know from our last episode on metrics that you have a period of say one minute five minutes
+
+26
+00:02:20.720 --> 00:02:25.680
+15 minutes so what do you what period do you want your alarm to be based on and then the statistical
+
+27
+00:02:25.680 --> 00:02:31.520
+function. Are you looking at the average over that minute the maximum and then you can specify a
+
+28
+00:02:31.520 --> 00:02:36.480
+number of periods. So what you're doing then is you're saying to cloud watch I want you to look at
+
+29
+00:02:37.120 --> 00:02:43.040
+the average CPU utilization over three minute periods for example then you can specify how
+
+30
+00:02:43.040 --> 00:02:47.840
+many data points of those three will trigger an alarm. So you could say three out of three
+
+31
+00:02:47.840 --> 00:02:54.080
+if all of the if the threshold has been breached for three successive data points then alarm or two
+
+32
+00:02:54.080 --> 00:02:58.960
+out of three or one out of three or you could just have one data point it's completely up to you and
+
+33
+00:02:58.960 --> 00:03:04.080
+how sensitive you want this alarm to be. What that gives you then is an alarm on CPU utilization if
+
+34
+00:03:04.080 --> 00:03:08.560
+it's above or equal 90 percent on average for at least two minutes of the last three minutes say
+
+35
+00:03:09.680 --> 00:03:13.440
+and then the last thing you need to be considered is if you want to be alerted. So if you do want
+
+36
+00:03:13.440 --> 00:03:17.760
+to be alerted you'll probably need an SNS topic and alerts will be sent to that topic and then
+
+37
+00:03:17.760 --> 00:03:22.160
+you have a lot of options in terms of what you do with those messages otherwise you can just see the
+
+38
+00:03:22.160 --> 00:03:28.960
+messages in the AWS management console or from the CLI. It's not ideal and not very reactive you have
+
+39
+00:03:28.960 --> 00:03:34.000
+to be a lot more proactive so you have to get the balance right I guess get the right amount of
+
+40
+00:03:34.000 --> 00:03:38.240
+noise but not not get too noisy. We give one example there right on CPU utilization are there
+
+41
+00:03:38.240 --> 00:03:44.320
+any other use cases you can think of that call to mind?
+
+42
+00:03:44.320 --> 00:03:50.320
+Yeah just a few that come to mind are for instance if you're monitoring a load balancer you can check the latency and see if that latency
+
+43
+00:03:50.320 --> 00:03:56.160
+is going above a certain threshold for a certain amount of time. You can also create billing alerts
+
+44
+00:03:56.160 --> 00:04:00.560
+these are probably some of the most useful ones and some of the ones you should create
+
+45
+00:04:00.560 --> 00:04:07.440
+as soon as possible so with those you can monitor if your projected expenditure is going above a
+
+46
+00:04:07.440 --> 00:04:11.600
+certain threshold that probably is going to be like your billing budget or something like that
+
+47
+00:04:11.600 --> 00:04:16.880
+and you can use that to stop some services and see maybe if there is a bug that is causing you to
+
+48
+00:04:16.880 --> 00:04:21.840
+to spend a lot of money on AWS and react before that bill becomes very very big.
+
+49
+00:04:22.720 --> 00:04:27.840
+And other ones for instance that I've seen to be very very useful when building APIs
+
+50
+00:04:27.840 --> 00:04:34.640
+you can monitor API gateway and see the number of 500 errors and you can have alarms that check
+
+51
+00:04:34.640 --> 00:04:40.240
+maybe if you have an increased error rate that way and those can be useful to spot bugs for instance.
+
+52
+00:04:40.240 --> 00:04:46.960
+So I think we will yeah we have more examples in in the next sections but I think those are
+
+53
+00:04:46.960 --> 00:04:52.240
+very good example to understand just different kinds of alarms that you can create not just for
+
+54
+00:04:52.240 --> 00:04:57.600
+application errors but also for billing or for latency so it's a range of different things you
+
+55
+00:04:57.600 --> 00:05:02.640
+can do with them.
+
+56
+00:05:02.640 --> 00:05:07.760
+Yeah it might be worth mentioning that there's we think about alarms as alerts but alarms are always in one of three states so the state you want them to be is in the okay state
+
+57
+00:05:07.760 --> 00:05:12.720
+the state you fear the most is the alarm state and then the third state is actually somewhere in
+
+58
+00:05:12.720 --> 00:05:17.680
+between that's called insufficient data and that that's the state it gets into if you don't have
+
+59
+00:05:17.680 --> 00:05:22.160
+enough metrics for that much to be able to determine which state it's actually in. So often
+
+60
+00:05:22.160 --> 00:05:25.680
+when you create a metric for the first time if you don't have enough data it'll end up in insufficient
+
+61
+00:05:25.680 --> 00:05:31.680
+data so that's what that's about and any alert so if you're talking about SNS alerts or anything like
+
+62
+00:05:31.680 --> 00:05:37.120
+that you can alert on any state not just the alarm state. So that's a good example of that
+
+63
+00:05:37.120 --> 00:05:42.080
+just the alarm state. Yeah that's a alert me when it goes on alarm but also alert me alert me when it
+
+64
+00:05:42.080 --> 00:05:47.040
+goes back into okay.
+
+65
+00:05:47.040 --> 00:05:52.320
+That's a very good clarification because the naming can be a little bit confusing I think generally when we talk about alarms we think about the alarm state so when things are
+
+66
+00:05:52.320 --> 00:05:58.560
+bad but in AWS CloudWatch the term alarm is just that configuration and then you need to look at
+
+67
+00:05:58.560 --> 00:06:03.360
+the state to understand yes are we in a good situation are we in a bad situation or you can
+
+68
+00:06:03.360 --> 00:06:08.240
+as you said you can even look for are we just recovering from a bad situation because you can
+
+69
+00:06:08.240 --> 00:06:15.200
+create alarms that tell you you sorry you can create notifications that tell you okay you were
+
+70
+00:06:15.200 --> 00:06:20.400
+bad before you were in an alarm state before and now we are finally back into okay state and if
+
+71
+00:06:20.400 --> 00:06:25.520
+you use things like chatbots we'll mention some of them later on that can be very useful to see
+
+72
+00:06:25.520 --> 00:06:30.400
+because maybe if you have a noisy configuration sometimes you realize okay this thing triggered
+
+73
+00:06:30.400 --> 00:06:36.080
+an event I'm seeing an issue but then immediately afterwards I see that the issue resolved itself
+
+74
+00:06:36.080 --> 00:06:39.280
+and that means you don't really need to do anything maybe you can tweak a little bit your
+
+75
+00:06:39.280 --> 00:06:43.920
+configuration to reduce the noise but you don't have like an immediate need to fix anything.
+
+76
+00:06:45.360 --> 00:06:51.520
+What do you think is the best way to actually get notified then if you want to react in a reasonable
+
+77
+00:06:51.520 --> 00:06:55.920
+time frame and you want to also avoid noise what's the best tooling that you can apply for
+
+78
+00:06:55.920 --> 00:07:02.800
+notifications?
+
+79
+00:07:02.800 --> 00:07:10.560
+Yeah so we there are different ways that you can basically be notified when when the state of an alarm changes and probably the most common that I used to see in the past
+
+80
+00:07:11.200 --> 00:07:17.120
+is not necessarily the one I would recommend is sns to an email so you get you configure your
+
+81
+00:07:17.120 --> 00:07:22.560
+alarm and you say every time this condition happens send an sns event and then from that
+
+82
+00:07:22.560 --> 00:07:27.680
+sns event you can dispatch the event somewhere else so the most common one I've seen in the
+
+83
+00:07:27.680 --> 00:07:32.800
+past was email but I am not a big fan of that one because I remember a few years ago when I
+
+84
+00:07:32.800 --> 00:07:38.880
+was trying to use this you will literally get a big wall of text on an email and it's not the
+
+85
+00:07:38.880 --> 00:07:44.400
+most intuitive way of understanding when you have to go in an emergency and try to fix something
+
+86
+00:07:44.400 --> 00:07:48.400
+like it takes a while for you to process even what's just written there in the email and
+
+87
+00:07:48.400 --> 00:07:55.440
+make sense of it so there are more sophisticated ways today and one is like totally custom you can
+
+88
+00:07:55.440 --> 00:08:00.640
+just send the sns to a lambda and then you can do whatever you want with it and that really depends
+
+89
+00:08:00.640 --> 00:08:06.080
+on how you structure your teams and your operations for instance if you use tools like pager duty you
+
+90
+00:08:06.080 --> 00:08:12.240
+could use the lambda to send the event to pager duty and then manage the incident that way or you
+
+91
+00:08:12.240 --> 00:08:18.720
+can build the lambda to integrate with other systems that you might want to use another
+
+92
+00:08:18.720 --> 00:08:24.080
+interesting way if you for instance want to use a chat platform because maybe you do that kind of
+
+93
+00:08:24.080 --> 00:08:29.440
+operation based on slack or teams or something else there is of course you can do it with a
+
+94
+00:08:29.440 --> 00:08:33.120
+lambda you can do it yourself and build the integration that way but there is a tool from
+
+95
+00:08:33.120 --> 00:08:40.960
+aws called aws chatbot so you can send the alarm from sns to aws chatbot and aws chatbot has already
+
+96
+00:08:40.960 --> 00:08:46.720
+built in a lot of nice things like you get a very good user experience when you integrate it with
+
+97
+00:08:46.720 --> 00:08:52.960
+slack or chime you get very nice preview of the message describing what's what the incident is
+
+98
+00:08:52.960 --> 00:08:58.640
+about the only issues that as far as i know right now microsoft teams is not supported yeah and and
+
+99
+00:08:58.640 --> 00:09:04.080
+i've been working in many companies using microsoft teams as the primary system so in that case you
+
+100
+00:09:09.840 --> 00:09:14.880
+are a little bit on your own to find other tools or to write your own integration yeah i really like the chatbot experience actually it's pretty easy to set up once you've got your topic chatbot
+
+101
+00:09:14.880 --> 00:09:21.200
+is pretty slick for setting up and writing your own integration into slack and has become a little
+
+102
+00:09:21.200 --> 00:09:25.520
+bit more involved you have to create kind of create an app now you can't just fire data at
+
+103
+00:09:25.520 --> 00:09:29.600
+a webhook at least they don't want you to so aws chatbot has kind of solved all that for you and
+
+104
+00:09:41.120 --> 00:09:45.920
+gives you a really nice message so what do we do after we get notified what can we do with that in janitor that's a good question so you can have all these i suppose manual intervention is going to be completely dependent on the kind of alarm you're dealing with you know um but there's also some
+
+105
+00:09:45.920 --> 00:09:51.360
+automated interventions so apart from sns there's there's some other actions you can take that are
+
+106
+00:09:51.360 --> 00:09:59.200
+actually like automated remediation and you could like you say you can use sns to lambda or you
+
+107
+00:09:59.200 --> 00:10:04.320
+could target you know systems manager automation for remediation there's so much you could do there
+
+108
+00:10:04.320 --> 00:10:09.440
+but they're out of the box you if you're talking about ec2 ec2 metric alarms can also trigger ec2
+
+109
+00:10:09.440 --> 00:10:14.880
+actions so you could say if your cpu utilization is getting too high then reboot the instance or
+
+110
+00:10:14.880 --> 00:10:19.200
+terminate the instance and you know if you've got some legacy application with a memory leak and
+
+111
+00:10:19.200 --> 00:10:25.120
+that's your only option i guess that's um one kind of path you could take um you can also trigger an
+
+112
+00:10:25.120 --> 00:10:29.520
+auto-scaling action and this is probably where a lot of people may have used alarms in the past
+
+113
+00:10:29.520 --> 00:10:34.480
+maybe without even realizing it because uh alarms and auto-scaling kind of go well together
+
+114
+00:10:35.200 --> 00:10:39.920
+so you're scaling essentially in response to the observation of a metric breaching a
+
+115
+00:10:39.920 --> 00:10:43.840
+threshold so that could be an ec2 auto-scaling group or and that could be you know based on
+
+116
+00:10:43.840 --> 00:10:48.880
+number of requests or some of your load balancer metrics but it could also be an ecs service auto
+
+117
+00:10:48.880 --> 00:10:54.240
+scaling an example of that before and i think we've raised this one a few times is if you've
+
+118
+00:10:54.240 --> 00:11:01.840
+got a pool of workers doing some jobs batch processing say in an ecs cluster then you could
+
+119
+00:11:01.840 --> 00:11:06.400
+scale based on the number of messages in a queue like an sqs queue that they're pulling their
+
+120
+00:11:06.400 --> 00:11:11.200
+actual jobs from and that's that's a good way to handle it because you could have you know a
+
+121
+00:11:11.200 --> 00:11:16.960
+standard default maybe a five or so workers working away by default but then if a large
+
+122
+00:11:16.960 --> 00:11:21.040
+volume comes into the queue you might want to scale up to a certain limit and alarms are really
+
+123
+00:11:21.040 --> 00:11:25.360
+good for that i don't use a lot of the many features in systems manager but i know as well
+
+124
+00:11:25.360 --> 00:11:29.200
+there's there's some things you can do there if you're using some of the incident management
+
+125
+00:11:29.200 --> 00:11:33.440
+features like you can create an ops item if you're using opcenter and you can also create
+
+126
+00:11:33.440 --> 00:11:39.040
+incidents and systems manager so there's um there's quite a lot you can do um
+
+127
+00:11:40.880 --> 00:11:46.240
+but i suppose one of the challenges with alarms and one of the reasons people probably shy away
+
+128
+00:11:46.240 --> 00:11:50.480
+from them is because people have experience with very noisy alarms and it can be very
+
+129
+00:11:50.480 --> 00:11:55.360
+difficult to actually know what's going along going on when the default state is that things
+
+130
+00:11:55.360 --> 00:12:01.120
+are always an alarm and then people just stop trusting the value of them so composite alarms
+
+131
+00:12:01.120 --> 00:12:05.200
+are is something you mentioned at the start do you want to talk about maybe some examples for
+
+132
+00:12:10.560 --> 00:12:14.880
+you to use composite alarms and how they compare to just the simple single metric alarms sure yeah before that i like what you said because i there is a quote that i really like that is when
+
+133
+00:12:14.880 --> 00:12:20.320
+everything is an emergency nothing is an emergency right so i think that we can say the same with with
+
+134
+00:12:20.320 --> 00:12:26.400
+alarms like if if the alarm system is always noisy you stop being concerned right that becomes your
+
+135
+00:12:26.400 --> 00:12:31.040
+norm and you are not really trying to react anymore and fix things so that that's something
+
+136
+00:12:31.040 --> 00:12:36.080
+to be aware i i would also caveat that at the beginning when you start to set up your alarms
+
+137
+00:12:36.080 --> 00:12:41.040
+it's probably a good idea to be to try to be a little bit noisy so you can find actually the
+
+138
+00:12:41.040 --> 00:12:45.120
+threshold that work for you so initially probably there is a little bit of a tuning phase where you
+
+139
+00:12:45.120 --> 00:12:51.840
+try to find what your threshold should be like for you to actually be effective anyway back to
+
+140
+00:12:51.840 --> 00:12:56.560
+composite alarms i i think composite alarm are actually relevant to this topic because they can
+
+141
+00:12:56.560 --> 00:13:02.000
+be one tool that you can use to make things a little bit less noisy and one example i have is
+
+142
+00:13:02.000 --> 00:13:07.520
+that it's very common for instance when you build apis with api gateway and lambda to have individual
+
+143
+00:13:07.520 --> 00:13:14.320
+alarms both on for instance on lambda failures but also 500 errors on api gateway and if you have both
+
+144
+00:13:14.320 --> 00:13:19.520
+what happens when a lambda failed you get a 500 on api gateway so you are basically alarming twice
+
+145
+00:13:20.240 --> 00:13:26.720
+and one way that you can remove a little bit of noise is that of course you need to create both
+
+146
+00:13:26.720 --> 00:13:32.960
+alarms but then you are going to fire an alarm event on sns using a composite alarm so that
+
+147
+00:13:32.960 --> 00:13:37.280
+basically means that you take the two alarms together you combine them with a boolean expression
+
+148
+00:13:37.280 --> 00:13:44.320
+saying if either one or the other for instance fire then fire the other composite alarm and then
+
+149
+00:13:44.320 --> 00:13:49.760
+you only receive a notification for the composite alarm so this this way you are nice effectively
+
+150
+00:13:49.760 --> 00:13:57.680
+flipping uh two alarms but being notified only on one of them um yeah i don't know if you have
+
+151
+00:13:57.680 --> 00:14:02.400
+other examples when composite alarms can be useful but i think they are just a nice way to
+
+152
+00:14:02.400 --> 00:14:07.840
+reduce noise maybe you can also build more complicated rules maybe in some cases you can
+
+153
+00:14:07.840 --> 00:14:13.040
+use that to combine different metrics and then maybe only when you see a certain combination
+
+154
+00:14:13.040 --> 00:14:17.600
+of matrix happening then it really makes sense for you to allow this is maybe another example
+
+155
+00:14:24.960 --> 00:14:29.840
+where composite alarms can be useful yeah yeah it's very flexible in that way one of the other points about i suppose the usability so noise is one factor that's important for usability another
+
+156
+00:14:29.840 --> 00:14:34.400
+one is that we've frequently talked about separating lots of different services and
+
+157
+00:14:34.400 --> 00:14:38.400
+applications and environments into different accounts so the question then becomes how do
+
+158
+00:14:38.400 --> 00:14:43.200
+you keep an eye on alarms and metrics across multiple accounts and multiple regions even
+
+159
+00:14:44.240 --> 00:14:52.400
+and it is possible to do this without having to open dozens of tabs in your web browser dozens of
+
+160
+00:14:52.400 --> 00:14:57.520
+and dozens of containers or whatever way you can manage different accounts because cross-region
+
+161
+00:14:57.520 --> 00:15:02.640
+metrics you get out of the box so you can switch you can view alarms and metrics from the console
+
+162
+00:15:02.640 --> 00:15:06.560
+already but if you're talking about cross account you just have to do a little bit of setup so for
+
+163
+00:15:06.560 --> 00:15:10.640
+every account that you want to share metrics from you just need to say okay i'm going to share it
+
+164
+00:15:10.640 --> 00:15:16.560
+with this central monitoring account and give the account number and then on the monitoring account
+
+165
+00:15:16.560 --> 00:15:21.440
+side you just say okay i'm going to pull in metrics from these 20 accounts across my organization or
+
+166
+00:15:21.440 --> 00:15:26.160
+all accounts across my organization and then you can start to look at things from one dashboard
+
+167
+00:15:26.160 --> 00:15:31.920
+and from you know a single pane of glass essentially without having to log out and log in or switch tabs
+
+168
+00:15:31.920 --> 00:15:37.360
+and that makes it a lot easier so i think that's yeah worth mentioning in this multi-account world
+
+169
+00:15:38.800 --> 00:15:43.680
+so maybe it's worthwhile if we talk about some more useful use cases for alarms right to see
+
+170
+00:15:43.680 --> 00:15:48.080
+if we can give some inspiration for people who are maybe not using alarms extensively and can
+
+171
+00:15:48.080 --> 00:15:52.800
+start getting cracking and making their lives easier and make maybe reduce the operational
+
+172
+00:15:52.800 --> 00:15:57.120
+overhead that's what they're for after all right especially if you can predict errors before they
+
+173
+00:15:57.120 --> 00:16:03.920
+can happen where will we start we talked about business metrics in the last episode so we we've
+
+174
+00:16:03.920 --> 00:16:09.520
+given examples about API Gateway EC2 what kind of alarms could you create on business metrics that
+
+175
+00:16:14.000 --> 00:16:20.160
+might be useful yeah i think the the ones we mentioned in a previous episode were for instance the number of sales per day again our favorite e-commerce example like some i suppose in some
+
+176
+00:16:20.160 --> 00:16:26.480
+e-commerce is that the amount of sales tends to be quite predictable so you could create a custom
+
+177
+00:16:26.480 --> 00:16:32.480
+metric and then an alarm to see when that value goes a little bit outside your expected amounts
+
+178
+00:16:32.480 --> 00:16:38.320
+either lower or way higher in both cases maybe you need to do some action so it's worth to be
+
+179
+00:16:38.320 --> 00:16:42.800
+alarmed as soon as you see that that event happening and another one that i used in the
+
+180
+00:16:42.800 --> 00:16:48.080
+past and was very beneficial to me is to monitor the number of people that are logged in into
+
+181
+00:16:48.080 --> 00:16:54.480
+an application like in some application that can be predictable enough i would say so you can
+
+182
+00:16:54.480 --> 00:16:59.520
+define rules or even sometimes you can just say let me know when this value is zero for a long
+
+183
+00:16:59.520 --> 00:17:05.680
+time and this is actually the one i used in the past and that one helped me to figure out an issue
+
+184
+00:17:05.680 --> 00:17:11.280
+that was present in the login system actually was more in the session system than the login system
+
+185
+00:17:11.280 --> 00:17:18.640
+but anyway having that alarm was good for me to see that people were not able of logging in for
+
+186
+00:17:18.640 --> 00:17:23.760
+a long period of time so i could figure out there was something wrong investigate find the issue fix
+
+187
+00:17:23.760 --> 00:17:30.480
+it and bring everything back online so these are examples of business metrics that you can leverage
+
+188
+00:17:30.480 --> 00:17:36.560
+to build alarms and then be more reactive and prevent incident for happening for a long time
+
+189
+00:17:36.560 --> 00:17:43.600
+before you realize and you can fix them again we mentioned API Gateway and Lambda for more
+
+190
+00:17:43.600 --> 00:17:48.720
+technical ones that you can use to to capture specific bugs so when the code is actually
+
+191
+00:17:48.720 --> 00:17:53.120
+throwing errors similarly you can yeah if it's timing out you can consider that
+
+192
+00:17:54.000 --> 00:17:59.280
+an error the problem with all these ones we just described is that they tend to be reactive so it
+
+193
+00:17:59.280 --> 00:18:04.960
+means the the issue happens first then you're probably giving a disservice to your users because
+
+194
+00:18:04.960 --> 00:18:10.960
+of these issues and then you try to to rush and say okay let's fix this because our users are
+
+195
+00:18:10.960 --> 00:18:16.720
+currently i don't know seeing unexpected results and we don't want that to happen anymore but
+
+196
+00:18:17.680 --> 00:18:22.480
+the question could be okay can we do something in advance can we predict when something is about to
+
+197
+00:18:22.480 --> 00:18:28.080
+happen and maybe fix it before it's too late before it's impacting the users and there are
+
+198
+00:18:28.080 --> 00:18:34.320
+two things that you can do there are one thing is that you can use for instance in the case of
+
+199
+00:18:34.320 --> 00:18:42.560
+timeouts right Lambda timeouts you could create an alarm that looks for your your Lambdas getting
+
+200
+00:18:42.560 --> 00:18:49.200
+closer and closer to that timeout so for instance you could say trigger this alarm if you get 90
+
+201
+00:18:50.000 --> 00:18:55.040
+if your Lambda are taking 90 of the time that has been allocated for that Lambda so if you are
+
+202
+00:18:55.040 --> 00:18:59.760
+close enough to the timeout but you are not eating it yet and this is something that for instance it
+
+203
+00:18:59.760 --> 00:19:05.760
+can happen if you have n plus one queries in a Lambda right as your database grows the time for
+
+204
+00:19:05.760 --> 00:19:10.640
+executing that query will increase it will get longer and longer so initially you will have
+
+205
+00:19:10.640 --> 00:19:16.480
+plenty of time to stay within the timeout but over time maybe you will see that that time increasing
+
+206
+00:19:16.480 --> 00:19:20.800
+and getting closer and closer to the timeout so having an alarm there can tell you that this is
+
+207
+00:19:20.800 --> 00:19:25.920
+becoming a problem before your users will start to see an error so that that's something that can be
+
+208
+00:19:25.920 --> 00:19:31.680
+very very useful and another thing you can do i'm not sure if we mention it already but there is a
+
+209
+00:19:31.680 --> 00:19:39.440
+anomaly detection based alarms that you can use to basically see if your current metrics are going
+
+210
+00:19:39.440 --> 00:19:46.960
+outside the norm yeah so you can use that for instance again for Lambda directions if suddenly
+
+211
+00:19:46.960 --> 00:19:50.960
+you see your Lambdas taking much longer not necessarily getting close to the timeout but just
+
+212
+00:19:57.600 --> 00:20:02.960
+being taking much more time unusual behavior exact yeah that's good yeah yeah i think you you kind of for that one you specify like uh it's like a standard deviation so you specify a band how how
+
+213
+00:20:02.960 --> 00:20:09.280
+how much outside the average you want to uh to be your anomaly detection band and that that can
+
+214
+00:20:16.720 --> 00:20:24.160
+trigger it on and one last example i have is for asynchronous computation uh for instance i don't know when you have a queue and a pool of workers you could monitor um the i think it's called
+
+215
+00:20:24.160 --> 00:20:30.560
+approximate age of all that message in in sqs and something that is like the iterator age in kinesis
+
+216
+00:20:30.560 --> 00:20:34.720
+so if you're using kinesis you have a similar concept there but that's something you can monitor
+
+217
+00:20:34.720 --> 00:20:41.680
+to see if your workers are doing their job fast enough so that you don't keep accumulating messages
+
+218
+00:20:41.680 --> 00:20:46.720
+because of course if you accumulate more messages than you can process in a reasonable amount of time
+
+219
+00:20:46.720 --> 00:20:51.200
+like eventually you're not going to be able to to process these messages fast enough anymore
+
+220
+00:20:51.200 --> 00:20:58.000
+so your users will wait more and more before they can get results so that those are other good
+
+221
+00:20:58.000 --> 00:21:04.480
+things to to explore and maybe have some alarms to make sure things are being done efficiently enough
+
+222
+00:21:08.880 --> 00:21:13.280
+yeah and if you're into like continuous deployment and continuous delivery one of the other things that just springs to mind is that you can tie your alarms into your deployment process as well
+
+223
+00:21:13.840 --> 00:21:17.680
+and this is particularly useful if you're doing like canary deployments blue-green deployments
+
+224
+00:21:17.680 --> 00:21:22.640
+where you need to monitor the health of the application if you're shifting traffic or
+
+225
+00:21:22.640 --> 00:21:27.920
+percentage of traffic from one deployment to another and cloud watch alarms are ideal for
+
+226
+00:21:27.920 --> 00:21:32.320
+that because you can get programmatic access to the state of the alarm and it's also well integrated
+
+227
+00:21:32.320 --> 00:21:40.000
+into code deploy and cloud formation so they that those tools will actually integrate into your
+
+228
+00:21:40.000 --> 00:21:46.080
+alarms start shifting traffic over to a new container a new instance and if the alarm starts
+
+229
+00:21:46.080 --> 00:21:50.480
+to fire it'll say okay let's back off here and shift back to the old instance so it gives you
+
+230
+00:21:50.480 --> 00:21:55.520
+deployment safety as well maybe that's something we can go into in depth in a another future episode
+
+231
+00:21:55.520 --> 00:22:04.720
+are there any kind of drawbacks with cloud watch alarms what's the what's the first user experience
+
+232
+00:22:04.720 --> 00:22:08.320
+like what do you think for people getting started with cloud watch alarms and how could it be
+
+233
+00:22:14.720 --> 00:22:20.400
+improved yeah i don't know if i would call it a drawback but one thing that i wish was a little bit better with cloud watch is that you don't really get anything out of the box like you get
+
+234
+00:22:20.400 --> 00:22:24.800
+all these amazing features you can do a lot of things but literally you start with a blank slate
+
+235
+00:22:24.800 --> 00:22:31.440
+and it's on you to define which things to look for and create all the alarms and if you haven't
+
+236
+00:22:31.440 --> 00:22:36.880
+done it before it might be a little bit stressful to just come up with different use cases and make
+
+237
+00:22:36.880 --> 00:22:43.600
+sure things are finely tuned and for that AWS just gives you like the the well-architected framework
+
+238
+00:22:43.600 --> 00:22:48.320
+for instance but gives you documentation that can give you ideas on where to start and what to look
+
+239
+00:22:48.320 --> 00:22:54.880
+for but again it's all new to do the artwork of configuring everything and sometimes you you
+
+240
+00:22:54.880 --> 00:22:58.880
+create for instance application serverless application using maybe the serverless framework
+
+241
+00:23:00.000 --> 00:23:04.400
+it feels a little bit unnecessary that you have already defined everything with infrastructure
+
+242
+00:23:04.400 --> 00:23:09.920
+as code why not apply those best practices by taking that information that is already
+
+243
+00:23:09.920 --> 00:23:15.440
+available in a sus code seeing for instance that you are using lambdas you're using sqs why not
+
+244
+00:23:15.440 --> 00:23:23.040
+creating all the out of the box default alarms based on your infrastructure and i wish that
+
+245
+00:23:23.040 --> 00:23:30.160
+that was available and we have been spending a lot of time ourselves on this problem and because of
+
+246
+00:23:30.160 --> 00:23:36.560
+that we ended up creating a serverless framework plugin that does exactly that so it looks into your
+
+247
+00:23:37.440 --> 00:23:42.480
+infrastructure as code so your yaml file your serverless yaml and if it sees for instance
+
+248
+00:23:42.480 --> 00:23:47.520
+that you're using a lambda it will provision for you a bunch of alarms that make sense for lambda
+
+249
+00:23:48.240 --> 00:23:54.560
+similarly if you're using step functions api gateway dynamo db kinesis sqs and what we did
+
+250
+00:23:54.560 --> 00:23:59.360
+is we are going to give you with that plugin you just initialize it you get a bunch of defaults
+
+251
+00:23:59.360 --> 00:24:04.080
+but of course you can configure it a little bit more if you want to change the default thresholds
+
+252
+00:24:04.080 --> 00:24:09.040
+or if you want to enable or disable specific alarms that are a little bit more advanced
+
+253
+00:24:14.560 --> 00:24:19.280
+that's a good one and i guess one and it creates dashboards as well so it also gives you kind of a little bit of a better user experience in terms of how those graphs of metrics are organized
+
+254
+00:24:19.280 --> 00:24:23.280
+i don't think i don't think it's probably it's worthwhile to have a dedicated episode on cloud
+
+255
+00:24:23.280 --> 00:24:28.560
+watch dashboards since they're really just like a representation of your metrics and they can also
+
+256
+00:24:28.560 --> 00:24:32.800
+show alarms as well but it's another feature that plug-in so when you deploy a serverless stack
+
+257
+00:24:32.800 --> 00:24:37.600
+you'll get a dashboard for that stack so maybe it's a good idea to wrap up just uh talk about
+
+258
+00:24:37.600 --> 00:24:46.160
+cost and you get 10 metric alarms for free which which is nice of them but beyond that it's uh
+
+259
+00:24:46.160 --> 00:24:51.120
+it can get expensive if you've got a lot of them right so i guess it your mileage will always vary
+
+260
+00:24:51.120 --> 00:24:56.720
+depending on your context and usage it you're talking about 10 cents per alarm metric um
+
+261
+00:24:57.600 --> 00:25:01.600
+now if you're using high resolution alarms high resolution alarms are alarms based on high
+
+262
+00:25:01.600 --> 00:25:06.960
+resolution metric so those one second metrics we talked about in the last episode um so those are
+
+263
+00:25:06.960 --> 00:25:12.720
+30 dollar cents and if you have a composite alarms for some reason they're 50 cents for a composite
+
+264
+00:25:12.720 --> 00:25:18.480
+alarm and i don't know why the composite alarm implementation is so complex that it justifies that
+
+265
+00:25:19.760 --> 00:25:27.360
+cost it seems like a pretty expensive boolean expression evaluation but that's the cost you
+
+266
+00:25:27.360 --> 00:25:34.240
+didn't get so if you've got you know tens dozens of alarms that's probably for most organizations
+
+267
+00:25:34.240 --> 00:25:38.480
+revenue generating organizations is probably okay but if you're starting out and trying to keep
+
+268
+00:25:38.480 --> 00:25:45.120
+everything free tier it's definitely something to keep an eye on so at this point i think we've
+
+269
+00:25:45.120 --> 00:25:49.520
+covered now from the last two episodes metrics fairly in depth and what you can do with those
+
+270
+00:25:49.520 --> 00:25:55.360
+in terms of creating alarms next next one i think we can talk about logs log aggregation and how in
+
+271
+00:25:55.360 --> 00:26:00.960
+particular you can now use cloud watch logs to get a lot more and maybe avoid having to use a
+
+272
+00:26:00.960 --> 00:26:06.400
+centralized log aggregation service uh this logs is probably my favorite topic of the three so i'm
+
+273
+00:26:06.400 --> 00:26:10.080
+looking forward to that one but if you haven't checked out the previous episode on cloud watch
+
+274
+00:26:10.080 --> 00:26:15.840
+metrics check it out it's episode number 33 and let us know what you think and like and subscribe
+
+275
+00:26:15.840 --> 00:26:34.480
+and we'll see you in the next one all about logs you

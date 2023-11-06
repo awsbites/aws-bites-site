@@ -1,0 +1,897 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:04.480
+We recently had to integrate a workload running on Azure with some components running on AWS.
+
+2
+00:00:04.480 --> 00:00:08.640
+To do that, we explored a lot of different options and evaluated all the trade-offs in terms of
+
+3
+00:00:08.640 --> 00:00:13.360
+simplicity and security. So in this episode, we wanted to share our learnings and discuss how to
+
+4
+00:00:13.360 --> 00:00:18.480
+securely and efficiently integrate workloads running on-premises in Azure or in any cloud
+
+5
+00:00:18.480 --> 00:00:22.720
+with a workload running in AWS. We'll review several different options for integration and
+
+6
+00:00:22.720 --> 00:00:27.840
+discuss their advantages and disadvantages. My name is Eoin and I'm joined by Luciano for another
+
+7
+00:00:27.840 --> 00:00:42.080
+episode of the AWS Bites podcast. AWS Bytes is sponsored, as always, by fourTheorem, an advanced
+
+8
+00:00:42.080 --> 00:00:46.080
+AWS consulting partner that works together with you on architecture, migration, and cost
+
+9
+00:00:46.080 --> 00:00:51.920
+optimization. Find out more at fourtheorem.com. That link is in the show notes. Luciano, what are
+
+10
+00:00:51.920 --> 00:00:57.920
+some of the use cases and examples that might require us to think about authorization and
+
+11
+00:00:57.920 --> 00:01:04.800
+communication between Azure, some other cloud, and AWS?
+
+12
+00:01:04.800 --> 00:01:10.560
+As much as we like AWS, we don't always run everything on AWS for different reasons. So sometimes you have this situation where you're
+
+13
+00:01:10.560 --> 00:01:15.680
+running some kind of workload somewhere, can be in another cloud, can be on-premise, can be
+
+14
+00:01:15.680 --> 00:01:20.160
+in your own home because maybe you have some devices to connect to the internet,
+
+15
+00:01:20.160 --> 00:01:26.720
+and you might want to integrate that particular system with something running in your AWS account.
+
+16
+00:01:26.720 --> 00:01:32.800
+So the question that we want to address today is how can you establish a secure integration between
+
+17
+00:01:32.800 --> 00:01:38.320
+those two systems? And just to give you some example use cases, for instance, you might have
+
+18
+00:01:38.320 --> 00:01:44.320
+your own like home NAS where you keep all your personal files and just because you want to be
+
+19
+00:01:44.320 --> 00:01:48.240
+extra cautious that you're never going to lose anything, maybe you want to backup the same files
+
+20
+00:01:48.240 --> 00:01:54.560
+in an S3 bucket and possibly even use Glacier to reduce cost. How do you connect a system running
+
+21
+00:01:54.560 --> 00:02:00.800
+in your own home network with AWS securely so that it can send data to S3 and Glacier? That could be
+
+22
+00:02:00.800 --> 00:02:05.760
+one use case. Another use case could be maybe a little bit more business oriented. You might have
+
+23
+00:02:06.400 --> 00:02:11.680
+in a big corporate network, maybe physically in an office, you might have some kind of network
+
+24
+00:02:11.680 --> 00:02:17.440
+security device that collects network metadata. And probably if you're collecting this data,
+
+25
+00:02:17.440 --> 00:02:22.000
+you want to analyze it. So one way to do that could be you could send this data to a Kinesis stream,
+
+26
+00:02:22.000 --> 00:02:28.000
+and then later on you can dynamically analyze this data and record interesting network activities.
+
+27
+00:02:28.000 --> 00:02:31.920
+Or maybe you can even implement intrusion detection type of algorithms once you have
+
+28
+00:02:31.920 --> 00:02:39.360
+that kind of data. So again, how do you connect a device running on a local network or in an office
+
+29
+00:02:40.400 --> 00:02:45.440
+with something that is running on AWS like a Kinesis stream? Another example could be actually
+
+30
+00:02:45.440 --> 00:02:49.840
+you might have another application running in another cloud. Maybe your company is using
+
+31
+00:02:49.840 --> 00:02:54.480
+multiple clouds. For instance, you might have like a billing engine that is running on Azure,
+
+32
+00:02:54.480 --> 00:02:59.200
+and this billing engine is producing invoices, but then the rest of the system is running on
+
+33
+00:02:59.200 --> 00:03:04.480
+AWS. So for instance, you might have an SQS queue where you receive messages coming from Azure.
+
+34
+00:03:05.280 --> 00:03:10.000
+Then you can take messages from this SQS queue and process them and maybe send emails to your
+
+35
+00:03:10.000 --> 00:03:15.120
+customers with the attached invoice using SES. So again, this is kind of an integration where part
+
+36
+00:03:15.120 --> 00:03:20.000
+of the system is running on Azure, part of the system is running on AWS. So how do you let,
+
+37
+00:03:20.000 --> 00:03:26.640
+for instance, Azure send data to a queue, which is an SQS queue, so running in AWS in a secure
+
+38
+00:03:26.640 --> 00:03:32.800
+and simple way? So the question for today is what are the mechanisms? Should we use IAM?
+
+39
+00:03:33.520 --> 00:03:37.600
+Is that secure enough? What are some of the alternatives? So where do we start? What's
+
+40
+00:03:37.600 --> 00:03:43.680
+the first option?
+
+41
+00:03:43.680 --> 00:03:47.280
+Yeah, I think IAM is generally secure enough as long as you've got the credentials in the right way. And just thinking through what you're saying there, I guess this is
+
+42
+00:03:47.840 --> 00:03:52.400
+quite valid as well. All of this kind of use case, it's valid in a case where you're migrating to
+
+43
+00:03:52.400 --> 00:03:57.120
+AWS and maybe you're going for a hybrid approach. So you're deciding not to put everything on AWS,
+
+44
+00:03:57.120 --> 00:04:01.120
+or just as you're migrating, you end up in this intermediate hybrid state.
+
+45
+00:04:01.680 --> 00:04:08.320
+So maybe one of the easiest ways or most understood ways is to put a public API in the AWS
+
+46
+00:04:08.320 --> 00:04:13.520
+side with an authorization method. And that could be something like a API key. And then you just
+
+47
+00:04:13.520 --> 00:04:18.720
+share the API key with the external side. You can use IAM authorization on that API, but you still
+
+48
+00:04:18.720 --> 00:04:25.200
+have to figure out how to get that IAM session. Or you can use OAuth or OIDC and get a token that way.
+
+49
+00:04:25.200 --> 00:04:29.760
+And that allows you for secure integration, but it makes the integration side fairly easy
+
+50
+00:04:29.760 --> 00:04:36.240
+and understood because most people will understand how to call an API. So it's a fairly common way of
+
+51
+00:04:36.240 --> 00:04:41.280
+doing it. So on the AWS side, you could use API gateway. API gateway allows you to provision
+
+52
+00:04:41.280 --> 00:04:46.720
+API keys and share them with your clients. If you wanted to, you could go with more of a secure
+
+53
+00:04:46.720 --> 00:04:52.640
+approach using an authorizer like an OIDC authorization. Then you need to configure the
+
+54
+00:04:52.640 --> 00:04:58.800
+clients correctly to have some client ID in secret, for example, to be able to perform an
+
+55
+00:04:58.800 --> 00:05:03.920
+OIDC flow and obtain credentials. Similarly, if you just wanted to go with IAM authorization,
+
+56
+00:05:03.920 --> 00:05:08.480
+you have to figure out some way of getting IAM credentials. So I suppose a lot of the other
+
+57
+00:05:08.480 --> 00:05:12.320
+options we're going to go through are going to cover getting IAM credentials anyway, whether
+
+58
+00:05:12.320 --> 00:05:18.480
+you use the API gateway approach or not. But the advantage of an OIDC approach, if you already have
+
+59
+00:05:18.480 --> 00:05:23.040
+an identity provider, is that you can hook it into that method and get a JWT token that they can use
+
+60
+00:05:23.040 --> 00:05:28.080
+and attach it to the request. So that's public API method. Let's talk a little bit more about
+
+61
+00:05:28.080 --> 00:05:33.040
+IAM. And I suppose the first thing people would reach for when they think about IAM is an IAM
+
+62
+00:05:33.040 --> 00:05:37.680
+user, but we often talk about how this is discouraged. So what do you think? Is it a viable option?
+
+63
+00:05:37.680 --> 00:05:43.440
+I think it's definitely the simplest one.
+
+64
+00:05:43.440 --> 00:05:49.840
+So for very simple integrations, it's probably the one that I've seen the most, even historically. The idea is that you just go to your own AWS
+
+65
+00:05:49.840 --> 00:05:54.480
+console, you create a user, you create credentials for this user, then somehow you propagate these
+
+66
+00:05:54.480 --> 00:05:59.680
+credentials to your client. And then your client is basically just doing using the SDK or the CLI
+
+67
+00:05:59.680 --> 00:06:06.640
+with these credentials. Sometimes you can make it a little bit better by just creating an external
+
+68
+00:06:06.640 --> 00:06:12.240
+role and you give to that particular user only permissions to assume the role. At least you have
+
+69
+00:06:12.240 --> 00:06:18.240
+another extra step where you can track exactly when the system is assuming the role. And
+
+70
+00:06:19.200 --> 00:06:22.640
+therefore we have a little bit more control and more visibility on the actions that are
+
+71
+00:06:22.640 --> 00:06:28.640
+happening there. But with that, you can also have proper logging and alerting, and you can try to
+
+72
+00:06:28.640 --> 00:06:35.440
+set up automated key rotation to make it a little bit more secure. In reality, I've seen that when
+
+73
+00:06:35.440 --> 00:06:40.720
+you have to do all these things, people just say it works and you end up with long-lived credentials,
+
+74
+00:06:40.720 --> 00:06:45.840
+which at some point might become a very serious security liability. So this is something that
+
+75
+00:06:45.840 --> 00:06:50.480
+brings us to explore other options just because this can be very convenient and very easy,
+
+76
+00:06:50.480 --> 00:06:56.400
+but also to make it secure requires so much more work. So the risk is that you just stop yourself
+
+77
+00:06:56.400 --> 00:07:01.360
+at the first step, it works, and don't make it secure until eventually maybe you have an incident
+
+78
+00:07:01.360 --> 00:07:08.080
+in production. So just be aware that this solution is always a bit tricky, looks simple, but it's
+
+79
+00:07:08.080 --> 00:07:12.640
+dangerous. So let's figure out if there are other options that maybe take a little bit more time to
+
+80
+00:07:12.640 --> 00:07:18.480
+be set up, but then they will be more secure by default.
+
+81
+00:07:18.480 --> 00:07:21.920
+If you wanted to use the IAM user approach, I would suggest you can use infrastructure as code. So in CloudFormation, you can
+
+82
+00:07:21.920 --> 00:07:26.560
+create your IAM user and you can also create the access key either in CloudFormation or
+
+83
+00:07:26.560 --> 00:07:31.600
+programmatically, and then store it in Secrets Manager and some other secret store or vault
+
+84
+00:07:32.240 --> 00:07:36.400
+that might allow you to share it with the external identity. But yeah, it starts to be a lot of work
+
+85
+00:07:36.400 --> 00:07:43.440
+if you want to implement rotation and alerting yourself. So another option is IAM roles anywhere.
+
+86
+00:07:43.440 --> 00:07:50.640
+And I think this is probably the purest, most suitable solution today for the problem in many
+
+87
+00:07:50.640 --> 00:07:56.320
+ways, because it's really designed for this purpose actually. I mean, the hint is in the name.
+
+88
+00:07:56.320 --> 00:08:00.640
+I think the service has been around for about a year or so. And the idea is that it allows you
+
+89
+00:08:00.640 --> 00:08:07.200
+to use your PKI, so your private key infrastructure to exchange a certificate
+
+90
+00:08:10.160 --> 00:08:16.320
+and a signature for IAM credentials. So a lot of organizations already have the PKI infrastructure,
+
+91
+00:08:16.320 --> 00:08:20.240
+so sometimes it's a really good fit. They're already issuing private certificates for other
+
+92
+00:08:20.240 --> 00:08:24.400
+reasons internally. So sometimes it's a really easy jump to roles anywhere.
+
+93
+00:08:24.400 --> 00:08:30.480
+Once you have your private certificate authority, then you can set up a few resources in roles
+
+94
+00:08:30.480 --> 00:08:34.880
+anywhere. So the process works like this. You have your certificate authority, you create a
+
+95
+00:08:34.880 --> 00:08:38.880
+trust anchor, which is basically creating the trust relationship between your certificate
+
+96
+00:08:38.880 --> 00:08:44.320
+authority and IAM. And then you create an IAM role that roles anywhere can assume.
+
+97
+00:08:44.320 --> 00:08:48.160
+That will give you the permissions you need. And then there's another thing called a profile,
+
+98
+00:08:48.160 --> 00:08:52.640
+which essentially links roles anywhere to that role. Once you have those three things,
+
+99
+00:08:52.640 --> 00:08:58.160
+you can use a tool called the AWS Signing Helper. You can use it, execute it manually, or you can
+
+100
+00:08:58.800 --> 00:09:04.320
+use it to pick up credentials in your SDKs. And that will then basically share a signature
+
+101
+00:09:04.320 --> 00:09:09.360
+and a public search with IAM roles anywhere, and it'll give you back the IAM credentials.
+
+102
+00:09:10.240 --> 00:09:15.840
+Now, this might sound a little bit complicated or unfamiliar if you haven't come across these
+
+103
+00:09:15.840 --> 00:09:21.280
+concepts before. So we have put together a very simple demo for this. So there's a demo
+
+104
+00:09:21.280 --> 00:09:27.280
+for this. So there's a link on GitHub. There's a repository we created, and you can check it out.
+
+105
+00:09:27.280 --> 00:09:32.720
+And it'll give you steps to create like a dummy private CA on your laptop with open SSL,
+
+106
+00:09:32.720 --> 00:09:36.400
+and then a CloudFormation template to deploy everything else. And once you have that,
+
+107
+00:09:36.400 --> 00:09:39.440
+you can set it all up in about five minutes, and then you can get these credentials.
+
+108
+00:09:42.240 --> 00:09:47.200
+If you don't have a private CA already, it's setting one up and maintaining it and securing
+
+109
+00:09:47.200 --> 00:09:52.080
+it is not for the faint-hearted, and I wouldn't generally recommend it. So the good news there
+
+110
+00:09:52.080 --> 00:09:58.000
+is that you can use AWS certificate manager, private certificate authority, and that will
+
+111
+00:09:58.000 --> 00:10:01.920
+manage all of that for you. It's a managed service. There's always a bit of bad news,
+
+112
+00:10:01.920 --> 00:10:07.360
+though, and the bad news with that is that it costs $400 per month per certificate authority.
+
+113
+00:10:07.360 --> 00:10:11.120
+So be careful creating multiple certificate authorities for different development and
+
+114
+00:10:11.120 --> 00:10:18.720
+test environments. You do get one for free per month, but I was recently given a bit of bill
+
+115
+00:10:18.720 --> 00:10:26.160
+shock when I was creating certificate authorities and only ever creating one at a time, but following
+
+116
+00:10:26.160 --> 00:10:32.320
+best practices, creating immutable stacks with infrastructure as code. And when I created and
+
+117
+00:10:32.320 --> 00:10:41.280
+deleted three times, I saw an $800 forecasted bill on Cost Explorer. Now, I think this was more of a
+
+118
+00:10:41.280 --> 00:10:46.480
+overestimate in the forecasting of Cost Explorer, but I did have to go to AWS support and open a
+
+119
+00:10:46.480 --> 00:10:51.120
+case and check that I wasn't going to be billed for that. So just be careful of the cost there.
+
+120
+00:10:51.120 --> 00:10:56.160
+But if you do have to create one, I would say try and create one and share it amongst multiple
+
+121
+00:10:56.160 --> 00:11:03.760
+environments. So roles anywhere. If you're going to leverage a lot of instances externally,
+
+122
+00:11:03.760 --> 00:11:09.040
+over time, looking for IAM permissions, I think that's a good one. What else have we got?
+
+123
+00:11:09.040 --> 00:11:14.800
+Anything else useful?
+
+124
+00:11:15.600 --> 00:11:22.880
+Another approach that we consider is OIDC federated identities, which again, if you have an OIDC provider like Azure AD, that can be easy to set up because
+
+125
+00:11:22.880 --> 00:11:26.880
+you are already using that system. So it's more creating the integration between that system and AWS.
+
+126
+00:11:26.880 --> 00:11:34.320
+And the idea is that you create managed identities in Azure and link them to whichever
+
+127
+00:11:34.320 --> 00:11:39.040
+compute you are running in Azure, for instance, IBM or Azure functions. So you don't really have
+
+128
+00:11:39.040 --> 00:11:45.680
+to generate explicitly some kind of credentials or secrets and keep them stored somewhere because
+
+129
+00:11:45.680 --> 00:11:49.920
+the managed identity will do all of that transparently for you.
+
+130
+00:11:49.920 --> 00:11:56.800
+Then you also need to create this integration between the OIDC provider in AWS, so inside IAM, pointing it to your own
+
+131
+00:11:56.800 --> 00:12:04.080
+Azure AD. And then as a client, you just need to perform the authentication flow, the OIDC
+
+132
+00:12:04.080 --> 00:12:12.160
+authentication flow. That will give you a token. And basically with that token, then you can use
+
+133
+00:12:12.160 --> 00:12:17.440
+the AWS SDK to do a similar role with web identity, pass the token, and at that point you have
+
+134
+00:12:17.440 --> 00:12:22.640
+AWS credentials that are associated with that particular role that you are assuming,
+
+135
+00:12:22.640 --> 00:12:27.680
+which will give you the permissions that are defined in that role.
+
+136
+00:12:27.680 --> 00:12:32.720
+So it seems a little bit convoluted, but the idea is that you already have Azure ID, so it's more about creating the trust
+
+137
+00:12:32.720 --> 00:12:37.680
+relationship. On the Azure side, it's made easier because you have the concept of managed identity,
+
+138
+00:12:37.680 --> 00:12:43.840
+so you automatically or easily enough you get access to that token. Then you can use the SDK
+
+139
+00:12:43.840 --> 00:12:48.560
+to exchange the token for basically assuming a role and getting the credentials for that role.
+
+140
+00:12:48.560 --> 00:12:52.560
+And at that point, these are short-lived credentials, so you can have that peace of mind
+
+141
+00:12:52.560 --> 00:12:58.720
+that if the gate's leaked, the blast radius is very limited. And in this particular case,
+
+142
+00:12:58.720 --> 00:13:03.440
+we found a blog post that has very good instructions and examples, so we'll make sure
+
+143
+00:13:03.440 --> 00:13:09.280
+to have the link in the show notes. And we also have a previous episode about how the
+
+144
+00:13:09.280 --> 00:13:15.600
+integration between OIDC providers and IAM works that goes into more detail about the protocols,
+
+145
+00:13:15.600 --> 00:13:22.000
+the different ideas, and why all of this approach is secure. So if you are really curious to go a
+
+146
+00:13:22.000 --> 00:13:26.160
+little bit deeper into the details, we recommend checking out that episode, and again we'll have the link in the show notes.
+
+147
+00:13:26.160 --> 00:13:30.560
+So in general, the advantage of this approach is that you don't have
+
+148
+00:13:30.560 --> 00:13:35.120
+to store any secret, which is great from a security perspective because every time you're
+
+149
+00:13:35.120 --> 00:13:40.000
+storing secrets, you need to make sure you have a process around it, you need to make sure you are
+
+150
+00:13:40.000 --> 00:13:44.480
+auditing it, you need to make sure you have to do some kind of rotation. So in this case, you are
+
+151
+00:13:44.480 --> 00:13:50.560
+kind of relieved from all these concerns. And it's especially good if you already use Azure ID or
+
+152
+00:13:50.560 --> 00:13:55.360
+some other form of OIDC provider because you don't have to set up all of that.
+
+153
+00:13:55.360 --> 00:14:01.680
+It's already an organization, it's just a matter of connecting it with AWS. So that's another option and I
+
+154
+00:14:01.680 --> 00:14:06.080
+actually quite like this one, but is there anything else worth considering?
+
+155
+00:14:06.080 --> 00:14:11.120
+One that might not occur to everyone, at least didn't occur to us until the very end, but then we
+
+156
+00:14:12.240 --> 00:14:18.480
+reached into the back of our memories and found reference to SSM hybrid activations. So what are
+
+157
+00:14:18.480 --> 00:14:22.960
+SSM hybrid activations, you might ask. We've talked about SSM a good bit recently because we've
+
+158
+00:14:22.960 --> 00:14:29.360
+been talking about Session Manager in the context of Bastion hosts and ECS and EC2, and it's a nice
+
+159
+00:14:29.360 --> 00:14:36.320
+way for accessing EC2 instances. But SSM also supports hybrid cloud setups as well through
+
+160
+00:14:36.320 --> 00:14:43.200
+this hybrid activations method. So the idea here is that by running the SSM agent on the external
+
+161
+00:14:43.200 --> 00:14:49.040
+host, you can SSM shell into them or just use some of the other SSM things like patching or run
+
+162
+00:14:49.040 --> 00:14:54.240
+command. And this, the typical use case for this isn't really what we're talking about here, but
+
+163
+00:14:54.240 --> 00:14:58.640
+it's if you've got a fleet of Windows machines and you need to run patches on them, then you can
+
+164
+00:14:58.640 --> 00:15:04.720
+activate these hybrid activations and then you can run your patching automatically from SSM in AWS
+
+165
+00:15:04.720 --> 00:15:09.840
+and that will cover your AWS instances as well as your external instances. So that's pretty useful.
+
+166
+00:15:10.880 --> 00:15:15.120
+But it works in this case as well because you can just install the SSM agent on the Azure side or
+
+167
+00:15:15.120 --> 00:15:21.120
+in your data center. Then you go into AWS and with any of the usual ways, you can create this
+
+168
+00:15:21.120 --> 00:15:27.280
+activation resource and the activation resource will be linked to an IAM role. It needs some
+
+169
+00:15:27.280 --> 00:15:31.280
+specific SSM related permissions and then whatever other permissions you need for your use case.
+
+170
+00:15:31.920 --> 00:15:38.160
+Once you create that activation, you get a code and an ID. So these are kind of your secrets in
+
+171
+00:15:38.160 --> 00:15:43.920
+this case. And when you start the SSM agent on the instance, you provide that code and ID,
+
+172
+00:15:44.560 --> 00:15:50.240
+it will register the instance in SSM and all of a sudden it'll appear in your SSM console
+
+173
+00:15:50.240 --> 00:15:56.000
+and you can shell into it if you turn on that option or you can just do run command.
+
+174
+00:15:56.000 --> 00:16:01.760
+And if you have this role and you have SSM agent running on your Azure instance, then all of a
+
+175
+00:16:01.760 --> 00:16:07.200
+sudden you can do a run command from the AWS side and that can trigger some logic on the Azure side,
+
+176
+00:16:07.200 --> 00:16:11.280
+which can then call back to AWS with the permissions you've given it. And that would
+
+177
+00:16:11.280 --> 00:16:17.840
+achieve our goal as well. Now the SSM hybrid activations, there's two tiers, standard tiers,
+
+178
+00:16:17.840 --> 00:16:23.040
+free for up to a thousand instances. Then the advanced tier starts to get a bit spicy in terms
+
+179
+00:16:23.040 --> 00:16:29.200
+of cost. So I think it looks like $5 per instance per month. So if you wanted, I think you don't
+
+180
+00:16:29.200 --> 00:16:33.600
+need that for generally the kind of case we're talking about. So don't worry too much, but just
+
+181
+00:16:33.600 --> 00:16:37.600
+be aware, like if you want to actually SSM into your instances using start session, you need the
+
+182
+00:16:37.600 --> 00:16:43.040
+advanced mode and that's when it can get expensive if you've got a lot of instances. So what else
+
+183
+00:16:43.040 --> 00:16:50.400
+have we got?
+
+184
+00:16:50.400 --> 00:16:55.440
+I think this ties nicely with another idea, which is a little bit different from most of the other ones we explored today, because in all of them, basically the idea is that you have this
+
+185
+00:16:55.440 --> 00:17:00.240
+external system, then you have AWS and you are always starting the communication from the
+
+186
+00:17:00.240 --> 00:17:07.840
+external system to basically call some kind of action into AWS. So in a way it's kind of a
+
+187
+00:17:07.840 --> 00:17:12.960
+push model, right? But it doesn't have to be a push model. If we look at it from the perspective of
+
+188
+00:17:12.960 --> 00:17:18.800
+AWS, it could also be a pull model. Maybe we can initiate the communication from AWS itself.
+
+189
+00:17:18.800 --> 00:17:26.800
+Nothing is really stopping us to use that approach. So the idea could be that rather than
+
+190
+00:17:26.800 --> 00:17:33.440
+implementing an API in AWS, which is the option one we explored today, we could implement an API
+
+191
+00:17:33.440 --> 00:17:39.840
+in the other side. Let's say it's Azure. On Azure we can expose an API and then from AWS we call that
+
+192
+00:17:39.840 --> 00:17:45.840
+API to start to trigger some kind of integration. Again, you still need to figure out some kind of
+
+193
+00:17:45.840 --> 00:17:50.480
+authentication because if that Azure API is running on the public, is exposed on the public
+
+194
+00:17:50.480 --> 00:17:55.840
+internet, then potentially anyone could call it. So you might still want to make sure that it's only
+
+195
+00:17:55.840 --> 00:18:01.200
+your trusted AWS side that is actually calling that API and sending data that you can actually
+
+196
+00:18:01.200 --> 00:18:06.880
+trust. But that might not be the only way of solving this problem because maybe that connection
+
+197
+00:18:06.880 --> 00:18:11.440
+is not really on the public internet. Maybe you have some kind of private network connection
+
+198
+00:18:11.440 --> 00:18:18.000
+and maybe you can just trust that that network connection is good enough to give you guarantees
+
+199
+00:18:18.000 --> 00:18:22.800
+that it's fine. Maybe you are, I don't know, white listing IP addresses or maybe you have some other
+
+200
+00:18:22.800 --> 00:18:28.720
+form of network security. In general, I think today we focused on more of a zero trust
+
+201
+00:18:28.720 --> 00:18:36.240
+approach where every call is authenticated strongly with tokens and specific mechanisms where
+
+202
+00:18:36.240 --> 00:18:41.920
+you are never assuming that the network is secure. So I think we had a little bit of a bias towards
+
+203
+00:18:41.920 --> 00:18:47.040
+this kind of solutions, but I think there is an entire realm of more kind of network-based
+
+204
+00:18:47.040 --> 00:18:51.920
+security approaches that could be considered as well. I don't know if you have any idea in that
+
+205
+00:18:51.920 --> 00:18:57.360
+sense, but I think that that's also worth calling out anyway.
+
+206
+00:18:57.360 --> 00:19:02.720
+We've really been talking more about how to get IAM credentials where possible and trying to do it based on fine-grained authorization.
+
+207
+00:19:02.720 --> 00:19:07.520
+But there's a whole other set of options we didn't cover, I suppose, network-based solutions,
+
+208
+00:19:07.520 --> 00:19:14.320
+like a site-to-site VPN between your other cloud and AWS or data center. You could have a direct
+
+209
+00:19:14.320 --> 00:19:18.400
+connect link or something else in place already. So there are lots of network-based approaches
+
+210
+00:19:18.400 --> 00:19:21.680
+that you could try and do if you have some secure tunnel between the two environments.
+
+211
+00:19:22.800 --> 00:19:27.680
+We still think it's a good idea to have IAM or some authorization if possible. You could also
+
+212
+00:19:27.680 --> 00:19:33.920
+think about IoT as well. AWS IoT also has methods similar to roles anywhere and hybrid activations
+
+213
+00:19:33.920 --> 00:19:40.480
+where you can use certificates to get credentials to talk to AWS. But they're really more geared for
+
+214
+00:19:40.480 --> 00:19:46.560
+lots of different sensor devices or other IoT devices. I think in general, we've presented,
+
+215
+00:19:46.560 --> 00:19:52.400
+I think, six options in total. The OADC identity provider and the roles anywhere approaches are
+
+216
+00:19:52.400 --> 00:19:57.440
+kind of the preferred ones, I would suggest, just because of the fact that you're looking at
+
+217
+00:19:57.440 --> 00:20:02.480
+limiting the need to store and rotate secrets. The API one is a nice one as well, but you just have
+
+218
+00:20:02.480 --> 00:20:07.600
+to make sure you have some authorization method in place. So there's six options in total you might
+
+219
+00:20:07.600 --> 00:20:12.800
+need to reach for some of the password or secret-based ones, just depending on your
+
+220
+00:20:12.800 --> 00:20:16.480
+context and your restrictions. So let us know what you think. And if we've missed any other
+
+221
+00:20:16.480 --> 00:20:21.920
+options as well, if there's any other cool ideas for integrating Azure and AWS. If you like the
+
+222
+00:20:21.920 --> 00:20:26.480
+podcast, please do leave a review wherever you listen to your podcasts because our audience is
+
+223
+00:20:26.480 --> 00:20:30.960
+growing, but we can always reach more people and get lots more feedback and grow the community. So
+
+224
+00:20:30.960 --> 00:20:57.520
+we'd love to hear more from you. Thanks for listening and we'll see you in the next episode.

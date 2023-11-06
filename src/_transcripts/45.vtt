@@ -1,0 +1,1181 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:04.480
+If you're thinking of using an external CI/CD tool to deploy to AWS, you're probably wondering
+
+2
+00:00:04.480 --> 00:00:09.600
+how to securely connect your pipelines to an AWS account. You could create a user for your
+
+3
+00:00:09.600 --> 00:00:14.560
+CI/CD tool of choice and copy some hard-coded credentials into it. But let's face it,
+
+4
+00:00:14.560 --> 00:00:18.720
+this one doesn't feel really the right way, or at least not the most secure approach.
+
+5
+00:00:18.720 --> 00:00:23.360
+In the previous episode, we discussed how AWS and GitHub solved this problem by using OIDC
+
+6
+00:00:23.360 --> 00:00:27.600
+identity providers, and this seems to be a much better approach to this particular problem,
+
+7
+00:00:27.600 --> 00:00:32.080
+or at least a much more secure approach. My name is Luciano, and today I'm joined by Eoin.
+
+8
+00:00:32.080 --> 00:00:37.200
+In this episode of AWS Bites, we'll try to demystify the secrets of OIDC identity providers
+
+9
+00:00:37.200 --> 00:00:39.760
+and understand how they really work under the hood.
+
+10
+00:00:47.840 --> 00:00:53.760
+Let's start by summarizing that use case again. We have some process running outside of AWS.
+
+11
+00:00:53.760 --> 00:00:58.560
+For instance, we have a pipeline running on GitHub actions. This process needs to interact with
+
+12
+00:00:58.560 --> 00:01:04.080
+resources on AWS, like making API calls to AWS to create resources, so it needs some sort of
+
+13
+00:01:04.080 --> 00:01:10.240
+authentication. A classic way of doing that would be to create a user in IAM, create a role
+
+14
+00:01:10.240 --> 00:01:14.800
+associated with that user with the right permissions, and then you generate an access key,
+
+15
+00:01:14.800 --> 00:01:19.760
+secret access key, and those are long-lived credentials. At this point, you could put those
+
+16
+00:01:19.760 --> 00:01:24.080
+credentials into your pipeline. A lot of people might have done this before. You put it in some
+
+17
+00:01:24.080 --> 00:01:29.360
+secret store, like GitHub actions secret store, and use those long-lived credentials to interact
+
+18
+00:01:29.360 --> 00:01:36.560
+with AWS with the CLI or one of the SDKs. Now, the problem with that approach, as we may know by now,
+
+19
+00:01:36.560 --> 00:01:41.200
+is that long-lived credentials might easily be leaked, and then it's very hard to detect that
+
+20
+00:01:41.200 --> 00:01:46.480
+and really work against that sort of attack. So you can allow an attacker to impersonate your
+
+21
+00:01:46.480 --> 00:01:51.520
+pipeline and execute malicious code. Of course, pipelines can tend to have very extensive
+
+22
+00:01:51.520 --> 00:01:55.520
+permissions because they have to be able to create and delete important resources in your account
+
+23
+00:01:55.520 --> 00:02:01.920
+and update your code, so this is a really dangerous use case. So the better alternative
+
+24
+00:02:01.920 --> 00:02:07.280
+here is to use an OpenID Connect identity provider, so more specifically, configuring
+
+25
+00:02:07.280 --> 00:02:15.360
+AWS to trust GitHub as an identity provider using the OIDC protocol. Luciano, do you feel like you
+
+26
+00:02:15.360 --> 00:02:21.840
+could describe how OIDC works in broad strokes?
+
+27
+00:02:21.840 --> 00:02:26.320
+Yeah, I'll try my best to do that, but before I do that, there is a link that we are going to have in the show notes, which is actually the GitHub
+
+28
+00:02:26.320 --> 00:02:31.440
+documentation that explains really well how all of that works and there are illustrations. So if
+
+29
+00:02:31.440 --> 00:02:36.000
+everything we say today is not 100% clear, we really recommend to check out this particular
+
+30
+00:02:36.000 --> 00:02:41.600
+article. So the first thing to clarify is that there are two main entities here, and we are
+
+31
+00:02:41.600 --> 00:02:47.520
+talking about AWS itself and GitHub, so we need to figure out how to make them talk to each other and
+
+32
+00:02:47.520 --> 00:02:53.840
+how to create this kind of trust relationship. And in the OpenID Connect lingo, there are two
+
+33
+00:02:53.840 --> 00:02:59.120
+pieces of terminology, identity provider and service provider. In this case, GitHub is the
+
+34
+00:02:59.120 --> 00:03:06.720
+identity provider and AWS is the service provider. So GitHub is kind of the one providing users,
+
+35
+00:03:06.720 --> 00:03:11.920
+while AWS is the one providing a specific service to the user. And this is where I was a little bit
+
+36
+00:03:11.920 --> 00:03:17.680
+confused at first, because I don't think this is the most intuitive use case to understand this
+
+37
+00:03:17.680 --> 00:03:23.680
+difference. In fact, GitHub doesn't really have a concept of users for AWS itself. GitHub doesn't
+
+38
+00:03:23.680 --> 00:03:29.600
+really have a database, let's say, where there is a mapping between particular user names and
+
+39
+00:03:29.600 --> 00:03:34.960
+particular roles. All this stuff actually still lives in AWS. So we'll see how this can be a
+
+40
+00:03:34.960 --> 00:03:38.320
+little bit confusing and hopefully we'll try to explain that a little bit better.
+
+41
+00:03:39.360 --> 00:03:45.680
+And another thing to keep in mind to really understand why there is this little bit of a
+
+42
+00:03:45.680 --> 00:03:51.200
+blurry definition between who is providing the users and who is providing the services
+
+43
+00:03:51.200 --> 00:03:56.000
+is because this is not like a user-facing integration, but it's more of a service-to-service
+
+44
+00:03:56.000 --> 00:04:00.880
+integration. So in a way, we are connecting two services and the definition of a user there
+
+45
+00:04:00.880 --> 00:04:07.840
+is not the canonical one, I would say. So in reality, the way we could see that is that AWS
+
+46
+00:04:07.840 --> 00:04:14.160
+is providing a particular role and AWS is basically trusting GitHub to generate some sort
+
+47
+00:04:14.160 --> 00:04:20.080
+of credential that will allow GitHub to assume that role. And we'll try to explain better how
+
+48
+00:04:20.080 --> 00:04:25.760
+all of that works. So yeah, the first thing that needs to happen in this particular scenario is
+
+49
+00:04:25.760 --> 00:04:31.440
+that we'll need to tell AWS to trust GitHub. So we need to create a trust relationship. And once
+
+50
+00:04:31.440 --> 00:04:37.600
+trust is established, again, GitHub can just say, okay, there is a token that proves that I am the
+
+51
+00:04:37.600 --> 00:04:43.920
+thing you trusted before, now give me access to this particular role. And that access is safer
+
+52
+00:04:43.920 --> 00:04:49.360
+than the permanent credential scenario because that kind of access is using temporary credentials,
+
+53
+00:04:49.360 --> 00:04:56.720
+using STS. So those credential will be short-lived and the chance of leaking them is much, I guess,
+
+54
+00:04:56.720 --> 00:05:00.960
+is much harder to, even if they are leaked, is much harder to take advantage of these credentials,
+
+55
+00:05:00.960 --> 00:05:06.560
+or at least not long-term. Okay. That sounds really good.
+
+56
+00:05:06.560 --> 00:05:11.680
+So you've got the identity provider, you've got AWS as a service provider. We've mentioned STS and short-lived credentials,
+
+57
+00:05:11.680 --> 00:05:15.520
+I think, a few times in various different episodes. So how do you start and how do you
+
+58
+00:05:15.520 --> 00:05:21.840
+create the trust relationship between the identity provider and AWS as a service provider? What are
+
+59
+00:05:21.840 --> 00:05:25.600
+the steps there? Yeah, this is something that I've done only manually.
+
+60
+00:05:25.600 --> 00:05:30.160
+I don't know if there is a way to actually automate that through Terraform or something else. Probably there is, I'm going to
+
+61
+00:05:30.160 --> 00:05:36.640
+guess, but if you want to do it manually, it's kind of one-off type of thing for most, at least
+
+62
+00:05:36.640 --> 00:05:41.120
+for creating that first trust, then you can probably automate the creation of roles. But just
+
+63
+00:05:41.120 --> 00:05:45.680
+to do that, what you can do, you can just go to the IAM portal and there is a section there called
+
+64
+00:05:45.680 --> 00:05:51.280
+identity providers. And if you go in there, you can create a new identity provider. And once you
+
+65
+00:05:51.280 --> 00:05:55.520
+go in that interface, it allows you to select different kinds of identity providers and one
+
+66
+00:05:55.520 --> 00:06:02.240
+of which is OIDC, OpenID Connect identity provider. And it gives you kind of a form and you need to
+
+67
+00:06:02.240 --> 00:06:08.560
+fill that form with certain kind of information that allows AWS to recognize GitHub actions as an
+
+68
+00:06:08.560 --> 00:06:14.800
+identity provider. And the first thing that you need to provide is a URL. This is the OIDC URL.
+
+69
+00:06:14.800 --> 00:06:19.600
+And this is actually an interesting thing. I don't know if anyone is familiar with OIDC.
+
+70
+00:06:20.400 --> 00:06:27.200
+It's kind of an extension of OAuth2 that also specifies in a much stricter way how the URL
+
+71
+00:06:27.200 --> 00:06:33.360
+structure should be made, how the tokens should be created. While OAuth2 was much more liberal and
+
+72
+00:06:33.360 --> 00:06:38.960
+every OAuth2 provider could be implemented in a much different way, in OIDC, you literally just
+
+73
+00:06:38.960 --> 00:06:43.600
+need to know that one URL and everything else is standardized. So that's why we can here afford to
+
+74
+00:06:43.600 --> 00:06:49.360
+specify only one particular URL. The other field that we need to populate in this form is something
+
+75
+00:06:49.360 --> 00:06:55.120
+called audience. And audience, I don't think it's extremely important here because I think GitHub
+
+76
+00:06:55.120 --> 00:07:00.720
+action can customize that audience on demand if you want to. But the standard convention that you
+
+77
+00:07:00.720 --> 00:07:06.960
+find in the documentation is to set that to sts.amazonaws.com. And this is basically a value
+
+78
+00:07:06.960 --> 00:07:13.280
+that will be available in your tokens and that you need to check to make sure that GitHub generated
+
+79
+00:07:13.280 --> 00:07:19.200
+the token for the right application, in this case integration with AWS. And then the last thing that
+
+80
+00:07:19.200 --> 00:07:26.240
+you need to do is to pass the time print of the TLS certificate. This is not really something that you
+
+81
+00:07:26.240 --> 00:07:31.920
+need to copy paste, you just need to click a button in the UI and AWS will download the time
+
+82
+00:07:31.920 --> 00:07:37.440
+print of the TLS certificate of the connection to that URL that we specified as the OIDC identity
+
+83
+00:07:37.440 --> 00:07:42.880
+provider. And this is important because we need to make sure that in the future when AWS connects
+
+84
+00:07:42.880 --> 00:07:49.280
+again to GitHub actions, it's still connecting to the same server, so to speak, that the trust is
+
+85
+00:07:49.280 --> 00:07:54.880
+given by the TLS certificate. So if that TLS certificate changes, most likely we want to
+
+86
+00:07:54.880 --> 00:07:59.680
+revisit the trust relationship and make sure we are still talking with the right provider at the
+
+87
+00:07:59.680 --> 00:08:05.280
+other end of the line. Okay, so that's interesting to know.
+
+88
+00:08:05.280 --> 00:08:10.640
+So this trust relationship can expire, so you need to have some process in place to make sure you're keeping on top of that and make sure
+
+89
+00:08:11.280 --> 00:08:17.120
+you renew before these things expire potentially. I did actually just check there if it was possible
+
+90
+00:08:17.120 --> 00:08:21.600
+to create all of this in CloudFormation and Terraform, and there's a Terraform plugin or
+
+91
+00:08:21.600 --> 00:08:25.840
+Terraform resource for this, and there's also a CloudFormation OIDC provider resource. So it
+
+92
+00:08:25.840 --> 00:08:29.840
+looks like everything that you just said is also possible there. I think you just have to figure
+
+93
+00:08:29.840 --> 00:08:33.360
+out then how are you going to get the thumb prints into your infrastructure as code template if you're
+
+94
+00:08:33.360 --> 00:08:38.480
+going to hard code those or do something maybe more dynamic. So you've now got this trust
+
+95
+00:08:38.480 --> 00:08:44.320
+relationship. So that's step one. How do we link that? What's the next step in linking that through
+
+96
+00:08:44.320 --> 00:08:52.240
+to permissions in AWS?
+
+97
+00:08:52.240 --> 00:08:58.800
+So the next step is to create a trust policy in AWS, and that trust policy needs to have certain particular fields to make sure that you are kind of locking down
+
+98
+00:08:58.800 --> 00:09:03.680
+the security as much as possible. So you're not basically allowing anyone or anything to assume
+
+99
+00:09:03.680 --> 00:09:09.120
+the role. You just want GitHub action and maybe a specific workflow even to assume that particular
+
+100
+00:09:09.120 --> 00:09:14.320
+role. So I suppose at this point you should have in mind exactly the kind of pipeline you're going
+
+101
+00:09:14.320 --> 00:09:20.560
+to build in GitHub and what kind of permission that pipeline would require, and you create this
+
+102
+00:09:20.560 --> 00:09:26.560
+trust policy where you specify that the principal for the trust policy is the ARN of the AM identity
+
+103
+00:09:26.560 --> 00:09:33.440
+provider that we just created. Then the action is STS assume role with web identity, and then we can
+
+104
+00:09:33.440 --> 00:09:38.720
+specify a bunch of conditions. We want to check that the audience is actually the one we specified,
+
+105
+00:09:38.720 --> 00:09:45.600
+STS, amazon.aws.com, but also if we want to lock down the role to a particular GitHub action
+
+106
+00:09:45.600 --> 00:09:51.360
+workflow, we can also specify another condition saying that the subject, which is going to be a
+
+107
+00:09:51.360 --> 00:09:57.680
+field in the token specifying exactly the workflow that triggered that particular execution, matches
+
+108
+00:09:57.680 --> 00:10:02.320
+exactly your expectation. So let's say that you have, I don't know, a project called e-commerce,
+
+109
+00:10:02.320 --> 00:10:06.800
+and that project has a particular repository and a particular workflow in GitHub action called,
+
+110
+00:10:06.800 --> 00:10:13.760
+I don't know, build and publish. You will have a way to say assume this role only if the pipeline
+
+111
+00:10:13.760 --> 00:10:22.480
+was the e-commerce and the workflow was build and deploy. So you can create a condition to limit
+
+112
+00:10:22.480 --> 00:10:28.800
+that kind of thing. At that point you have this trust policy and you can attach... that allows you
+
+113
+00:10:28.800 --> 00:10:33.280
+to assume a role and that role can have specific permissions like, I don't know, you'll be able to
+
+114
+00:10:33.280 --> 00:10:39.040
+create a bucket, you'll be able to deploy a lambda and all the things that you need to do for
+
+115
+00:10:39.040 --> 00:10:43.600
+deploying your application. We mentioned...
+
+116
+00:10:43.600 --> 00:10:48.960
+you've mentioned the token here and you mentioned things like the audience, the subject. Should we talk about the technology underpinning this, which
+
+117
+00:10:48.960 --> 00:10:55.120
+people may have covered before, various different authentication authorization flows? What is a JWT?
+
+118
+00:10:55.120 --> 00:10:59.760
+What do we need to know about it in this context?
+
+119
+00:10:59.760 --> 00:11:05.520
+Yeah, one of the things that we mentioned before is that OIDC standardizes also the format of a token. A token can really be anything,
+
+120
+00:11:05.520 --> 00:11:10.880
+like any string that you can verify and make sure it is actually trustworthy because, I don't know,
+
+121
+00:11:10.880 --> 00:11:16.880
+maybe you can do an API call and get that that token is reliable from the API call or the token
+
+122
+00:11:16.880 --> 00:11:23.440
+itself is somehow signed and you can trust that that signature gives you a guarantee that somebody
+
+123
+00:11:23.440 --> 00:11:30.080
+trustworthy generated that token. In the case of OIDC, this is kind of the choice. They went for
+
+124
+00:11:30.080 --> 00:11:37.360
+signed tokens and the technology of choice is JWT JSON web token. I have written an article a couple
+
+125
+00:11:37.360 --> 00:11:42.640
+of years ago with some illustration that tried to describe in brief what's the structure and how
+
+126
+00:11:43.440 --> 00:11:48.000
+they are generated, how they are validated. We'll have a link to that article if you want to go
+
+127
+00:11:48.000 --> 00:11:53.840
+deeper, but the summary of that is that a JWT token is a string made of three parts separated
+
+128
+00:11:53.840 --> 00:11:59.680
+by a dot and those three parts are a header, a payload, and a signature. They are all encoded
+
+129
+00:11:59.680 --> 00:12:08.080
+in base64url and if you basically split the three parts and do a base64url decode, the header and
+
+130
+00:12:08.080 --> 00:12:14.560
+the payload are actually two JSON objects, JSON encoded objects, and the payload can contain
+
+131
+00:12:14.560 --> 00:12:19.680
+properties that are generally called claims and those properties are... they can be whatever you
+
+132
+00:12:19.680 --> 00:12:25.600
+want, but there are some standards. For instance, audience is one of those, AUD, and generally
+
+133
+00:12:25.600 --> 00:12:29.760
+represents the particular application for which the token was generated. So if you have an
+
+134
+00:12:29.760 --> 00:12:33.840
+identity provider that can generate tokens for multiple applications, you can use the audience
+
+135
+00:12:33.840 --> 00:12:38.400
+to make sure that you are receiving a token that is meant to be used in a particular application.
+
+136
+00:12:38.960 --> 00:12:43.120
+Then there are other claims like time validity. Don't use this token before a certain date,
+
+137
+00:12:43.120 --> 00:12:47.440
+don't use this token after a certain date, or there are information about the issuer.
+
+138
+00:12:48.000 --> 00:12:53.680
+For instance, which identity provider created that token. And again, if you have an application
+
+139
+00:12:53.680 --> 00:12:58.000
+that accepts tokens from multiple identity providers, that's an important information because
+
+140
+00:12:58.000 --> 00:13:01.680
+it also tells you how to check the signature for that particular token.
+
+141
+00:13:02.320 --> 00:13:07.520
+And if you want to check the signature, you also need to know which key was used to sign the token,
+
+142
+00:13:07.520 --> 00:13:13.920
+so the ID of the key is another field that you will generally find in the payload. And in the
+
+143
+00:13:13.920 --> 00:13:20.240
+case of GitHub Actions, there is also subject which is, in that case, will contain a reference
+
+144
+00:13:20.240 --> 00:13:24.640
+to the workflow that generated the token. So, other information that you can use and is the
+
+145
+00:13:24.640 --> 00:13:31.120
+information we can use in our roles to limit the fact that only the particular workflow can assume
+
+146
+00:13:31.120 --> 00:13:35.600
+a particular role. One interesting thing is that you might wonder how the signature thing works
+
+147
+00:13:35.600 --> 00:13:40.960
+because it's a little bit magic if you never really looked under the hood, but it works by
+
+148
+00:13:40.960 --> 00:13:46.320
+using... Actually, JWT is a little bit open. You can use both symmetric and asymmetric encryption,
+
+149
+00:13:46.320 --> 00:13:52.640
+so you could have either just a shared key to sign the token or you can have public and private key.
+
+150
+00:13:53.680 --> 00:13:59.760
+Of course, in the case of OIDC, you want to have public and private key because you don't want to
+
+151
+00:13:59.760 --> 00:14:06.240
+share a secret key between GitHub and AWS because then it means everyone will know that secret key
+
+152
+00:14:06.240 --> 00:14:10.800
+and everyone will be able to create signed tokens. Instead, when you use a model with
+
+153
+00:14:10.800 --> 00:14:15.680
+asymmetric keys, you will have a public key that allows you to validate tokens and that can be...
+
+154
+00:14:15.680 --> 00:14:21.680
+Anyone can read that. And the private key is only known to GitHub in this case and it means that
+
+155
+00:14:21.680 --> 00:14:29.120
+only GitHub will be able to sign these tokens. So, in reality, you almost never want to use the
+
+156
+00:14:29.120 --> 00:14:34.880
+symmetric key these days. You always go for public and private keys.
+
+157
+00:14:34.880 --> 00:14:40.320
+Given that we've got this trust relationship and we've got the role created and we've set the trust policy in the role so that it
+
+158
+00:14:40.320 --> 00:14:47.440
+can only be assumed by principles coming from this identity provider, what's the next... How do we get
+
+159
+00:14:47.440 --> 00:14:55.200
+that identity provider being GitHub and specifically ours pipelines to get credentials? So, to assume
+
+160
+00:14:55.200 --> 00:15:00.000
+a role or whatever it is that allows us to enter the AWS world and make API calls.
+
+161
+00:15:01.120 --> 00:15:06.800
+Yeah.
+
+162
+00:15:06.800 --> 00:15:11.600
+So, in this part, I think there is a little bit of speculation because some parts are well known and well described and other ones, we can only assume what AWS is doing to actually validate
+
+163
+00:15:11.600 --> 00:15:17.120
+the token based on the OIDC standard. So, I'm going to try to come up with a narrative, but it
+
+164
+00:15:17.120 --> 00:15:23.680
+might not be 100% truthful to what AWS actually does. But basically, the point is that at some
+
+165
+00:15:23.680 --> 00:15:29.360
+point we start a workflow in GitHub Action. And GitHub is kind of an event based in that sense,
+
+166
+00:15:29.360 --> 00:15:33.600
+saying that every time there is a new workflow, it's going to generate a token for that particular
+
+167
+00:15:33.600 --> 00:15:39.680
+workflow. And with that token, in your workflow, you might decide to use it or not. But of course,
+
+168
+00:15:39.680 --> 00:15:44.960
+if you're going to interact with AWS, you might want to use that token and exchange it for AWS
+
+169
+00:15:44.960 --> 00:15:49.600
+temporary credentials. And that's something that can be done either manually, if you want to write
+
+170
+00:15:49.600 --> 00:15:54.720
+all that code with a CLI or an SDK, or if you want to make your life easier, there is an action that
+
+171
+00:15:54.720 --> 00:15:59.760
+is provided by AWS and you can just import that action into your workflow and configure it to
+
+172
+00:15:59.760 --> 00:16:06.400
+assume the particular role that you have in your AWS account. And what happens behind the scene in
+
+173
+00:16:06.400 --> 00:16:11.120
+that action is that it's basically fetching the token generated by the GitHub workflow
+
+174
+00:16:11.120 --> 00:16:16.960
+and then making an STS call, assume role with web identity and pass that token to AWS.
+
+175
+00:16:16.960 --> 00:16:21.520
+Now, this is where it gets a little bit speculative because we'll need to imagine what
+
+176
+00:16:21.520 --> 00:16:27.040
+AWS will do to actually trust that particular token. Because the token, as we understood this
+
+177
+00:16:27.040 --> 00:16:31.520
+like a string, where you can do some decoding and get some information out of it, and then there is
+
+178
+00:16:31.520 --> 00:16:37.360
+a signature that gives some sort of trust that it was generated by a trusted source. So what AWS
+
+179
+00:16:37.360 --> 00:16:41.520
+should do, in my opinion at least, is that first of all, it needs to check if the token is well
+
+180
+00:16:41.520 --> 00:16:47.680
+formed. So is it a valid JWT? Can we decode it? And then are there three parts, a header, a payload,
+
+181
+00:16:47.680 --> 00:16:53.600
+and a signature? Can we read the claims inside the payload? And then when we read the claims,
+
+182
+00:16:53.600 --> 00:17:00.240
+is this token issued by an identity provider that we recognize? So this particular account did have
+
+183
+00:17:00.240 --> 00:17:05.440
+a connection, a trusted relationship with this particular identity provider. If yes, then at that
+
+184
+00:17:05.440 --> 00:17:10.320
+point it needs to check the audience. Like, do we recognize the application for which this token
+
+185
+00:17:10.320 --> 00:17:17.200
+was created? And in our example, we said we will just use the generic STS, AWS, something, I don't
+
+186
+00:17:17.200 --> 00:17:21.200
+even remember. But you can keep that generic or you can customize it if you have different
+
+187
+00:17:21.200 --> 00:17:25.920
+applications. And GitHub Actions can actually change that value for you when you create the
+
+188
+00:17:25.920 --> 00:17:31.840
+token. So that value is actually a little bit of a placeholder that you can configure. Either keep
+
+189
+00:17:31.840 --> 00:17:36.240
+it standard if you have one particular use case, or you can customize it by application.
+
+190
+00:17:36.240 --> 00:17:40.560
+And then the next phase is, okay, once we have validated that the token is correct, that the
+
+191
+00:17:40.560 --> 00:17:45.120
+information in the token looks good and we understand it, we need to make sure that that
+
+192
+00:17:45.120 --> 00:17:50.240
+token is authentic. So it wasn't forged by a third party, but it needs to come really from GitHub
+
+193
+00:17:50.240 --> 00:17:58.000
+Action. And the way that I assume AWS is going to verify that is by using OIDC. So it's going to see
+
+194
+00:17:58.000 --> 00:18:05.600
+in the claims what is the key ID. It knows what's the URL of the token, what's the name of the
+
+195
+00:18:05.600 --> 00:18:13.680
+public key URL endpoint from the OIDC protocol. And it's going to use that to download that
+
+196
+00:18:13.680 --> 00:18:19.040
+particular key, the public key. And then at that point, it can actually check, okay, was it really
+
+197
+00:18:19.040 --> 00:18:25.680
+this key, the one that signed the token? So there is kind of a double trust there. One is given by
+
+198
+00:18:25.680 --> 00:18:31.280
+the fact that we created this trust relationship with that particular URL of the OIDC provider.
+
+199
+00:18:31.280 --> 00:18:36.000
+And the other one is given by the fact that AWS can download a public key from that URL,
+
+200
+00:18:36.000 --> 00:18:42.000
+and that public key actually can verify that the token was signed by that particular OIDC provider.
+
+201
+00:18:42.960 --> 00:18:47.680
+And at that point, if everything is good, STS will do its own thing. It will create temporary
+
+202
+00:18:47.680 --> 00:18:54.640
+credentials, and it will return these temporary credentials that can be used to interact with AWS
+
+203
+00:18:54.640 --> 00:19:00.560
+and will have the policy that is given to the particular role for those credentials.
+
+204
+00:19:00.560 --> 00:19:05.120
+Okay. What form, what does it, what do those credentials look like? What form do they take?
+
+205
+00:19:05.120 --> 00:19:09.920
+If I understand correctly, this is like the usual when you assume a role with STS.
+
+206
+00:19:09.920 --> 00:19:13.920
+So my understanding is that it will be like an access key, a secret access key, and also it will have
+
+207
+00:19:13.920 --> 00:19:17.120
+a session token and an expiration field. Okay.
+
+208
+00:19:17.120 --> 00:19:20.560
+So yeah, temporary credentials that are linked to a particular role.
+
+209
+00:19:21.200 --> 00:19:27.280
+Okay. Yeah. So I guess this is kind of familiar in some ways if you've used SSO or some of the
+
+210
+00:19:27.280 --> 00:19:32.480
+Cognito flows where you're exchanging some third-party identity provider, you've got some
+
+211
+00:19:32.480 --> 00:19:35.920
+credentials and you're exchanging it for temporary credentials, you get the exact same thing.
+
+212
+00:19:36.560 --> 00:19:42.560
+Okay. That sounds a little bit clearer now. How would you use this outside of GitHub? Is this
+
+213
+00:19:42.560 --> 00:19:47.200
+really limited to GitHub for now? What if you've got other CD providers? What other things would
+
+214
+00:19:47.200 --> 00:19:52.720
+you use OIDC providers for?
+
+215
+00:19:52.720 --> 00:19:59.120
+Yeah, this is something that got my curiosity because I was thinking, okay, how does AWS trust GitHub? And of course they made that generic. So if you can understand
+
+216
+00:19:59.120 --> 00:20:06.880
+how that connection works, then you can create your own sources for allowing on a certain event
+
+217
+00:20:06.880 --> 00:20:13.680
+to assume a particular role and you can kind of delegate to this particular source the idea of
+
+218
+00:20:13.680 --> 00:20:16.880
+given that there is a trust relationship, I trusted when a particular event happens,
+
+219
+00:20:16.880 --> 00:20:19.680
+then I can assume a particular role with temporary credentials.
+
+220
+00:20:19.680 --> 00:20:24.080
+So I don't know if there are interesting examples outside the CI/CD world,
+
+221
+00:20:24.640 --> 00:20:28.960
+but for instance, if you have an on-premise Jenkins and you have your own OIDC provider,
+
+222
+00:20:28.960 --> 00:20:33.760
+you could build basically that integration pretty much the same way as we explained for GitHub
+
+223
+00:20:33.760 --> 00:20:39.840
+Actions. AWS is just going to trust your own on-premise identity provider to basically
+
+224
+00:20:39.840 --> 00:20:46.160
+generate tokens that then will give access to particular roles on AWS. But I was thinking also,
+
+225
+00:20:46.160 --> 00:20:51.040
+can you use this for other workflows? I don't know if it's the best way of doing this,
+
+226
+00:20:51.040 --> 00:20:58.000
+but technically you could use event-driven things if you want to basically, I don't know,
+
+227
+00:20:58.000 --> 00:21:03.120
+maybe a physical action in the real world triggers something in AWS. I'm thinking, I don't know,
+
+228
+00:21:03.120 --> 00:21:06.800
+maybe you have an application that every time you enter the office, you swipe your own card
+
+229
+00:21:06.800 --> 00:21:12.000
+to track time or something like that. If there is, I don't know, I know OIDC provider connected
+
+230
+00:21:12.000 --> 00:21:18.160
+there, that's OIDC provider. There could be an application that creates a token using that OIDC
+
+231
+00:21:18.160 --> 00:21:23.680
+provider, assumes a role, and then maybe recording a DynamoDB table that, I don't know, somebody
+
+232
+00:21:23.680 --> 00:21:29.360
+accesses the building at a certain point. So you could create this kind of, I suppose, actions
+
+233
+00:21:29.360 --> 00:21:35.120
+where you have a source of authentication and you want to assume a role, but in a kind of
+
+234
+00:21:35.760 --> 00:21:40.480
+time-limited fashion. Now, probably there are better ways to implement this kind of stuff,
+
+235
+00:21:40.480 --> 00:21:45.200
+but I was trying to stretch my imagination on once you understand this integration,
+
+236
+00:21:45.200 --> 00:21:50.160
+how much can you use it? How far can you go? All right.
+
+237
+00:21:50.160 --> 00:21:54.960
+It sounds like that this is applicable in any case where you've got a system to system interaction between a non-AWS environment and an
+
+238
+00:21:54.960 --> 00:21:59.040
+AWS environment. So it could be used when you've got an on-prem Sys application that needs to talk
+
+239
+00:21:59.040 --> 00:22:04.800
+to an AWS application, for example, and you don't want to have access keys configured. We know that
+
+240
+00:22:04.800 --> 00:22:10.000
+in EC2 or in ECS, you've got like a profile you can associate with that resource. So you can
+
+241
+00:22:10.000 --> 00:22:15.120
+use that resource. So you don't have to have secret keys, but outside of AWS, it has been
+
+242
+00:22:15.120 --> 00:22:19.840
+very common for people to just use long-lived keys to perform that kind of interaction. So I
+
+243
+00:22:19.840 --> 00:22:25.360
+guess this is one way of overcoming that. You just need to think about what is your OIDC provider
+
+244
+00:22:25.360 --> 00:22:31.920
+and how are you going to issue those credentials? I know some people would maybe integrate it into
+
+245
+00:22:31.920 --> 00:22:36.800
+Active Directory and have some sort of service credentials. So that might be another way of doing
+
+246
+00:22:36.800 --> 00:22:42.320
+that. It might be worthwhile mentioning actually, as a slight segue, there was a very recent
+
+247
+00:22:42.320 --> 00:22:47.360
+announcement for a new feature called IAM roles anywhere, and we can link to this announcement
+
+248
+00:22:47.360 --> 00:22:52.400
+in the show loads, but it sounds like another way of doing this kind of system to system interaction
+
+249
+00:22:52.400 --> 00:22:58.320
+where instead of having an OIDC provider, you use a public key infrastructure. So PKI,
+
+250
+00:22:58.320 --> 00:23:03.920
+you've got a root certificate authority yourself, or you can use AWS certificates manager,
+
+251
+00:23:03.920 --> 00:23:08.640
+and you can issue client certificates, and you actually set up a trust chain between your
+
+252
+00:23:10.240 --> 00:23:16.800
+certificate authority and AWS, and then use client certificates as a means to exchange them for
+
+253
+00:23:16.800 --> 00:23:22.880
+temporary credentials. So it's slightly tangent, but related, and it's a very recent announcement,
+
+254
+00:23:22.880 --> 00:23:28.240
+so I just thought I'd call it out there. But I guess what this is kind of saying to us is that
+
+255
+00:23:28.880 --> 00:23:32.800
+all you need to do is to create something that follows the OIDC protocol,
+
+256
+00:23:32.800 --> 00:23:41.680
+and you can pretty much use it to exchange identities for credentials in AWS. So I guess
+
+257
+00:23:41.680 --> 00:23:47.120
+that means it's potentially something that could cause security issues if you don't get it right.
+
+258
+00:23:47.760 --> 00:23:51.840
+Now you could create your own identity provider. You could use it to give administrator access
+
+259
+00:23:51.840 --> 00:23:56.320
+to all of your accounts. So you need to understand exactly what the trust model is. Is it worthwhile
+
+260
+00:23:56.320 --> 00:24:02.480
+maybe summarizing that? How would you describe the trust model for this OIDC relationship?
+
+261
+00:24:02.480 --> 00:24:06.320
+Yeah, so as we said, the first step is to create the trust relationship within
+
+262
+00:24:06.320 --> 00:24:12.160
+AWS and GitHub Actions. In this case, we go to AWS IAM, and we create the OIDC provider connection.
+
+263
+00:24:13.280 --> 00:24:19.200
+At that point, GitHub Action can create tokens in the form of JWT, and these tokens are something
+
+264
+00:24:19.200 --> 00:24:24.800
+that AWS should be able to trust and recognize. So with a token like that, GitHub Action can say,
+
+265
+00:24:25.440 --> 00:24:30.640
+assume a particular role, and it is basically exchanging that token that automatically generated
+
+266
+00:24:30.640 --> 00:24:37.440
+with temporary credentials that are given by AWS for a particular role. So in summary, I suppose
+
+267
+00:24:37.440 --> 00:24:44.480
+that we are basically creating a configuration where AWS trusts the signature of the IDC provider,
+
+268
+00:24:44.480 --> 00:24:48.800
+and with that trust comes the ability to assume a role with temporary credentials.
+
+269
+00:24:49.520 --> 00:24:53.200
+Okay, that makes sense. So it seems quite powerful, and it's nice the way it's using
+
+270
+00:24:53.200 --> 00:24:58.880
+the standard, and it potentially opens up support for a lot of other OIDC providers.
+
+271
+00:24:58.880 --> 00:25:04.480
+I think we've covered it in quite a lot of detail, so you've given a lot of information there. From
+
+272
+00:25:04.480 --> 00:25:08.480
+a developer point of view, if you're thinking, okay, that's all very well and good, I'm informed
+
+273
+00:25:08.480 --> 00:25:13.360
+now, but as a developer, I've got a CD pipeline, or maybe I'm creating a new one, or maybe I've got
+
+274
+00:25:13.360 --> 00:25:17.440
+one that already uses long-lived credentials, and I want to switch over to using short-lived
+
+275
+00:25:17.440 --> 00:25:20.800
+credentials with this new way. What are the steps in summary?
+
+276
+00:25:26.480 --> 00:25:30.880
+Yeah, just make sure that you have configured the OIDC provider in AWS so that you have created that trust relationship, and we have explained extensively how to do that manually, but Eoin,
+
+277
+00:25:30.880 --> 00:25:34.880
+you also pointed out that you can do that programmatically using Terraform, or Cloud
+
+278
+00:25:34.880 --> 00:25:40.800
+Formation, or CDK, or something like that. So make sure that that happens, first of all.
+
+279
+00:25:40.800 --> 00:25:45.200
+Then you need to create your own roles, so you can create a role for every single workflow.
+
+280
+00:25:45.200 --> 00:25:49.920
+If you want to be very strict, make sure to set up the right permissions for every role,
+
+281
+00:25:49.920 --> 00:25:56.640
+and at that point in your GitHub Action workflow, you can use the AWS Action, configure AWS
+
+282
+00:25:56.640 --> 00:26:04.720
+credentials to basically have a step before you interact with any AWS resource to get the
+
+283
+00:26:04.720 --> 00:26:09.280
+temporary credentials. So at that point, you can remove all your hard-coded credentials and swap
+
+284
+00:26:09.280 --> 00:26:16.960
+them with this particular step that uses the AWS Action to do this exchange of a JWT token for
+
+285
+00:26:16.960 --> 00:26:22.320
+AWS temporary credentials.
+
+286
+00:26:22.320 --> 00:26:28.720
+Are there any other resources we should point people to who want to get started with this?
+
+287
+00:26:28.720 --> 00:26:33.680
+Yeah, so I was actually reading a very good post by Elias Branche that is kind of a tutorial that guides you step by step on how to do all the things we describe today,
+
+288
+00:26:33.680 --> 00:26:39.360
+and has very good examples, and also a lot of screenshots so that you can be sure that you are
+
+289
+00:26:39.360 --> 00:26:42.720
+following and doing the right things. So I definitely recommend if you want to do this
+
+290
+00:26:42.720 --> 00:26:47.920
+for the first time to use this tutorial as a reference to guide you through all the process,
+
+291
+00:26:48.480 --> 00:26:52.560
+and we're going to have a link in the show notes. But also if you haven't seen our previous episode
+
+292
+00:26:52.560 --> 00:26:57.440
+where we discuss why you should consider using GitHub Actions rather than CodePipeline,
+
+293
+00:26:57.440 --> 00:27:02.400
+maybe that's a good one that you can check out after this one to make sure you really get all
+
+294
+00:27:02.400 --> 00:27:07.520
+the context on why all this stuff might be interesting for you. That's all we have for
+
+295
+00:27:07.520 --> 00:27:14.720
+today and we'll see you at the next episode. Thank you very much.

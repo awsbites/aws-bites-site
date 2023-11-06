@@ -1,0 +1,1229 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:05.120
+Hello everyone, today we're going to answer the question how do you use event bridge?
+
+2
+00:00:05.120 --> 00:00:10.240
+And by the end of this episode you will know why event bridge is very different from everything
+
+3
+00:00:10.240 --> 00:00:15.840
+else in this space. We will also discuss some interesting examples on when and how you can use
+
+4
+00:00:15.840 --> 00:00:21.040
+event bridge, what can possibly go wrong with it and how much are you going to pay for it,
+
+5
+00:00:21.040 --> 00:00:25.600
+and finally we are going to give you some tips to avoid shooting yourself in the foot and get good
+
+6
+00:00:25.600 --> 00:00:31.680
+observability. My name is Luciano and today I'm joined by Eoin and this is AWS Bites podcast.
+
+7
+00:00:39.600 --> 00:00:45.520
+So before we get started let me mention that this is a series about AWS services that cover the
+
+8
+00:00:45.520 --> 00:00:52.240
+space of event and message passing. We just finished an episode about SQS, the previous one,
+
+9
+00:00:52.240 --> 00:00:57.040
+and we also had a more generic introduction to all these services. Today we're going to focus
+
+10
+00:00:57.040 --> 00:01:01.920
+on event bridge but if you're interested in the space make sure to follow and subscribe so you
+
+11
+00:01:01.920 --> 00:01:08.640
+can be notified whenever we publish the next events. But back to event bridge, Eoin what can
+
+12
+00:01:08.640 --> 00:01:14.240
+you tell us about what are the main features or the main things why event bridge is so interesting?
+
+13
+00:01:21.280 --> 00:01:26.880
+Yeah event bridge if we talk about the classification we previously used we had queues and then we had pubsub and then streaming. Event bridge we put in the pubsub category but
+
+14
+00:01:26.880 --> 00:01:31.440
+it's a little bit different to other pubsub systems it's got some interesting features.
+
+15
+00:01:32.000 --> 00:01:38.160
+So event bridge is nice in that you can publish events without really provisioning anything up
+
+16
+00:01:38.160 --> 00:01:42.880
+front that's I think the thing that people really like. You don't have to provision anywhere
+
+17
+00:01:42.880 --> 00:01:46.640
+you don't have to provision any resources in AWS if you want to send events to it
+
+18
+00:01:48.400 --> 00:01:52.480
+but if you want to consume them then you just need to create a rule and that's how it works.
+
+19
+00:01:52.480 --> 00:01:58.160
+So you don't really have the subscriber concept like you do with SNS. You don't necessarily have
+
+20
+00:01:58.160 --> 00:02:02.640
+to have listeners instead you have rules and a rule is slightly different to a subscription.
+
+21
+00:02:04.480 --> 00:02:10.000
+With a rule you define a pattern and it is really like a pattern matching concept similar to the
+
+22
+00:02:10.000 --> 00:02:15.520
+kind of pattern matching concept you get in some programming languages where you have an event
+
+23
+00:02:15.520 --> 00:02:20.000
+you're trying to say I want to receive events that look a little bit like this pattern here
+
+24
+00:02:20.000 --> 00:02:26.800
+and then you can specify some properties in that event and their values this partial string that
+
+25
+00:02:26.800 --> 00:02:32.640
+it might begin with integer comparison and then you say okay with this rule if you find any
+
+26
+00:02:32.640 --> 00:02:37.440
+matches then can you please send these events to these targets and one of the great things about
+
+27
+00:02:37.440 --> 00:02:43.120
+EventBridge is that it supports lots of targets so EventBridge is really good it's almost like the
+
+28
+00:02:43.680 --> 00:02:50.080
+integrate anything with anything service on AWS so it's of all the services we're going to talk
+
+29
+00:02:50.080 --> 00:02:54.800
+about in this series it's probably the most general purpose it can do almost anything you
+
+30
+00:02:54.800 --> 00:03:00.560
+can imagine. There are of course some limitations which we'll talk about but it is really really
+
+31
+00:03:00.560 --> 00:03:05.520
+powerful and it's one of the services that has really got a lot of people excited since it was
+
+32
+00:03:05.520 --> 00:03:10.640
+announced it was actually based off a service that had existed for a long time CloudWatch events
+
+33
+00:03:10.640 --> 00:03:16.560
+but they rebranded it and gave it a new purpose and added a lot of new features and suddenly
+
+34
+00:03:16.560 --> 00:03:22.240
+people are getting as excited about it almost as people did when Lambda came out so there's lots of
+
+35
+00:03:22.240 --> 00:03:26.160
+different different features in it so you've got different event types do you want to talk about
+
+36
+00:03:26.720 --> 00:03:30.880
+maybe what what are the different events you can get with EventBridge?
+
+37
+00:03:30.880 --> 00:03:37.200
+Yeah before that I just want to mention that it reminds me a little bit in its purpose and the way it has been marketed as the
+
+38
+00:03:38.000 --> 00:03:48.000
+if this then that or Zapier answer from AWS right? Yeah absolutely yeah different type of events so
+
+39
+00:03:48.000 --> 00:03:54.480
+there are actually I would say three main categories of events that you can deal with
+
+40
+00:03:54.480 --> 00:04:01.120
+and the first one is that there are events that are I would call them native in AWS so things that
+
+41
+00:04:01.120 --> 00:04:07.600
+happen in your AWS account or other accounts and you might want to listen for and react to them
+
+42
+00:04:07.600 --> 00:04:12.560
+and just to give you a few examples for instance you can be notified whenever a spot instance has
+
+43
+00:04:12.560 --> 00:04:17.760
+been interrupted or maybe you have step functions and you want to react to a step function changing
+
+44
+00:04:17.760 --> 00:04:26.000
+state maybe it's started maybe it's failing maybe it's timing out and for instance you can even
+
+45
+00:04:26.000 --> 00:04:32.240
+enable notifications and events for S3 objects so you could say every time there is a new
+
+46
+00:04:32.240 --> 00:04:37.440
+a new object in a bucket trigger that this is an event and you can create a rule to match that
+
+47
+00:04:38.240 --> 00:04:45.040
+and very generic thing you can use CloudTrail as well and that will give you access to another
+
+48
+00:04:45.040 --> 00:04:54.400
+wide range of events there is a list that we will put in the show descriptions there is a link there
+
+49
+00:04:54.400 --> 00:05:01.360
+and we'll you will find that all the events and services from AWS that will trigger events that
+
+50
+00:05:01.360 --> 00:05:05.840
+you can capture in EventBridge there is an interesting small detail that you need to be a
+
+51
+00:05:05.840 --> 00:05:10.960
+little bit careful about there are different guarantees in terms of delivery depending on the
+
+52
+00:05:10.960 --> 00:05:17.440
+depending on the type of event source that you are trying to to use sometimes you have kind of a
+
+53
+00:05:17.440 --> 00:05:23.040
+guaranteed delivery and then sometimes you have best effort so I suppose that pretty much means
+
+54
+00:05:33.360 --> 00:05:38.400
+when you get at least once delivery or at most once type of delivery yeah I guess if it's best effort it's kind of at least zero right because you just for some of those services you just won't
+
+55
+00:05:44.160 --> 00:05:50.320
+get an event so yeah it's good to check the docs so this is the first category and it's something that it's there for you if you want to use it you just create a rule and you use it in some cases
+
+56
+00:05:50.320 --> 00:05:55.920
+you need to enable the events but most of the time it's there and it works for you then there are
+
+57
+00:05:55.920 --> 00:06:00.160
+another category that is partner events and this is actually really interesting and this is why
+
+58
+00:06:00.160 --> 00:06:05.680
+sometimes I like to think about EventBridge as sort of a Zapier or if this then that because
+
+59
+00:06:05.680 --> 00:06:12.080
+you can plug in events from other SaaS platforms for instance I don't know Salesforce, Outzero,
+
+60
+00:06:12.080 --> 00:06:19.440
+PagerDuty so if you integrate the platform with your AWS account basically you can start to get
+
+61
+00:06:19.440 --> 00:06:25.520
+events from those other external platform and consume them I don't know an example that comes
+
+62
+00:06:25.520 --> 00:06:31.520
+to mind maybe you have a sales pipeline that you are mapping in Salesforce if that pipeline changes
+
+63
+00:06:31.520 --> 00:06:37.120
+maybe you have new deals coming in you can probably receive events and react to those and create
+
+64
+00:06:37.120 --> 00:06:44.640
+integrations and finally the third category of events is custom events so you can use the SDK
+
+65
+00:06:44.640 --> 00:06:50.080
+to dispatch your own totally custom events for instance I don't know if you are building any
+
+66
+00:06:50.080 --> 00:06:55.120
+commerce which seems to be our favorite example you could create your own custom events every
+
+67
+00:06:55.120 --> 00:07:00.480
+time there is a new order and you can define the structure of those events and then different parts
+
+68
+00:07:00.480 --> 00:07:05.200
+of your application can create patterns and rules to capture those events and react to them
+
+69
+00:07:08.080 --> 00:07:12.320
+that's all I have for events but what about targets
+
+70
+00:07:19.600 --> 00:07:26.080
+that's yeah I mentioned that one of the advantages is that you have loads of targets so compared to SNS or SQS you have many services that you can integrate directly from EventBridge
+
+71
+00:07:26.080 --> 00:07:33.280
+you also have HTTP destinations so if you've got a third-party API you can use EventBridge to route
+
+72
+00:07:33.920 --> 00:07:38.640
+all of these different types of messages that can come in to a third-party API or an external API or
+
+73
+00:07:38.640 --> 00:07:43.600
+one of your other APIs and it also supports neat things like throttling and exponential backup and
+
+74
+00:07:43.600 --> 00:07:50.080
+back off and retry that's really useful and one of the great things that EventBridge has that a
+
+75
+00:07:50.080 --> 00:07:54.240
+lot of other services doesn't have is cross account of EventBridge so you can very if you've
+
+76
+00:07:54.240 --> 00:07:58.880
+got different applications different domains running in different accounts or even third-party
+
+77
+00:07:58.880 --> 00:08:04.720
+events you can set other EventBridges in other accounts as a target so that makes it really
+
+78
+00:08:04.720 --> 00:08:11.280
+easy to integrate without having to have you know specific services that are there with an IAM
+
+79
+00:08:11.280 --> 00:08:16.000
+policy and you know network routing that can route from one account to another that you have to do
+
+80
+00:08:16.000 --> 00:08:22.160
+with some other kinds of services and EventBridge takes care of that so there's definitely the most
+
+81
+00:08:22.160 --> 00:08:26.560
+rich the richest supportive supported set of supported targets available.
+
+82
+00:08:27.840 --> 00:08:32.160
+I suppose we there's a couple of other features that came out after EventBridge was launched
+
+83
+00:08:33.040 --> 00:08:39.360
+the schema registry and then the archive and replay and for people who have a lot of events
+
+84
+00:08:39.360 --> 00:08:44.880
+in their system and they're trying to support a large number of developers and trying to share
+
+85
+00:08:44.880 --> 00:08:49.520
+knowledge around what kind of events they can listen to the schema is really useful for that
+
+86
+00:08:49.520 --> 00:08:54.400
+useful for that EventBridge can discover what kind of events are coming through your system
+
+87
+00:08:55.360 --> 00:08:58.400
+and automatically register schemas for it and then you can use
+
+88
+00:09:00.480 --> 00:09:06.560
+EventBridge to generate code samples there are code bindings so if you're using an object
+
+89
+00:09:19.120 --> 00:09:24.400
+oriented typed language it can generate classes for you for example yeah that's really that's really neat for those absolutely yeah it can get really difficult if everything is dynamic and event driven if you don't have types it can get pretty difficult to kind of understand the
+
+90
+00:09:24.960 --> 00:09:31.200
+structure of events and what what properties are supported and then you've got the archive so
+
+91
+00:09:31.200 --> 00:09:35.600
+EventBridge archive allows you to retain have retention on those events
+
+92
+00:09:37.440 --> 00:09:42.000
+so you don't lose them because they're otherwise ephemeral really once if nobody's listening if
+
+93
+00:09:42.000 --> 00:09:47.200
+there are no rules the events magically disappear but if you've got an archive you can actually
+
+94
+00:09:47.200 --> 00:09:51.920
+replay events so you can add rules change rules fix problems and then replay events which is
+
+95
+00:09:52.880 --> 00:09:59.760
+pretty good for resilience yeah should we go through the process of using EventBridge it's
+
+96
+00:09:59.760 --> 00:10:04.800
+pretty simple right but uh i guess it depends what are the steps involved if you wanted to
+
+97
+00:10:05.920 --> 00:10:09.840
+start sending and receiving events we talked about how to do it with sqs how do you do it with
+
+98
+00:10:16.720 --> 00:10:21.440
+EventBridge yeah i think it's a good thing to split the process into parts of sending events and receiving events because of course you care about sending events only when you are creating
+
+99
+00:10:21.440 --> 00:10:28.560
+your own custom events if you want to listen for aws events or third-party events you you just get
+
+100
+00:10:28.560 --> 00:10:34.560
+them so you just need to focus more on the receiving part so if you're trying to create your own custom
+
+101
+00:10:34.560 --> 00:10:40.880
+events basically the first thing you need to do is select a bus that you want to use there is a
+
+102
+00:10:40.880 --> 00:10:45.680
+default bus so i will say that most of the time that's good enough but of course you also have an
+
+103
+00:10:45.680 --> 00:10:53.040
+option to create more specialized buses if you if you have to the other thing you have an api to send
+
+104
+00:10:53.040 --> 00:10:57.760
+events so you can do that of course through the sdk is probably the most common pattern or you
+
+105
+00:10:57.760 --> 00:11:04.320
+can just call the api or the cli and there is a specific interface that you have to use but it's
+
+106
+00:11:04.320 --> 00:11:10.240
+pretty free form because you can structure the event in pretty much as you want is a big blob
+
+107
+00:11:10.240 --> 00:11:17.120
+of json and we'll talk in a second more about that and then finally when you want to listen to the
+
+108
+00:11:17.120 --> 00:11:23.840
+event you'll need to create the rule and the rule also is another json object with properties so
+
+109
+00:11:23.840 --> 00:11:31.280
+let's zoom in into those two json objects so when you create an event there is kind of a best
+
+110
+00:11:31.280 --> 00:11:36.320
+practice that is pretty much something you will see also in the aws events and the third-party
+
+111
+00:11:36.320 --> 00:11:43.360
+events as well and what there are like fields that are expected to be there and they have a meaning
+
+112
+00:11:43.360 --> 00:11:48.720
+so and these are the ones you will be using also when matching for those events the first one is
+
+113
+00:11:48.720 --> 00:11:55.680
+source and source pretty much describes who is creating the event so it could be your own service
+
+114
+00:11:55.680 --> 00:12:00.800
+maybe i don't know again in the example of an e-commerce you could be the order service so you
+
+115
+00:12:00.800 --> 00:12:06.480
+could literally say source order dot service or something like that in the case of aws you will
+
+116
+00:12:06.480 --> 00:12:15.520
+see something like i don't know aws dot states for instance for step functions and for third parties
+
+117
+00:12:15.520 --> 00:12:19.760
+i expect that you have something similar for instance i don't know salesforce dot i don't
+
+118
+00:12:19.760 --> 00:12:26.160
+know pipeline maybe and then another field is detail type which is a little bit more descriptive
+
+119
+00:12:26.160 --> 00:12:31.680
+and it tries to describe the specific type of event that was generated by that source
+
+120
+00:12:32.560 --> 00:12:39.760
+for instance in our e-commerce example that can be order created in the case of aws sometimes they
+
+121
+00:12:39.760 --> 00:12:45.520
+tend to be a little bit more verbose and they have like entire sentences like step function execution
+
+122
+00:12:45.520 --> 00:12:51.840
+status change and it's like an entire sentence that you need to match on and finally the the
+
+123
+00:12:51.840 --> 00:12:58.640
+most interesting part is the detail attribute and generally you can use that as you want meaning that
+
+124
+00:12:58.640 --> 00:13:03.120
+it's an object and you can store inside that object all the data that you think is relevant
+
+125
+00:13:03.120 --> 00:13:09.440
+to describe that example and this is where it gets a little bit tricky because because you have a lot
+
+126
+00:13:09.440 --> 00:13:16.320
+of freedom you need to be careful and on one side you can say i'm gonna just store the minimum amount
+
+127
+00:13:16.320 --> 00:13:22.240
+of data that represents this event for instance i don't know if it's an order just the order id
+
+128
+00:13:23.040 --> 00:13:30.240
+on the other side you might sort all the data that represents that order right and and the two
+
+129
+00:13:30.240 --> 00:13:36.720
+sides are basically they will force a new different constraints if you go with a very many
+
+130
+00:13:36.720 --> 00:13:42.240
+very minimal approach maybe whoever is consuming the event will need to query different data sources
+
+131
+00:13:42.240 --> 00:13:47.760
+or fetch additional data somewhere else so that might be consuming that might be cost efficient
+
+132
+00:13:48.800 --> 00:13:53.840
+or on the other hand if you end up with very big messages that can also be a problem especially
+
+133
+00:13:53.840 --> 00:13:59.440
+if you are storing these messages you might incur an additional cost i'm not really sure if there
+
+134
+00:14:12.320 --> 00:14:19.280
+are limits on the sides of the payload but we'll talk more about limits later i believe it's the same as s and s and sqs actually so 256k for the for the whole message yeah so yeah be careful that also have to to respect that limit yeah absolutely yeah one suggestion there will be try to start
+
+135
+00:14:19.280 --> 00:14:24.000
+with something that is relatively small and that you think it makes sense and then if you realize
+
+136
+00:14:29.920 --> 00:14:35.120
+over time you need additional feeds you can always add them later yeah it's interesting when you talk about event driven architectures people say oh you should do event driven architectures because
+
+137
+00:14:35.120 --> 00:14:41.920
+it means you're then loosely coupled as if it's like a very clear yes no thing loosely coupled
+
+138
+00:14:41.920 --> 00:14:48.160
+or not but i've heard the term semantic coupling being used whether that means when you've got when
+
+139
+00:14:48.160 --> 00:14:54.800
+you're relying very tightly on the structure of an event and all its fields this is a form of
+
+140
+00:14:54.800 --> 00:15:01.040
+semantic coupling so you still end up with it it's not the same as having you know location coupling
+
+141
+00:15:01.040 --> 00:15:06.640
+coupling or time coupling but it it means you're bound to the event that you're used to seeing so
+
+142
+00:15:06.640 --> 00:15:12.560
+it makes it very difficult for the producer of that message to change it and to change the
+
+143
+00:15:18.320 --> 00:15:24.480
+structure of their data types over time so you really have to get that balance right yeah i think to to to all extents you should consider those messages as an interface right because as soon as
+
+144
+00:15:24.480 --> 00:15:30.560
+another service is starting to consume them then yeah you might break things if you suddenly change
+
+145
+00:15:36.640 --> 00:15:42.640
+dramatically the structure of the events yeah for example you mentioned that in the source field you might put the order service and so if somebody says oh well then i should match on the source
+
+146
+00:15:42.640 --> 00:15:47.360
+because i want to get order of events so i should match on the order service but it probably doesn't
+
+147
+00:15:47.360 --> 00:15:50.960
+make a lot of sense to match on the source a lot of the time because this is kind of coupling
+
+148
+00:15:50.960 --> 00:15:57.360
+to the producer you might it makes the detail type is usually a little bit more semantically
+
+149
+00:15:57.360 --> 00:16:02.720
+meaningful like order created or order created that sounds like a lifecycle event that you can
+
+150
+00:16:13.040 --> 00:16:19.120
+use and you don't need to match on the source then yeah what else can we add we mentioned that you can use this to communicate across domains so it could be a good way to do event choreography
+
+151
+00:16:19.120 --> 00:16:27.440
+and we gave you a few interesting details other interesting detail that could could change i
+
+152
+00:16:27.440 --> 00:16:33.840
+suppose the way you implement that the integration between services is that if you if you really need
+
+153
+00:16:33.840 --> 00:16:40.640
+a semantic that is like exact ones processing of a particular event it's on you to to do that like
+
+154
+00:16:40.640 --> 00:16:44.960
+you need to provide your own the duplication ids and you need to handle duplication because
+
+155
+00:16:44.960 --> 00:16:49.440
+by default you get at least once delivery so you might get the same message more than once
+
+156
+00:16:50.400 --> 00:16:57.840
+and finally another interesting detail is security you need to of course use iam and define all the
+
+157
+00:16:57.840 --> 00:17:04.480
+resource constraints but you can be very very granular and for instance you could say that is
+
+158
+00:17:04.480 --> 00:17:11.520
+not possible for instance to create a rule that is using i don't know certain detail types like
+
+159
+00:17:11.520 --> 00:17:16.800
+you can limit also that the structure you can leave it based on the structure of the events
+
+160
+00:17:17.440 --> 00:17:22.320
+and that that can be useful because of course if you have total freedom on listening for events
+
+161
+00:17:22.320 --> 00:17:27.440
+that can become a side channel for services to to listen for information that they are generally
+
+162
+00:17:27.440 --> 00:17:32.160
+not allowed to listen for so you you might be very strict in that regard as well
+
+163
+00:17:32.160 --> 00:17:38.960
+yeah an interesting thing is the other side of the coin i suppose is how do you
+
+164
+00:17:38.960 --> 00:17:43.200
+actually write the rules do you want to tell us something about that howan
+
+165
+00:17:51.040 --> 00:17:57.520
+yeah so when you create a rule you can create it using cloud formation or terraform or the api or the console and the other rule you will you'll define the pattern but you'll also define the
+
+166
+00:17:57.520 --> 00:18:02.960
+targets and for targets you know we mentioned you can target a lambda function you can target an
+
+167
+00:18:02.960 --> 00:18:10.000
+sqsq or another event bus lots of other services but you can also do mappings so if you're want to
+
+168
+00:18:10.000 --> 00:18:15.440
+transform the data and if you're transforming it to a htb destination you know if you want to match
+
+169
+00:18:15.440 --> 00:18:21.120
+this the required payload structure that's required you can do an input transformer on that
+
+170
+00:18:21.120 --> 00:18:25.360
+which allows you to extract the data and then you can do a map and then you can do a map
+
+171
+00:18:25.360 --> 00:18:30.960
+and then you can do a map and then you can do a transform around that which allows you to extract
+
+172
+00:18:30.960 --> 00:18:35.600
+out fields and map them into a different kind of a structure you can do that with any event actually
+
+173
+00:18:35.600 --> 00:18:43.440
+and any destination you've also got destinations that you can configure that are specific to an
+
+174
+00:18:43.440 --> 00:18:51.360
+individual service and examples of that would be kinesis or sqs so with kinesis and sqs5 as we
+
+175
+00:18:51.360 --> 00:18:56.080
+specify at what level you want to order guarantees so with kinesis you might put in a partition key
+
+176
+00:18:56.080 --> 00:19:02.720
+and with sqs fifo you could put in the message group id and when you write an event bridge rule
+
+177
+00:19:02.720 --> 00:19:07.440
+the targets one of those things you can say this is the you can say this is the field that i want
+
+178
+00:19:07.440 --> 00:19:12.960
+to become the partition key or the message group id so it makes sure that if you've got events
+
+179
+00:19:12.960 --> 00:19:20.640
+coming in through event bridge you can specify the order thing you want or the shard essentially that
+
+180
+00:19:20.640 --> 00:19:25.840
+would be processed now remember that event bridge doesn't give you any order guarantees because it's
+
+181
+00:19:26.480 --> 00:19:33.040
+it's not that kind of service so you don't have order guarantees on the input side so it's really
+
+182
+00:19:33.040 --> 00:19:39.120
+more or less about doing best effort ordering or just controlling the shard they get allocated to
+
+183
+00:19:39.120 --> 00:19:44.400
+so that you can process them concurrently that's really the the benefit there
+
+184
+00:19:44.400 --> 00:19:49.520
+and another example of that would be ecs so you can fire off an ecs task so run a container in
+
+185
+00:19:49.520 --> 00:19:55.040
+response to an event and you ecs task configuration in a rule will allow you to
+
+186
+00:19:55.040 --> 00:20:00.960
+specify what container image to use what the task definition is all of that stuff so there's
+
+187
+00:20:01.680 --> 00:20:06.880
+so much you can do with this it's worth looking into the cloud formation documentation i always
+
+188
+00:20:06.880 --> 00:20:09.760
+find that's a good way to see what are all the configuration parameters for these things
+
+189
+00:20:09.760 --> 00:20:13.760
+yeah it really does allow you to integrate anything with almost anything yeah the cool
+
+190
+00:20:18.720 --> 00:20:23.200
+thing about that is that most of the time you don't i mean it's so configurable that you just need to write the right configuration to achieve a good integration you don't even need for instance
+
+191
+00:20:23.200 --> 00:20:28.800
+to write a lambda to reshape the data and call the destination service which is under you maybe
+
+192
+00:20:28.800 --> 00:20:33.920
+whole thing you would need to do but because you have such flexibility you can probably build
+
+193
+00:20:33.920 --> 00:20:39.040
+sophisticated integration with the data and then you can do it with the data and then you can do
+
+194
+00:20:39.040 --> 00:20:45.520
+sophisticated integration without provisioning any like compute functionality it's just event
+
+195
+00:20:51.280 --> 00:20:56.320
+bridge configuration yep and that that's that's a good thing because okay it might be a little bit more difficult to troubleshoot an input transformer than a lambda function that's that's the trade-off
+
+196
+00:20:57.200 --> 00:21:00.960
+but you don't have the latency and the extra lambda function to manage so
+
+197
+00:21:02.400 --> 00:21:06.640
+you just got to pick your battle i suppose and figure out which is best for your use case
+
+198
+00:21:06.640 --> 00:21:10.720
+so since i mentioned latency should we start talking about limitations and constraints and
+
+199
+00:21:17.840 --> 00:21:23.440
+performance characteristics yes i think that's a good follow-up to how do you use event bridge yeah i think that the main one is latency like you you said that already but how how different
+
+200
+00:21:23.440 --> 00:21:29.040
+it is for instance from sns where you have very small latency like we're talking about 30
+
+201
+00:21:29.040 --> 00:21:36.080
+milliseconds i believe in the case of sns with event bridge is a little bit unwavy but i think
+
+202
+00:21:36.080 --> 00:21:42.800
+it's generally around alpha second which is yeah quite different from sns right sns is very
+
+203
+00:21:42.800 --> 00:21:48.400
+performant event bridges suppose you need to start from the premise that you don't really care about
+
+204
+00:21:48.400 --> 00:21:54.160
+extremely fast delivery it's more it's gonna happen relatively fast but not like milliseconds fast
+
+205
+00:22:00.240 --> 00:22:04.720
+yeah i think this is this is exactly i mean this is one of the rules where you can say am i going to use event bridge if you need strict performance and latency high throughput
+
+206
+00:22:04.720 --> 00:22:13.040
+you have to go with sns or one of the streaming solutions but if if you're talking about okay
+
+207
+00:22:13.040 --> 00:22:17.120
+i just need to react to business events and process them and it doesn't have to be like if
+
+208
+00:22:17.120 --> 00:22:25.520
+you want to fulfill an order half a second is probably not a significant latency in the grand
+
+209
+00:22:25.520 --> 00:22:29.760
+scheme of things you know if you're talking about package delivery but if you're talking about a
+
+210
+00:22:29.760 --> 00:22:36.080
+user who's clicked an action and maybe you're going to do some processing on it they're waiting
+
+211
+00:22:36.080 --> 00:22:41.760
+in the web browser on a mobile device and they're waiting for a green tick to show that something
+
+212
+00:22:41.760 --> 00:22:46.720
+has been processed you might think twice about event bridge in that kind of flow because
+
+213
+00:22:47.360 --> 00:22:51.360
+the the guarantees like the aws documentation says typically around half a second
+
+214
+00:22:58.240 --> 00:23:03.680
+so it's not exactly confidence inspiring if you're looking for real-time event processing so yeah i suppose it could be a good idea that becomes especially true if you have like a cascade of
+
+215
+00:23:03.680 --> 00:23:09.360
+events events depending on one another of course that that effect can compound so yeah be be even
+
+216
+00:23:15.200 --> 00:23:21.600
+more careful if you have that kind of situation i would still say that for a lot of you know across domain events and micro even inter microservice communication this should be
+
+217
+00:23:21.600 --> 00:23:32.000
+sufficient in vast majority of cases and i would i would recommend against using this latency limit
+
+218
+00:23:32.000 --> 00:23:38.400
+as a false argument just to reject event bridge and go with something that could be really more
+
+219
+00:23:38.400 --> 00:23:45.440
+complex because if event bridge is so simple and manages so much for you that it will it could has
+
+220
+00:23:45.440 --> 00:23:50.320
+the potential to save you massive amounts of engineering time so it's worth sticking with it
+
+221
+00:23:50.320 --> 00:23:56.240
+and only if you really need to tweak performance you know you might need to deal with optimizations
+
+222
+00:24:04.880 --> 00:24:09.920
+for specific cases yeah there are other limitations this is what i'm mentioning quickly but nothing extremely special for instance you have invocation quotas they are slightly different depending on
+
+223
+00:24:09.920 --> 00:24:16.960
+the region so watch out for that they can also be increased if you need to have more invocations
+
+224
+00:24:16.960 --> 00:24:23.680
+also there is a limit on the number of put events that you can do over a certain period of time
+
+225
+00:24:24.320 --> 00:24:30.640
+there is a number i think it's 300 rules per bus but it's only you can get increased if you need
+
+226
+00:24:30.640 --> 00:24:36.000
+to create more rules and also for every single rule you create you have up to five different
+
+227
+00:24:36.000 --> 00:24:43.200
+targets that you can trigger if that rule matches yeah in terms of pricing is there anything
+
+228
+00:24:52.640 --> 00:24:58.000
+interesting worth mentioning but the pricing for sending events is pretty straightforward so i think for every region you're looking at a dollar for every million events and that's whether
+
+229
+00:24:58.000 --> 00:25:05.360
+it's custom events or third-party events or aws events so a dollar for a million events you have
+
+230
+00:25:18.400 --> 00:25:22.560
+in the case of ws events that counts only for the ones that you need to explicitly enable like the s3 objects but yeah i think not all of them are actually charged right absolutely yeah they're sent by default they're sent already even if you don't know it so that's true you're not going to
+
+231
+00:25:22.560 --> 00:25:28.240
+be billed for that there is an additional cost though for things like http destinations it's
+
+232
+00:25:28.240 --> 00:25:34.720
+like a supplemental cost of 20 cents for a million deliveries and those features we talked about like
+
+233
+00:25:34.720 --> 00:25:39.040
+archive and replay those are the areas that you might want to be a little bit more careful about
+
+234
+00:25:39.040 --> 00:25:44.080
+when looking at pricing because if you're archiving events sometimes you don't notice that
+
+235
+00:25:44.080 --> 00:25:49.200
+events are the volume is escalating and if you've got millions of events you're going to be charged
+
+236
+00:25:49.200 --> 00:25:56.080
+per gigabyte of archive per month so that that's an ongoing cost that will escalate over time
+
+237
+00:25:57.120 --> 00:26:03.440
+and replay you'll get charged by the events processed replay is probably not something that
+
+238
+00:26:03.440 --> 00:26:09.440
+you're going to do as part of a programmatic workflow it's probably more likely to be done as
+
+239
+00:26:09.440 --> 00:26:17.920
+part of remediation in the event of a failure so it's just important to be aware of and there's
+
+240
+00:26:17.920 --> 00:26:22.880
+also a charge for a schema registry as well in terms of events ingested when you're discovering
+
+241
+00:26:22.880 --> 00:26:31.120
+schemas automatically so that said that's the pricing spiel done and i think one of the one of
+
+242
+00:26:31.120 --> 00:26:35.760
+the things that our channel is challenging with all event driven systems is how do you test it
+
+243
+00:26:36.880 --> 00:26:43.280
+and you've been reading some pretty good articles on this lechano and i know paul swale has covered
+
+244
+00:26:43.280 --> 00:26:48.000
+this in in detail a couple of times what do you think are the best recommendations there
+
+245
+00:26:54.160 --> 00:26:59.760
+yeah i think at least for me the main pain point is to make sure that the rules that i write like the patterns are actually doing what i think they should be doing because this is of course
+
+246
+00:26:59.760 --> 00:27:07.680
+a json based language with its own nuances like you have a lot of power but you need to learn
+
+247
+00:27:07.680 --> 00:27:14.080
+how to use the different constructs to do that the pattern matching and of course you you need
+
+248
+00:27:14.080 --> 00:27:18.480
+to find a good way to test if your rule is actually correct and i found that that there is
+
+249
+00:27:18.480 --> 00:27:22.880
+a little bit of friction maybe something to be improved in aws in terms of the tools you could
+
+250
+00:27:22.880 --> 00:27:27.600
+get to actually get the reassurance that your patterns are actually doing what you want them to
+
+251
+00:27:27.600 --> 00:27:35.760
+do and so there are really a lot of great ways to do that in aws what i discovered is that there is
+
+252
+00:27:35.760 --> 00:27:42.560
+an api called test event pattern that you could use either from the cli or from an sdk and with
+
+253
+00:27:42.560 --> 00:27:49.120
+that api what you can do is send an example event and your pattern and that api will just tell you
+
+254
+00:27:49.120 --> 00:27:55.680
+true or false based on is your rule actually matching that particular example of event so
+
+255
+00:27:55.680 --> 00:28:00.240
+that could be a good way of testing things it's just a little bit annoying that you need to write
+
+256
+00:28:01.040 --> 00:28:06.240
+either as code through the sdk or if you want to write it through the cli like it's it's very hard
+
+257
+00:28:06.240 --> 00:28:13.360
+to write json in the cli especially for big events or rules so maybe an area where somebody can write
+
+258
+00:28:13.360 --> 00:28:18.240
+a little tool or a little ui to do that that would be definitely useful at least for me
+
+259
+00:28:19.120 --> 00:28:24.480
+maybe aws itself could do that that would be amazing then in the article that you mentioned
+
+260
+00:28:24.480 --> 00:28:31.280
+from paul it's actually a really good article and it goes in depth in terms of all the things that
+
+261
+00:28:31.280 --> 00:28:36.000
+could possibly go wrong when you start to use event bridge like from the moment you publish
+
+262
+00:28:36.000 --> 00:28:41.600
+are you actually able to publish and if not why yeah the moment you try to consume the message
+
+263
+00:28:41.600 --> 00:28:46.800
+are you actually receiving the message and if not why and then after you receive the message
+
+264
+00:28:46.800 --> 00:28:51.280
+are you actually processing incorrectly and if you fail to process it what can possibly happen
+
+265
+00:28:51.280 --> 00:28:56.000
+so that that's an interesting article and if you are interested in all these possible edge cases we
+
+266
+00:28:56.000 --> 00:29:01.920
+recommend you to check it out there are another couple of tools that can help you in terms of
+
+267
+00:29:01.920 --> 00:29:07.680
+troubleshooting where whether you are actually delivering like from source to destination
+
+268
+00:29:07.680 --> 00:29:14.400
+correctly one is something called event bridge cli again we will have the link in the description
+
+269
+00:29:14.400 --> 00:29:19.600
+and this event bridge cli it's a tool written in go i believe that it's very interesting because
+
+270
+00:29:19.600 --> 00:29:26.960
+you just run it locally and it will provision in your account a rule that you are actually defined
+
+271
+00:29:26.960 --> 00:29:32.240
+that that's the one you want to test but it will automatically dispatch that rule into sqs
+
+272
+00:29:32.240 --> 00:29:37.920
+and then it's going to create for you it's going to poll at the cli so you get like an interactive
+
+273
+00:29:37.920 --> 00:29:42.800
+cli it's going to keep pulling from that queue so you can start to try to fire events and see
+
+274
+00:29:42.800 --> 00:29:48.160
+if they appear in your local terminal so it's a very powerful and convenient way to test that
+
+275
+00:29:48.160 --> 00:29:53.840
+to test that your patterns and your events are actually connected correctly together and i think
+
+276
+00:29:53.840 --> 00:29:59.360
+there is another tool which is probably similar from lumigo but i haven't used that so we'll put
+
+277
+00:29:59.360 --> 00:30:05.360
+the link in the description as well other interesting tool are event bridge atlas and event
+
+278
+00:30:05.360 --> 00:30:12.000
+bridge canon which help you out as well with writing the events and testing them and sharing
+
+279
+00:30:12.000 --> 00:30:19.120
+them in a team so i haven't used them i haven't used them extensively so i cannot give you a lot
+
+280
+00:30:24.320 --> 00:30:29.920
+of detail but definitely interesting to to check them out yeah event bridge atlas and event bridge canon both come from david boin who's also tweets and writes a lot about event bridge and has some
+
+281
+00:30:29.920 --> 00:30:37.760
+really interesting tools so yeah definitely worth checking those out um should we talk about
+
+282
+00:30:37.760 --> 00:30:44.640
+integration with sqs because i know we've got um we talked about dlq's last last time with sqs
+
+283
+00:30:44.640 --> 00:30:50.880
+i know that um you can use dlq with event bridge which is really good because event bridge doesn't
+
+284
+00:30:50.880 --> 00:30:57.120
+give you reliability built in if you don't get to catch the event if you missed it it's it's gone
+
+285
+00:30:57.120 --> 00:31:02.800
+right it can be in an archive but it's essentially gone but you it does have retry policies you can
+
+286
+00:31:02.800 --> 00:31:09.600
+configure retry rules in your rule and you can set a dlq as well then your undelivered messages will
+
+287
+00:31:09.600 --> 00:31:17.360
+go to sqs um but when do you know so here's an interesting one when do you decide to process
+
+288
+00:31:17.360 --> 00:31:23.280
+things directly using a target that might be a lambda function or when should you put an sq
+
+289
+00:31:29.760 --> 00:31:34.720
+sq in between those two things so that you get that extra piece of resiliency yeah this is this is something that suppose we mentioned also in the in the previous episode about sqs that
+
+290
+00:31:34.720 --> 00:31:40.880
+sqs can be used in general to to give you that extra peace of mind that a message is actually
+
+291
+00:31:40.880 --> 00:31:48.000
+being recorded and then you can consume you can retry so i think that that's that should answer
+
+292
+00:31:48.000 --> 00:31:52.080
+your question right whenever you want to have that use case that when you really care about
+
+293
+00:31:52.080 --> 00:31:57.440
+a message and you want to be sure that it's being processed i think it's worth putting an sqs in
+
+294
+00:31:57.440 --> 00:32:03.760
+between and then consuming the message through sqs rather than letting event breach invoke directly
+
+295
+00:32:03.760 --> 00:32:10.880
+your target in other cases where maybe you don't really care that much you can afford to lose a
+
+296
+00:32:10.880 --> 00:32:17.600
+message or two probably it's not worth it you can just keep that integration and yeah and go ahead
+
+297
+00:32:33.520 --> 00:32:39.600
+with that yeah that's good god do you need best effort durability or most time durability i guess i guess isn't it okay cool what else should we cover relating to event bridge i think i will just mention few additional resources i i really like the work that sheen
+
+298
+00:32:39.600 --> 00:32:45.760
+bristles from the lego group has been doing around event bridge so definitely check out his blog
+
+299
+00:32:45.760 --> 00:32:50.880
+again we'll have a link in the description there are i think six or seven different articles that
+
+300
+00:32:50.880 --> 00:32:56.720
+cover pretty in-depth like tutorial style how to do different things with event bridge and also
+
+301
+00:32:56.720 --> 00:33:02.320
+there is a video that where he's talking a lot about different characteristics of event bridge
+
+302
+00:33:08.640 --> 00:33:13.120
+we'll have a link for that as well and i think that's really good it's good to see how i think sheen in that talk gives good examples of how they structure their events and they've got a different
+
+303
+00:33:13.120 --> 00:33:16.880
+a different style to what we mentioned in the detail which is really interesting and really
+
+304
+00:33:22.800 --> 00:33:28.880
+worth watch so yeah definitely recommend that and yeah i think with this you get a pretty good overview of what you can do with event bridge how to use it what to watch out for so this is it for
+
+305
+00:33:28.880 --> 00:33:34.880
+this episode but make sure to follow and subscribe because in the next episodes we'll continue the
+
+306
+00:33:34.880 --> 00:33:42.480
+series about event systems we'll be talking about sns kinesis and gafka so yeah stay tuned we'll
+
+307
+00:33:42.480 --> 00:33:59.520
+we'll talk more about this stuff bye

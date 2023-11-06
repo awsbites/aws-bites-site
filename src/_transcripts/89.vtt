@@ -1,0 +1,745 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:05.440
+Development on AWS is often slowed down by deployment time, particularly in development environments.
+
+2
+00:00:05.440 --> 00:00:10.160
+Often people turn to local simulation of AWS. While this can solve some immediate challenges
+
+3
+00:00:10.160 --> 00:00:14.560
+and speed up your feedback loop, it comes with its own problems. So today we'll try to answer
+
+4
+00:00:14.560 --> 00:00:20.160
+the age-old question, should you simulate AWS locally or go to the real cloud every single time?
+
+5
+00:00:20.160 --> 00:00:30.320
+My name is Luciano, I'm here with Eoin and this is AWS Bites podcast.
+
+6
+00:00:30.320 --> 00:00:35.440
+AWS Bites is made possible by the support of fourTheorem, an AWS consulting partner that
+
+7
+00:00:35.440 --> 00:00:39.840
+works with you to make AWS migration, architecture and development a success.
+
+8
+00:00:40.480 --> 00:00:45.520
+See fourtheorem.com, this link is in the show notes and this way you can find out more about fourTheorem.
+
+9
+00:00:45.520 --> 00:00:52.080
+So, I remember that when we were working with containers or monolithic applications like
+
+10
+00:00:52.080 --> 00:00:58.560
+Node.js servers or Spring servers or whatever PHP framework you would like, it was always the
+
+11
+00:00:58.560 --> 00:01:03.440
+default to just run things locally, develop that way and when you were happy you had a way to
+
+12
+00:01:03.440 --> 00:01:09.200
+publish things to an actual environment remotely. Now things seem to have become significantly
+
+13
+00:01:09.200 --> 00:01:14.480
+harder because you don't really have that real option of running things locally, you can maybe
+
+14
+00:01:14.480 --> 00:01:19.280
+simulate certain things but since you are dealing with distributed applications it is becoming
+
+15
+00:01:19.280 --> 00:01:24.240
+increasingly harder to be able to simulate everything on your own machine. So what are
+
+16
+00:01:24.240 --> 00:01:27.920
+the options in AWS? Is it true that things are getting harder? What can we do?
+
+17
+00:01:32.400 --> 00:01:36.880
+When Docker became popular I think it made local development a lot easier because the local runtime really matched the production runtime quite closely. You really only had to think
+
+18
+00:01:36.880 --> 00:01:42.080
+about whether you would use a remote database or a local one and then with things like Docker Compose
+
+19
+00:01:42.080 --> 00:01:47.040
+and then other container orchestration, things like Kubernetes, you could run a set of microservices
+
+20
+00:01:47.040 --> 00:01:53.440
+and related resources like ElastCache, RabbitMQ and your databases locally too.
+
+21
+00:01:53.440 --> 00:01:59.040
+Now particularly with serverless applications, a lot of the application is realized with lots of distributed
+
+22
+00:01:59.040 --> 00:02:04.720
+AWS services outside of the code running in containers and it might be in Lambda functions
+
+23
+00:02:04.720 --> 00:02:09.760
+as well. We try to take advantage of managed services to save on production maintenance and
+
+24
+00:02:09.760 --> 00:02:15.520
+provide that scalability, robustness and security but the trade-off then is that local development
+
+25
+00:02:15.520 --> 00:02:22.640
+has become a lot more challenging. So if you want real SQS, DynamoDB, RDS, IAM, you need to deploy
+
+26
+00:02:22.640 --> 00:02:28.480
+to AWS usually using Terraform or CloudFormation or something else like that. And sometimes
+
+27
+00:02:28.480 --> 00:02:33.200
+deployments are fast and it's not really a problem but often they can take many minutes and when
+
+28
+00:02:33.200 --> 00:02:37.760
+you're doing it multiple times per day this really adds up if you're making lots of changes especially
+
+29
+00:02:37.760 --> 00:02:43.440
+early on in development. So I think this is really the challenge that has led a lot of people to try
+
+30
+00:02:43.440 --> 00:02:48.880
+and simulate things locally. What have you tried and what are the options there?
+
+31
+00:02:48.880 --> 00:02:53.920
+I tried a few things. The first one that comes to mind is LocalStack which has been around for a while and it's
+
+32
+00:02:53.920 --> 00:02:59.920
+an open source project that tries to effectively simulate a bunch of different AWS services
+
+33
+00:02:59.920 --> 00:03:05.120
+and allows you to run them locally using Docker containers and then you can connect all of them
+
+34
+00:03:05.120 --> 00:03:11.440
+and the API tries to match exactly the API that you have in AWS. But of course it's not perfect.
+
+35
+00:03:11.440 --> 00:03:16.400
+I don't think it's humanly possible to try to recreate AWS in its entirety and run it locally.
+
+36
+00:03:17.040 --> 00:03:21.840
+So the coverage is limited. It might work well for certain services and certain specific use cases,
+
+37
+00:03:21.840 --> 00:03:25.840
+maybe if you're using only certain specific APIs that are the most common, but if you're doing
+
+38
+00:03:25.840 --> 00:03:31.280
+something a little bit more outside the common use cases probably you will find that the coverage is
+
+39
+00:03:31.280 --> 00:03:37.760
+not there yet. There was recently a new version that was released, version 2, which seems like
+
+40
+00:03:37.760 --> 00:03:42.480
+the project is trying to push forward and try to extend that coverage and try to make the whole
+
+41
+00:03:42.480 --> 00:03:47.440
+user experience even better. But I think it's still something that we need to figure out exactly
+
+42
+00:03:47.440 --> 00:03:51.920
+to which extent is going to allow us to cover the full range of things that you might want to do in
+
+43
+00:03:51.920 --> 00:03:58.320
+AWS. I think that the things that I found are generally very hard to simulate are IAM permissions,
+
+44
+00:03:58.320 --> 00:04:04.080
+policies, the whole thing where you kind of generally give up on simulating that locally.
+
+45
+00:04:04.080 --> 00:04:08.160
+You just say, that's something I'm going to test in the real environment. For now,
+
+46
+00:04:08.160 --> 00:04:11.760
+when I run things locally, I'm going to assume everything is open and there is no permission
+
+47
+00:04:11.760 --> 00:04:16.080
+issue. So there is always some kind of art trade-off there and you kind of think it's
+
+48
+00:04:16.080 --> 00:04:19.840
+working and then you have a permission problem in production and you need to test that part
+
+49
+00:04:19.840 --> 00:04:23.600
+in, sorry, not necessarily production, but like the remote environment on AWS.
+
+50
+00:04:23.600 --> 00:04:27.440
+And then you'll need to test that until you actually get it right. So maybe that's an area
+
+51
+00:04:27.440 --> 00:04:32.880
+where there might be a little bit more tooling and support for local development.
+
+52
+00:04:32.880 --> 00:04:39.680
+Another similar one is CloudFormation. So I haven't found a way, not that I even tried that much, to test your
+
+53
+00:04:39.680 --> 00:04:45.600
+CloudFormation locally. Generally, CloudFormation is supposed to run against AWS. So that's
+
+54
+00:04:45.600 --> 00:04:51.120
+generally the way I test it. I just write code, try to deploy, see what happens and iterate that way,
+
+55
+00:04:51.120 --> 00:04:56.560
+which can have a very slow feedback loop. So maybe that's an area where there could be some tool as
+
+56
+00:04:56.560 --> 00:05:02.400
+well, maybe in the LocalStack space that can help us to do some more testing locally. Another thing
+
+57
+00:05:02.400 --> 00:05:06.560
+that is worth mentioning about LocalStack is that this used to be a free and open source
+
+58
+00:05:06.560 --> 00:05:11.840
+project. It still is an open source project, but now there is a company behind it and there is a
+
+59
+00:05:11.840 --> 00:05:17.440
+commercial offering as well. So that might have its own pros and cons. Maybe there is more commitment
+
+60
+00:05:17.440 --> 00:05:20.800
+in trying to improve the quality of the open source version, but of course there is also going
+
+61
+00:05:20.800 --> 00:05:26.240
+to be a push for more commercial offerings. So let's see what happens.
+
+62
+00:05:26.240 --> 00:05:31.280
+Other ones that I tried are serverless local simulation. So these are especially important when you are working with
+
+63
+00:05:31.280 --> 00:05:35.840
+things like Lambdas and you maybe use some frameworks to be able to write and deploy
+
+64
+00:05:35.840 --> 00:05:40.800
+those Lambdas easily. Oftentimes this framework will give you some kind of capability to do
+
+65
+00:05:40.800 --> 00:05:45.680
+some level of local testing. Worth mentioning Serverless offline, which is a plugin for
+
+66
+00:05:45.680 --> 00:05:50.320
+serverless framework and allows you to simulate API Gateway and Lambda locally. So effectively
+
+67
+00:05:50.320 --> 00:05:56.720
+it's going to run for your web server and you can call it, you can send call request, postman,
+
+68
+00:05:56.720 --> 00:06:01.280
+use the browser, whatever you like to actually send request directly to your Lambdas running
+
+69
+00:06:01.280 --> 00:06:07.280
+locally. So it's a very nice way to be able to test your APIs locally as you are developing them
+
+70
+00:06:07.280 --> 00:06:12.720
+using serverless technologies. Very similar if you use SAM. SAM has an option called SAM local
+
+71
+00:06:13.600 --> 00:06:19.120
+and that does pretty much the same thing. And I have been recently playing with Lambdas in Rust
+
+72
+00:06:19.120 --> 00:06:23.680
+and there is another tool called Cargo Lambda, which is kind of the default tool to bootstrap
+
+73
+00:06:23.680 --> 00:06:28.160
+your Lambdas and that comes also with some commands that allow you to simulate your Lambdas
+
+74
+00:06:28.160 --> 00:06:33.360
+locally and integrates very well with SAM. So if you do your project in SAM and you are writing
+
+75
+00:06:33.360 --> 00:06:38.240
+your Lambdas in Rust, you can use Cargo Lambda for all the building and running part.
+
+76
+00:06:38.240 --> 00:06:44.320
+But then you still use the commands that you are well used to use when you use SAM. So you can still run SAM
+
+77
+00:06:44.320 --> 00:06:49.360
+local and behind the scenes is going to use Cargo Lambda to kind of compile your Lambda and run it
+
+78
+00:06:49.360 --> 00:06:56.240
+correctly. There are other ones in .NET. For instance, there is AWS.NET Mock Lambda test tool.
+
+79
+00:06:56.240 --> 00:07:00.800
+I haven't used this one, but we will have a link in the show notes in case you want to look at that one.
+
+80
+00:07:00.800 --> 00:07:06.000
+And finally, also worth mentioning that for other services like DynamoDB and Step Functions,
+
+81
+00:07:06.000 --> 00:07:10.880
+there are some packages that you can download directly from AWS. These are generally either
+
+82
+00:07:10.880 --> 00:07:18.000
+Docker containers or JAR executables and they give you some kind of local simulation of that
+
+83
+00:07:18.000 --> 00:07:22.880
+particular service. For instance, for DynamoDB, you don't get a replicated distributed version
+
+84
+00:07:22.880 --> 00:07:28.560
+of DynamoDB, but it is pretty close to the API that you get when you use DynamoDB remotely.
+
+85
+00:07:28.560 --> 00:07:34.240
+So I think you can rely on that for most of the things that you will do with DynamoDB.
+
+86
+00:07:34.240 --> 00:07:39.120
+And very similar, there is the Step Function local tool, which allows you to run some local
+
+87
+00:07:39.120 --> 00:07:43.680
+simulation of a Step Function. And it's also interesting because it gives you ways to mock.
+
+88
+00:07:43.680 --> 00:07:48.000
+Because with Step Function, we can effectively call other services in AWS, it gives you a way
+
+89
+00:07:48.000 --> 00:07:54.400
+to mock those steps. So you can still execute your Step Function simulation, even though you might be
+
+90
+00:07:54.400 --> 00:08:00.400
+relying on other services that are outside the scope of Step Function. So I guess my comment
+
+91
+00:08:00.400 --> 00:08:05.680
+there is that in general, these simulations are good as a starting point, but you only get so far
+
+92
+00:08:05.680 --> 00:08:11.760
+because you always end up eating some kind of limitation, missing API or difference even in
+
+93
+00:08:11.760 --> 00:08:16.800
+the way that the API works locally with the way it works remotely. And again, there is still the
+
+94
+00:08:16.800 --> 00:08:22.480
+problem of permissions that you don't generally, you don't get any check on your roles or policies.
+
+95
+00:08:22.480 --> 00:08:26.560
+So you kind of assume that everything is correct until you actually run it in AWS.
+
+96
+00:08:27.280 --> 00:08:32.480
+So what do we recommend? Is there any approach that you find works best than others?
+
+97
+00:08:32.480 --> 00:08:36.800
+I used to spend a lot of time on trying to get LocalStack to work.
+
+98
+00:08:36.800 --> 00:08:42.560
+I Remember the early days, trying to make a pull request on LocalStack so I could get event bridge support for some
+
+99
+00:08:42.560 --> 00:08:48.320
+integration tests I was doing. And that was just because I was determined that it was going to
+
+100
+00:08:48.320 --> 00:08:51.920
+work for me and I ended up spending more time on trying to work around the limitations. So
+
+101
+00:08:51.920 --> 00:08:57.040
+this is what you're faced with. And similarly, you mentioned Step Functions local, and recently I tried
+
+102
+00:08:57.040 --> 00:09:04.240
+to use that, but I think there was an issue with support for the new map type because they changed
+
+103
+00:09:04.240 --> 00:09:08.480
+how you can declare maps when they added support for distributed maps, but that's not there in Step
+
+104
+00:09:08.480 --> 00:09:13.520
+Functions local yet. So these tools will always have a challenge keeping up with the latest in
+
+105
+00:09:13.520 --> 00:09:19.200
+the cloud. So I am more now of the opinion that you should put less effort into local simulation
+
+106
+00:09:19.200 --> 00:09:24.400
+and more into trying to optimize your development flow in other ways. So one thing you can do
+
+107
+00:09:24.400 --> 00:09:29.760
+without local simulations is just try and focus more on unit tests. It's a good practice anyway,
+
+108
+00:09:29.760 --> 00:09:34.080
+but if you focus on separating your code well, then you can just unit test the logic and you
+
+109
+00:09:34.080 --> 00:09:39.040
+don't have to deploy every time. So this is just a recommendation really around code structure,
+
+110
+00:09:39.040 --> 00:09:44.160
+following clean code principles, separating the AWS specific stuff from the actual logic,
+
+111
+00:09:44.160 --> 00:09:48.960
+and following some sort of pattern. Like there's plenty, especially in the serverless community,
+
+112
+00:09:48.960 --> 00:09:54.000
+of talks and articles around hexagonal architecture, also known as ports and adapters,
+
+113
+00:09:54.000 --> 00:09:59.600
+which is essentially a fairly simple mechanism to ensure that you separate out the inbound
+
+114
+00:09:59.600 --> 00:10:03.840
+connections and the outbound connections and integrations into your database and other services.
+
+115
+00:10:05.040 --> 00:10:10.320
+When you are unit testing, for example, in Python, you have moto and moto is a Python library that's
+
+116
+00:10:10.320 --> 00:10:16.240
+actually the internal logic that is used by LocalStack. So it's like the library that makes local
+
+117
+00:10:16.240 --> 00:10:22.720
+stack possible. You can also use moto to mock AWS services in your unit tests. Now I have sometimes
+
+118
+00:10:22.720 --> 00:10:27.680
+used LocalStack and still do from time to time in unit tests and integration tests if the needs are
+
+119
+00:10:27.680 --> 00:10:34.160
+simple and it can be valuable in that case. So what I would also say then is that kind of look
+
+120
+00:10:34.160 --> 00:10:37.920
+at where you're spending your time and how you can just optimize for that. So if your issue is
+
+121
+00:10:37.920 --> 00:10:42.720
+CloudFormation deployment speed, disabling rollbacks can help because sometimes, especially
+
+122
+00:10:42.720 --> 00:10:47.680
+in development, a lot of the reason why it's slow is that you're making mistakes and misconfigurations
+
+123
+00:10:47.680 --> 00:10:51.440
+and then when you deploy, the deployment time is reasonably fast, but the rollback time is the
+
+124
+00:10:51.440 --> 00:10:55.760
+thing that gets you. So by disabling rollbacks, you can make that process a bit faster. And then
+
+125
+00:10:55.760 --> 00:10:59.920
+if you've got lots of resources in your stack, then you don't have to roll back everything just
+
+126
+00:10:59.920 --> 00:11:04.400
+because you've got one configuration value missing in some small resource.
+
+127
+00:11:04.400 --> 00:11:08.480
+Similarly, you could just try and incrementally build out these stacks and deploy them and kind of resolve the problems one
+
+128
+00:11:08.480 --> 00:11:13.600
+by one. I also think I'm kind of hopeful that CloudFormation will become significantly faster
+
+129
+00:11:13.600 --> 00:11:18.640
+in the future. I notice sometimes how it's just a little, some of the services implementations of
+
+130
+00:11:18.640 --> 00:11:24.880
+the resource providers end up doing things like trying to create a resource. It fails because
+
+131
+00:11:24.880 --> 00:11:29.120
+there's a misconfiguration, but you can see in cloud trail that CloudFormation is retrying
+
+132
+00:11:29.120 --> 00:11:34.560
+this thing with a back off and then it just, it can really slow things down. So those are fairly
+
+133
+00:11:34.560 --> 00:11:40.880
+simple things, low hanging proof that I think the AWS can address. I do see that AWS are trying to
+
+134
+00:11:40.880 --> 00:11:45.840
+make things faster in general. So we talked before about SAM acceleration, SAM sync command.
+
+135
+00:11:45.840 --> 00:11:50.160
+This is essentially a backdoor to updating things like Lambda functions, API gateway,
+
+136
+00:11:50.160 --> 00:11:55.600
+and Step Functions without using CloudFormation. So it's really just a quick and dirty hack really,
+
+137
+00:11:55.600 --> 00:11:59.920
+but it speeds up development flow. So you don't have to deploy real resources using CloudFormation
+
+138
+00:11:59.920 --> 00:12:03.520
+just because you want to update the code or configuration for a function.
+
+139
+00:12:03.520 --> 00:12:08.800
+And there's a similar thing in CDK called CDK hot swap, which provides support for Lambda Step Functions, S3
+
+140
+00:12:08.800 --> 00:12:14.960
+assets, CodeBuild and AppSync resolvers too. So I'd say look for optimizations wherever you can.
+
+141
+00:12:14.960 --> 00:12:19.040
+You can spend a lot of time trying to get the right IAM policy and deploying lots and lots of
+
+142
+00:12:19.040 --> 00:12:23.120
+times to get it right. I think we've all experienced that frustration that can be really slow. So one
+
+143
+00:12:23.120 --> 00:12:29.120
+way to optimize this is to use session policies locally or within a shell on AWS, like in cloud
+
+144
+00:12:29.120 --> 00:12:35.280
+shell or on an EC2 instance. So session policies are like ephemeral policies that you don't
+
+145
+00:12:35.280 --> 00:12:40.400
+create in AWS. You just specify them when you do an assume role and you don't need to create a
+
+146
+00:12:40.400 --> 00:12:45.200
+policy every time. So if you craft your policy locally, just in a JSON file, then you can do
+
+147
+00:12:45.200 --> 00:12:49.840
+an assume role with it, test if it works. It's much quicker to test and make changes. And then
+
+148
+00:12:49.840 --> 00:12:55.360
+once you have the policy right, you can codify it in your infrastructure. You can also, if you're
+
+149
+00:12:55.360 --> 00:12:59.840
+making lots of deployments, you can also just take the ClickOps approach and tweak the resources
+
+150
+00:12:59.840 --> 00:13:04.560
+manually in the AWS management console. And then once you're happy, codify those changes for proper
+
+151
+00:13:04.560 --> 00:13:10.720
+deployment and test that with automated integration tests. So I'd say there's a combination of
+
+152
+00:13:10.720 --> 00:13:16.080
+approaches there you can take, deploy your resources by all means that you need, but then
+
+153
+00:13:16.080 --> 00:13:21.920
+run the code against those resources locally, just talking to the AWS services. Then test your
+
+154
+00:13:21.920 --> 00:13:26.240
+Lambda functions. You can put whatever tests you need in place, whether it's unit test or an ad hoc
+
+155
+00:13:26.240 --> 00:13:30.560
+manual test or some sort of automated integration test.
+
+156
+00:13:30.560 --> 00:13:34.640
+One final comment that I have is that there are some tools that we discussed before, like for instance, Application Composer or Step
+
+157
+00:13:34.640 --> 00:13:39.520
+Function designer, which are tools that sometimes they can help you to get unstuck.
+
+158
+00:13:39.520 --> 00:13:44.480
+So if you are getting some configuration wrong and it's painful to go through this cycle of it is wrong, I'm going
+
+159
+00:13:44.480 --> 00:13:50.160
+to deploy again, fails again, fix something else, deploy again, fails again until you actually get
+
+160
+00:13:50.160 --> 00:13:54.400
+it right. I think these tools can give you kind of a shortcut into figuring out what's the right
+
+161
+00:13:54.400 --> 00:13:59.200
+configuration. You can easily sketch out with the visual designer something that looks like your use
+
+162
+00:13:59.200 --> 00:14:03.280
+case, understand exactly what is the right configuration, then transpose that configuration
+
+163
+00:14:03.280 --> 00:14:08.000
+to your actual code. This is another, maybe it's a bit of a hack, but it's another strategy that
+
+164
+00:14:08.000 --> 00:14:13.440
+sometimes I use to kind of unblock myself when I get stuck into the cycle of failing and retrying,
+
+165
+00:14:13.440 --> 00:14:18.320
+failing and retrying until you actually get what you want to do right. So that's another tip for
+
+166
+00:14:18.320 --> 00:14:22.880
+you that you might want to explore. So in summary, I think for today, what we want to share with you
+
+167
+00:14:22.880 --> 00:14:29.360
+is that things like LocalStack are really, really good projects, but they are not to be trusted 100%
+
+168
+00:14:29.360 --> 00:14:34.160
+as a perfect copy of AWS. Of course, you need to understand that there will be approximations there,
+
+169
+00:14:34.160 --> 00:14:39.680
+there will be missing features. So use them, but with the benefit of the doubt.
+
+170
+00:14:39.680 --> 00:14:44.400
+So if they help you to speed up your local development, take that value, but be aware there might be
+
+171
+00:14:45.280 --> 00:14:49.520
+instances where that local simulation is not going to be enough and you need to figure out
+
+172
+00:14:49.520 --> 00:14:55.920
+another strategy. And definitely remember to structure your code in such a way that you can
+
+173
+00:14:55.920 --> 00:15:00.400
+test most of it without having to rely on AWS. So you're definitely going to have some business
+
+174
+00:15:00.400 --> 00:15:05.280
+logic, try to make sure that that business logic is as decoupled as possible from the logic
+
+175
+00:15:05.280 --> 00:15:09.920
+integrating with AWS services. So you can test your own business logic without having to rely
+
+176
+00:15:09.920 --> 00:15:17.040
+on AWS. And for all the times where you need to rely on AWS, you can also mock parts of your unit
+
+177
+00:15:17.040 --> 00:15:22.080
+test. So there are libraries like Modo, if you do Python, that can help with that. If you use
+
+178
+00:15:22.080 --> 00:15:27.920
+JavaScript, the new SDK also comes with an additional library that helps you to do mocking.
+
+179
+00:15:27.920 --> 00:15:32.240
+So there are lots of ways there where just by doing unit tests, you can be so much better
+
+180
+00:15:32.240 --> 00:15:37.600
+positioned to trust your code locally before you ship it to production. Now, we probably missed
+
+181
+00:15:37.600 --> 00:15:42.560
+many ideas. I'm sure that people listening have lots of other ideas. Everyone is experimenting
+
+182
+00:15:42.560 --> 00:15:47.040
+all the time with this topic. So if you have something you would like to share with us, we're
+
+183
+00:15:47.040 --> 00:15:51.600
+definitely going to be happy to learn from you. So make sure to use the comments below or reach out
+
+184
+00:15:51.600 --> 00:15:57.200
+to us on Twitter to share your feelings and your ideas about this topic. And as always, if you
+
+185
+00:15:57.200 --> 00:16:02.720
+really enjoyed this episode, remember to thumbs up, subscribe, or if you're listening to the
+
+186
+00:16:02.720 --> 00:16:13.600
+podcast only version, give us a review. Thank you very much, and we'll see you in the next episode.

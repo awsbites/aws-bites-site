@@ -1,0 +1,1185 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:05.200
+When you use more traditional data storage services such as a MySQL or a Postgres database on RDS,
+
+2
+00:00:05.200 --> 00:00:09.360
+or maybe you're using a Redis instance on ElastiCache, it is good practice to provision
+
+3
+00:00:09.360 --> 00:00:14.080
+these resources in a private subnet. In fact, only your applications running in your private
+
+4
+00:00:14.080 --> 00:00:18.800
+network should be able to access these sensitive resources. We don't want them to be publicly
+
+5
+00:00:18.800 --> 00:00:23.840
+accessible on the internet, of course. But what do you do if you want to connect to those resources
+
+6
+00:00:23.840 --> 00:00:28.320
+from your own desktop machine? Maybe you want to run some Ad-hoc queries on your database,
+
+7
+00:00:28.320 --> 00:00:32.560
+maybe you are investigating a bug and trying to figure out what's going on on the data layer,
+
+8
+00:00:32.560 --> 00:00:36.560
+maybe we simply want to make sure that the data is being persisted correctly because you just
+
+9
+00:00:36.560 --> 00:00:41.040
+released a new application and you want to control that things are going as expected.
+
+10
+00:00:41.040 --> 00:00:45.120
+So how can we access a resource that is not reachable from the public internet?
+
+11
+00:00:45.840 --> 00:00:52.000
+Today we will be talking about Bastion host, sometimes also known as jump boxes or jump servers,
+
+12
+00:00:52.640 --> 00:00:57.440
+and these are basically well-known ways to create a secure bridge that can allow us to access
+
+13
+00:00:57.440 --> 00:01:00.560
+these private instances through the public internet when we need to do that.
+
+14
+00:01:01.360 --> 00:01:06.560
+We will also discuss some practical architecture in AWS and the trade-offs of these solutions.
+
+15
+00:01:06.560 --> 00:01:09.920
+We will explore the different approaches you can use to connect to a Bastion host,
+
+16
+00:01:09.920 --> 00:01:16.160
+including plain SSH, EC2 instance connect, and AWS Session Manager. Finally, we will give you
+
+17
+00:01:16.160 --> 00:01:20.400
+some resources that can help you to create a Bastion host when you need them. My name is
+
+18
+00:01:20.400 --> 00:01:28.560
+Luciano and today I'm joined by Eoin for another episode of AWS Bites podcast.
+
+19
+00:01:32.240 --> 00:01:37.600
+AWS Bites is sponsored by fourTheorem. fourTheorem is an AWS partner for migration, architecture,
+
+20
+00:01:37.600 --> 00:01:44.320
+and training. Find out more at fourtheorem.com. The link is in the show notes. So Eoin, should we maybe
+
+21
+00:01:44.320 --> 00:01:48.880
+start introducing this topic by providing an example architecture that we can use to wrap our
+
+22
+00:01:48.880 --> 00:01:54.560
+minds around?
+
+23
+00:01:54.560 --> 00:02:00.720
+Why don't we start with an example like a three-tier web application architecture? So you've got load balancer, which is public facing. You might have a web application,
+
+24
+00:02:00.720 --> 00:02:05.680
+which is running in private subnet, and then you've got a database, relational database,
+
+25
+00:02:05.680 --> 00:02:10.480
+also running in private subnet. So for security reasons, we want to keep the network, the web
+
+26
+00:02:10.480 --> 00:02:14.720
+application and the database are running in private networks, and that load balancer is
+
+27
+00:02:14.720 --> 00:02:19.440
+public. So the subnet where the load balancer is deployed sometimes called a perimeter or DMZ,
+
+28
+00:02:19.440 --> 00:02:24.480
+like a demilitarized zone. And this is like a buffer zone between the internal network and the
+
+29
+00:02:24.480 --> 00:02:30.800
+public network. And it's not possible to reach the internal web application server from the public
+
+30
+00:02:30.800 --> 00:02:36.320
+internet. So you're reducing the attack surface there, basically. The only way you can access it
+
+31
+00:02:36.320 --> 00:02:40.720
+is by the very specific routing that's possible from the load balancer to that web server.
+
+32
+00:02:40.720 --> 00:02:44.800
+And equally, it's not possible to reach your database server. You don't want your database
+
+33
+00:02:44.800 --> 00:02:52.080
+server publicly exposed for many, many reasons on the public internet. So this is all great
+
+34
+00:02:52.880 --> 00:02:57.440
+in practice. And when you're running in production until for some reason, you decide you want to
+
+35
+00:02:57.440 --> 00:03:01.120
+access that database from your local laptop. So either you've got a production instance,
+
+36
+00:03:01.120 --> 00:03:05.520
+or you're just trying to troubleshoot some environment even in the staging environment,
+
+37
+00:03:05.520 --> 00:03:10.400
+which is set up in the same way, or you want to run like a database user interface that
+
+38
+00:03:10.400 --> 00:03:18.240
+connects over ODBC, for example, to your database. So like while this is a three-tier web application,
+
+39
+00:03:18.240 --> 00:03:23.200
+we might describe this as a problem that only exists for traditional applications. This kind
+
+40
+00:03:23.200 --> 00:03:28.080
+of challenge also comes up with serverless modern applications as well, because you can still have
+
+41
+00:03:28.080 --> 00:03:33.840
+resources in a private VPC. You might have Lambda functions that access RDS or ElasticCache again,
+
+42
+00:03:33.840 --> 00:03:38.240
+or ElasticSearch, or even an internal load balancer. So in all of those cases,
+
+43
+00:03:38.240 --> 00:03:42.720
+this is the kind of scenario where something like a bastion host can help.
+
+44
+00:03:42.720 --> 00:03:47.440
+So we've said bastion a few times Luciano, what is a bastion host?
+
+45
+00:03:47.440 --> 00:03:52.400
+Yes, I'll try my best to describe that. So it is basically a virtual machine.
+
+46
+00:03:52.400 --> 00:03:57.680
+So an instance that you run on AWS in this case, and it kind of works almost like you can imagine it as a bridge
+
+47
+00:03:57.680 --> 00:04:02.400
+if we want to have the kind of mental model. So you can spin up this at the perimeter, so somewhere
+
+48
+00:04:02.400 --> 00:04:07.600
+that is reachable on the public internet, and then you can configure your networking to use that
+
+49
+00:04:07.600 --> 00:04:13.200
+to effectively route connections from public internet, which in this case may be your own laptop,
+
+50
+00:04:13.200 --> 00:04:18.640
+to your database server. So you just put it there in the middle and use it effectively as a jump box.
+
+51
+00:04:18.640 --> 00:04:24.320
+That's why some people like to call it jump box. Now you might be thinking, okay, we are trying to
+
+52
+00:04:24.320 --> 00:04:30.480
+keep our database in a private area because probably the main thinking there is security reasons.
+
+53
+00:04:30.480 --> 00:04:35.120
+If we have a jump box, isn't that a security liability at that point? Like, I mean, we're
+
+54
+00:04:35.120 --> 00:04:40.880
+re-exposing everything again, right? And that's kind of true. You have to be really careful with
+
+55
+00:04:40.880 --> 00:04:46.160
+a bastion host or a jump box because if you don't do it correctly, it can become a security liability.
+
+56
+00:04:46.160 --> 00:04:51.040
+So there are some things that are very common that people would do to try to keep it as secure
+
+57
+00:04:51.040 --> 00:04:56.320
+as possible. Of course, you need to use an up-to-date operative system and have things in
+
+58
+00:04:56.320 --> 00:05:00.480
+place to always update the operative system every time there is a new security patch available.
+
+59
+00:05:00.480 --> 00:05:06.560
+You need to install only the bare minimum software needed. Traditionally, that's just an SSH server.
+
+60
+00:05:06.560 --> 00:05:12.080
+You don't need much more than that. And you need to open only the ports that are really needed
+
+61
+00:05:12.080 --> 00:05:21.520
+for accepting connections on that SSH server. And you need to... Basically, if you can limit
+
+62
+00:05:21.520 --> 00:05:26.480
+the IP addresses that can connect to that machine, that's even better. Most likely you will want only
+
+63
+00:05:26.480 --> 00:05:31.120
+your own personal IP, so your own laptop, to be able to connect on that port. So you can create
+
+64
+00:05:31.120 --> 00:05:36.000
+a security group that is restrictive. Or maybe if you are using that and sharing it with your own
+
+65
+00:05:36.000 --> 00:05:41.760
+office, you can have a list of IPs that are authorized. But the idea there is don't make it
+
+66
+00:05:41.760 --> 00:05:48.240
+open to any possible IP. Just limit to the ones that you trust. And don't use SSH through password,
+
+67
+00:05:48.240 --> 00:05:54.960
+but use SSH keys. That's another common best practice. And one more thing is you don't
+
+68
+00:05:54.960 --> 00:05:59.520
+necessarily need to have these instances running all the time, because we know in AWS you can
+
+69
+00:05:59.520 --> 00:06:03.680
+spin things up and down when you need them. So it would be nice if you have a process that allows
+
+70
+00:06:03.680 --> 00:06:08.160
+you to provision really quickly a bastion host only when you want to do a connection, and then
+
+71
+00:06:08.160 --> 00:06:12.240
+tear it down when you don't need it anymore. I think that's an even better security practice,
+
+72
+00:06:12.240 --> 00:06:16.640
+because then you are limiting the exposed surface only for the time when you are actually using it.
+
+73
+00:06:17.760 --> 00:06:22.480
+And there are other tricks like port knocking, and maybe, oh, and you are more familiar with it,
+
+74
+00:06:22.480 --> 00:06:27.520
+so you want to mention something about that.
+
+75
+00:06:27.520 --> 00:06:33.200
+Port knocking is kind of just an interesting way of, I suppose, implementing a software-based combination lock for this bastion host. So the
+
+76
+00:06:33.200 --> 00:06:39.520
+idea with port knocking is that by opening up some special ports on the machine, you don't open
+
+77
+00:06:39.520 --> 00:06:45.920
+up SSH port 22 by default, or whatever port you're using. You have some special random ports that
+
+78
+00:06:45.920 --> 00:06:51.280
+only you know about. And by opening these ports in a certain sequence, you can have a daemon or
+
+79
+00:06:51.280 --> 00:06:56.640
+server on the machine which recognizes that you're essentially knocking on the door in the right
+
+80
+00:06:56.640 --> 00:07:02.000
+sequence, and it will then enable the SSH socket. So it could use IP tables or something at that
+
+81
+00:07:02.000 --> 00:07:08.160
+point to enable SSH inbound. And there's a number of different implementations of port knocking out
+
+82
+00:07:08.160 --> 00:07:14.960
+there that will allow you to not leave SSH open all the time as a bastion host. So it just makes
+
+83
+00:07:14.960 --> 00:07:18.320
+it more difficult. It's kind of an obscurity mechanism. It makes it more difficult for hackers
+
+84
+00:07:18.320 --> 00:07:25.680
+to detect that you've got SSH running there. So maybe it's worthwhile just going through how you
+
+85
+00:07:25.680 --> 00:07:30.320
+normally provision a bastion host on AWS. So traditionally, the way you do that is by running an EC2 instance.
+
+86
+00:07:30.320 --> 00:07:37.600
+You'd usually use a very small one using a recent Linux AMI, and you give it
+
+87
+00:07:37.600 --> 00:07:42.960
+very minimal capabilities because all you want to be able to do is jump right to your destination
+
+88
+00:07:42.960 --> 00:07:47.280
+on the target VPC. And you will have to generate an SSH key pair for that machine. And this is
+
+89
+00:07:47.280 --> 00:07:51.760
+where it gets a little bit challenging because if you've got key pairs that are long lived, then you
+
+90
+00:07:51.760 --> 00:07:57.120
+know you've already got a security problem because you've got issues with retention of those and also
+
+91
+00:07:57.120 --> 00:08:02.960
+people who have access to those when they shouldn't have. Then you configure the
+
+92
+00:08:02.960 --> 00:08:08.160
+security groups of that instance to accept traffic only on that SSH port.
+
+93
+00:08:08.160 --> 00:08:12.480
+And you would also make sure that the instance gets a public IP and is reachable from the internet. So you might
+
+94
+00:08:12.480 --> 00:08:16.320
+have to update your routing tables and add internet gateway and all that kind of stuff.
+
+95
+00:08:16.320 --> 00:08:21.440
+You also should make sure that the security group on your database can accept connections
+
+96
+00:08:21.440 --> 00:08:26.240
+from this bastion host. And then you should be able to connect to this instance using SSH and
+
+97
+00:08:26.240 --> 00:08:30.320
+create a tunnel to your database. So you could open a shell on the bastion and then go to your
+
+98
+00:08:30.320 --> 00:08:35.840
+database, or you can tunnel. We might talk about that in a bit. If people aren't really familiar
+
+99
+00:08:35.840 --> 00:08:41.520
+with SSH, many people would have seen it, but maybe not used it that much. It stands for secure shell
+
+100
+00:08:41.520 --> 00:08:48.800
+and it's a common tool that's existed since 1995. OpenSSH is pretty widespread implementation.
+
+101
+00:08:48.800 --> 00:08:52.080
+It allows you to manage a shell session in a remote machine and also to create tunnels.
+
+102
+00:08:53.520 --> 00:09:01.280
+If you've used GitHub and you've had a repository of your own and you've pushed code to it,
+
+103
+00:09:01.280 --> 00:09:05.760
+you've probably used SSH at some point, especially if you don't want to manage passwords all the
+
+104
+00:09:05.760 --> 00:09:10.640
+time. So you can have a server application running on the machine you're connecting to,
+
+105
+00:09:10.640 --> 00:09:15.680
+and you also need a client application. So OpenSSH is generally available on most platforms these
+
+106
+00:09:15.680 --> 00:09:20.960
+days, including Windows, but you often see people using PuTTY on Windows as well. And it supports
+
+107
+00:09:20.960 --> 00:09:24.640
+lots of different types of authentication. We mentioned username and password, but public and
+
+108
+00:09:24.640 --> 00:09:30.480
+private keys with various levels of encryption are also possible. So that's SSH. And one of the cool
+
+109
+00:09:30.480 --> 00:09:36.240
+things about SSH is its ability to tunnel. So Luciano, what the heck is a tunnel?
+
+110
+00:09:36.240 --> 00:09:42.320
+Yeah, so a tunnel is also something that sometimes is referred to as SSH port forwarding. So the idea is that you
+
+111
+00:09:42.320 --> 00:09:49.440
+can create a secure connection between, let's say, your own local machine and a destination machine
+
+112
+00:09:49.440 --> 00:09:55.760
+using this kind of jump box. And the idea is in your own local machine, you will expose that
+
+113
+00:09:55.760 --> 00:10:01.840
+connection in a local port. So then you can connect to that remote endpoint by just using
+
+114
+00:10:01.840 --> 00:10:06.560
+localhost and whatever is the port that you selected locally. So basically the idea is that
+
+115
+00:10:06.560 --> 00:10:12.480
+through SSH you create this channel, this channel is encrypted, and it's exposed somehow locally,
+
+116
+00:10:12.480 --> 00:10:16.800
+and all the bytes that you send to this local port will be forwarded to the destination system.
+
+117
+00:10:16.800 --> 00:10:22.000
+So maybe the database running on RDS in a private subnet. And of course all the data coming back
+
+118
+00:10:22.000 --> 00:10:27.440
+from RDS will be channeled through your own local port, so you can also read and write all this
+
+119
+00:10:27.440 --> 00:10:32.960
+stream of bytes this way. So it's effectively a secure way to create a channel on the public
+
+120
+00:10:32.960 --> 00:10:37.760
+internet when you need to do something like that, and you want to make sure it's stable because it's
+
+121
+00:10:37.760 --> 00:10:42.960
+through TCP and it's encrypted, so it's not going to leak any information along the way.
+
+122
+00:10:44.800 --> 00:10:53.120
+So you also mentioned that managing SSH keys is a security risk, so is there any alternative?
+
+123
+00:10:53.120 --> 00:10:55.760
+Like if you don't want to take this security risk, what can you possibly do?
+
+124
+00:10:55.760 --> 00:11:01.840
+Yeah, once you have long-lived keys we know that's an issue.
+
+125
+00:11:01.840 --> 00:11:06.080
+When we talk about IAM access keys, it's the same problem. Where do you store them? Who has access to them? Or how do you revoke them?
+
+126
+00:11:07.600 --> 00:11:11.520
+But also another challenge is that with SSH you also have to figure out how do you collect logs
+
+127
+00:11:11.520 --> 00:11:15.840
+and maintain audit trail of access and commands executed. That's quite common for various
+
+128
+00:11:15.840 --> 00:11:21.760
+compliance and governance scenarios. So there are a couple of ways in AWS that make this a bit easier.
+
+129
+00:11:21.760 --> 00:11:28.560
+The first one, which is maybe less common, is EC2 instance connect, and that gives you a way
+
+130
+00:11:28.560 --> 00:11:34.560
+to have short-lived native SSH connections with short-lived keys. So it works with Amazon Linux
+
+131
+00:11:34.560 --> 00:11:39.520
+2 and I presume the newer versions as well, and also Ubuntu AMIs. It doesn't work with other
+
+132
+00:11:39.520 --> 00:11:46.480
+distros and OSs. If you want to install it on older versions you'll have to yum install EC2
+
+133
+00:11:46.480 --> 00:11:51.360
+instance connect, and then at that point you need to make sure that the principal has a policy that
+
+134
+00:11:51.360 --> 00:11:57.760
+authorizes this special action which is EC2 instance connect send SSH publish key.
+
+135
+00:11:57.760 --> 00:12:02.320
+There will be a link in the show notes with examples and everything you need to do to get up and running
+
+136
+00:12:02.320 --> 00:12:06.720
+with this. When you use this it basically means that when you want to initialize a new connection
+
+137
+00:12:06.720 --> 00:12:13.280
+a new SSH key pair is generated on the fly. The public part of it is pushed into the EC2 updating
+
+138
+00:12:13.280 --> 00:12:17.840
+the SSH server configuration and the private part is kept local and used to authenticate the new
+
+139
+00:12:17.840 --> 00:12:22.560
+connection. Then the public key is removed from the server after 60 seconds so you don't have to
+
+140
+00:12:22.560 --> 00:12:27.680
+so you have to have establish your connection within that time frame. And then once you do that
+
+141
+00:12:27.680 --> 00:12:32.800
+you can connect from the browser from the EC2 instance console and also with the AWS CLI.
+
+142
+00:12:35.280 --> 00:12:40.000
+If you do use the CLI then you have to regenerate the key pair yourself and run the SSH
+
+143
+00:12:40.000 --> 00:12:44.960
+connection command. So the fact that it's using SSH means that the instance still needs to have
+
+144
+00:12:44.960 --> 00:12:51.520
+SSH installed and the SSH port has to be reachable and if you don't want your SSH port reachable from
+
+145
+00:12:51.520 --> 00:12:56.800
+any public IP you can actually download the list of AWS public IPs and look for the ones associated to EC2 instance connect.
+
+146
+00:12:56.800 --> 00:13:01.360
+So there's a bit of work involved in that but the link for the IP range
+
+147
+00:13:01.360 --> 00:13:06.480
+will also be in the show notes. So that's EC2 instance connect and that uses SSH so it might
+
+148
+00:13:06.480 --> 00:13:10.880
+be a bit more familiar to people how that works. The other one which I think I've used a lot more
+
+149
+00:13:10.880 --> 00:13:16.480
+often and is much more exciting in my view is Session Manager and it's a bit more advanced and a broader solution.
+
+150
+00:13:16.480 --> 00:13:21.360
+It works on Linux and it works on Windows and it even works on premises and on
+
+151
+00:13:21.360 --> 00:13:28.480
+edge devices like IoT Greengrass. And Session Manager what it does is it provides this a whole
+
+152
+00:13:28.480 --> 00:13:34.160
+suite of things so it's not just connecting but it provides like auditable node management without
+
+153
+00:13:34.160 --> 00:13:40.160
+the need to have sockets open and have SSH keys and all of that and you're just relying on IAM
+
+154
+00:13:40.160 --> 00:13:46.800
+for authorization for everything. So you don't have to run any ports no SSH no RDP the only thing you
+
+155
+00:13:46.800 --> 00:13:53.600
+need to have for your EC2 instances is to have the AWS Session Manager agent installed. So this
+
+156
+00:13:53.600 --> 00:13:58.720
+is an agent-based approach and once you have it all set up you can create a connection from either
+
+157
+00:13:58.720 --> 00:14:06.320
+a web browser or from the AWS CLI. All of the commands you issue can be logged then and made
+
+158
+00:14:06.320 --> 00:14:12.400
+available in an S3 bucket or in cloud which logs for auditing purposes.
+
+159
+00:14:12.400 --> 00:14:18.480
+The connection creation is also logged in CloudTrail as well. So you need because it's IAM based you need to make sure
+
+160
+00:14:18.480 --> 00:14:24.400
+that the instance profile your EC2 instance is running has specific permissions there's a managed
+
+161
+00:14:24.400 --> 00:14:29.520
+policy for that and you can also put in the permissions yourself. There's actually three
+
+162
+00:14:29.520 --> 00:14:34.720
+kind of resources you need to deal with so you'll see it when you put in your actions in the IAM
+
+163
+00:14:34.720 --> 00:14:44.400
+policy you've got SSM for systems manager EC2 messages and SSM messages so you actually have
+
+164
+00:14:44.400 --> 00:14:50.640
+three namespaces in your actions that you need to use so it's actually if you if you look at the
+
+165
+00:14:50.640 --> 00:14:55.520
+traffic it's actually talking to three different hosts in the background and once you have that
+
+166
+00:14:55.520 --> 00:15:00.320
+set up you can actually create SSH tunnels through Session Manager sessions as well so all of the
+
+167
+00:15:00.320 --> 00:15:05.280
+stuff we talked about with SSH port forwarding can also work over Session Manager as well.
+
+168
+00:15:06.560 --> 00:15:12.080
+So it might seem like okay how does this work it doesn't use like normal TCP stuff it just uses
+
+169
+00:15:12.080 --> 00:15:17.920
+IAM and AWS actions what kind of black magic is this how does it work in practice do you have any
+
+170
+00:15:17.920 --> 00:15:24.800
+idea?
+
+171
+00:15:24.800 --> 00:15:30.800
+Yeah so that's something actually that a few years ago I was trying to do something similar and I bumped into this tool called Inlets and I got curious about like what is the black magic when
+
+172
+00:15:30.800 --> 00:15:35.600
+like you you don't have any inbound connection because you cannot literally reach that machine
+
+173
+00:15:35.600 --> 00:15:40.640
+from the outside. How is it possible that you still can create a channel and connect to that
+
+174
+00:15:40.640 --> 00:15:45.360
+machine when you set up this kind of thing? So there is some kind of networking trick there
+
+175
+00:15:45.360 --> 00:15:50.160
+that I need to figure it out to really understand how is this possible.
+
+176
+00:15:50.160 --> 00:15:56.240
+So I investigated this Inlets project. It's an open source project you can check out on GitHub we'll have the link in the show notes.
+
+177
+00:15:56.240 --> 00:16:01.440
+And I tried to figure out how it works and in practice what it does it's something really clever.
+
+178
+00:16:01.440 --> 00:16:06.400
+But also later on I figured out it's really common it's something that's been used for a while
+
+179
+00:16:06.400 --> 00:16:11.440
+and even when you use tools like ngrok they do something similar right to expose your own laptop
+
+180
+00:16:11.440 --> 00:16:15.840
+to the rest of the world if you want to showcase as like a website you are running locally.
+
+181
+00:16:15.840 --> 00:16:20.240
+And the idea is that basically you don't accept any connection from the outside like starting from
+
+182
+00:16:20.240 --> 00:16:24.800
+the outside but you can start a connection from your own blockchain machine to the outside world
+
+183
+00:16:24.800 --> 00:16:30.000
+and then create a channel that way. And then on that channel you can basically keep sending bytes.
+
+184
+00:16:30.000 --> 00:16:35.120
+So the trick is that you have to do the opposite. You have to initialize a connection from the
+
+185
+00:16:35.120 --> 00:16:40.000
+machine that is in the private subnet and then with that connection you can start to accept traffic.
+
+186
+00:16:40.000 --> 00:16:46.080
+But that means that the machine in the private network needs to initialize the connection
+
+187
+00:16:46.080 --> 00:16:51.200
+with some instance that has the capability to receive traffic from the public internet.
+
+188
+00:16:51.200 --> 00:16:57.600
+So you have to have this kind of, let's call it a service, that runs somewhere in the public internet and
+
+189
+00:16:57.600 --> 00:17:02.960
+your local machine is connected to that service and this intermediate public service is the one
+
+190
+00:17:02.960 --> 00:17:08.160
+that receives connection from the outer world and then creates this kind of tunnel.
+
+191
+00:17:08.160 --> 00:17:14.480
+So in the case of SSM, this is the way it works because even if you expect the traffic on your machine you will see
+
+192
+00:17:14.480 --> 00:17:20.800
+this machine reaching out to a domain that starts with ec2messages.something. AWS, so definitely
+
+193
+00:17:20.800 --> 00:17:26.480
+they are creating a tunnel this way by initializing a connection from inside the machine itself and in
+
+194
+00:17:26.480 --> 00:17:32.240
+the case of AWS of course they can use all the AWS ecosystem, they can use IAM as you mentioned Eoin,
+
+195
+00:17:32.240 --> 00:17:37.280
+and make sure that you are authorizing all the kind of connection to happen.
+
+196
+00:17:37.280 --> 00:17:42.560
+At that point you basically have effectively this service being aware of all the connections that are
+
+197
+00:17:42.560 --> 00:17:48.400
+established and you can also use that in SSM to track keep track of all the instances that you
+
+198
+00:17:48.400 --> 00:17:53.280
+are running to distribute patches to all these instances, to see the health check, and basically
+
+199
+00:17:53.920 --> 00:17:58.080
+it becomes kind of an overlay network that allows you to keep track of all the instances you are running and manage them.
+
+200
+00:17:58.080 --> 00:18:04.880
+So I suppose that kind of brings another question. If this is such a generic
+
+201
+00:18:04.880 --> 00:18:10.000
+solution to solve this kind of problem of exposing private resources in the public internet, is this something that we can use only for EC2 or can we use it outside EC2?
+
+202
+00:18:16.160 --> 00:18:22.240
+There's probably a clue you've given already because we've said it's an open source agent so and that all it
+
+203
+00:18:22.240 --> 00:18:27.600
+needs is you know a connection to AWS services like ec2messages, SSMmessages, and then you can
+
+204
+00:18:27.600 --> 00:18:32.400
+probably imagine that it probably works in other environments and that's the case.
+
+205
+00:18:32.400 --> 00:18:37.520
+It works on ECS as well, so you can get it working on ECS containers and Fargate containers as well and
+
+206
+00:18:37.520 --> 00:18:43.520
+then not just shell into the host machine but actually into the containers as well.
+
+207
+00:18:43.520 --> 00:18:48.480
+And that feature has a different name. It's called ECS Exec in that context and it has a slightly different
+
+208
+00:18:48.480 --> 00:18:54.320
+interface but it's still just SSM Session Manager. You always need to enable these things in advance.
+
+209
+00:18:54.320 --> 00:18:58.480
+If you need to troubleshoot and you haven't set this up in advance, you're kind of out of luck.
+
+210
+00:18:58.480 --> 00:19:03.280
+Or you have to go back and make sure these things are turned on, so you have to enable ECS Exec in
+
+211
+00:19:03.280 --> 00:19:08.160
+your Fargate service and you'll also make sure you need those IAM permissions. Now Fargate doesn't
+
+212
+00:19:08.160 --> 00:19:12.640
+need all the permissions that EC2 needs because again, its host is managed, so you just need to
+
+213
+00:19:12.640 --> 00:19:18.960
+make sure you can do a certain number of SSM message actions from your task role in Fargate
+
+214
+00:19:18.960 --> 00:19:23.760
+and then it can access SSM and then you can shell into containers to debug and troubleshoot and all sorts of good stuff.
+
+215
+00:19:23.760 --> 00:19:30.320
+Actually you can also run it outside of AWS as well, so that means you can run,
+
+216
+00:19:30.320 --> 00:19:36.160
+if you've got instances on premises or if you've got hosts on other cloud providers or even on
+
+217
+00:19:36.160 --> 00:19:42.800
+embedded devices, you can register these as managed instances in SSM and you can run the SSM agent on these hosts.
+
+218
+00:19:42.800 --> 00:19:48.080
+There's a special kind of sequence you need to do to activate and register these just to
+
+219
+00:19:48.080 --> 00:19:52.480
+set up your security. You have like an activation code and then you register the instance and then
+
+220
+00:19:52.480 --> 00:19:59.840
+it assumes an IAM role from this instance and it can run SSM agent and then you can connect via
+
+221
+00:19:59.840 --> 00:20:06.560
+the AWS console into your even your own laptop, for example, if you run the SSM agent on that.
+
+222
+00:20:06.560 --> 00:20:10.160
+There a cost actually associated with running that. Just because it's your machine, once you're running SSM
+
+223
+00:20:10.160 --> 00:20:16.080
+agent on it there is a certain cost and you also need to enable a special advanced tier of
+
+224
+00:20:16.080 --> 00:20:21.280
+SSM to do all of that. But you can imagine that if you're using SSM for some of the other things
+
+225
+00:20:21.280 --> 00:20:26.800
+not just SSH and bastion kind of stuff, but you're using RunCommand to be able to run the same
+
+226
+00:20:26.800 --> 00:20:32.720
+command or a set of commands like documents across a fleet of machines that this becomes useful or
+
+227
+00:20:32.720 --> 00:20:36.880
+if you're using patch manager to apply patches to thousands of machines, including on-premises machines, then this could be an advantage.
+
+228
+00:20:42.720 --> 00:20:48.080
+Yeah, so you are definitely settling Session Manager as the solution you would want to use if you are thinking to set up a bastion host.
+
+229
+00:20:48.080 --> 00:20:52.880
+But we also saw that it's not trivial, like there are a bunch of steps involved and you need to do many things
+
+230
+00:20:52.880 --> 00:20:59.280
+right for that to work it's not just like one click and everything works.
+
+231
+00:20:59.280 --> 00:21:03.840
+So when we were reviewing the notes for this episode we were thinking is there any tool that would help you to
+
+232
+00:21:03.840 --> 00:21:08.960
+do all these things right? And we discovered this tool open source tool called basti by Bohdan Petryshyn.
+
+233
+00:21:08.960 --> 00:21:15.440
+I hope i'm pronouncing the name correctly, and what basti does is basically a CLI tool
+
+234
+00:21:15.440 --> 00:21:20.720
+that allows you to provision a bastion host in the simplest possible way.
+
+235
+00:21:20.720 --> 00:21:25.040
+So it tries to reduce the amount of knowledge that you need to have to basically be able to provision
+
+236
+00:21:25.040 --> 00:21:31.600
+a bastion host and also create a tunnel for an RDS instance or for an ElastiCache instance.
+
+237
+00:21:32.400 --> 00:21:38.480
+And the way works is it's basically a tool written in Node.js, so you can easily install it with 'npm
+
+238
+00:21:38.480 --> 00:21:43.280
+install --global' and then the first thing that you can do once you have it installed is run the CLI
+
+239
+00:21:43.280 --> 00:21:49.760
+with the command basti init and what init does, it will start a guided procedure.
+
+240
+00:21:49.760 --> 00:21:54.880
+On the CLI, it will ask you for a bunch of questions. For instance, it's gonna list all your RDS databases
+
+241
+00:21:54.880 --> 00:21:59.120
+and tell you which one do you want to connect to and based on that choice it will figure out
+
+242
+00:21:59.120 --> 00:22:05.600
+in which VPC is that instance running and it will let you select a subnet where the instance
+
+243
+00:22:05.600 --> 00:22:10.480
+is going to be provisioned. Also that instance is going to be provisioned with the right policies
+
+244
+00:22:10.480 --> 00:22:15.600
+and it's going to create the right security groups so that you can do all the connection using SSM.
+
+245
+00:22:15.600 --> 00:22:19.600
+And at that point, what you can do when you have everything provisioned, you can run a second command
+
+246
+00:22:19.600 --> 00:22:25.200
+called basti connect and basti connect effectively is the part that connects to the instance that you
+
+247
+00:22:25.200 --> 00:22:29.040
+just provisioned and creates a tunnel on your local machine.
+
+248
+00:22:29.040 --> 00:22:34.960
+So the only thing that you need to do at that point is select a local port and then you can basically use localhost on that port
+
+249
+00:22:34.960 --> 00:22:40.960
+to connect with, I don't know, another CLI or maybe using a graphic client whatever you want to use to connect to your database.
+
+250
+00:22:40.960 --> 00:22:47.200
+I did try to use this tool and I was very pleased with the developer
+
+251
+00:22:47.200 --> 00:22:51.760
+experience, like using it seemed very simple. I didn't even have to think much about what I was
+
+252
+00:22:51.760 --> 00:22:56.960
+doing, but unfortunately it didn't work the first time and this is definitely my fault.
+
+253
+00:22:56.960 --> 00:23:03.280
+I did two very dumb mistakes that basti cannot really protect you against and the first mistake was
+
+254
+00:23:03.280 --> 00:23:09.200
+that I selected a private subnet rather than a public one. So basically my instance didn't have
+
+255
+00:23:09.200 --> 00:23:15.360
+any connection from from the public internet. And of course I fixed the problem.
+
+256
+00:23:15.360 --> 00:23:21.920
+Still didn't work and then I realized looking at the security group of my RDS instance that I didn't
+
+257
+00:23:21.920 --> 00:23:27.680
+configure that security group to accept traffic from instances running on the public subnet.
+
+258
+00:23:27.680 --> 00:23:32.240
+I was accepting traffic only from instances running on the private subnet, so I also needed to fix that.
+
+259
+00:23:32.240 --> 00:23:38.400
+And at that point, basti connect worked straight away and I was able to connect with my graphic
+
+260
+00:23:38.400 --> 00:23:43.840
+client to the database and inspect the data. Another interesting thing that is worth mentioning
+
+261
+00:23:43.840 --> 00:23:49.440
+about basti is that it tries to keep the costs down even though it's running a very small machine.
+
+262
+00:23:49.440 --> 00:23:54.480
+So the cost would be minimal anyway. What it tries to do is it's something very clever what they do is
+
+263
+00:23:54.480 --> 00:24:00.880
+while you run the basti connect command, they keep tagging your instance with like a timestamp.
+
+264
+00:24:00.880 --> 00:24:05.600
+And then there is a cron job running on the instance itself that basically scan the instance
+
+265
+00:24:05.600 --> 00:24:12.800
+tags and if you have been running well if the latest tag was older than a certain threshold
+
+266
+00:24:12.800 --> 00:24:18.000
+they will automatically shut down the instance which reduces the cost a bit more.
+
+267
+00:24:18.000 --> 00:24:23.040
+Also it makes it more secure because you are not always running that instance all the time but you run it
+
+268
+00:24:23.040 --> 00:24:27.760
+only when you need it so that's a really clever trick that they figured out and I was
+
+269
+00:24:27.760 --> 00:24:33.840
+really pleased to to look at the code and see how they implemented that.
+
+270
+00:24:33.840 --> 00:24:38.400
+Yeah so definitely checkout basti and let us know if you like it as well and maybe if you are into open sources and other
+
+271
+00:24:38.400 --> 00:24:45.520
+projects worth contributing to. But are there alternatives to Bastion hosts?
+
+272
+00:24:50.880 --> 00:24:56.400
+You already mentioned inlets. You might want to look at other kind of similar tools in that realm. Tailscale is one that I use quite a lot for not necessarily for like production deployments on
+
+273
+00:24:56.400 --> 00:25:03.120
+AWS but between my own machines and hosts. And you can even connect from your phone to your host.
+
+274
+00:25:03.120 --> 00:25:09.360
+I actually use this sometimes when I'm building docker images on x86 hosts and I don't want to do
+
+275
+00:25:09.360 --> 00:25:16.560
+it on my Mac and cross compile. I'm using a remote docker host and I can use TailScale to do all the
+
+276
+00:25:16.560 --> 00:25:20.720
+tunneling for that. It's really nice has a really good user interface and manages all your devices.
+
+277
+00:25:20.720 --> 00:25:27.440
+That's built on top of a technology called WireGuard which is more or less a VPN solution.
+
+278
+00:25:27.440 --> 00:25:33.280
+You could also use a more traditional VPN like OpenVPN, or you on AWS you could use like a Client VPN.
+
+279
+00:25:33.280 --> 00:25:40.720
+So those are other ways of securing access to environments. You could also like really just
+
+280
+00:25:40.720 --> 00:25:44.880
+do a basic solution if you wanted to access something like ElastiCache or RDS, you could create
+
+281
+00:25:44.880 --> 00:25:49.360
+a Lambda function that accepts custom commands and executes them. I know that's
+
+282
+00:25:49.360 --> 00:25:55.200
+something I've seen in the past for very simple access scenarios
+
+283
+00:25:55.200 --> 00:25:58.960
+but really I don't think it's really worth the investment and I would recommend that
+
+284
+00:25:58.960 --> 00:26:03.920
+people go with something like an SSM based solution and set that up in your developer
+
+285
+00:26:03.920 --> 00:26:08.160
+, staging, production environments from the get-go. It makes it a lot easier in the long run.
+
+286
+00:26:08.160 --> 00:26:12.400
+You wouldn't be able to run a graphical client or have proper open sockets through a Lambda function of course. It's still it's a simple solution for very simple tasks.
+
+287
+00:26:18.560 --> 00:26:24.720
+Yeah i'm definitely guilty of implementing the solution many times and I think just because I always found until now recently that provisioning
+
+288
+00:26:24.720 --> 00:26:29.840
+a bastion host the right way was more complicated than I wanted it to be the moment where I needed it but
+
+289
+00:26:29.840 --> 00:26:35.680
+hopefully with all the research we did in this episode and trying all these different tools now
+
+290
+00:26:35.680 --> 00:26:40.720
+it is much easier and I won't need to go for a Lambda anymore to satisfy these kinds of use cases.
+
+291
+00:26:41.520 --> 00:26:45.920
+So I think that's everything we have for today. I hope you enjoyed this episode. If you did please
+
+292
+00:26:45.920 --> 00:26:50.800
+remember to like this on YouTube and subscribe and if you have listened to the audio podcast, please
+
+293
+00:26:50.800 --> 00:26:55.680
+leave us a review, and if you have any comment, if you have been using other solutions that maybe we
+
+294
+00:26:55.680 --> 00:27:00.160
+didn't mention, please let us know because of course. We'd like to hear from you and we'd like
+
+295
+00:27:00.160 --> 00:27:04.480
+to learn from you and then share these learnings with other people. So thank you very much and we'll
+
+296
+00:27:04.480 --> 00:27:22.320
+see you in the next episode.

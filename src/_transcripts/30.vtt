@@ -1,0 +1,673 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:03.680
+What can you do with 10 gigabytes of Lambda storage? This is a new feature that was released
+
+2
+00:00:03.680 --> 00:00:07.840
+in Lambda and everyone's very hyped about it. So in this episode we're going to give our take and
+
+3
+00:00:07.840 --> 00:00:12.400
+talk about what does it really mean to have 10 gigabytes of ephemeral storage? What can you do
+
+4
+00:00:12.400 --> 00:00:16.720
+with this new capability? And finally we're going to discuss if this is really an advantage or if
+
+5
+00:00:16.720 --> 00:00:21.760
+it's just something useful you might use in niche use cases. My name is Eoin, I'm joined by Luciano
+
+6
+00:00:21.760 --> 00:00:35.360
+and this is the AWS Bites podcast. Luciano, what is this 10 gigabytes of ephemeral storage? What
+
+7
+00:00:35.360 --> 00:00:40.240
+does it mean and how is it different?
+
+8
+00:00:40.240 --> 00:00:46.080
+Yeah, so one way that I will describe this ephemeral storage is basically if you have a Unix system and you have a TMP folder this is generally where you store
+
+9
+00:00:46.080 --> 00:00:51.040
+files that are somewhat persistent but yeah they generally have like a long and they don't have a
+
+10
+00:00:51.040 --> 00:00:55.600
+long duration you just use them as a transient storage mechanism and this is something that's
+
+11
+00:00:55.600 --> 00:01:02.880
+been available in Lambda for since the very beginning but the limit was 512 megabytes now
+
+12
+00:01:02.880 --> 00:01:08.320
+this has been extended up to 10 gigabytes so technically now you can store a lot more
+
+13
+00:01:08.960 --> 00:01:14.960
+data into this particular file system directory. Now what does that mean in the context of Lambda
+
+14
+00:01:14.960 --> 00:01:20.240
+is something we're going to discuss more and more throughout this episode but one interesting thing
+
+15
+00:01:20.240 --> 00:01:25.920
+that I want to mention is that because of the characteristics of a Lambda where effectively you
+
+16
+00:01:25.920 --> 00:01:32.640
+receive based on events a Lambda is triggered and you don't really know if for that particular
+
+17
+00:01:32.640 --> 00:01:37.840
+invocation an instance that was already available is going to be reused or if a new instance is
+
+18
+00:01:37.840 --> 00:01:42.800
+going to be bootstrapped so imagine this as a container is probably the easiest way to
+
+19
+00:01:42.800 --> 00:01:47.040
+understand this it's like you are running a new container or maybe you already have a container
+
+20
+00:01:47.040 --> 00:01:52.080
+there initializer and going to reuse the same container so what happens to that temporary
+
+21
+00:01:52.080 --> 00:01:56.480
+storage in those two different use cases effectively every time you are running a new
+
+22
+00:01:56.480 --> 00:02:04.640
+instance you are starting with a new blank folder in the temp space if you are reusing an existing
+
+23
+00:02:04.640 --> 00:02:10.160
+instance and you have saved something in that temporary folder you will find again the same
+
+24
+00:02:10.160 --> 00:02:15.280
+files available there for you to use so one interesting thing is that you could be using this
+
+25
+00:02:15.280 --> 00:02:21.280
+storage across invocations but of course there is no guarantee that your data will actually be there
+
+26
+00:02:21.280 --> 00:02:25.360
+depending on how many Lambdas you are running if they are running all the time or if you have
+
+27
+00:02:25.920 --> 00:02:30.800
+spikes of time where nothing happens between one invocation or another and another interesting
+
+28
+00:02:30.800 --> 00:02:36.880
+thing that Yan Shui and we're going to mention the article of course in the show notes did some
+
+29
+00:02:36.880 --> 00:02:41.040
+experiments and he realized that there is no cold start overhead so this is another small detail
+
+30
+00:02:41.040 --> 00:02:45.920
+that is interesting to mention as we are talking about bootstrapping new Lambdas with more storage
+
+31
+00:02:47.360 --> 00:02:53.280
+so yeah I don't know what do you think in terms of application what is it something that we will do
+
+32
+00:02:57.520 --> 00:03:02.640
+now that we have this additional capability there's a few things you could think of I guess if you've got video transcoding applications that's one of the examples that that has come up so if you're
+
+33
+00:03:02.640 --> 00:03:07.840
+producing a video you can imagine you might need to have intermediate artifacts you're producing
+
+34
+00:03:07.840 --> 00:03:13.120
+so let's say you take some input it could be some images or an existing video that you need to split
+
+35
+00:03:13.120 --> 00:03:18.960
+into frames you might want to process those frames and then stitch them back together and encode them
+
+36
+00:03:18.960 --> 00:03:23.360
+with a video codec if with that intermediate data you might need somewhere to keep it and having 10
+
+37
+00:03:23.360 --> 00:03:29.200
+gigabytes of slash temp is going to be pretty useful for that there's also one of the probably
+
+38
+00:03:29.200 --> 00:03:35.600
+more likely use cases for this slash temp is when you're doing ETL or data processing and you have
+
+39
+00:03:35.600 --> 00:03:40.800
+intermediate data steps as well so you know in general you probably don't want to be storing
+
+40
+00:03:40.800 --> 00:03:44.640
+things in Lambda so it's more of an optimization for those cases where you really need it
+
+41
+00:03:45.360 --> 00:03:51.040
+and you can imagine if you're processing gigabytes of data ideally you would like to just kind of
+
+42
+00:03:51.040 --> 00:03:54.800
+stream it in and stream it out and not store anything but sometimes again you need to do
+
+43
+00:03:54.800 --> 00:03:59.200
+aggregations which require you to store to read in all of the data store it in one format then
+
+44
+00:03:59.200 --> 00:04:04.640
+process it further and your slash temp might be useful for that I've heard a lot of people say as
+
+45
+00:04:04.640 --> 00:04:09.280
+well machine learning models it'll be useful for that because some machine learning models can be
+
+46
+00:04:09.280 --> 00:04:14.160
+quite large you know they can run into gigabytes so having being able to pull them down from s3
+
+47
+00:04:14.160 --> 00:04:19.120
+put them in your slash temp and then use that across multiple invocations would be useful
+
+48
+00:04:19.840 --> 00:04:24.880
+I'd also kind of challenge that a little bit and say well if your model is part model is almost
+
+49
+00:04:24.880 --> 00:04:29.440
+part of your code so it might be more suitable to bundle that into a container image and deploy
+
+50
+00:04:29.440 --> 00:04:35.440
+your Lambda image as a container your Lambda as a container image but if your model changes more
+
+51
+00:04:35.440 --> 00:04:38.960
+than the Lambda does then you might do it the other way and use slash time for it and one of
+
+52
+00:04:38.960 --> 00:04:46.400
+the most I suppose slightly esoteric options was using Lambda for continuous delivery continuous
+
+53
+00:04:46.400 --> 00:04:53.840
+integration and there was a tweet from Will Dady which suggests that maybe AWS step functions and
+
+54
+00:04:53.840 --> 00:04:58.320
+10 gigabytes of ephemeral storage in Lambda could be a better option for a continuous build
+
+55
+00:04:58.320 --> 00:05:03.520
+continuous build performance than using code pipeline with code build I think that's
+
+56
+00:05:03.520 --> 00:05:07.600
+definitely an interesting one I don't know if I would rush to use it I did try using step
+
+57
+00:05:07.600 --> 00:05:14.800
+functions for continuous build orchestration before and it's a little bit clunky it's improved
+
+58
+00:05:14.800 --> 00:05:19.760
+probably quite a lot now that you can use AWS SDK from step functions and I would imagine that the
+
+59
+00:05:19.760 --> 00:05:24.160
+cold start time for a Lambda function to do a build is going to be significantly less than the
+
+60
+00:05:24.160 --> 00:05:28.240
+code code build container but you still have to then go and implement your git clone and all of
+
+61
+00:05:28.240 --> 00:05:34.880
+that stuff in Lambda if and deal with that the secrets and your access to git and everything so I
+
+62
+00:05:34.880 --> 00:05:38.160
+maybe leave it for someone else to iron out all the kinks before I go trying that option
+
+63
+00:05:39.040 --> 00:05:44.240
+so that's those are some of the applications that have come up I guess what do you think Luciano
+
+64
+00:05:49.200 --> 00:05:55.840
+is it have I missed anything maybe we can remark again the use case that we kind of inferred to previously about caching because again if you have this storage and maybe you have produced large
+
+65
+00:05:55.840 --> 00:06:00.640
+files that you might need to produce over and over again there is no guarantee that that file will be
+
+66
+00:06:00.640 --> 00:06:05.280
+available across invocations but you could check if it's there you don't need to to recreate it
+
+67
+00:06:05.280 --> 00:06:10.240
+again you can just use it so in that way could be kind of a soft layer of cache it's not going to be
+
+68
+00:06:10.240 --> 00:06:15.920
+the most reliable but since you have it you can try to use it and maybe it will give you a little
+
+69
+00:06:15.920 --> 00:06:22.400
+bit of a boost in your overall computation time across invocations so yeah again I don't know if
+
+70
+00:06:22.400 --> 00:06:27.120
+it's the most useful thing but it's there and you can use it and it might give you some small
+
+71
+00:06:27.120 --> 00:06:33.280
+advantages what can we say instead in terms of pricing is this something that as a host is it
+
+72
+00:06:39.360 --> 00:06:44.080
+something we need to enable or it's just available for everyone you get the so the existing volume of slash temp was 512 megabytes you still get that for free anything above that that you're charged
+
+73
+00:06:44.080 --> 00:06:51.440
+for and the unit prices per gigabyte per second so it's similar it scales linearly just like your
+
+74
+00:06:51.440 --> 00:06:56.960
+lambda memory I did a pricing sheet just to compare what it would be like and see
+
+75
+00:06:56.960 --> 00:07:01.600
+for different function sizes how much of an impact would it have if you allocated the maximum 10
+
+76
+00:07:01.600 --> 00:07:07.200
+gigabytes of ram and in general my conclusion is it doesn't really make a lot of a difference it's
+
+77
+00:07:07.200 --> 00:07:13.280
+it's pretty cheap compared to your memory cost so if you've got a the maximum memory allocated of
+
+78
+00:07:13.280 --> 00:07:18.880
+10 gigs and you add also 10 gigs of ephemeral storage it almost makes it's an insignificant
+
+79
+00:07:18.880 --> 00:07:22.960
+difference I would say to your cost because most of your cost is about the memory now if you've
+
+80
+00:07:22.960 --> 00:07:29.120
+got a really frugal function let's say 128 megabytes of ram and you go for the max storage
+
+81
+00:07:29.120 --> 00:07:34.560
+with that then it's going to make around 15 to 20 percent of a cost increase so it's still not
+
+82
+00:07:39.920 --> 00:07:45.760
+particularly significant even if you're using a very low memory and high storage nice yeah that's that's interesting I did expect it would be kind of a free feature that you can just use more space
+
+83
+00:07:45.760 --> 00:07:53.760
+but it makes sense because it's still a significant amount of more disk space right so okay let's
+
+84
+00:07:53.760 --> 00:08:02.320
+maybe try to compare how this feature plays against other types of storage that you can use
+
+85
+00:08:02.320 --> 00:08:08.720
+with lambda and I think that the most obvious one is of course S3 so the S3 is probably what you
+
+86
+00:08:08.720 --> 00:08:14.960
+will be using most of the time and one of the big differences of course that S3 is durable and
+
+87
+00:08:14.960 --> 00:08:20.240
+reliable so when you store something in S3 it's there and you are pretty much guaranteed it's
+
+88
+00:08:20.240 --> 00:08:24.720
+going to be there so it's something you can reliably use across lambda invocations
+
+89
+00:08:24.720 --> 00:08:29.760
+but of course every time you need to fit to fetch that data again into the lambda so that
+
+90
+00:08:30.320 --> 00:08:34.800
+if it's a big file of course expect that that's going to take some time and that time of course
+
+91
+00:08:34.800 --> 00:08:38.400
+becomes part of your lambda invocation time something you need to pay for something your
+
+92
+00:08:38.400 --> 00:08:47.920
+users are waiting for so that that is an interesting comparison to make another use case is EFS which
+
+93
+00:08:49.600 --> 00:08:56.560
+should be lower latency than a strip for bigger files I think there is again that article
+
+94
+00:08:57.120 --> 00:09:03.040
+maybe it's another article from from Lumigo that shows that there is from five to ten times lower
+
+95
+00:09:03.040 --> 00:09:09.920
+latency with EFS yeah and also it's a little bit more complex to set up because it requires the
+
+96
+00:09:09.920 --> 00:09:16.880
+VPC and IOPS optimizations so EFS has pretty much the same characteristics as S3 in terms of
+
+97
+00:09:29.760 --> 00:09:34.640
+it is a durable storage it should be reliable but it's a little bit more complex to set up definitely the other two interesting use cases are lambda layers and container images that we already mentioned a little bit but the idea is that another way that you could use to load data
+
+98
+00:09:34.640 --> 00:09:41.280
+into your lambda is you can build your lambda with a container and include the data as part of the
+
+99
+00:09:41.280 --> 00:09:46.640
+container data or you could use lambda layers put the data in a layer and then load the layer with
+
+100
+00:09:46.640 --> 00:09:52.240
+the lambda but you need to keep in mind that in those cases the data is immutable so these are
+
+101
+00:09:52.240 --> 00:09:57.040
+good use cases when you have artifacts that need to live with your code maybe I don't know assets
+
+102
+00:09:57.040 --> 00:10:01.840
+like images or whatever you need to use inside your lambda but it's not something you can use to
+
+103
+00:10:01.840 --> 00:10:08.160
+write into so these are just good use cases for when you need to bring immutable data into the
+
+104
+00:10:08.160 --> 00:10:13.280
+lambda and there are different limits lambda layers is limited to 50 megabytes and container
+
+105
+00:10:13.280 --> 00:10:18.000
+images you can do up to 10 gigabytes so for instance you already mentioned that in the case
+
+106
+00:10:18.000 --> 00:10:23.040
+for instance you have a big ml model maybe you can just build the lambda as a container and include
+
+107
+00:10:23.040 --> 00:10:27.600
+the model together with your code because most likely you don't need to change your code for
+
+108
+00:10:27.600 --> 00:10:34.960
+the model as the lambda executes so yeah I don't know in the end what do you feel you will be using
+
+109
+00:10:44.400 --> 00:10:50.960
+and maybe kind of a summary of what we just said you will use more s3 or other types of storage for sure I think the decision tree for this is with lambda avoid storage if you can and do
+
+110
+00:10:50.960 --> 00:10:55.920
+everything in memory because you can get up to 10 gigabytes of ram so if do you need 10 gigabytes
+
+111
+00:10:55.920 --> 00:10:59.840
+of ephemeral storage if you can just store everything in memory stream what you need in
+
+112
+00:10:59.840 --> 00:11:06.320
+and stream what you need out and if you do need to have any durability stream it in and out from s3
+
+113
+00:11:06.880 --> 00:11:11.520
+so the question there just comes down to s3 transfer performance which maybe we can talk
+
+114
+00:11:11.520 --> 00:11:17.200
+about a little bit but again the the rest of the decision tree is if you can't use s3 I would say
+
+115
+00:11:17.200 --> 00:11:23.200
+yeah use efs if you do need that shared storage with more guaranteed throughput and more of a
+
+116
+00:11:23.200 --> 00:11:29.200
+file system type model rather than the object store model of s3 and then everything else like
+
+117
+00:11:29.200 --> 00:11:33.680
+if it doesn't change that often bundle it into your image container images are it's one of the
+
+118
+00:11:33.680 --> 00:11:39.120
+real benefits of you've been able to use container images is that you can bundle data in it so if
+
+119
+00:11:39.120 --> 00:11:43.360
+you've got some sort of model data something that doesn't change across implications you can bundle
+
+120
+00:11:43.360 --> 00:11:48.080
+it in and then slash temp it's almost like the last resort so I don't want to be too negative
+
+121
+00:11:48.080 --> 00:11:52.000
+about this feature but I would say like it's a nice to have for those cases when you need to
+
+122
+00:11:52.000 --> 00:12:00.000
+create a reasonable amount of ephemeral data if you're we talked about the caching use case you
+
+123
+00:12:00.000 --> 00:12:03.920
+just covered it there lee channel and I would say like it's great that you can do caching across
+
+124
+00:12:03.920 --> 00:12:08.880
+instances but adding a caching layer is an extra piece of complexity you need to manage then you
+
+125
+00:12:08.880 --> 00:12:14.400
+need to manage okay your cache capacity you don't want to overfill your cache you need to have a
+
+126
+00:12:15.600 --> 00:12:20.960
+ejection algorithm for objects in your cache and you know you need to be a kind of monitoring your
+
+127
+00:12:20.960 --> 00:12:25.440
+cache hit metrics and that kind of stuff if you're if it's really going to be a proper optimization
+
+128
+00:12:25.440 --> 00:12:30.880
+so in general it's much better to for lambda functions to remain stateless because that's
+
+129
+00:12:30.880 --> 00:12:34.960
+where the beauty and the simplicity ultimately comes from so this is just for some of those edge
+
+130
+00:12:34.960 --> 00:12:39.200
+cases where you really need extra disk storage where you need to do kind of random access and
+
+131
+00:12:45.200 --> 00:12:51.680
+seeks into the local file system and that exceeds 512 megs yeah you told me that you did a little bit of research in terms of how network speed could affect this decision tree so for instance
+
+132
+00:12:51.680 --> 00:12:57.440
+if you really need to load big files and you try to do that from S3 like yeah how the other does
+
+133
+00:13:02.480 --> 00:13:07.840
+it really play out for you is it better to have something in temp maybe in that case or not yeah yeah this is this is a good question i think because when you say okay well that it's a
+
+134
+00:13:08.400 --> 00:13:12.560
+optimization that you can keep this across multiple invocations then the question is okay
+
+135
+00:13:12.560 --> 00:13:15.760
+well how does the data get there in the first place and how much of an optimization are you
+
+136
+00:13:15.760 --> 00:13:22.000
+going to get so let's say you're going for the maximum 10 gigabytes of storage i did some kind
+
+137
+00:13:22.000 --> 00:13:28.240
+of informal benchmarking on lambda and the maximum speed i could get for transferring
+
+138
+00:13:28.240 --> 00:13:34.960
+a gigabyte of data it was kind of approaching a gigabit per second but not really the average was
+
+139
+00:13:34.960 --> 00:13:40.880
+actually around 600 megabits so around two-thirds of a gigabit say you know sometimes it got the
+
+140
+00:13:40.880 --> 00:13:45.440
+the maximum speed got a little bit better than that it was kind of approaching a gigabit per
+
+141
+00:13:45.440 --> 00:13:51.120
+second but on average it was around two-thirds of a gigabit so if you want to fill your slash temp
+
+142
+00:13:51.120 --> 00:13:58.400
+on cold start with 10 gigs of data that's going to take you over two minutes at that speed so you
+
+143
+00:13:58.400 --> 00:14:03.840
+can i guess what that says is that by caching it you're going to save two minutes in subsequent
+
+144
+00:14:03.840 --> 00:14:09.600
+invocations but what it also kind of suggests to us is maybe what we want instead of this cache is
+
+145
+00:14:09.600 --> 00:14:18.320
+just better network throughput a faster highway to s3 if you like um i know that with ec2 you can
+
+146
+00:14:18.320 --> 00:14:24.640
+turn on enhanced networking and get 100 gigabytes of network performance now i haven't benchmarked
+
+147
+00:14:24.640 --> 00:14:28.240
+that to see what if you can get 100 gigabits directly to s3 you know your mileage is going to
+
+148
+00:14:28.240 --> 00:14:35.360
+vary but that's a significant difference from the near gigabit performance we can observe from lambda
+
+149
+00:14:35.360 --> 00:14:39.120
+so if you can imagine if we could increase the network performance by a factor of say 50
+
+150
+00:14:39.920 --> 00:14:43.360
+that would make a massive difference and the need for caching would suddenly
+
+151
+00:14:43.360 --> 00:14:48.640
+dissipate i would definitely pay for some use cases i definitely pay a lot more just to get
+
+152
+00:14:54.560 --> 00:14:59.760
+that enhanced networking in lambda yeah that's a very good point and yeah will be interesting to see what other people think about this stuff and if they found particularly interesting use case
+
+153
+00:14:59.760 --> 00:15:04.960
+then maybe we are not seeing right now i remember i i heard somebody saying oh yeah you can load a
+
+154
+00:15:04.960 --> 00:15:10.320
+sqlite database into the temp storage and then you can do kind of more dynamic queries and analytics
+
+155
+00:15:10.320 --> 00:15:15.120
+from that storage which is maybe an interesting use case but i don't know i would like to see
+
+156
+00:15:15.120 --> 00:15:20.320
+some like real application built using these ideas and then you can actually see if there are benefits
+
+157
+00:15:20.320 --> 00:15:24.000
+or maybe just a little bit of a stretch to just try to use this new feature
+
+158
+00:15:37.360 --> 00:15:43.200
+yeah it sounds all in all that it's more on the niche side than in the let's all adopt this feature kind of uh category would you agree is that a fair characterization yeah right now yes and again maybe it's just that we are not seeing some particularly useful use case but again that
+
+159
+00:15:43.200 --> 00:15:47.680
+that proves that maybe it's a niche type of feature like it's not something that has a
+
+160
+00:15:47.680 --> 00:15:52.000
+generally available utility that everybody everybody's going to leverage from tomorrow right
+
+161
+00:15:52.960 --> 00:15:58.800
+okay so should we remember that we have some resources we are going to link in the show
+
+162
+00:15:58.800 --> 00:16:04.640
+episodes we are going to link also the official announcement which is also surprisingly dry in
+
+163
+00:16:04.640 --> 00:16:09.200
+terms of examples so that there was another interesting thing that we picked up on it's
+
+164
+00:16:09.200 --> 00:16:13.920
+actually well detailed on how to use it and all but it doesn't give you a lot of examples on when
+
+165
+00:16:13.920 --> 00:16:19.200
+this could be useful and also we're going to mention the original tweet we discussed from
+
+166
+00:16:19.200 --> 00:16:26.400
+will dady and blog post from yan chui atlumigo describing more use cases and how to use it
+
+167
+00:16:30.320 --> 00:16:40.560
+excellent okay well with that please let us know if you found some really beneficial use cases that we haven't been able to spot and thanks for listening and we'll see you in the next episode
+
+168
+00:16:40.560 --> 00:16:51.360
+you

@@ -1,0 +1,813 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:03.440
+Hosting a public website on the internet is something pretty easy.
+
+2
+00:00:03.440 --> 00:00:06.960
+You know we love static websites, we've been talking about them quite a lot
+
+3
+00:00:06.960 --> 00:00:10.640
+and you have seen probably some of our work around them. But we also work with a lot of
+
+4
+00:00:10.640 --> 00:00:15.200
+enterprises and they often want to do static sites but they want to keep them private for
+
+5
+00:00:15.200 --> 00:00:20.400
+internet consumption, which means no connectivity from the outside and only connectivity from the
+
+6
+00:00:20.400 --> 00:00:26.800
+enterprise network. So if hosting static website publicly is very easy, doing it for private ones
+
+7
+00:00:26.800 --> 00:00:31.120
+is a completely different story. And today we're going to talk with you about why something that
+
+8
+00:00:31.120 --> 00:00:35.440
+seems very easy, it becomes actually very very hard when you try to do it in a private way.
+
+9
+00:00:35.440 --> 00:00:40.640
+There are actually many solutions so we want to discover today what can you do and what are the
+
+10
+00:00:40.640 --> 00:00:45.360
+pros and cons of every single solution. I am Luciano and I'm here today with Eoin and this
+
+11
+00:00:45.360 --> 00:00:46.160
+is another episode of the AWS Bites podcast.
+
+12
+00:00:56.360 --> 00:00:58.160
+AWS Bites is sponsored by fourTheorem. fourTheorem is an
+
+13
+00:00:58.160 --> 00:01:03.120
+AWS consulting partner offering training, cloud migration and architecture consulting. Find out
+
+14
+00:01:03.120 --> 00:01:09.680
+more at fourTheorem.com. You'll find this link in the show notes. Okay so let's start by summarizing
+
+15
+00:01:09.680 --> 00:01:16.400
+why you might want to use a static website in a private mode, right? Because maybe if you haven't
+
+16
+00:01:16.400 --> 00:01:21.200
+worked with enterprises it's not something that can be necessarily too obvious.
+
+17
+00:01:21.200 --> 00:01:25.920
+And I think that the main thing to understand is that companies of a certain size they will often have what they
+
+18
+00:01:25.920 --> 00:01:30.880
+would call internal applications or internal corporate applications and those are applications
+
+19
+00:01:30.880 --> 00:01:35.360
+that they don't need to expose to external customers or external stakeholders but something
+
+20
+00:01:35.360 --> 00:01:40.640
+that they use internally to fulfill specific tasks. And you can imagine something like
+
+21
+00:01:40.640 --> 00:01:46.400
+documentation, wiki, so things, information that they want to make available inside the
+
+22
+00:01:46.400 --> 00:01:50.400
+corporate network but it can also be a little bit more advanced than that.
+
+23
+00:01:50.400 --> 00:01:55.200
+So if they want to expose some kind of functionalities, some kind of interactive website they can do that using a
+
+24
+00:01:55.200 --> 00:02:00.880
+single page application and this single page application will be totally static.
+
+25
+00:02:00.880 --> 00:02:06.080
+It's just HTML, CSS and JavaScript and it will be relying on some internal APIs for more dynamic functionality.
+
+26
+00:02:06.080 --> 00:02:10.720
+And one example for instance could be, I don't know, you can imagine a bank that
+
+27
+00:02:10.720 --> 00:02:17.840
+internal needs to have a way to browse, I don't know, mortgage application maybe and they can do
+
+28
+00:02:17.840 --> 00:02:23.440
+all of that using an SPA and that SPA can call internal APIs and they can make it available only
+
+29
+00:02:23.440 --> 00:02:30.880
+for internal consumption. Now again this just emphasizes how it is very common for web application
+
+30
+00:02:30.880 --> 00:02:35.520
+to have a static part and a dynamic part. So we are trying to figure out how do we host that
+
+31
+00:02:35.520 --> 00:02:41.200
+static part in the most efficient way or in the simplest way and the idea is that it's going to
+
+32
+00:02:41.200 --> 00:02:48.480
+be only files, specifically HTML, JS, CSS, maybe some images, maybe some other assets like JSON,
+
+33
+00:02:48.480 --> 00:02:55.840
+JSON, whatever and we need to have an easy way to serve those assets using HTTP.
+
+34
+00:02:55.840 --> 00:03:00.400
+And for public websites, I know you are probably already thinking this is very easy, you will expect to be able to
+
+35
+00:03:00.400 --> 00:03:06.480
+do that in like minutes just taking a repository from GitHub and deploying from there and if you
+
+36
+00:03:06.480 --> 00:03:11.520
+have used Netlify or Vercel, these are the kind of experience you will get and we actually have
+
+37
+00:03:11.520 --> 00:03:16.400
+spoken about that in a dedicated episode, check it out, episode 3, link is in the show notes if
+
+38
+00:03:16.400 --> 00:03:22.640
+you are curious. How does it get difficult if you want to do it for private websites?
+
+39
+00:03:23.600 --> 00:03:27.280
+What are the requirements there I guess is the question.
+
+40
+00:03:34.400 --> 00:03:39.600
+A lot of the requirements are the same as when you're doing a public app so you want HTTPS, normally you want a custom domain so people can find it easily. You probably want a low latency
+
+41
+00:03:39.600 --> 00:03:43.440
+as possible for fast load times, sometimes that matters less in the corporate context but not
+
+42
+00:03:43.440 --> 00:03:49.200
+really, people's expectations for web applications is generally just going in one direction and you
+
+43
+00:03:49.200 --> 00:03:55.200
+want support for large and small assets so not too limited in terms of asset size. Where it gets
+
+44
+00:03:55.200 --> 00:03:59.520
+different is that unlike a public app, like you said, it should only be accessible from a corporate
+
+45
+00:03:59.520 --> 00:04:05.040
+network, it should not leave the network boundary, often you also have a requirement to use an
+
+46
+00:04:05.040 --> 00:04:11.600
+internal DNS service, also sometimes a third party HTTPS certificate vendor or provisioning mechanism
+
+47
+00:04:11.600 --> 00:04:17.280
+and sometimes even you have a requirement that even for DNS records there's no public DNS trace
+
+48
+00:04:17.280 --> 00:04:22.160
+so even though it might be acceptable for a lot of organisations to have some public DNS resources
+
+49
+00:04:22.160 --> 00:04:28.080
+that resolve to private IP addresses, that's not always the case and sometimes it's just a hard no
+
+50
+00:04:28.080 --> 00:04:35.520
+on things like that. So I guess why can't we just use something like S3 then? That's probably
+
+51
+00:04:35.520 --> 00:04:38.480
+somebody's first answer when you think about static websites on AWS.
+
+52
+00:04:38.480 --> 00:04:44.800
+Yeah and I mean this is something that was also my first idea, right?
+
+53
+00:04:44.800 --> 00:04:50.560
+Sounds almost obvious that you just want to serve files in AWS, that's a string, right? That's what S3 is for. But there
+
+54
+00:04:50.560 --> 00:04:56.800
+is a slight caveat there which is S3 is really good because it kind of offers that website feature
+
+55
+00:04:56.800 --> 00:05:02.960
+but it's not quite there because it only works on HTTP so extremely annoying that you have like 90%
+
+56
+00:05:02.960 --> 00:05:08.560
+of what you need and that 10% becomes kind of the hard no that kind of stops you from using
+
+57
+00:05:08.560 --> 00:05:15.920
+that feature. So that's maybe my wishlist request for AWS to please, please, please support HTTPS
+
+58
+00:05:15.920 --> 00:05:22.480
+on S3 websites that will make some of these things much easier and make S3 a viable option here.
+
+59
+00:05:23.360 --> 00:05:28.320
+Now the next best solution that we might think of if we still want to use S3 because S3 is
+
+60
+00:05:28.320 --> 00:05:33.600
+really good for hosting files and keeping them around versioning, storing them in a reliable
+
+61
+00:05:33.600 --> 00:05:39.040
+way and all the different things we know about S3. The next thing is probably, okay, can we just
+
+62
+00:05:39.040 --> 00:05:45.680
+put CloudFront in front of it? And this is actually the most common way of serving public
+
+63
+00:05:45.680 --> 00:05:51.360
+static websites. In AWS you put the files in S3 and you create a CloudFront distribution
+
+64
+00:05:51.360 --> 00:05:57.840
+to distribute the files. And with CloudFront you get HTTPS, you even get cache, you get
+
+65
+00:05:57.840 --> 00:06:03.440
+custom domains. So it looks like a good solution and it is definitely for public websites.
+
+66
+00:06:04.240 --> 00:06:08.960
+Now when you want to make it private, there are some things to consider there. First of all,
+
+67
+00:06:08.960 --> 00:06:14.640
+you are already buying into a level of complexity that you probably don't need. Like why do you need
+
+68
+00:06:14.640 --> 00:06:19.920
+a CDN? I think unless you are like such a huge organization with offices all around the world
+
+69
+00:06:19.920 --> 00:06:23.760
+and you want to distribute that internal application in a way that can be performant
+
+70
+00:06:23.760 --> 00:06:28.880
+for everyone, maybe even in different continents, maybe okay. It could make sense to think about a
+
+71
+00:06:28.880 --> 00:06:34.960
+CDN, but for most use cases probably that's a bit of an overkill.
+
+72
+00:06:36.320 --> 00:06:42.000
+The other thing is that some assets somehow still need to be unsecured. Like let's say that you have a login page,
+
+73
+00:06:42.000 --> 00:06:46.720
+most likely you would want to have a login page. How do you do all of that? Maybe you can use some
+
+74
+00:06:46.720 --> 00:06:53.680
+kind of IDP and then MFA and all that good stuff. But once you have all of that, how do you connect
+
+75
+00:06:53.680 --> 00:07:00.160
+it with the CDN distribution? And there you could be using Lambda at Edge and do kind of a dynamic
+
+76
+00:07:00.160 --> 00:07:04.720
+layer of authentication there to make sure the user is authenticated before you serve that
+
+77
+00:07:04.720 --> 00:07:12.080
+static content through CloudFront. Another thing is that you need to actually keep it private.
+
+78
+00:07:12.080 --> 00:07:18.480
+So how do you make it possible that if I am accessing from the internal network, I am authorized to see
+
+79
+00:07:18.480 --> 00:07:23.680
+that content, but if I am somewhere else, I shouldn't be able to see anything? So one way is that
+
+80
+00:07:23.680 --> 00:07:29.760
+you could be setting up a web application firewall in front of CloudFront and with a web application
+
+81
+00:07:29.760 --> 00:07:36.800
+firewall you can define IP filtering. So you could say this class of IPs will be able to pass,
+
+82
+00:07:36.800 --> 00:07:43.360
+anybody else is going to be blocked. And if you use private classes of IPs, that should be a
+
+83
+00:07:43.360 --> 00:07:49.280
+secure enough approach because I think it's not possible or if it is, I think it's easy to spoof
+
+84
+00:07:49.280 --> 00:07:54.320
+private IPs. So that should be a good way to create that kind of security boundary.
+
+85
+00:07:55.760 --> 00:08:00.080
+Now there is a next issue though, which is companies will tell you, okay, but then the
+
+86
+00:08:00.080 --> 00:08:06.320
+traffic is not flowing through my VPC because effectively we have to think as CloudFront as
+
+87
+00:08:06.320 --> 00:08:11.360
+location at the edge, which means that these are servers that live outside the data centers, the
+
+88
+00:08:11.360 --> 00:08:19.760
+AWS data centers. So you cannot really have kind of a VPC only flow of data. You need to go around
+
+89
+00:08:19.760 --> 00:08:25.840
+and that's not always desired because companies would want to track all the traffic in VPCs. They
+
+90
+00:08:25.840 --> 00:08:30.880
+often use VPC flow logs. So they are not too happy if you tell them, well, some of your traffic is
+
+91
+00:08:30.880 --> 00:08:36.800
+going to go in the public internet anyway. So that's another big no-no.
+
+92
+00:08:36.800 --> 00:08:41.680
+this approach is way more complicated than we wanted it to be. It looks feasible.
+
+93
+00:08:41.680 --> 00:08:46.080
+It looks nice because you can use S3, but then there is a lot going on there and setting it up correctly and
+
+94
+00:08:46.080 --> 00:08:51.040
+securely. It is a lot of work and still there are some areas where it's still not perfect.
+
+95
+00:08:51.920 --> 00:08:57.840
+So what's the next idea Eoin?
+
+96
+00:08:57.840 --> 00:09:02.320
+I think after that, at this point you'd probably think, okay, well, the way we used to do this is just to run it in a container and have something like Nginx server
+
+97
+00:09:02.320 --> 00:09:08.800
+static content. So let's have a look at that. And again, this is probably more complex than you
+
+98
+00:09:08.800 --> 00:09:15.600
+might think. And the way you would normally do it is like, let's say take ECS or Fargate,
+
+99
+00:09:15.600 --> 00:09:20.480
+you'd package your Nginx application, maybe with the static content in it, or else the Nginx is
+
+100
+00:09:20.480 --> 00:09:25.760
+pulling and streaming from S3 in the background. And you can put an application load balancer in
+
+101
+00:09:25.760 --> 00:09:29.680
+front of that. Then of course you have to make sure it's connected to your VPC correctly.
+
+102
+00:09:29.680 --> 00:09:35.520
+And then you're running your container in multiple availability zones. And with the load balancer,
+
+103
+00:09:35.520 --> 00:09:41.040
+you can attach your HTTPS certificate. You can integrate it with Route 53 private hosted zones
+
+104
+00:09:41.040 --> 00:09:46.720
+or third-party DNS, and you're ready to go. I still think it's like quite a lot of work
+
+105
+00:09:46.720 --> 00:09:52.800
+for what you're trying to do here. If we go back to one of your first ideas, if we just had HTTPS
+
+106
+00:09:52.800 --> 00:09:58.560
+in S3 and a private option there, you could use your resource policy and restrict it to your VPC.
+
+107
+00:09:58.560 --> 00:10:03.920
+That would simplify the thing a lot, but it seems like if you were to compare
+
+108
+00:10:04.640 --> 00:10:10.560
+this kind of container setup to just running a very simple API with Lambda, it's a lot of work.
+
+109
+00:10:11.520 --> 00:10:16.560
+And since we're mentioning API Gateway, I mean, there is a workaround here that maybe some people
+
+110
+00:10:16.560 --> 00:10:20.880
+would think of in this case, which could be a bit easier, which is you could say, well,
+
+111
+00:10:20.880 --> 00:10:26.000
+let's just use our API Gateway to serve our static content instead. And that's something that can
+
+112
+00:10:26.000 --> 00:10:30.720
+definitely work. You can imagine an API Gateway endpoint with a Lambda function behind it, and it
+
+113
+00:10:30.720 --> 00:10:36.240
+will take the content from your S3 bucket and push it through back to your response.
+
+114
+00:10:36.880 --> 00:10:40.960
+You could also do like a service proxy integration, like we talked about in the last episode,
+
+115
+00:10:41.600 --> 00:10:46.880
+and fetch data directly from S3 and go back through the API Gateway. But there's a couple
+
+116
+00:10:46.880 --> 00:10:52.080
+of limits there, and we talked about these limits recently when we were talking about response
+
+117
+00:10:52.080 --> 00:10:59.200
+streaming with Lambda. You have a 10 megabyte payload limit in API Gateway. So that could be a
+
+118
+00:10:59.200 --> 00:11:06.960
+bit of a blocking issue. You can, of course, if you're using Lambda, you can stream the response,
+
+119
+00:11:06.960 --> 00:11:11.360
+like we mentioned with response streaming. That gives you the time to first byte benefit,
+
+120
+00:11:11.360 --> 00:11:15.840
+which is important for this kind of scenario. And it will also give you the opportunity to go over
+
+121
+00:11:15.840 --> 00:11:20.160
+the 10 megabyte limit. But I don't think response streaming really helps you for this case, because
+
+122
+00:11:20.160 --> 00:11:26.000
+you only get that benefit with Lambda function URLs. And Lambda function URLs are not recommended
+
+123
+00:11:26.000 --> 00:11:32.000
+for production by AWS, really. They are for testing Lambda functions, really, and not for
+
+124
+00:11:32.000 --> 00:11:38.560
+this kind of highly secure corporate environment. So the other thing is that private custom domain
+
+125
+00:11:38.560 --> 00:11:42.400
+names in API Gateway, you still need a load balancer anyway. So it seems like no matter what
+
+126
+00:11:42.400 --> 00:11:48.400
+direction we turn to, things are just getting more complex instead of simpler. Is there any hope
+
+127
+00:11:48.400 --> 00:11:54.080
+for a simpler approach, Luciano?
+
+128
+00:11:54.080 --> 00:12:00.720
+There is maybe one. I mean, recently, we've been looking into AppRunner, which is a relatively new service from AWS. And the nice thing with AppRunner is that
+
+129
+00:12:00.720 --> 00:12:08.080
+it tries to be a lot more like a SaaS offering, where in a way similar to what Vercell or Netify
+
+130
+00:12:08.080 --> 00:12:14.080
+would be doing for you, where you just provide a repository or a container image, and you don't
+
+131
+00:12:14.080 --> 00:12:18.880
+have to worry too much about everything else. AWS will take care of load balancers, network,
+
+132
+00:12:18.880 --> 00:12:23.120
+scaling groups, and all the different things that we generally have to create ourselves when
+
+133
+00:12:23.120 --> 00:12:30.160
+deploying things on AWS. So it's kind of trading convenience for less control. You don't see a lot
+
+134
+00:12:30.160 --> 00:12:34.960
+of the stuff that is going on, but you get a lot more convenience. And you can definitely run
+
+135
+00:12:34.960 --> 00:12:42.160
+static websites on AppRunner publicly. You just do a container that will serve your static assets.
+
+136
+00:12:42.160 --> 00:12:48.720
+But what it looks like for a private alternative, can we do that? And until very recently, you
+
+137
+00:12:48.720 --> 00:12:54.000
+couldn't really do private containers using AppRunner. But this has just changed because
+
+138
+00:12:54.000 --> 00:12:59.760
+now you can create private endpoints in AppRunner, which are only accessible from a specific VPC and
+
+139
+00:12:59.760 --> 00:13:04.480
+uses the VPC interface endpoints feature. So we are going to have a link in the show notes if you
+
+140
+00:13:04.480 --> 00:13:08.960
+want to deep dive on this feature. But this is what is kind of making us reconsider AppRunner for
+
+141
+00:13:08.960 --> 00:13:14.480
+this particular use case. And we could get this up and running by following a few steps. So definitely
+
+142
+00:13:14.480 --> 00:13:19.520
+we need to define the container image. So what I could think is the simplest way to serve static
+
+143
+00:13:19.520 --> 00:13:25.200
+assets is to just spin up an NGINX container. You make sure to bundle all your static assets in the
+
+144
+00:13:25.200 --> 00:13:31.680
+NGINX HTTP folder. And then that container should be a good enough starting point for serving those
+
+145
+00:13:31.680 --> 00:13:40.400
+static assets on the web. Now we need to, the way that you expose this stuff to AppRunner, again,
+
+146
+00:13:40.400 --> 00:13:45.360
+is either to a repository, for instance, on GitHub, or through an ECR registry. So you can decide
+
+147
+00:13:45.360 --> 00:13:51.840
+whether you want to publish stuff directly to a registry or keep a repository and then AppRunner
+
+148
+00:13:51.840 --> 00:13:56.960
+will abstract the publishing process for you. You also need to create a VPC endpoint, interface
+
+149
+00:13:56.960 --> 00:14:01.760
+endpoint, and something that is called ingress connection. That is what is used to link that
+
+150
+00:14:01.760 --> 00:14:08.560
+endpoint to the AppRunner service. Finally, you need to set up a custom domain. And that is where
+
+151
+00:14:08.560 --> 00:14:14.480
+things get a little bit hairy. And because that forces you to use a public DNS record.
+
+152
+00:14:15.360 --> 00:14:21.360
+At least it doesn't support yet private hosted zones, but there is an open issue on GitHub. So
+
+153
+00:14:21.360 --> 00:14:26.960
+hopefully that's something that is going to change soon enough in the future. So I think that's
+
+154
+00:14:27.600 --> 00:14:33.120
+quite a reasonable option, but is it what we would recommend today or do we have a different
+
+155
+00:14:33.120 --> 00:14:39.200
+final recommendation?
+
+156
+00:14:39.200 --> 00:14:44.320
+I think given everything we've said, it depends on what category you fall into, but let's assume that in a strict corporate environment, you can't let anything be visible
+
+157
+00:14:44.320 --> 00:14:48.400
+outside your organization. So no public DNS, everything is completely strict, all within the
+
+158
+00:14:48.400 --> 00:14:54.400
+network boundary. You're not going for a zero trust policy on this at all. So if you have that
+
+159
+00:14:54.400 --> 00:14:58.800
+case, then I think the most pragmatic solution is to go with that Fargate container and load
+
+160
+00:14:58.800 --> 00:15:03.600
+balancer approach that you described. The way I do it though, is I say, okay, within a corporate
+
+161
+00:15:03.600 --> 00:15:08.720
+environment, don't make every team do that every time they need to deploy a static website.
+
+162
+00:15:08.720 --> 00:15:14.800
+Instead, provide centralized platform that where you do this once and pretty much leave it running
+
+163
+00:15:14.800 --> 00:15:19.120
+and you just monitor it and support it like you do everything else in your platform. Just have
+
+164
+00:15:19.120 --> 00:15:23.360
+a centralized bit of infrastructure with your Fargate container application load balancer,
+
+165
+00:15:23.360 --> 00:15:27.040
+and allow people to just publish containers somewhere to start that content, or just put
+
+166
+00:15:27.040 --> 00:15:32.240
+their content into a bucket and automate the process of making that available then as a static
+
+167
+00:15:32.240 --> 00:15:38.960
+website with a certificate and a domain and all of that good stuff. Just as if S3 already had that
+
+168
+00:15:38.960 --> 00:15:45.840
+out of the box for a private corporate network. And you can also use application scaling at Fargate
+
+169
+00:15:45.840 --> 00:15:49.840
+to make sure it scales to your needs. So while this is a complex enough setup for just a single
+
+170
+00:15:49.840 --> 00:15:54.640
+web application, if you've got some strict applications, strict requirements, and you've got
+
+171
+00:15:54.640 --> 00:16:00.720
+multiple teams that you want to allow them to publish with very minimal manual effort, static
+
+172
+00:16:00.720 --> 00:16:04.800
+websites for different line of business applications, then I think this is a good compromise
+
+173
+00:16:04.800 --> 00:16:12.480
+solution.
+
+174
+00:16:12.480 --> 00:16:18.080
+I like this approach because I think it kind of removes that on one side it still gives you the S3 option, which is the simplest interface I could think of if I just want to publish static
+
+175
+00:16:18.080 --> 00:16:22.960
+assets. On the other side, if you have a platform that takes care of updates and making sure
+
+176
+00:16:22.960 --> 00:16:27.440
+everything is always up and running with the most secure setup, and you avoid duplicating all of
+
+177
+00:16:27.440 --> 00:16:31.680
+that work for every single team for every single project, I think that seems like a very good
+
+178
+00:16:31.680 --> 00:16:37.280
+compromise. So it would be nice to be able to suggest some open source solution that does that,
+
+179
+00:16:37.280 --> 00:16:42.240
+but I don't think I'm aware of one. So if you know of something like this, please leave us a comment
+
+180
+00:16:43.760 --> 00:16:49.040
+in the comments box below. So let's maybe try to wrap up this episode by summarizing all the
+
+181
+00:16:49.040 --> 00:16:54.240
+options we mentioned today. So we have S3 with CloudFront, which is good performance,
+
+182
+00:16:54.240 --> 00:17:00.160
+global distribution, HTTPS support, but it's definitely an overkill. The CDN is still public,
+
+183
+00:17:00.160 --> 00:17:07.280
+and you are relying on IP whitelisting. So good enough, but not quite. Then we discuss containers
+
+184
+00:17:07.280 --> 00:17:14.240
+on ECS Fargate with ALB, which is good because it meets all the strict requirements. It's probably
+
+185
+00:17:14.240 --> 00:17:20.080
+easy enough for new teams to add web applications when they need it, but it would be a bit too
+
+186
+00:17:20.080 --> 00:17:24.240
+complex for a single web application because you need to set up a lot of stuff up front.
+
+187
+00:17:24.240 --> 00:17:30.880
+Then we have API Gateway, which could be used with Lambda to fetch from S3. It doesn't need
+
+188
+00:17:30.880 --> 00:17:36.960
+to have a multi-xid setup and load balancers, but then it's limited to 10 megabytes, which could be
+
+189
+00:17:36.960 --> 00:17:42.000
+a very strict requirement, maybe if you're serving big files, I don't know, maybe you have big images
+
+190
+00:17:42.000 --> 00:17:48.240
+or other kind of big enough payloads. Also doing private custom domains is not supported yet, so
+
+191
+00:17:48.240 --> 00:17:55.120
+that's another big issue. Finally, we have AppRunner, which is an interesting solution. It is
+
+192
+00:17:55.120 --> 00:17:59.120
+probably something that we will need to revisit more in the future. It might become one of the
+
+193
+00:17:59.120 --> 00:18:03.680
+best solutions if they enable certain features. As of today, it's simple enough to set up, it's
+
+194
+00:18:03.680 --> 00:18:10.160
+multi-xid, it can give you private endpoints, but then you still are running public DNS records,
+
+195
+00:18:10.160 --> 00:18:14.320
+so that's something that some companies might not be entirely happy with, and they might just
+
+196
+00:18:14.320 --> 00:18:20.240
+disregard the solution because of that. Hopefully, that issue will be eventually closed and we will
+
+197
+00:18:20.240 --> 00:18:24.960
+have that support, which might make AppRunner one of the best options out there for AWS.
+
+198
+00:18:25.760 --> 00:18:32.400
+So that's everything we have for today, and again, if you think that we missed any idea that you
+
+199
+00:18:32.400 --> 00:18:35.920
+maybe have solved this problem in a different way and you want to share your approach, we'd love to
+
+200
+00:18:35.920 --> 00:18:40.480
+hear that. I think we spent significant amount of time thinking about this problem. For sure, we are
+
+201
+00:18:40.480 --> 00:18:45.760
+missing some option there. I'm sure there are many other combinations of AWS services that you can
+
+202
+00:18:45.760 --> 00:18:50.480
+use to achieve something like this, so if you know any one of them, please share it with us. We'd love
+
+203
+00:18:50.480 --> 00:19:11.760
+to hear from you. Thank you very much, and we'll see you in the next episode.

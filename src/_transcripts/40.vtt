@@ -1,0 +1,2717 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:03.240
+Identity and access management, also known as IAM,
+
+2
+00:00:03.240 --> 00:00:07.000
+is one of those services that you cannot escape when learning AWS.
+
+3
+00:00:07.000 --> 00:00:09.360
+It can be a bit intimidating to learn it at first.
+
+4
+00:00:09.360 --> 00:00:11.800
+So today we are going to try to distill down
+
+5
+00:00:11.800 --> 00:00:14.000
+what you really need to know about IAM.
+
+6
+00:00:14.000 --> 00:00:17.000
+And by the end of this episode, you will know what IAM is
+
+7
+00:00:17.000 --> 00:00:18.360
+and why it's so important,
+
+8
+00:00:18.360 --> 00:00:21.760
+how authentication and authorization works with IAM,
+
+9
+00:00:21.760 --> 00:00:25.520
+how policies work, how users and applications can get credentials,
+
+10
+00:00:25.520 --> 00:00:28.080
+and a few general interesting tips and tricks.
+
+11
+00:00:28.080 --> 00:00:30.080
+My name is Eoin, I'm joined by Luciano,
+
+12
+00:00:30.080 --> 00:00:32.400
+and this is the AWS Bites Podcast.
+
+13
+00:00:32.400 --> 00:00:34.880
+IAM
+
+14
+00:00:34.880 --> 00:00:36.880
+IAM
+
+15
+00:00:36.880 --> 00:00:38.880
+IAM
+
+16
+00:00:38.880 --> 00:00:40.880
+IAM
+
+17
+00:00:40.880 --> 00:00:42.400
+So this is a video for starters,
+
+18
+00:00:42.400 --> 00:00:44.240
+but also for those who are struggling,
+
+19
+00:00:44.240 --> 00:00:45.600
+like a lot of people, I feel,
+
+20
+00:00:45.600 --> 00:00:48.480
+with making sense of the various concepts of IAM.
+
+21
+00:00:48.480 --> 00:00:50.880
+How do we start with this one?
+
+22
+00:00:50.880 --> 00:00:53.480
+What is IAM? How would you just explain it to a beginner?
+
+23
+00:00:56.160 --> 00:00:57.600
+Yeah, I guess the simplest way to describe IAM is just define the acronym.
+
+24
+00:00:57.600 --> 00:00:59.680
+So it means Identity and Access Management,
+
+25
+00:00:59.680 --> 00:01:03.800
+which basically tells us that it's a service in AWS
+
+26
+00:01:03.800 --> 00:01:06.480
+that allows us to define identities and access
+
+27
+00:01:06.480 --> 00:01:07.920
+to different resources.
+
+28
+00:01:07.920 --> 00:01:09.680
+In another way of saying it,
+
+29
+00:01:09.680 --> 00:01:12.280
+it's basically a way to apply fine-grained permissions
+
+30
+00:01:12.280 --> 00:01:15.400
+to different types of services and resources.
+
+31
+00:01:15.400 --> 00:01:17.400
+And it is very important
+
+32
+00:01:17.400 --> 00:01:19.760
+because it's not like an isolated service.
+
+33
+00:01:19.760 --> 00:01:23.560
+It really has ramification in everything you do with AWS.
+
+34
+00:01:23.560 --> 00:01:26.080
+So you really need to understand how it works
+
+35
+00:01:26.080 --> 00:01:28.400
+because probably in your day-to-day work with AWS,
+
+36
+00:01:28.400 --> 00:01:30.840
+you need to define permissions.
+
+37
+00:01:30.840 --> 00:01:32.680
+You need to understand what's the language
+
+38
+00:01:32.680 --> 00:01:34.960
+behind those permissions, the policy language,
+
+39
+00:01:34.960 --> 00:01:37.840
+and how to read and write different policies.
+
+40
+00:01:37.840 --> 00:01:40.880
+So all the stuff means that you basically need
+
+41
+00:01:40.880 --> 00:01:45.640
+to be very familiar with IAM to be proficient with AWS.
+
+42
+00:01:45.640 --> 00:01:49.160
+So, yeah, I guess maybe we can explain next
+
+43
+00:01:49.160 --> 00:01:51.880
+how does it work at a very high level.
+
+44
+00:01:51.880 --> 00:01:53.560
+What do you think?
+
+45
+00:01:53.560 --> 00:01:55.000
+Yeah, let's try that.
+
+46
+00:01:55.000 --> 00:01:59.880
+So the main thing with IAM is that you're trying to grant
+
+47
+00:01:59.880 --> 00:02:03.360
+access to resources for specific principles of some sort.
+
+48
+00:02:03.360 --> 00:02:05.320
+So a principle is going to be a user or a service.
+
+49
+00:02:05.320 --> 00:02:07.240
+So maybe you can think about the formula
+
+50
+00:02:07.240 --> 00:02:09.880
+as being made up of who.
+
+51
+00:02:09.880 --> 00:02:11.920
+So what's the user or the service?
+
+52
+00:02:11.920 --> 00:02:13.600
+Who's trying to access something?
+
+53
+00:02:13.600 --> 00:02:15.520
+And what level of access you're giving them?
+
+54
+00:02:15.520 --> 00:02:18.640
+So what are the actions that you want this user or service
+
+55
+00:02:18.640 --> 00:02:20.120
+to be able to perform?
+
+56
+00:02:20.120 --> 00:02:23.280
+And what are the resources associated with this action?
+
+57
+00:02:23.280 --> 00:02:25.200
+So who are you giving access to?
+
+58
+00:02:25.200 --> 00:02:29.680
+What can they access and what actions can they perform?
+
+59
+00:02:29.680 --> 00:02:32.040
+So if we break that down a little bit, right,
+
+60
+00:02:32.040 --> 00:02:33.880
+we're talking about resources.
+
+61
+00:02:33.880 --> 00:02:35.840
+So what is a resource?
+
+62
+00:02:35.840 --> 00:02:39.440
+AWS has hundreds of services and each of those services
+
+63
+00:02:39.440 --> 00:02:41.080
+generally allows you to create resources.
+
+64
+00:02:41.080 --> 00:02:44.320
+So we're talking about an S3 bucket is a resource,
+
+65
+00:02:44.320 --> 00:02:46.200
+a Lambda function is a resource,
+
+66
+00:02:46.200 --> 00:02:48.880
+an API gateway, API is a resource.
+
+67
+00:02:48.880 --> 00:02:50.680
+They have other things like a load balancer,
+
+68
+00:02:50.680 --> 00:02:53.240
+an EC2 instance or a CloudWatch log group.
+
+69
+00:02:53.240 --> 00:02:55.040
+Everything is a resource, right?
+
+70
+00:02:55.040 --> 00:02:58.760
+And you can define access to those resources
+
+71
+00:02:58.760 --> 00:03:02.000
+or to within specific subsets of those resources
+
+72
+00:03:02.000 --> 00:03:03.240
+in some cases, actually.
+
+73
+00:03:04.440 --> 00:03:05.760
+Then we can talk about the principle, right?
+
+74
+00:03:05.760 --> 00:03:09.360
+So the principle, as we mentioned, could be a user,
+
+75
+00:03:09.360 --> 00:03:14.360
+but it could also be an AWS service itself.
+
+76
+00:03:14.520 --> 00:03:18.000
+So people may be familiar with an IAM user.
+
+77
+00:03:18.000 --> 00:03:21.400
+When you, IAM user is one of the older principles there.
+
+78
+00:03:21.400 --> 00:03:24.000
+So you can create users in IAM and use that essentially
+
+79
+00:03:24.000 --> 00:03:28.120
+as a way for people to log on to AWS and do stuff.
+
+80
+00:03:28.120 --> 00:03:30.040
+And you can log on by the username and password
+
+81
+00:03:30.040 --> 00:03:32.440
+on the console, or you can use keys.
+
+82
+00:03:34.400 --> 00:03:35.920
+What about services?
+
+83
+00:03:35.920 --> 00:03:38.400
+So what, can you think of some good examples
+
+84
+00:03:38.400 --> 00:03:43.040
+that would be illustrative of what a non-human interaction
+
+85
+00:03:43.040 --> 00:03:44.840
+with IAM would be?
+
+86
+00:03:44.840 --> 00:03:46.280
+Yeah, for instance, I don't know,
+
+87
+00:03:46.280 --> 00:03:49.840
+if you are creating an application that runs on an EC2,
+
+88
+00:03:49.840 --> 00:03:53.040
+for instance, that application probably needs to access
+
+89
+00:03:53.040 --> 00:03:55.600
+all the resources in AWS, maybe needs to send a message
+
+90
+00:03:55.600 --> 00:03:59.240
+to an SQS queue, maybe needs to write files to S3.
+
+91
+00:03:59.240 --> 00:04:02.280
+So that application will need somehow to be authorized
+
+92
+00:04:02.280 --> 00:04:03.920
+to perform those actions.
+
+93
+00:04:03.920 --> 00:04:06.720
+And yeah, it's important to understand that by default
+
+94
+00:04:06.720 --> 00:04:09.400
+in AWS, everything is blocked by default.
+
+95
+00:04:09.400 --> 00:04:11.680
+So if we don't explicitly say that that application
+
+96
+00:04:11.680 --> 00:04:14.520
+is authorized to perform those actions on those resources,
+
+97
+00:04:14.520 --> 00:04:17.120
+you will get a permission error when running the application
+
+98
+00:04:17.120 --> 00:04:19.520
+in an AWS environment.
+
+99
+00:04:19.520 --> 00:04:22.120
+So that's, I think, a good example and applies
+
+100
+00:04:22.120 --> 00:04:24.800
+to every compute layer, even Lambda or ECS,
+
+101
+00:04:24.800 --> 00:04:28.640
+they would need to have some sort of policy applied to them
+
+102
+00:04:28.640 --> 00:04:31.560
+that guarantees them that they can perform certain actions
+
+103
+00:04:31.560 --> 00:04:35.160
+against AWS APIs and resources.
+
+104
+00:04:35.160 --> 00:04:36.680
+Okay, that's interesting that you mentioned
+
+105
+00:04:36.680 --> 00:04:39.120
+that everything is, you don't have access by default,
+
+106
+00:04:39.120 --> 00:04:40.640
+you're denied by default.
+
+107
+00:04:40.640 --> 00:04:42.480
+So it becomes a little bit challenging, I guess,
+
+108
+00:04:42.480 --> 00:04:44.360
+you have to understand how do you grant access
+
+109
+00:04:44.360 --> 00:04:47.320
+to this one specific thing for the specific principle
+
+110
+00:04:47.320 --> 00:04:49.080
+under specific conditions, maybe.
+
+111
+00:04:49.080 --> 00:04:51.280
+And that can be hard to get right and probably explains
+
+112
+00:04:51.280 --> 00:04:54.560
+why a lot of people like to use wildcards for everything
+
+113
+00:04:54.560 --> 00:04:56.720
+and grant access, because it's just easier.
+
+114
+00:04:56.720 --> 00:04:59.520
+But of course, maybe something people can take
+
+115
+00:04:59.520 --> 00:05:02.880
+from this episode is that it is possible to be specific.
+
+116
+00:05:02.880 --> 00:05:05.120
+It's just a question of understanding how.
+
+117
+00:05:05.120 --> 00:05:06.800
+So where do we start?
+
+118
+00:05:06.800 --> 00:05:10.680
+How do you define those relationships between users,
+
+119
+00:05:10.680 --> 00:05:12.440
+actions and resources?
+
+120
+00:05:12.440 --> 00:05:15.600
+Yeah, I think the main concept to explore
+
+121
+00:05:15.600 --> 00:05:17.200
+is this concept of policy.
+
+122
+00:05:17.200 --> 00:05:18.640
+We already mentioned it a few times.
+
+123
+00:05:18.640 --> 00:05:20.160
+So what does it mean?
+
+124
+00:05:20.160 --> 00:05:23.000
+A policy is basically a document that is generally written
+
+125
+00:05:23.000 --> 00:05:24.320
+in JSON format.
+
+126
+00:05:24.320 --> 00:05:27.160
+And this document contains like a description
+
+127
+00:05:27.160 --> 00:05:30.200
+of a particular permission or set of permissions.
+
+128
+00:05:30.200 --> 00:05:33.480
+So let's try to describe what are the main parts
+
+129
+00:05:33.480 --> 00:05:34.760
+of a policy.
+
+130
+00:05:34.760 --> 00:05:38.160
+Generally a policy contains one or more statements.
+
+131
+00:05:38.160 --> 00:05:41.760
+So in a policy, you could have multiple statements,
+
+132
+00:05:41.760 --> 00:05:44.800
+but yeah, so imagine that a policy starts with an array
+
+133
+00:05:44.800 --> 00:05:46.760
+of things in a way, right?
+
+134
+00:05:46.760 --> 00:05:49.160
+And in this array is literally where you try to define
+
+135
+00:05:49.160 --> 00:05:51.680
+those relationships between the different concepts
+
+136
+00:05:51.680 --> 00:05:53.160
+that we defined so far.
+
+137
+00:05:53.160 --> 00:05:56.560
+So there is going to be resources, actions
+
+138
+00:05:56.560 --> 00:05:58.160
+and other things.
+
+139
+00:05:58.160 --> 00:06:01.360
+So let's go in order and describe all of them.
+
+140
+00:06:01.360 --> 00:06:02.640
+Generally the first thing that you see
+
+141
+00:06:02.640 --> 00:06:04.400
+is something called effect.
+
+142
+00:06:04.400 --> 00:06:07.200
+So there is a property inside a statement called effect
+
+143
+00:06:07.200 --> 00:06:10.520
+and the value of this property can be either allow or deny.
+
+144
+00:06:10.520 --> 00:06:13.880
+Now this is interesting because most of the times
+
+145
+00:06:13.880 --> 00:06:17.200
+you will need to write policies with an effect allow
+
+146
+00:06:17.200 --> 00:06:20.280
+because you are trying to allow access to something.
+
+147
+00:06:20.280 --> 00:06:24.160
+Rarely you will need to write explicit denies
+
+148
+00:06:24.160 --> 00:06:27.000
+for specific actions.
+
+149
+00:06:27.000 --> 00:06:29.440
+So I don't want to go too much into detail right now,
+
+150
+00:06:29.440 --> 00:06:31.480
+but imagine that you need to explicitly say,
+
+151
+00:06:31.480 --> 00:06:33.200
+I want to allow something to happen
+
+152
+00:06:33.200 --> 00:06:35.480
+or I want to deny something to happen.
+
+153
+00:06:35.480 --> 00:06:39.240
+Most of the time you're just gonna write allow effects.
+
+154
+00:06:39.240 --> 00:06:41.680
+Then we have another section called action
+
+155
+00:06:41.680 --> 00:06:43.360
+and action is actually interesting
+
+156
+00:06:43.360 --> 00:06:45.040
+because it can be either just a string
+
+157
+00:06:45.040 --> 00:06:46.800
+or an array of strings.
+
+158
+00:06:46.800 --> 00:06:49.360
+And the idea is that you can put together
+
+159
+00:06:49.360 --> 00:06:52.000
+in a single statement, multiple actions.
+
+160
+00:06:52.000 --> 00:06:56.960
+And an action is a string that identifies a specific action
+
+161
+00:06:56.960 --> 00:07:00.480
+that you could perform against a set of resources.
+
+162
+00:07:00.480 --> 00:07:03.000
+And they are generally name spaced for instance,
+
+163
+00:07:03.000 --> 00:07:06.000
+by service, I think is most commonly the case.
+
+164
+00:07:06.000 --> 00:07:08.960
+An example can be S3 create bucket.
+
+165
+00:07:08.960 --> 00:07:11.880
+And an interesting thing is that you can specify
+
+166
+00:07:11.880 --> 00:07:12.880
+wildcards there.
+
+167
+00:07:12.880 --> 00:07:15.720
+So for instance, you could say S3 column asterisk,
+
+168
+00:07:15.720 --> 00:07:19.040
+that means any action available in the S3 service,
+
+169
+00:07:19.040 --> 00:07:22.720
+I am for instance allowing it if the effect is allow.
+
+170
+00:07:22.720 --> 00:07:26.200
+You can also wildcard more specifically,
+
+171
+00:07:26.200 --> 00:07:29.800
+like you can narrow down a specific subset of S3 actions.
+
+172
+00:07:29.800 --> 00:07:33.240
+For instance, you could say S3 column create asterisk,
+
+173
+00:07:33.240 --> 00:07:37.080
+that basically means all the action names
+
+174
+00:07:37.080 --> 00:07:39.200
+that starts with S3 column create,
+
+175
+00:07:39.200 --> 00:07:42.800
+like S3 create bucket or S3 create access point,
+
+176
+00:07:42.800 --> 00:07:45.080
+or I don't even know if there are others.
+
+177
+00:07:45.080 --> 00:07:46.920
+But yeah, this is generally common for instance,
+
+178
+00:07:46.920 --> 00:07:49.560
+to try to distinguish read and write actions.
+
+179
+00:07:49.560 --> 00:07:52.040
+Sometimes you can classify all the read actions
+
+180
+00:07:52.040 --> 00:07:54.480
+with like a prefix and then an asterisk
+
+181
+00:07:54.480 --> 00:07:56.960
+and similarly with the write actions.
+
+182
+00:07:56.960 --> 00:07:58.280
+It can be a little bit dangerous
+
+183
+00:07:58.280 --> 00:08:00.840
+because sometimes you end up allowing more permissions
+
+184
+00:08:00.840 --> 00:08:01.800
+that you really want to.
+
+185
+00:08:01.800 --> 00:08:03.520
+So just word of conscious,
+
+186
+00:08:03.520 --> 00:08:06.600
+don't try to use asterisk as less as possible,
+
+187
+00:08:06.600 --> 00:08:09.080
+unless you are really sure that you are describing
+
+188
+00:08:09.080 --> 00:08:11.480
+the very limited subset of actions
+
+189
+00:08:11.480 --> 00:08:12.880
+that you are interested into.
+
+190
+00:08:14.040 --> 00:08:17.320
+And then the last interesting part of a policy is resource.
+
+191
+00:08:17.320 --> 00:08:20.520
+And again, resource is an array or a string.
+
+192
+00:08:20.520 --> 00:08:22.240
+So you can have either one single string
+
+193
+00:08:22.240 --> 00:08:23.320
+or multiple strings
+
+194
+00:08:23.320 --> 00:08:26.440
+because you can group together multiple resources.
+
+195
+00:08:26.440 --> 00:08:27.800
+How do you define a resource?
+
+196
+00:08:27.800 --> 00:08:29.640
+Like what is the content of the string
+
+197
+00:08:29.640 --> 00:08:31.600
+that identifies a resource?
+
+198
+00:08:31.600 --> 00:08:34.680
+And you generally do that using an ARN,
+
+199
+00:08:34.680 --> 00:08:37.960
+which basically means Amazon Resource Name.
+
+200
+00:08:37.960 --> 00:08:40.720
+And you can imagine that as a unique ID
+
+201
+00:08:40.720 --> 00:08:44.400
+for every single resource that exists in an AWS account.
+
+202
+00:08:44.400 --> 00:08:46.560
+The interesting thing is that this unique ID
+
+203
+00:08:46.560 --> 00:08:48.800
+are not like pseudo random values,
+
+204
+00:08:48.800 --> 00:08:52.080
+like I don't know, increment that integers or UUIDs,
+
+205
+00:08:52.080 --> 00:08:54.600
+but actually they have a very well-defined structure.
+
+206
+00:08:54.600 --> 00:08:56.600
+So you can follow like a namespace
+
+207
+00:08:56.600 --> 00:08:59.840
+and then you can have an account region and so on.
+
+208
+00:08:59.840 --> 00:09:03.000
+So basically it's like a tree
+
+209
+00:09:03.000 --> 00:09:06.480
+and you can also use wildcards at some point to say,
+
+210
+00:09:06.480 --> 00:09:08.320
+take all the sub tree there.
+
+211
+00:09:08.320 --> 00:09:10.480
+And the common example is when you want to allow,
+
+212
+00:09:10.480 --> 00:09:11.320
+I don't know, for instance,
+
+213
+00:09:11.320 --> 00:09:14.560
+read access to a set of files in S3,
+
+214
+00:09:14.560 --> 00:09:16.320
+you can do that either by prefix
+
+215
+00:09:16.320 --> 00:09:17.720
+because you can say, I don't know,
+
+216
+00:09:17.720 --> 00:09:19.600
+the name, the ARN of the packet
+
+217
+00:09:19.600 --> 00:09:22.720
+slash a certain prefix and then asterisk,
+
+218
+00:09:22.720 --> 00:09:23.560
+or I don't know,
+
+219
+00:09:23.560 --> 00:09:25.400
+if you want to give access to the entire packet,
+
+220
+00:09:25.400 --> 00:09:26.560
+all the files in the packet,
+
+221
+00:09:26.560 --> 00:09:30.000
+you just say the ARN of the bucket slash asterisk.
+
+222
+00:09:30.000 --> 00:09:33.600
+So it's actually a really interesting approach from AWS
+
+223
+00:09:33.600 --> 00:09:35.920
+to give you this ARNs in a way
+
+224
+00:09:35.920 --> 00:09:38.280
+that you can easily define expressions
+
+225
+00:09:38.280 --> 00:09:40.560
+to describe an entire subset of resources.
+
+226
+00:09:41.840 --> 00:09:45.200
+And then I think there is a more advanced use case
+
+227
+00:09:45.200 --> 00:09:47.120
+about condition.
+
+228
+00:09:47.120 --> 00:09:48.960
+Do you want to talk about that, Eoin?
+
+229
+00:09:50.560 --> 00:09:52.240
+Yeah, that's probably worth talking about
+
+230
+00:09:52.240 --> 00:09:53.080
+because I think conditions
+
+231
+00:09:53.080 --> 00:09:54.480
+are becoming more and more common.
+
+232
+00:09:54.480 --> 00:09:56.320
+They were less so in the past,
+
+233
+00:09:56.320 --> 00:09:58.520
+but they're becoming more expressive.
+
+234
+00:09:58.520 --> 00:10:03.520
+So conditions allow you to have more fine grained access
+
+235
+00:10:03.680 --> 00:10:05.560
+for specific resources.
+
+236
+00:10:05.560 --> 00:10:10.560
+So you can grant access to S3 to create a bucket,
+
+237
+00:10:10.720 --> 00:10:11.800
+for example,
+
+238
+00:10:11.800 --> 00:10:14.360
+but you can also restrict it to certain conditions.
+
+239
+00:10:14.360 --> 00:10:17.840
+For example, you might only want to have a condition
+
+240
+00:10:17.840 --> 00:10:19.440
+which allows people to create objects in S3,
+
+241
+00:10:19.440 --> 00:10:21.960
+but only if they have a.lutiano extension.
+
+242
+00:10:22.960 --> 00:10:24.000
+That's one example.
+
+243
+00:10:24.000 --> 00:10:26.320
+There's also other ones like based on the tag
+
+244
+00:10:26.320 --> 00:10:29.280
+and the request or the tag of the actual principle,
+
+245
+00:10:29.280 --> 00:10:33.360
+you can kind of use it to enforce access control
+
+246
+00:10:33.360 --> 00:10:35.160
+based on the user's principle.
+
+247
+00:10:35.160 --> 00:10:39.480
+And every specific service has a different set of conditions
+
+248
+00:10:39.480 --> 00:10:40.320
+that they support,
+
+249
+00:10:40.320 --> 00:10:42.520
+as well as there being global conditions
+
+250
+00:10:42.520 --> 00:10:44.200
+that are supported as well.
+
+251
+00:10:44.200 --> 00:10:45.720
+So other examples are,
+
+252
+00:10:45.720 --> 00:10:48.280
+if the source IP address is within a certain CIDR block
+
+253
+00:10:48.280 --> 00:10:50.600
+or you're coming from a certain VPC,
+
+254
+00:10:50.600 --> 00:10:52.680
+there's lots and lots of different conditions supported
+
+255
+00:10:52.680 --> 00:10:54.520
+and that's really growing, like I said.
+
+256
+00:10:54.520 --> 00:10:56.880
+So one of the things we can link to in the show notes
+
+257
+00:10:56.880 --> 00:10:58.360
+is a document I really, really like,
+
+258
+00:10:58.360 --> 00:10:59.480
+and I have bookmarked,
+
+259
+00:10:59.480 --> 00:11:04.080
+which outlines all the actions, statements, resources,
+
+260
+00:11:04.080 --> 00:11:05.360
+and conditions that are supported
+
+261
+00:11:05.360 --> 00:11:06.840
+for all the different AWS services.
+
+262
+00:11:06.840 --> 00:11:08.840
+So it's definitely a go-to
+
+263
+00:11:08.840 --> 00:11:10.440
+when you're trying to develop policies.
+
+264
+00:11:10.440 --> 00:11:12.080
+Very complicated issue,
+
+265
+00:11:12.080 --> 00:11:14.040
+but you can be extremely specific.
+
+266
+00:11:15.040 --> 00:11:17.600
+Yeah, and it sometimes feels like a real burden
+
+267
+00:11:17.600 --> 00:11:18.560
+having to do this for people,
+
+268
+00:11:18.560 --> 00:11:19.880
+but it's really powerful as well
+
+269
+00:11:19.880 --> 00:11:22.360
+because it allows you to enforce really good security.
+
+270
+00:11:22.360 --> 00:11:23.200
+Mm-hmm.
+
+271
+00:11:24.320 --> 00:11:27.280
+Where do people start then as a user
+
+272
+00:11:27.280 --> 00:11:29.560
+when they're trying to get up and running with AWS,
+
+273
+00:11:29.560 --> 00:11:30.880
+maybe in their own account
+
+274
+00:11:30.880 --> 00:11:33.760
+or in an account they've been given in their organization?
+
+275
+00:11:34.600 --> 00:11:36.080
+Yeah, that's a very good question.
+
+276
+00:11:36.080 --> 00:11:37.560
+So I suppose as a user,
+
+277
+00:11:37.560 --> 00:11:40.280
+if you're just starting to learn AWS,
+
+278
+00:11:40.280 --> 00:11:43.040
+it's probably okay to have an admin role
+
+279
+00:11:43.040 --> 00:11:45.360
+and just use that to log into the web console
+
+280
+00:11:45.360 --> 00:11:48.040
+and play around and try to create different things,
+
+281
+00:11:48.040 --> 00:11:50.160
+destroy them and see what happens.
+
+282
+00:11:50.160 --> 00:11:53.000
+But of course, that's not acceptable for a production account.
+
+283
+00:11:53.000 --> 00:11:55.040
+Like if you have a production account
+
+284
+00:11:55.040 --> 00:11:57.760
+where you are deploying production applications,
+
+285
+00:11:57.760 --> 00:12:02.240
+try to limit as much as possible write access for humans.
+
+286
+00:12:02.240 --> 00:12:03.840
+Limit that to read access
+
+287
+00:12:03.840 --> 00:12:06.280
+because of course you need people to be able to log in
+
+288
+00:12:06.280 --> 00:12:08.080
+and check if everything is working correctly,
+
+289
+00:12:08.080 --> 00:12:12.160
+read the logs and all these kind of operational tasks,
+
+290
+00:12:12.160 --> 00:12:15.960
+but try to limit the amount of write that everyone can do.
+
+291
+00:12:15.960 --> 00:12:17.440
+And a much better approach in that case
+
+292
+00:12:17.440 --> 00:12:20.440
+would be to have an account that is dedicated to deployment
+
+293
+00:12:20.440 --> 00:12:22.200
+into production accounts.
+
+294
+00:12:22.200 --> 00:12:25.520
+You provision CI-CD pipelines in those accounts
+
+295
+00:12:25.520 --> 00:12:28.360
+and those pipelines will do all the changes
+
+296
+00:12:28.360 --> 00:12:30.280
+in the production account for you.
+
+297
+00:12:30.280 --> 00:12:32.720
+And the idea is that you reduce as much as possible
+
+298
+00:12:32.720 --> 00:12:35.520
+like uncontrolled write access from people
+
+299
+00:12:35.520 --> 00:12:39.840
+and you try to do that in a programmatic and auditable way.
+
+300
+00:12:39.840 --> 00:12:42.360
+So you try to have processes that will do that
+
+301
+00:12:42.360 --> 00:12:45.160
+with a very well-defined, I don't know,
+
+302
+00:12:45.160 --> 00:12:47.040
+pipeline or set of steps
+
+303
+00:12:47.040 --> 00:12:49.320
+and all the steps will give you all the trails
+
+304
+00:12:49.320 --> 00:12:50.920
+that you can use in the future to make sure
+
+305
+00:12:50.920 --> 00:12:53.560
+that everything is happening as expected.
+
+306
+00:12:53.560 --> 00:12:54.840
+This is kind of the best practice.
+
+307
+00:12:54.840 --> 00:12:56.920
+So don't be afraid to just use an admin user
+
+308
+00:12:56.920 --> 00:12:58.680
+for your own testing stuff,
+
+309
+00:12:58.680 --> 00:13:00.600
+play around and try to learn as much as possible.
+
+310
+00:13:00.600 --> 00:13:02.760
+But when you start to move to production,
+
+311
+00:13:02.760 --> 00:13:06.120
+then having an admin account there is kind of a big no-no.
+
+312
+00:13:06.120 --> 00:13:08.200
+So try to be careful at that point.
+
+313
+00:13:09.520 --> 00:13:12.800
+And I think we can approach the same topic
+
+314
+00:13:12.800 --> 00:13:14.320
+also for applications.
+
+315
+00:13:14.320 --> 00:13:16.960
+So are there, I don't know, best practices,
+
+316
+00:13:16.960 --> 00:13:18.800
+how do you start to define permissions
+
+317
+00:13:18.800 --> 00:13:20.320
+for applications instead?
+
+318
+00:13:21.240 --> 00:13:23.440
+Yeah, ideally you want anything that's important
+
+319
+00:13:23.440 --> 00:13:26.160
+in your system not to be triggered by a user,
+
+320
+00:13:26.160 --> 00:13:29.600
+but to be automatically triggered by some code running
+
+321
+00:13:29.600 --> 00:13:33.760
+in EC2, Lambda or a container maybe.
+
+322
+00:13:33.760 --> 00:13:36.520
+So the idea there is that you will create a role,
+
+323
+00:13:36.520 --> 00:13:38.640
+an IAM role and you attach policies to it.
+
+324
+00:13:38.640 --> 00:13:40.920
+Same kind of policies we've already described.
+
+325
+00:13:40.920 --> 00:13:43.920
+So you're giving permissions to that programmatic piece
+
+326
+00:13:43.920 --> 00:13:46.440
+of code running there to write to the bucket
+
+327
+00:13:46.440 --> 00:13:48.520
+or to put a message on the queue.
+
+328
+00:13:48.520 --> 00:13:50.920
+And you try and be restrictive
+
+329
+00:13:50.920 --> 00:13:53.640
+and you would then associate that role
+
+330
+00:13:53.640 --> 00:13:55.800
+with the resource in some way.
+
+331
+00:13:55.800 --> 00:13:58.680
+So with an EC2, you have like an instance role
+
+332
+00:13:58.680 --> 00:14:01.240
+or in Lambda, you have an execution role
+
+333
+00:14:01.240 --> 00:14:03.080
+and lots of AWS services have a place
+
+334
+00:14:03.080 --> 00:14:05.160
+where you can link the role that that service
+
+335
+00:14:05.160 --> 00:14:06.640
+is going to use.
+
+336
+00:14:06.640 --> 00:14:08.760
+And when you create that role, you have to say,
+
+337
+00:14:08.760 --> 00:14:13.760
+I'm going to trust EC2 to assume this role.
+
+338
+00:14:13.760 --> 00:14:17.400
+And the idea then is that you try to keep that minimal
+
+339
+00:14:17.400 --> 00:14:21.680
+as possible because if access is ever compromised
+
+340
+00:14:21.680 --> 00:14:23.760
+to that compute environment, you want to minimize
+
+341
+00:14:23.760 --> 00:14:26.400
+that blast radius, minimize what people can do.
+
+342
+00:14:28.000 --> 00:14:29.920
+So there's a couple of other things there.
+
+343
+00:14:29.920 --> 00:14:31.800
+Maybe it's worth mentioning the identity
+
+344
+00:14:31.800 --> 00:14:34.120
+and access management access analyzer tool
+
+345
+00:14:34.120 --> 00:14:38.240
+that you can use and it can analyze your roles for you
+
+346
+00:14:38.240 --> 00:14:40.880
+and let you know if you've over assigned privileges
+
+347
+00:14:40.880 --> 00:14:42.280
+that aren't being used.
+
+348
+00:14:42.280 --> 00:14:43.880
+That's a really good one.
+
+349
+00:14:46.520 --> 00:14:48.560
+Is there anything that people should be aware of here
+
+350
+00:14:48.560 --> 00:14:51.680
+when they're developing code, creating a role for it?
+
+351
+00:14:51.680 --> 00:14:54.800
+Some people are probably used to running that code
+
+352
+00:14:54.800 --> 00:14:56.600
+also locally.
+
+353
+00:14:56.600 --> 00:14:58.000
+When they run it locally,
+
+354
+00:14:58.000 --> 00:15:00.560
+they're not necessarily using the same privileges.
+
+355
+00:15:00.560 --> 00:15:02.680
+What kind of practice would you recommend
+
+356
+00:15:02.680 --> 00:15:04.760
+to make sure that people have a good understanding
+
+357
+00:15:04.760 --> 00:15:06.640
+of what to watch out for there?
+
+358
+00:15:06.640 --> 00:15:07.880
+Yeah, that's a very good one.
+
+359
+00:15:07.880 --> 00:15:09.800
+I think we'll explain a little bit more later
+
+360
+00:15:09.800 --> 00:15:12.240
+in this episode, how the whole credential system
+
+361
+00:15:12.240 --> 00:15:16.120
+works and maybe at that point, more gaps will be filled
+
+362
+00:15:16.120 --> 00:15:17.760
+and everything will be more clear.
+
+363
+00:15:17.760 --> 00:15:19.280
+But basically one thing that happens
+
+364
+00:15:19.280 --> 00:15:20.720
+when you are testing something locally,
+
+365
+00:15:20.720 --> 00:15:21.800
+when you're running, for instance,
+
+366
+00:15:21.800 --> 00:15:23.880
+a Lambda function somehow locally,
+
+367
+00:15:23.880 --> 00:15:26.120
+is that generally you have authenticated yourself
+
+368
+00:15:26.120 --> 00:15:29.920
+through the AWS CLI using your own personal credentials.
+
+369
+00:15:29.920 --> 00:15:33.800
+So as a user, you probably have in a development account,
+
+370
+00:15:33.800 --> 00:15:36.680
+admin credentials or very extensive set
+
+371
+00:15:36.680 --> 00:15:38.140
+of permissions anyway.
+
+372
+00:15:38.140 --> 00:15:40.920
+So you are basically running your local environment
+
+373
+00:15:40.920 --> 00:15:42.160
+with those credentials.
+
+374
+00:15:42.160 --> 00:15:44.100
+So what can happen is that you have a false sense
+
+375
+00:15:44.100 --> 00:15:46.460
+of security because you see your application being able
+
+376
+00:15:46.460 --> 00:15:48.520
+to do a bunch of different things and you think,
+
+377
+00:15:48.520 --> 00:15:50.880
+okay, this application is ready to go
+
+378
+00:15:50.880 --> 00:15:52.420
+and be shipped somewhere.
+
+379
+00:15:52.420 --> 00:15:55.000
+Then you deploy that application to some environment
+
+380
+00:15:55.000 --> 00:15:58.440
+and as soon as you run it, you bump into a permission issue.
+
+381
+00:15:58.440 --> 00:16:00.680
+And there you have to realize that there is a disconnect
+
+382
+00:16:00.680 --> 00:16:02.800
+between when you run things locally
+
+383
+00:16:02.800 --> 00:16:04.600
+and that local environment inherits
+
+384
+00:16:04.600 --> 00:16:06.840
+your own personal permissions as opposed
+
+385
+00:16:06.840 --> 00:16:08.720
+to when you run the same application
+
+386
+00:16:08.720 --> 00:16:10.300
+in an AWS environment.
+
+387
+00:16:10.300 --> 00:16:12.360
+And in that environment,
+
+388
+00:16:12.360 --> 00:16:14.080
+the environment is not necessarily inheriting
+
+389
+00:16:14.080 --> 00:16:14.920
+your own permissions.
+
+390
+00:16:14.920 --> 00:16:16.520
+It's probably gonna have a more restrictive set
+
+391
+00:16:16.520 --> 00:16:18.780
+of permissions that maybe you haven't even defined.
+
+392
+00:16:18.780 --> 00:16:22.400
+So the permission set is literally as small as possible
+
+393
+00:16:22.400 --> 00:16:24.200
+for that particular application.
+
+394
+00:16:24.200 --> 00:16:29.200
+So yeah, it's important to understand how to basically go
+
+395
+00:16:29.260 --> 00:16:31.280
+and define those application permissions
+
+396
+00:16:31.280 --> 00:16:32.840
+and make sure that they actually work
+
+397
+00:16:32.840 --> 00:16:35.200
+for your production use cases.
+
+398
+00:16:35.200 --> 00:16:39.820
+I was hearing, I think you mentioned it to me a few days ago
+
+399
+00:16:39.820 --> 00:16:41.360
+that on Twitter, somebody was mentioning
+
+400
+00:16:41.360 --> 00:16:43.120
+that that might be an interesting feature
+
+401
+00:16:43.120 --> 00:16:46.480
+for tools like SAM to be able to actually run
+
+402
+00:16:46.480 --> 00:16:50.400
+a local simulation with real credentials.
+
+403
+00:16:52.600 --> 00:16:53.760
+The ones you are specifying for the function, because that's the tricky bit.
+
+404
+00:16:53.760 --> 00:16:56.400
+Even if you are specifying a role, for instance,
+
+405
+00:16:56.400 --> 00:16:58.560
+when you use SAM for a particular Lambda function,
+
+406
+00:16:58.560 --> 00:17:00.920
+then when you run that function locally,
+
+407
+00:17:00.920 --> 00:17:02.800
+it's still using your own personal credentials
+
+408
+00:17:02.800 --> 00:17:04.920
+and not the roles that you have defined.
+
+409
+00:17:04.920 --> 00:17:07.040
+So even if you define the roles,
+
+410
+00:17:07.040 --> 00:17:08.820
+it can be very misleading, that experience.
+
+411
+00:17:08.820 --> 00:17:11.040
+You might think, okay, it's using these roles
+
+412
+00:17:11.040 --> 00:17:12.600
+that maybe you think you define correctly,
+
+413
+00:17:12.600 --> 00:17:14.000
+then you ship to production.
+
+414
+00:17:14.000 --> 00:17:16.760
+There was an error, but you haven't tested that locally.
+
+415
+00:17:16.760 --> 00:17:18.720
+You only realize in production.
+
+416
+00:17:18.720 --> 00:17:22.680
+So that's another thing that might bite you,
+
+417
+00:17:22.680 --> 00:17:23.760
+especially at the beginning.
+
+418
+00:17:23.760 --> 00:17:25.520
+And it's a little bit tricky to realize
+
+419
+00:17:25.520 --> 00:17:27.560
+what's actually going on there.
+
+420
+00:17:27.560 --> 00:17:29.600
+Yeah, that's a good point.
+
+421
+00:17:29.600 --> 00:17:31.320
+I think we've talked about policies
+
+422
+00:17:31.320 --> 00:17:32.440
+being attached to roles.
+
+423
+00:17:32.440 --> 00:17:36.080
+It might be worth just covering briefly where policies fit
+
+424
+00:17:36.080 --> 00:17:38.880
+in with the various other pieces that they can be attached
+
+425
+00:17:38.880 --> 00:17:39.700
+to.
+
+426
+00:17:39.700 --> 00:17:42.520
+So we said we can attach them to IAM users
+
+427
+00:17:42.520 --> 00:17:44.240
+and also IAM user groups.
+
+428
+00:17:44.240 --> 00:17:46.520
+Now, a lot of people say don't use IAM users
+
+429
+00:17:46.520 --> 00:17:47.340
+in groups before.
+
+430
+00:17:47.340 --> 00:17:49.560
+And we did cover this a little bit in episode 12,
+
+431
+00:17:49.560 --> 00:17:52.760
+when we talked about how to manage your AWS credentials,
+
+432
+00:17:52.760 --> 00:17:54.800
+link will be below.
+
+433
+00:17:54.800 --> 00:17:59.260
+And the alternative to that is to use AWS single sign-on.
+
+434
+00:17:59.260 --> 00:18:01.480
+We're not going to go into that in much detail now,
+
+435
+00:18:01.480 --> 00:18:03.520
+again, refer to that previous episode,
+
+436
+00:18:03.520 --> 00:18:06.640
+but you can also attach your policy statements,
+
+437
+00:18:06.640 --> 00:18:09.120
+put them into these SSL permission sets,
+
+438
+00:18:09.120 --> 00:18:12.620
+and they kind of get converted into IAM roles
+
+439
+00:18:12.620 --> 00:18:13.800
+under the hood.
+
+440
+00:18:13.800 --> 00:18:15.600
+But you also have specific services
+
+441
+00:18:15.600 --> 00:18:17.200
+that can have policies attached.
+
+442
+00:18:17.200 --> 00:18:20.040
+So these are sometimes called resource policies,
+
+443
+00:18:20.040 --> 00:18:23.640
+but an example of a resource policy is an S3 bucket policy.
+
+444
+00:18:23.640 --> 00:18:27.200
+And that allows you to have specific policies
+
+445
+00:18:27.200 --> 00:18:30.000
+that are attached to the resource itself.
+
+446
+00:18:30.000 --> 00:18:32.600
+And that policy gets combined with all the other policies
+
+447
+00:18:32.600 --> 00:18:35.380
+that come into play, like your identity policy.
+
+448
+00:18:35.380 --> 00:18:38.100
+And the two policies together will work
+
+449
+00:18:38.100 --> 00:18:39.640
+to determine the permissions.
+
+450
+00:18:41.720 --> 00:18:44.040
+We've already covered then the EC2 case
+
+451
+00:18:44.040 --> 00:18:46.460
+and the ECS case where applications
+
+452
+00:18:46.460 --> 00:18:47.960
+will generally assume a role
+
+453
+00:18:47.960 --> 00:18:51.460
+and will inherit policies and permissions from that role.
+
+454
+00:18:52.360 --> 00:18:55.720
+So it's probably, maybe we can briefly cover
+
+455
+00:18:55.720 --> 00:18:57.960
+the interesting technical details
+
+456
+00:18:57.960 --> 00:19:00.540
+about how AWS recognizes who you are,
+
+457
+00:19:00.540 --> 00:19:01.920
+what your principle is,
+
+458
+00:19:01.920 --> 00:19:05.480
+whether you're using a user or an EC2 instance,
+
+459
+00:19:05.480 --> 00:19:07.560
+takes that, what it knows about you,
+
+460
+00:19:07.560 --> 00:19:10.520
+and converts that into some sort of allow or deny
+
+461
+00:19:10.520 --> 00:19:13.180
+for every API call or SDK call you make.
+
+462
+00:19:14.360 --> 00:19:16.600
+Yeah, I think that's a very good way
+
+463
+00:19:16.600 --> 00:19:19.320
+of understanding a little bit more how things work
+
+464
+00:19:19.320 --> 00:19:21.320
+and therefore make the right assumptions
+
+465
+00:19:21.320 --> 00:19:23.780
+when you are building an application for AWS.
+
+466
+00:19:23.780 --> 00:19:25.520
+So there are generally two phases.
+
+467
+00:19:25.520 --> 00:19:26.920
+The first phase is authentication
+
+468
+00:19:26.920 --> 00:19:29.040
+and the second phase is authorization.
+
+469
+00:19:29.040 --> 00:19:30.880
+And authentication is generally,
+
+470
+00:19:30.880 --> 00:19:33.120
+AWS needs to understand who you are
+
+471
+00:19:33.120 --> 00:19:36.000
+as a person or as a service.
+
+472
+00:19:36.000 --> 00:19:39.460
+And then authorization is based on the principle
+
+473
+00:19:39.460 --> 00:19:41.960
+that was identified during the authentication phase.
+
+474
+00:19:41.960 --> 00:19:44.820
+Is this principle authorized to perform a specific action
+
+475
+00:19:44.820 --> 00:19:46.540
+on a certain resource?
+
+476
+00:19:46.540 --> 00:19:48.520
+And in a certain context,
+
+477
+00:19:48.520 --> 00:19:51.480
+if you put also the condition set
+
+478
+00:19:51.480 --> 00:19:54.000
+that you can have in a policy, right?
+
+479
+00:19:54.000 --> 00:19:56.780
+So all these rules needs to be evaluated,
+
+480
+00:19:56.780 --> 00:19:59.400
+but the rules are evaluated only after
+
+481
+00:19:59.400 --> 00:20:02.680
+that it's clear to AWS who the user actually is.
+
+482
+00:20:02.680 --> 00:20:05.600
+So it's very important to distinguish these two phases.
+
+483
+00:20:05.600 --> 00:20:08.880
+Now, how do you define what's the user?
+
+484
+00:20:08.880 --> 00:20:09.940
+It changes a little bit,
+
+485
+00:20:09.940 --> 00:20:12.720
+depending if you are doing a logging on the web console.
+
+486
+00:20:12.720 --> 00:20:13.960
+So it's kind of a manual user
+
+487
+00:20:13.960 --> 00:20:16.080
+that is in the web console doing things.
+
+488
+00:20:16.080 --> 00:20:17.760
+Or if you're doing something programmatically
+
+489
+00:20:17.760 --> 00:20:20.900
+through either the CLI or the SDK,
+
+490
+00:20:20.900 --> 00:20:24.740
+which bot are using underneath the AWS APIs.
+
+491
+00:20:24.740 --> 00:20:26.960
+So when you are logging in manually,
+
+492
+00:20:26.960 --> 00:20:28.700
+you generally provide your credentials
+
+493
+00:20:28.700 --> 00:20:30.160
+through username and password.
+
+494
+00:20:30.160 --> 00:20:31.640
+Or if you use federated login,
+
+495
+00:20:31.640 --> 00:20:33.860
+you probably go through a login flow,
+
+496
+00:20:33.860 --> 00:20:35.640
+a federated login flow that involves, I don't know,
+
+497
+00:20:35.640 --> 00:20:40.180
+your Google identity provider or Azure ID, whatever.
+
+498
+00:20:40.180 --> 00:20:42.040
+Instead, when you're doing something programmatically,
+
+499
+00:20:42.040 --> 00:20:45.160
+you probably have seen that there is this concept of keys
+
+500
+00:20:46.040 --> 00:20:47.720
+to identify credentials.
+
+501
+00:20:47.720 --> 00:20:51.620
+And keys are generally a couple of access key
+
+502
+00:20:51.620 --> 00:20:52.880
+and secret access key,
+
+503
+00:20:53.760 --> 00:20:56.860
+access key ID and secret access key, actually.
+
+504
+00:20:56.860 --> 00:20:59.000
+And this is generally what you need to use
+
+505
+00:20:59.000 --> 00:21:01.200
+when you authenticate your local CLI,
+
+506
+00:21:01.200 --> 00:21:06.200
+but also what you could use when you do API calls
+
+507
+00:21:06.520 --> 00:21:08.540
+or use the SDK.
+
+508
+00:21:08.540 --> 00:21:09.480
+Now, it's very interesting.
+
+509
+00:21:09.480 --> 00:21:10.400
+There is something I really like,
+
+510
+00:21:10.400 --> 00:21:12.960
+and I'm maybe a little bit nerdy about this stuff,
+
+511
+00:21:12.960 --> 00:21:14.960
+about the authentication protocol
+
+512
+00:21:14.960 --> 00:21:19.440
+that is actually used underneath when calling APIs on AWS,
+
+513
+00:21:19.440 --> 00:21:22.360
+because it's a signature-based protocol.
+
+514
+00:21:22.360 --> 00:21:24.560
+And I really like this kind of protocols.
+
+515
+00:21:24.560 --> 00:21:26.240
+But the idea is that basically
+
+516
+00:21:26.240 --> 00:21:28.960
+most of the applications when you write,
+
+517
+00:21:28.960 --> 00:21:31.280
+when you need to have some sort of authentication,
+
+518
+00:21:31.280 --> 00:21:32.560
+there is a flow that is like,
+
+519
+00:21:32.560 --> 00:21:34.680
+okay, I'm gonna send my credentials somewhere.
+
+520
+00:21:34.680 --> 00:21:37.500
+I'm gonna get a session token or a cookie or whatever.
+
+521
+00:21:37.500 --> 00:21:39.780
+And then I keep using that session ID
+
+522
+00:21:39.780 --> 00:21:42.640
+to communicate with a backend, right?
+
+523
+00:21:42.640 --> 00:21:43.800
+And that's a little bit annoying
+
+524
+00:21:43.800 --> 00:21:45.800
+because you have these two distinct phases.
+
+525
+00:21:45.800 --> 00:21:48.340
+I need to get my authentication first with my token,
+
+526
+00:21:48.340 --> 00:21:50.860
+and then with the token, I can do whatever I want to do.
+
+527
+00:21:50.860 --> 00:21:52.560
+In AWS, you don't need to do all of that
+
+528
+00:21:52.560 --> 00:21:56.020
+because you already have your secret access key
+
+529
+00:21:56.020 --> 00:21:58.200
+and your key ID.
+
+530
+00:21:58.200 --> 00:21:59.900
+And the way that it works is basically
+
+531
+00:21:59.900 --> 00:22:03.060
+every single request is signed using your secret.
+
+532
+00:22:03.060 --> 00:22:06.040
+So you never really send the secret to AWS.
+
+533
+00:22:06.040 --> 00:22:08.120
+You only use it to sign every single request.
+
+534
+00:22:08.120 --> 00:22:10.920
+So this way you can just fire the request straight away
+
+535
+00:22:10.920 --> 00:22:13.400
+without having to create a session first.
+
+536
+00:22:13.400 --> 00:22:16.000
+And this is documented in the SIGV4,
+
+537
+00:22:16.000 --> 00:22:18.240
+which stands for signature v4 protocol.
+
+538
+00:22:18.240 --> 00:22:21.000
+So it's actually well-documented and you can read it.
+
+539
+00:22:21.000 --> 00:22:23.720
+You can even implement it yourself if you really want to.
+
+540
+00:22:23.720 --> 00:22:25.140
+But I just find it very interesting
+
+541
+00:22:25.140 --> 00:22:27.880
+because it's something that I always liked from AWS.
+
+542
+00:22:27.880 --> 00:22:30.800
+And sometimes I even implemented myself in my own APIs
+
+543
+00:22:30.800 --> 00:22:32.320
+with my own authentication.
+
+544
+00:22:32.320 --> 00:22:34.000
+Not necessarily like 100%,
+
+545
+00:22:34.000 --> 00:22:36.880
+but you can take some principles from this approach
+
+546
+00:22:36.880 --> 00:22:38.640
+and use them yourself.
+
+547
+00:22:38.640 --> 00:22:41.280
+So we're gonna have a link to the protocol
+
+548
+00:22:41.280 --> 00:22:42.440
+in the show notes.
+
+549
+00:22:43.660 --> 00:22:44.980
+But there is another interesting way,
+
+550
+00:22:44.980 --> 00:22:47.680
+maybe Eoin you want to talk a little bit more about that.
+
+551
+00:22:47.680 --> 00:22:50.000
+Like if you are an application,
+
+552
+00:22:50.000 --> 00:22:53.600
+don't just copy paste those credentials into the application.
+
+553
+00:22:53.600 --> 00:22:57.280
+But yeah, how do you do it in that case?
+
+554
+00:22:57.280 --> 00:22:58.760
+Yeah, that's a good point.
+
+555
+00:22:58.760 --> 00:23:00.840
+You want to avoid generally copying,
+
+556
+00:23:00.840 --> 00:23:02.040
+pasting credentials everywhere.
+
+557
+00:23:02.040 --> 00:23:03.500
+So there's lots of tools you can use
+
+558
+00:23:03.500 --> 00:23:04.920
+and you can look into it more
+
+559
+00:23:04.920 --> 00:23:08.000
+to avoid having to copy paste credentials,
+
+560
+00:23:08.000 --> 00:23:09.360
+particularly with SSO.
+
+561
+00:23:09.360 --> 00:23:10.980
+But if you're talking about your application, right?
+
+562
+00:23:10.980 --> 00:23:15.040
+So your EC2 instance or your ECS container, for example,
+
+563
+00:23:15.040 --> 00:23:17.880
+you never have to provide environment variables
+
+564
+00:23:17.880 --> 00:23:21.640
+for a process running in that EC2 instance,
+
+565
+00:23:21.640 --> 00:23:23.920
+like your secret access key and access key ID.
+
+566
+00:23:23.920 --> 00:23:26.840
+You don't have to put those into environment variables.
+
+567
+00:23:26.840 --> 00:23:27.880
+You do not want to do that.
+
+568
+00:23:27.880 --> 00:23:30.480
+Instead, there are mechanisms already in place.
+
+569
+00:23:30.480 --> 00:23:32.200
+We talked about the role that you can attach
+
+570
+00:23:32.200 --> 00:23:34.440
+to your EC2 instance and the role you can attach
+
+571
+00:23:34.440 --> 00:23:36.520
+to containers and Lambda functions.
+
+572
+00:23:36.520 --> 00:23:39.200
+AWS already has a mechanism built in
+
+573
+00:23:39.200 --> 00:23:41.520
+that will seamlessly under the hood,
+
+574
+00:23:41.520 --> 00:23:45.520
+allow that instance to get authorized access
+
+575
+00:23:45.520 --> 00:23:48.120
+to the resources in that role's policy.
+
+576
+00:23:48.120 --> 00:23:49.840
+So if you've got an instance role attached
+
+577
+00:23:49.840 --> 00:23:52.680
+to your EC2 instance, AWS has something called
+
+578
+00:23:52.680 --> 00:23:54.920
+the instance metadata service.
+
+579
+00:23:54.920 --> 00:23:55.960
+There's actually two versions of it,
+
+580
+00:23:55.960 --> 00:23:57.020
+version one and version two.
+
+581
+00:23:57.020 --> 00:24:00.520
+You should use version two because it's the secure one.
+
+582
+00:24:00.520 --> 00:24:03.760
+But it allows you, under the hood, it will, the SDK,
+
+583
+00:24:03.760 --> 00:24:07.320
+if you make an SDK call to put an object in a bucket,
+
+584
+00:24:07.320 --> 00:24:10.360
+it will use that metadata service to check
+
+585
+00:24:10.360 --> 00:24:14.640
+the instance role and authorize the principal,
+
+586
+00:24:14.640 --> 00:24:17.360
+authorize that code to perform that action or not.
+
+587
+00:24:17.360 --> 00:24:21.800
+So you don't, there's a basic, essentially a little HTTP
+
+588
+00:24:21.800 --> 00:24:25.400
+endpoint available inside of EC2 and also ECS
+
+589
+00:24:25.400 --> 00:24:27.520
+that performs that for you under the hood.
+
+590
+00:24:27.520 --> 00:24:30.360
+You can look into the details of that if you're curious,
+
+591
+00:24:30.360 --> 00:24:31.840
+but otherwise it will just work.
+
+592
+00:24:31.840 --> 00:24:35.760
+The AWS SDKs are already designed to check for credentials
+
+593
+00:24:35.760 --> 00:24:38.400
+in a specific order, and it'll vary depending
+
+594
+00:24:38.400 --> 00:24:40.360
+on which language you use, but generally it's looking
+
+595
+00:24:40.360 --> 00:24:43.320
+at environment variables, then your credentials file,
+
+596
+00:24:43.320 --> 00:24:45.660
+and then these metadata services.
+
+597
+00:24:45.660 --> 00:24:50.420
+So that's something to bear in mind,
+
+598
+00:24:50.420 --> 00:24:52.620
+avoid you putting secrets in environment variables
+
+599
+00:24:52.620 --> 00:24:53.780
+as always.
+
+600
+00:24:53.780 --> 00:24:57.980
+Another one to, another thing to be aware of is the STS.
+
+601
+00:24:57.980 --> 00:25:00.340
+When you're dealing with IAM, from time to time,
+
+602
+00:25:00.340 --> 00:25:03.140
+you'll see the session token service or STS pop up.
+
+603
+00:25:03.140 --> 00:25:06.700
+It's used in a lot of different places, but very briefly,
+
+604
+00:25:06.700 --> 00:25:08.740
+if you've got a federated identity, like sign on
+
+605
+00:25:08.740 --> 00:25:13.420
+with Google or maybe SAML sign on with Active Directory,
+
+606
+00:25:13.420 --> 00:25:15.920
+you can use the session token service to exchange
+
+607
+00:25:15.920 --> 00:25:19.740
+your federated identity for some AWS credentials.
+
+608
+00:25:19.740 --> 00:25:20.840
+And that's gonna be really useful.
+
+609
+00:25:20.840 --> 00:25:23.660
+It's used in SSO, but it's also used in Cognito
+
+610
+00:25:23.660 --> 00:25:27.300
+for providing access to the front end to gain direct access
+
+611
+00:25:27.300 --> 00:25:28.800
+to services on the backend.
+
+612
+00:25:30.180 --> 00:25:32.300
+You can also use it very effectively if you want to,
+
+613
+00:25:32.300 --> 00:25:35.740
+if you have a user who's authenticated in one account,
+
+614
+00:25:35.740 --> 00:25:38.300
+they can use it to get access to another account.
+
+615
+00:25:38.300 --> 00:25:43.260
+So the account you're trying to get access to can grant
+
+616
+00:25:43.260 --> 00:25:46.220
+cross account access essentially for you to assume a role
+
+617
+00:25:46.220 --> 00:25:48.580
+in that destination account.
+
+618
+00:25:48.580 --> 00:25:50.380
+And it means that you don't have to create users
+
+619
+00:25:50.380 --> 00:25:53.140
+and have credentials for every account you need to work in,
+
+620
+00:25:53.140 --> 00:25:54.460
+which would be very difficult to manage
+
+621
+00:25:54.460 --> 00:25:57.060
+and ultimately not very secure.
+
+622
+00:25:57.060 --> 00:25:59.860
+So STS allows you to do an assume role action.
+
+623
+00:25:59.860 --> 00:26:01.500
+And if you're somebody who ends up working
+
+624
+00:26:01.500 --> 00:26:04.940
+with multiple accounts, you'll end up using that explicitly
+
+625
+00:26:04.940 --> 00:26:07.660
+or implicitly one way or the other.
+
+626
+00:26:07.660 --> 00:26:10.580
+Like even in the AWS console, when you switch role
+
+627
+00:26:10.580 --> 00:26:13.740
+that will use an STS assume role under the hood.
+
+628
+00:26:13.740 --> 00:26:16.600
+So it's great because it avoids you having to create users
+
+629
+00:26:16.600 --> 00:26:18.840
+everywhere and manage lots of credentials.
+
+630
+00:26:21.120 --> 00:26:22.120
+Yeah, absolutely.
+
+631
+00:26:23.260 --> 00:26:26.140
+Do we have any final tip maybe before?
+
+632
+00:26:29.100 --> 00:26:31.180
+I think, yeah, I think at this point, right,
+
+633
+00:26:31.180 --> 00:26:33.540
+there's so many resources that are really powerful, right?
+
+634
+00:26:33.540 --> 00:26:35.500
+But one thing to mention is that we've got lots
+
+635
+00:26:35.500 --> 00:26:36.820
+of different types of policies.
+
+636
+00:26:36.820 --> 00:26:39.060
+We talked about the identity based policies.
+
+637
+00:26:39.060 --> 00:26:40.780
+We talked about resource policies.
+
+638
+00:26:40.780 --> 00:26:42.720
+You also have something called a permissions boundary,
+
+639
+00:26:42.720 --> 00:26:44.460
+which is like another set of policies
+
+640
+00:26:44.460 --> 00:26:46.500
+that can be attached to your role
+
+641
+00:26:46.500 --> 00:26:48.880
+that restrict further what that role can do.
+
+642
+00:26:48.880 --> 00:26:50.340
+Organizations sometimes use this
+
+643
+00:26:50.340 --> 00:26:53.980
+to be more, to provide more guardrails.
+
+644
+00:26:53.980 --> 00:26:56.060
+And then you also have the service control policy,
+
+645
+00:26:56.060 --> 00:26:58.860
+which is like the organization level control
+
+646
+00:26:58.860 --> 00:27:01.420
+that says within this account or this set of accounts,
+
+647
+00:27:01.420 --> 00:27:04.100
+you cannot do these things.
+
+648
+00:27:04.100 --> 00:27:05.700
+It's something, it's the kind of policy actually
+
+649
+00:27:05.700 --> 00:27:09.140
+where you would encounter deny quite often.
+
+650
+00:27:09.140 --> 00:27:11.140
+And all of these things work together.
+
+651
+00:27:11.140 --> 00:27:12.620
+It's generally like an intersection
+
+652
+00:27:12.620 --> 00:27:14.580
+of all of the different policies,
+
+653
+00:27:14.580 --> 00:27:15.980
+but there's a really good document
+
+654
+00:27:15.980 --> 00:27:19.820
+called policy evaluation logic on the AWS docs,
+
+655
+00:27:19.820 --> 00:27:20.820
+which we can link to.
+
+656
+00:27:20.820 --> 00:27:23.020
+And it's got a nice diagram of the whole flow,
+
+657
+00:27:24.100 --> 00:27:27.360
+how at the start it results in an allow or deny.
+
+658
+00:27:28.760 --> 00:27:31.580
+We've got some other really useful references
+
+659
+00:27:31.580 --> 00:27:32.400
+in the show notes.
+
+660
+00:27:32.400 --> 00:27:35.140
+I want to call out a few videos though, finally.
+
+661
+00:27:35.140 --> 00:27:37.940
+There's quite a good one on IAM core concepts.
+
+662
+00:27:37.940 --> 00:27:40.800
+If you want to just explore the fundamentals there,
+
+663
+00:27:40.800 --> 00:27:43.580
+it's on, it's a Be a Better Dev YouTube channel.
+
+664
+00:27:43.580 --> 00:27:45.120
+And we've also got two really good ones,
+
+665
+00:27:45.120 --> 00:27:46.980
+which I tend to share quite frequently.
+
+666
+00:27:46.980 --> 00:27:50.500
+One from Becky Weiss at AWS about AWS identity
+
+667
+00:27:50.500 --> 00:27:51.940
+and another one from Bridget Johnson,
+
+668
+00:27:51.940 --> 00:27:53.860
+which is a really good one called
+
+669
+00:27:53.860 --> 00:27:57.420
+becoming an IAM policy master in 60 minutes or less.
+
+670
+00:27:57.420 --> 00:28:00.740
+I think if you understand everything in those videos,
+
+671
+00:28:00.740 --> 00:28:05.740
+you will truly be in the top 5% of IAM users in the world,
+
+672
+00:28:06.060 --> 00:28:09.160
+because there's just so many useful tips in them.
+
+673
+00:28:09.160 --> 00:28:10.900
+So thanks very much for joining us
+
+674
+00:28:10.900 --> 00:28:13.500
+and for sharing and liking these episodes.
+
+675
+00:28:13.500 --> 00:28:15.100
+Please send us your feedback
+
+676
+00:28:15.100 --> 00:28:17.380
+and let us know what else you'd like to learn
+
+677
+00:28:17.380 --> 00:28:19.180
+about security or any other topic.
+
+678
+00:28:19.180 --> 00:28:21.260
+And we'll see you in the next episode.
+
+679
+00:28:21.260 --> 00:28:37.180
+["Dance of the Sugar Plum Fairy"]

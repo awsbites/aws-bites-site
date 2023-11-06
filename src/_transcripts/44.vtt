@@ -1,0 +1,1281 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:05.520
+Automated continuous build and continuous delivery are must-haves when you're building modern applications on AWS.
+
+2
+00:00:05.520 --> 00:00:11.280
+To achieve this you've got numerous options including third-party providers like GitHub Actions and CircleCI
+
+3
+00:00:11.280 --> 00:00:14.320
+and the AWS services CodePipeline and CodeBuild.
+
+4
+00:00:14.320 --> 00:00:19.280
+This is our topic for today so you're going to hear about what CodePipeline offers and how to set it up,
+
+5
+00:00:19.280 --> 00:00:21.920
+what are the trade-offs and when to choose one over the other,
+
+6
+00:00:21.920 --> 00:00:27.840
+and when you should look outside AWS to a third-party provider for continuous deployment.
+
+7
+00:00:27.840 --> 00:00:32.000
+We'll also talk about the rise of GitHub Actions and when to choose it and all the features it offers.
+
+8
+00:00:32.000 --> 00:00:36.400
+My name is Eoin, I'm joined by Luciano and this is the AWS Bites Podcast.
+
+9
+00:00:45.200 --> 00:00:51.360
+Okay Luciano, regardless of the service we're trying to pick for continuous integration, continuous deployment, continuous build,
+
+10
+00:00:51.360 --> 00:00:54.400
+what are we trying to achieve? Maybe we should talk about that first.
+
+11
+00:00:54.400 --> 00:01:00.240
+Yeah, I think there are a number of use cases when it comes to discussing topics such as CI and CD.
+
+12
+00:01:00.240 --> 00:01:05.840
+And so let's try to come up with a list of the different things that you might want to do with this kind of technology.
+
+13
+00:01:05.840 --> 00:01:09.920
+So first of all you might want to do something we can define as automated build.
+
+14
+00:01:09.920 --> 00:01:14.960
+For instance you have a repository with all your source code, you do things on the repository, I don't know,
+
+15
+00:01:14.960 --> 00:01:18.400
+you open a PR, you merge that PR or you just push a commit.
+
+16
+00:01:18.400 --> 00:01:21.680
+You might want something to happen as a reaction to that event
+
+17
+00:01:21.680 --> 00:01:25.600
+and that reaction is probably building your code and doing something with it,
+
+18
+00:01:25.600 --> 00:01:31.280
+I don't know, running tests, making sure that your code is okay and conform to certain standards that you define.
+
+19
+00:01:31.920 --> 00:01:36.960
+Then another aspect is releasing a specific artifact.
+
+20
+00:01:36.960 --> 00:01:42.800
+So for this is maybe something you would do for instance when you create a tag on your repository,
+
+21
+00:01:42.800 --> 00:01:47.440
+you can say I don't know this is version 1.5 and then at that point you want to kind of
+
+22
+00:01:47.440 --> 00:01:54.080
+archive that particular version and package it in such a way that it can be easily deployed to a particular environment.
+
+23
+00:01:54.640 --> 00:02:01.440
+Then there is the deploying itself where it's basically you take one artifact and you all the code inside it,
+
+24
+00:02:01.440 --> 00:02:07.440
+somehow you deploy that to an environment that might mean, I don't know, if it's defining containers,
+
+25
+00:02:07.440 --> 00:02:12.560
+probably those containers the artifact is going to be an image in a registry and you might want to publish
+
+26
+00:02:12.560 --> 00:02:21.280
+and run a task for instance on ECS using that image or maybe it's a serverless function so you might want to deploy that function and run it.
+
+27
+00:02:21.280 --> 00:02:26.080
+Or sometimes it can be even something more complex, it can be, I don't know, an entire cloud formation stack
+
+28
+00:02:26.080 --> 00:02:30.240
+and you want to apply all the changes in that stack. So it's really up to you to define the
+
+29
+00:02:30.240 --> 00:02:35.760
+granularity but the concept is you build, you create an artifact and you try to deploy that artifact.
+
+30
+00:02:36.320 --> 00:02:40.560
+And there are other things to keep in mind, for instance we want to be, most likely we want to be
+
+31
+00:02:40.560 --> 00:02:45.120
+using different environments and different applications so how do you manage maybe different
+
+32
+00:02:45.120 --> 00:02:51.760
+AWS accounts, one per environment, how do you manage multiple applications running in AWS accounts?
+
+33
+00:02:51.760 --> 00:02:56.400
+We spoke before should you use multiple accounts for multiple applications, multiple accounts for
+
+34
+00:02:56.400 --> 00:03:01.040
+multiple environments, so you might have a very large matrix of combinations there and your CI CD
+
+35
+00:03:01.040 --> 00:03:06.960
+needs to be able to interact with all of those. And then there are other two aspects that I would
+
+36
+00:03:06.960 --> 00:03:13.200
+classify as observability and security. So on one side you want to know exactly what's going on, so
+
+37
+00:03:13.200 --> 00:03:18.320
+if you are doing a deployment what are the different steps and if something goes wrong at which step
+
+38
+00:03:18.320 --> 00:03:23.680
+did it go wrong and you should be able to see logs and react to whatever is going wrong. And finally
+
+39
+00:03:23.680 --> 00:03:30.080
+in terms of security that's kind of a very broad term but in general we want to make sure that our
+
+40
+00:03:30.080 --> 00:03:35.280
+CI CD doesn't get compromised, doesn't become kind of an attack surface for people to just, what if
+
+41
+00:03:35.280 --> 00:03:40.080
+they can steal credentials for instance and then they can impersonate your CI CD and do all the
+
+42
+00:03:40.080 --> 00:03:45.200
+things that your CI CD can do. So there needs to be also a certain level of concern around making
+
+43
+00:03:45.200 --> 00:03:51.520
+sure that your CI CD infrastructure is as secure as possible because generally that layer has a lot
+
+44
+00:03:51.520 --> 00:03:56.320
+of permissions because it's literally spinning up new infrastructure, changing existing infrastructure
+
+45
+00:03:56.320 --> 00:04:02.400
+and so on. So yeah I think that covers more or less what is the need but speaking of AWS,
+
+46
+00:04:02.400 --> 00:04:06.880
+how do we do all this stuff because I know there are so many different services to do all these
+
+47
+00:04:06.880 --> 00:04:11.920
+different things and I often get confused about which service does what. So should we try to do
+
+48
+00:04:11.920 --> 00:04:16.320
+Erica?
+
+49
+00:04:16.320 --> 00:04:22.080
+Yeah in the AWS console if you go to developer tools you see four or five different services and the main ones there are CodeCommit and that's kind of their alternative to GitHub and
+
+50
+00:04:22.080 --> 00:04:26.320
+Bitbucket and the like. So we're not really going to cover that here since we're assuming people are
+
+51
+00:04:26.320 --> 00:04:31.200
+using something like Bitbucket or GitHub. We've also got CodeDeploy and this is a special
+
+52
+00:04:31.200 --> 00:04:36.240
+service for deploying to EC2 or ECS or Lambda. We talked about it a little bit before you can do
+
+53
+00:04:36.240 --> 00:04:40.640
+blue-green deployments with it. That can be used regardless of whether you used CodePipeline or a
+
+54
+00:04:40.640 --> 00:04:46.320
+third-party service. So let's also park that to one side. The other two main services are CodeBuild
+
+55
+00:04:46.320 --> 00:04:51.200
+and CodePipeline. So those are really I guess what we're going to focus on today. CodeBuild is like
+
+56
+00:04:51.200 --> 00:04:56.720
+the basic building block and it compares them a little bit to what CircleCI or Travis or other
+
+57
+00:04:56.720 --> 00:05:03.440
+similar services offer in that you can declare a YAML file called a build spec and that allows you
+
+58
+00:05:03.440 --> 00:05:09.360
+to declaratively write all your build steps and CodeBuild will execute them for you. Because it's
+
+59
+00:05:09.360 --> 00:05:13.760
+an AWS service you always need to kind of create a resource for that to work so you also before that
+
+60
+00:05:13.760 --> 00:05:18.560
+works you have to create a CodeBuild project and associate it with a source like GitHub or Bitbucket.
+
+61
+00:05:19.200 --> 00:05:22.960
+Then you can pick a container image for your project to run in and you give it an IAM role
+
+62
+00:05:22.960 --> 00:05:27.680
+to use. You can configure the size of the instance. All in all I think CodeBuild is a pretty good
+
+63
+00:05:27.680 --> 00:05:35.680
+service as a basic build execution environment but it's I would say no frills. It doesn't provide a
+
+64
+00:05:35.680 --> 00:05:42.080
+particularly good UI or anything. CodePipeline then is like a continuous deployment or continuous
+
+65
+00:05:42.080 --> 00:05:46.400
+delivery workflow service so it allows you to chain multiple stages and actions together.
+
+66
+00:05:46.400 --> 00:05:51.760
+So you can use it together with CodeBuild and it will allow you to orchestrate multiple steps.
+
+67
+00:05:51.760 --> 00:05:58.880
+So in CodePipeline you have this concept of stages so each phase of your workflow is called
+
+68
+00:05:58.880 --> 00:06:04.960
+a stage and each stage can have multiple actions and actions can be run in parallel or in sequence.
+
+69
+00:06:04.960 --> 00:06:08.880
+There's lots of different actions you can do. So you've got source actions and then you've got
+
+70
+00:06:09.920 --> 00:06:16.400
+so source actions can come from GitHub, it can come from S3, ECR, CodeCommit and then for
+
+71
+00:06:16.400 --> 00:06:20.880
+actually doing stuff based on that source you can run a CodeBuild job, you can even run Django,
+
+72
+00:06:20.880 --> 00:06:25.280
+you can even run Jenkins and there's also lots of third-party providers as well including lots of
+
+73
+00:06:25.280 --> 00:06:33.520
+providers for running specific tests. So it's well integrated into lots of AWS services but also
+
+74
+00:06:33.520 --> 00:06:39.680
+third-party services and it then allows you to deploy with CodeDeploy out to ECS, you can deploy
+
+75
+00:06:39.680 --> 00:06:44.880
+out to S3, Elastic Beanstalk and as well as that if you really want to do custom stuff you can
+
+76
+00:06:44.880 --> 00:06:50.080
+invoke Lambda from CodePipeline or Step Function. I've spent actually a lot of time creating
+
+77
+00:06:50.080 --> 00:06:55.760
+pipelines based on CodePipeline and CodeBuild and that might be a little bit of a hint as to where
+
+78
+00:06:55.760 --> 00:07:00.400
+these services fit because you do end up spending a lot of time. We do have an open source project
+
+79
+00:07:00.400 --> 00:07:05.440
+called SlickStarter which is like a serverless template project that you can use for exploring
+
+80
+00:07:05.440 --> 00:07:09.760
+lots of different things you need to implement when you are creating a serverless project. One
+
+81
+00:07:09.760 --> 00:07:17.200
+of those is continuous deployment and in there there's a CICD folder that has a CDK project that
+
+82
+00:07:17.200 --> 00:07:22.800
+creates a CodePipeline and CodeBuild with all of the build phases, integration tests and multiple
+
+83
+00:07:22.800 --> 00:07:29.760
+stages to multiple environments. It supports cross-account deployment and yeah that's probably
+
+84
+00:07:29.760 --> 00:07:34.080
+a good example because to achieve something like that you do need to spend quite a lot of time but
+
+85
+00:07:34.800 --> 00:07:39.520
+let's maybe talk about the advantages there first. So with CodePipeline you know everything is well
+
+86
+00:07:39.520 --> 00:07:45.360
+integrated on AWS that's always going to be the advantage of picking the AWS native option. You
+
+87
+00:07:45.360 --> 00:07:49.440
+can also maintain the pipeline code using the same infrastructure as code be it Terraform or
+
+88
+00:07:49.440 --> 00:07:53.920
+CloudFormation or CDK as you do for the rest of the application so you can manage all those
+
+89
+00:07:53.920 --> 00:07:59.600
+changes together and the way you do it is it's fairly consistent right everything is an AWS
+
+90
+00:07:59.600 --> 00:08:07.360
+resource. It also kind of scales well right you've got the elasticity of AWS with your
+
+91
+00:08:08.480 --> 00:08:13.520
+with your CodeBuild jobs and you know it's it's you can get notifications as well so you get
+
+92
+00:08:13.520 --> 00:08:18.960
+SNS notifications on your code pipeline you can integrate that to Slack using AWS chatbot.
+
+93
+00:08:18.960 --> 00:08:24.480
+It's obviously quite well integrated into the AWS ecosystem but having used it quite a lot on
+
+94
+00:08:24.480 --> 00:08:28.400
+multiple projects I still think there's lots of areas where CodePipeline and CodeBuild could be
+
+95
+00:08:28.400 --> 00:08:34.560
+improved right so the main disadvantages I'd say would be like there's a steep learning curve right
+
+96
+00:08:34.560 --> 00:08:38.240
+compared to the alternatives you you kind of have to design and deploy the CodeBuild projects
+
+97
+00:08:38.240 --> 00:08:43.120
+understand how the services work it's never as easy as you will think you will always underestimate
+
+98
+00:08:43.120 --> 00:08:47.520
+the amount of time you need to create these things. Unsurprisingly the user experience for
+
+99
+00:08:47.520 --> 00:08:53.200
+both services is not as great as the alternatives you don't get like a nice single pane of glass for
+
+100
+00:08:53.200 --> 00:08:58.720
+all your pipelines with expandable sections that you can quickly go into and go out of.
+
+101
+00:08:59.360 --> 00:09:04.640
+CodePipeline's overview for the execution is pretty good overview but it doesn't show you
+
+102
+00:09:04.640 --> 00:09:09.920
+like multiple workflows very well if you want to drill drill down deeper you end up clicking
+
+103
+00:09:09.920 --> 00:09:16.080
+across to CodeBuild and then the user experience is just a big log. There can also be a performance
+
+104
+00:09:16.080 --> 00:09:20.240
+problem I'd say so if you've got multiple CodePipeline stages because you're trying to
+
+105
+00:09:20.240 --> 00:09:26.000
+break it up into lots of distinct steps the transition step between each one can be a little
+
+106
+00:09:26.000 --> 00:09:31.280
+bit slow now they did improve the performance of this but you still use S3 as an intermediate
+
+107
+00:09:31.280 --> 00:09:37.760
+storage between your stages so there's always a push to S3 at the end of stage and a pull from
+
+108
+00:09:37.760 --> 00:09:44.240
+S3 at the end of the next stage and if you've got you know a substantial amount of data source code
+
+109
+00:09:44.240 --> 00:09:48.320
+being passed around which is quite common these days that can really slow down your execution.
+
+110
+00:09:49.760 --> 00:09:53.840
+So that's a bit of a problem right because build and deployment speed is important it is really
+
+111
+00:09:53.840 --> 00:09:58.320
+important for developer productivity I would say and we should always be trying to get that
+
+112
+00:09:58.320 --> 00:10:04.640
+deployment time down as low as possible. I have seen people overcome that problem by like just
+
+113
+00:10:04.640 --> 00:10:08.640
+getting rid of CodePipeline altogether and just using CodeBuild but the problem there is that
+
+114
+00:10:08.640 --> 00:10:14.000
+when you're just using CodeBuild you lose that structured workflow everything is running one job
+
+115
+00:10:14.000 --> 00:10:18.720
+you do have distinct phases but you don't get any visualization of that really it's just
+
+116
+00:10:18.720 --> 00:10:22.800
+they're all just steps that are logged out to a log file. The last kind of disadvantage I'd say
+
+117
+00:10:22.800 --> 00:10:27.840
+is that source providers be it from GitHub or elsewhere are quite clunky to set up with CodeBuild
+
+118
+00:10:27.840 --> 00:10:32.000
+and CodePipeline. Setting up authentication there's different ways of doing it in CodeBuild
+
+119
+00:10:32.000 --> 00:10:38.960
+and CodePipeline they also have a reasonably new thing called connections which is a little bit
+
+120
+00:10:38.960 --> 00:10:43.440
+better but you still can't have triggers in CodePipeline from multiple branches.
+
+121
+00:10:43.440 --> 00:10:47.840
+Everything else out there allows you to specify like a glob pattern for your branches
+
+122
+00:10:49.040 --> 00:10:53.920
+to trigger from PRs. CodeBuild allows you to do that but CodePipeline does not. People end up then
+
+123
+00:10:53.920 --> 00:11:00.160
+using a CodeBuild job at the start which uses a wildcard pattern on your branches and then this
+
+124
+00:11:00.160 --> 00:11:04.000
+triggers the CodePipeline and it's just not as seamless as you would want. It seems like we've
+
+125
+00:11:04.000 --> 00:11:11.280
+talked a lot about the shortcomings now of them. How does the alternative compare? Do you want to
+
+126
+00:11:11.280 --> 00:11:16.880
+go through what GitHub actions is like in comparison?
+
+127
+00:11:16.880 --> 00:11:23.040
+Yeah let's talk specifically about GitHub actions because seems to be kind of the main contender in the market even outside AWS
+
+128
+00:11:23.040 --> 00:11:27.680
+just because even in open source everyone is hosting projects or almost everyone at least is
+
+129
+00:11:27.680 --> 00:11:32.160
+hosting projects on GitHub and everyone is starting to take more and more advantage of the built-in
+
+130
+00:11:32.160 --> 00:11:37.360
+GitHub actions to do all the automations around their open source projects so it kind of makes
+
+131
+00:11:37.360 --> 00:11:42.720
+sense to also use all that knowledge to try to deploy applications in all sorts of different
+
+132
+00:11:42.720 --> 00:11:48.560
+environments including AWS and the experience is actually fairly simple in my opinion. I've been
+
+133
+00:11:48.560 --> 00:11:55.040
+using this extensively for open source not as much with AWS but for open source I have a very good
+
+134
+00:11:55.040 --> 00:12:00.800
+grasp on what is the process to kind of create a workflow and make it run and it always starts with
+
+135
+00:12:00.800 --> 00:12:06.400
+a YAML file that is generally created in the root folder of your repository in a actually it's not
+
+136
+00:12:06.400 --> 00:12:10.880
+in the root folder there is a special folder called.github and in that folder you can create
+
+137
+00:12:10.880 --> 00:12:16.400
+another subfolder called workflows and then every YAML file that you define in there is kind of
+
+138
+00:12:16.400 --> 00:12:21.200
+automatically becomes a pipeline or a workflow if you wish that will be executed depending on the
+
+139
+00:12:21.200 --> 00:12:28.080
+condition that you specify inside of your YAML file so this is kind of what makes that integration
+
+140
+00:12:28.080 --> 00:12:33.520
+almost seamless because you don't really have to go and call APIs or click around the UI to enable
+
+141
+00:12:34.160 --> 00:12:38.880
+a specific workflow you just create a file and as long that file exists and it's well formatted
+
+142
+00:12:38.880 --> 00:12:43.440
+your workflow exists and will be executed according to what you specified inside the file
+
+143
+00:12:44.480 --> 00:12:50.240
+in terms of AWS of course there is a step to integrate the two systems together so GitHub
+
+144
+00:12:50.240 --> 00:12:55.680
+needs to be aware of a particular role that needs to be assumed in order to have permissions to do
+
+145
+00:12:55.680 --> 00:13:00.800
+all sorts of different actions and this is something that can be done using OIDC provider
+
+146
+00:13:00.800 --> 00:13:06.000
+and used to be a little bit more cumbersome in the past but I think now is a little bit more
+
+147
+00:13:06.000 --> 00:13:10.800
+simplified so maybe we can go in details in another dedicated episode but yeah basically
+
+148
+00:13:10.800 --> 00:13:15.120
+you create an OIDC provider for GitHub actions and at that point GitHub actions is able to
+
+149
+00:13:15.120 --> 00:13:20.960
+assume a role and all the permissions related to that role so in terms of why is this better we
+
+150
+00:13:20.960 --> 00:13:26.240
+already mentioned that looks a little bit easier to define our workflow and make it run because
+
+151
+00:13:26.240 --> 00:13:32.800
+it's just creating a YAML file with a quite simple syntax but there are a lot more advantages and
+
+152
+00:13:33.520 --> 00:13:38.720
+first of all that is already like if you are already using GitHub as a source your repositories
+
+153
+00:13:38.720 --> 00:13:43.840
+are in GitHub that that's literally it like you don't need to create another source or another
+
+154
+00:13:43.840 --> 00:13:47.760
+connection or you just create files in the same repository and that's it so that that integration
+
+155
+00:13:47.760 --> 00:13:54.080
+is very seamless and the other thing is that it's very easy to have conditionals for instance if a
+
+156
+00:13:54.080 --> 00:13:59.760
+particular step is something that maybe you want to run only in the main branch or maybe you want
+
+157
+00:13:59.760 --> 00:14:05.760
+to run if that commit was a tag you can have all sorts of conditions actually the language is very
+
+158
+00:14:05.760 --> 00:14:12.720
+flexible that is very very easy to do there is literally an if attribute in the YAML statements
+
+159
+00:14:12.720 --> 00:14:17.360
+and that if attribute has its own expression language and it is quite simple but at the same
+
+160
+00:14:17.360 --> 00:14:22.640
+time powerful enough for most use cases and another thing that i really like that is also
+
+161
+00:14:22.640 --> 00:14:28.800
+very simple maybe in comparison with code build and code pipeline is the matrix feature so for
+
+162
+00:14:28.800 --> 00:14:33.840
+instance a common use case this is more maybe when you are building a library you might want to run
+
+163
+00:14:33.840 --> 00:14:38.800
+the unit tests against different versions of your runtime let's say it's an OJS project probably you
+
+164
+00:14:38.800 --> 00:14:45.280
+want to run the tests against i don't know node 14, node 16, node 18 just to make sure that people
+
+165
+00:14:45.280 --> 00:14:50.080
+using different versions of Node.js can use that particular library without problems this is
+
+166
+00:14:50.080 --> 00:14:55.920
+extremely easy to do with GitHub actions because you literally have to define a property that says
+
+167
+00:14:55.920 --> 00:15:00.400
+i have these three attributes that are variations of my pipeline and the attributes will be
+
+168
+00:15:01.120 --> 00:15:08.400
+node 16, 18 and maybe 14 and then you can use these variables inside your action for instance
+
+169
+00:15:08.400 --> 00:15:12.480
+you're probably going to have a setup step that says configure the version of Node.js and use that
+
+170
+00:15:12.480 --> 00:15:19.120
+variable and at that point um GitHub action is going to take all the variations that you specify
+
+171
+00:15:19.120 --> 00:15:23.360
+for every type of attribute for instance Node.js versions you might have also a imperative system
+
+172
+00:15:23.360 --> 00:15:27.520
+it's going to do a matrix with all of them and basically it's going to execute all the variations
+
+173
+00:15:27.520 --> 00:15:32.560
+for you and the UI is actually very sleek in making you see all the different variations that
+
+174
+00:15:32.560 --> 00:15:37.200
+are running by default they are executed in parallel so the amount of configuration is very
+
+175
+00:15:37.200 --> 00:15:43.360
+minimal and the result is quite powerful the other thing that is very nice is this idea of
+
+176
+00:15:44.960 --> 00:15:52.560
+third-party actions that is basically for most cases you might want to do something that is
+
+177
+00:15:52.560 --> 00:15:58.560
+very common for instance setup Node.js or authenticate against AWS like in in other
+
+178
+00:15:58.560 --> 00:16:05.200
+CI systems you need to write your own bash script using specific CLI utilities to do certain things
+
+179
+00:16:05.200 --> 00:16:10.160
+and that's always either a copy paste which is a little bit annoying or something that you need
+
+180
+00:16:10.160 --> 00:16:14.560
+to figure out every single time and then you end up copy pasting from your previous repository
+
+181
+00:16:15.600 --> 00:16:20.160
+using GitHub third-party actions basically what you do is like you are importing a module and then
+
+182
+00:16:20.160 --> 00:16:26.000
+you say do this thing and use this particular configuration for instance the the action called
+
+183
+00:16:26.000 --> 00:16:31.040
+setup Node.js is either you say reuse this third-party action which is provided by GitHub
+
+184
+00:16:31.040 --> 00:16:35.840
+itself and say you only need to specify the version of Node.js that you want there are of
+
+185
+00:16:35.840 --> 00:16:41.760
+course other parameters but it's literally import this module initialize it with this configuration
+
+186
+00:16:41.760 --> 00:16:45.200
+I don't want to know exactly what's happening behind the scene but I know that it's going to
+
+187
+00:16:45.200 --> 00:16:50.080
+solve this particular use case that might also be a little bit of a problem because you might start
+
+188
+00:16:50.080 --> 00:16:55.360
+to think oh what about supply chain attacks what if I'm using an action that maybe is not
+
+189
+00:16:55.360 --> 00:17:00.800
+trustworthy and people can use that as an attack vector this is definitely a concern I'm not sure
+
+190
+00:17:00.800 --> 00:17:09.200
+of course but the good news is that GitHub has 50 official actions that they maintain themselves
+
+191
+00:17:09.200 --> 00:17:14.880
+and these are the most commonly used ones for instance setup node setup java all the basic
+
+192
+00:17:14.880 --> 00:17:19.520
+building blocks that you might find on all sorts of different programming languages and runtimes
+
+193
+00:17:19.520 --> 00:17:25.360
+but they also do this thing called verified by GitHub where the most commonly used actions they
+
+194
+00:17:25.360 --> 00:17:30.560
+actually audit them to certain extent I'm not really sure to what degree but they will tell you
+
+195
+00:17:30.560 --> 00:17:35.440
+we kind of spend some time and this is trustworthy so if you see that badge you might be a little bit
+
+196
+00:17:35.440 --> 00:17:41.760
+more confident that it's not gonna create security problems for you I still recommend you verify the
+
+197
+00:17:41.760 --> 00:17:46.560
+source code because all these actions are actually open source so it's actually another repository
+
+198
+00:17:46.560 --> 00:17:52.160
+on GitHub so you can literally read all the code they generally run as containers so what happens
+
+199
+00:17:52.160 --> 00:17:57.120
+is that they will pull the code from that repository and run it as part of your workflow
+
+200
+00:17:57.120 --> 00:18:02.000
+so you can literally see exactly what's going to happen and you can also tag specific commits on
+
+201
+00:18:02.000 --> 00:18:05.920
+that repository if you really want to be sure you are running a specific version that you have been
+
+202
+00:18:05.920 --> 00:18:13.040
+auditing so this is just as a suggestion if you if you want to be really cautious about importing
+
+203
+00:18:13.040 --> 00:18:19.760
+third-party source code into your pipelines what else I think oh yeah there is another interesting
+
+204
+00:18:19.760 --> 00:18:27.600
+point regarding self-hosted runners so in general when you use GitHub actions the pipeline is
+
+205
+00:18:27.600 --> 00:18:32.400
+running on GitHub infrastructure and of course that comes with a cost that maybe will detail a
+
+206
+00:18:32.400 --> 00:18:38.560
+little bit later but you can if you don't want to run your code your pipelines in GitHub self-host
+
+207
+00:18:38.560 --> 00:18:43.360
+in GitHub runners you can self-host the runners yourself and there is like an agent that you can
+
+208
+00:18:43.360 --> 00:18:48.400
+install in anywhere where you want to run your code it might even be I don't know a raspberry pi
+
+209
+00:18:48.400 --> 00:18:53.040
+connected to the internet if you really want to and at that point you just need to register the
+
+210
+00:18:53.040 --> 00:18:59.200
+workers with a particular project and GitHub will dispatch the the workload to to this
+
+211
+00:19:00.640 --> 00:19:02.400
+managed runners that you manage yourself
+
+212
+00:19:04.320 --> 00:19:12.080
+um yeah I think that's all we have so maybe in terms of disadvantages let's see what we can say
+
+213
+00:19:12.080 --> 00:19:18.960
+uh in comparison with CodePipeline of course so yeah we said that there are a lot of things that
+
+214
+00:19:18.960 --> 00:19:25.120
+are simplified because just the user experience of GitHub actions is is different from what you
+
+215
+00:19:25.120 --> 00:19:29.680
+get with CodePipeline but at the same time you need to do this additional step of making sure
+
+216
+00:19:29.680 --> 00:19:35.520
+that credentials are actually set up correctly and that you configure this OIDC provider to allow
+
+217
+00:19:35.520 --> 00:19:43.120
+GitHub actions to authenticate against your AWS accounts yeah um if you use multiple environments
+
+218
+00:19:43.120 --> 00:19:50.320
+that comes with a host so also that's something to keep in mind some people complain that
+
+219
+00:19:52.080 --> 00:19:58.240
+is not the most reliable service it has been going down a few times and even if you even if you use
+
+220
+00:19:58.240 --> 00:20:03.920
+your own workers that if the let's call it the data plane I don't know if it's the most correct
+
+221
+00:20:03.920 --> 00:20:08.480
+terminology but the orchestration plane whatever you want to call it if that one goes down your
+
+222
+00:20:08.480 --> 00:20:14.720
+workers on your own infrastructure are not getting triggered anyway so that that's also another case
+
+223
+00:20:14.720 --> 00:20:22.080
+where you are not 100% in control and also self-hosted runners are they have some quirks
+
+224
+00:20:22.080 --> 00:20:27.680
+I heard people complaining about they are also not reliable in different ways and they seem to
+
+225
+00:20:27.680 --> 00:20:35.680
+be a little bit different from what you get in the hosted the managed GitHub runners in in a sense
+
+226
+00:20:35.680 --> 00:20:42.000
+that there are some subtle differences in behaviors and it's not obvious when they appear so your
+
+227
+00:20:42.000 --> 00:20:46.880
+mileage might vary but be careful if you use the self-hosted runners make sure you test them
+
+228
+00:20:46.880 --> 00:20:52.400
+
+
+229
+00:20:52.400 --> 00:20:57.680
+because it might not be 100% the same experience you get with the GitHub runners yeah it's probably a good idea I suppose just to try and use the managed runners where possible unless for some
+
+230
+00:20:57.680 --> 00:21:02.880
+
+
+231
+00:21:02.880 --> 00:21:07.760
+compliance reason you need to keep those that build running on premise and then we can also talk very quickly about pricing so if you're if you're doing an open source project this is
+
+232
+00:21:07.760 --> 00:21:13.600
+actually the best part it's totally free like if you're building a library and this library is
+
+233
+00:21:14.640 --> 00:21:19.200
+your repository is public you can build as much as you want and it's literally free
+
+234
+00:21:19.200 --> 00:21:23.920
+so this is actually really nice because it gives you an opportunity to experiment with
+
+235
+00:21:23.920 --> 00:21:28.960
+GitHub actions without having to worry too much and it's funny that you can even do like scheduled
+
+236
+00:21:30.640 --> 00:21:36.960
+executions for instance for the AWS bytes website what we do is every Friday at midnight if we have
+
+237
+00:21:36.960 --> 00:21:41.760
+a new episode coming that will be released that day the website automatically build itself and
+
+238
+00:21:41.760 --> 00:21:47.040
+it will show the new episode and this is something we do entirely for free because the whole website
+
+239
+00:21:47.040 --> 00:21:52.960
+is open source in a public repository so GitHub gives us all that service for free so that can be
+
+240
+00:21:52.960 --> 00:21:57.600
+very nice in different ways but of course if you are building a startup you are not going to
+
+241
+00:21:57.600 --> 00:22:03.360
+publish probably all your source code publicly right so what happens when you need something
+
+242
+00:22:03.360 --> 00:22:08.800
+private something more enterprisey you actually the pricing is really interesting because on
+
+243
+00:22:08.800 --> 00:22:12.400
+GitHub it's like you have a bunch of different services like repositories
+
+244
+00:22:12.400 --> 00:22:18.720
+GitHub actions I think maybe even copilots now as part of all the different services that they offer
+
+245
+00:22:18.720 --> 00:22:25.120
+and you don't buy them like individually it's kind of a one plan where you pay seats for developers
+
+246
+00:22:25.120 --> 00:22:30.160
+and you get access to a certain amount of features for all the services and in the case of
+
+247
+00:22:31.280 --> 00:22:38.880
+GitHub actions you get 3 000 minutes per month I think per seat and that seat is 45 dollars per year
+
+248
+00:22:38.880 --> 00:22:44.160
+so my understanding is that if you need more than 3 000 minutes of build time this is of course
+
+249
+00:22:44.160 --> 00:22:49.840
+using their own workers the GitHub workers you probably have to buy more seats so buying more
+
+250
+00:22:49.840 --> 00:22:54.720
+seats will give access to more developers but this is going to give you more build minutes yeah I'm
+
+251
+00:22:54.720 --> 00:23:00.640
+
+
+252
+00:23:00.640 --> 00:23:05.120
+not sure I'm a big fan of that just because I mean why why is the number of builds going to be tied to the number of developers it seems a little bit like those those things aren't necessarily going
+
+253
+00:23:05.120 --> 00:23:10.960
+to scale linearly I mean I would joke like everybody knows every time you add a member to
+
+254
+00:23:10.960 --> 00:23:15.680
+your team your productivity goes down anyway because you have so much more coordination to do
+
+255
+00:23:15.680 --> 00:23:20.080
+so maybe it should be the opposite anyway I digress yeah on one side I appreciate that they
+
+256
+00:23:20.080 --> 00:23:24.880
+
+
+257
+00:23:24.880 --> 00:23:29.840
+are trying to keep it simple and you don't have to worry about too many dimensions and how they can affect your pricing but at the same time it's probably true that you might have specific use
+
+258
+00:23:29.840 --> 00:23:35.280
+cases where I don't know maybe you end up paying so many seats just because you need more build time
+
+259
+00:23:35.280 --> 00:23:40.960
+but you don't really have as many developers right so yeah there are kind of implicit dimensions and
+
+260
+00:23:40.960 --> 00:23:45.840
+I guess if you happen to be in the standard use case you're probably fine but if you deviate from
+
+261
+00:23:45.840 --> 00:23:50.240
+that standard use case I don't know maybe your pricing is not going to make that much sense
+
+262
+00:23:50.240 --> 00:23:58.480
+anymore and then what else can we say there is a thing called GitHub engine that is not going to
+
+263
+00:23:58.480 --> 00:24:04.000
+say there is a thing called GitHub enterprise that is 231 dollars a year I think this is per
+
+264
+00:24:04.000 --> 00:24:11.040
+organization right not per user it's also per user per year okay and that one gives you environment
+
+265
+00:24:11.040 --> 00:24:15.600
+
+
+266
+00:24:15.600 --> 00:24:20.640
+production which I'm not really sure what that is yeah so that means if you want to have you know rules conditions that specify under what conditions can you deploy to production so you don't allow
+
+267
+00:24:20.640 --> 00:24:26.560
+everybody to create a bill that can trigger release to production those kind of conditions
+
+268
+00:24:26.560 --> 00:24:31.760
+then you need GitHub enterprise for that which is you know it's it's something that I guess a lot of
+
+269
+00:24:31.760 --> 00:24:36.880
+people might want and it's kind of unusual that you would need to go from 45 to 44 dollars a year
+
+270
+00:24:36.880 --> 00:24:41.840
+to 231 dollars a year just to get that so I get your mileage is going to vary like pricing could
+
+271
+00:24:41.840 --> 00:24:45.920
+be very work out really well for you with GitHub but it could also get expensive if you've got
+
+272
+00:24:45.920 --> 00:24:51.760
+
+
+273
+00:24:51.760 --> 00:24:57.040
+
+
+274
+00:24:57.040 --> 00:25:01.040
+long running builds with you know small startup so in comparison to all of that how does code pipeline and code build work what is the price in there I think I think it's a little bit I guess just more linear in terms of the number of pipelines and build jobs you have so code pipeline
+
+275
+00:25:01.040 --> 00:25:06.560
+is one of the simplest AWS pricing sheets out there it's a dollar per month per pipeline and
+
+276
+00:25:06.560 --> 00:25:13.440
+that's it whether it runs or not you get one free on the free tier and code build then it depends on
+
+277
+00:25:13.440 --> 00:25:17.760
+the instance size so you can configure different instance sizes the kind of standard one is general
+
+278
+00:25:17.760 --> 00:25:22.640
+one medium that's a cent a minute dollar cent per minute for Linux you can also do Windows
+
+279
+00:25:22.640 --> 00:25:27.200
+builds are more expensive you can go down as far as the smallest arm instance which is like a third
+
+280
+00:25:27.200 --> 00:25:33.440
+of a cent per minute and if you want a really massive GPU on its own it's like 65 cents per
+
+281
+00:25:33.440 --> 00:25:37.680
+minute so if it's but it's just based on the number of minutes you execute and there's there
+
+282
+00:25:37.680 --> 00:25:41.600
+are some quotas but you can get the quotas increased so I would say that it's one of the
+
+283
+00:25:41.600 --> 00:25:45.440
+advantages of code build is actually it scales pretty well I have had cases on especially on
+
+284
+00:25:45.440 --> 00:25:51.760
+new accounts where code build jobs can sometimes take a while to provision and I guess this is
+
+285
+00:25:51.760 --> 00:25:55.920
+something that will kind of come up now and again as AWS add more and more infrastructure and as
+
+286
+00:25:55.920 --> 00:26:01.200
+more people run code build jobs but I have found that sometimes even recently that it can you can
+
+287
+00:26:01.200 --> 00:26:06.400
+
+
+288
+00:26:06.400 --> 00:26:11.120
+end up waiting and prefer provisioning stuff so that's something to be mindful of yeah I was about to say that this is another kind of trade-off that with GitHub actions if you use the managed
+
+289
+00:26:11.120 --> 00:26:15.760
+runners you don't really know on what kind of hardware you are running your code so if you
+
+290
+00:26:15.760 --> 00:26:20.640
+need specific things like a GPU because I don't know if you're doing training models whatever
+
+291
+00:26:21.760 --> 00:26:26.880
+you you're not necessarily going to get a fine-tuned experience there but if you either
+
+292
+00:26:26.880 --> 00:26:31.440
+host yourself the runners then you can use whatever hardware you want but in code build
+
+293
+00:26:31.440 --> 00:26:35.760
+that's a lot more kind of obvious that you're going to pay for the compute you actually use
+
+294
+00:26:35.760 --> 00:26:40.480
+
+
+295
+00:26:40.480 --> 00:26:46.000
+but at the same time you can customize that compute as much as you want yeah that's a good point maybe it's a good point to talk about when to choose one or the over the other in summary so
+
+296
+00:26:46.000 --> 00:26:50.240
+I think maybe people have already made up their own mind based on what we discussed in the pros
+
+297
+00:26:50.240 --> 00:26:54.960
+and cons I'd say like use code build code build and code pipeline if you have a good understanding
+
+298
+00:26:54.960 --> 00:26:59.920
+of those services already and want this AWS service integrations also maybe if you're all
+
+299
+00:26:59.920 --> 00:27:04.080
+in on CDK CDK actually has something called CDK pipelines which allows you to create all these
+
+300
+00:27:04.080 --> 00:27:10.320
+things very simply for you with a self-updating pipeline we'll link in the show notes to a CDK
+
+301
+00:27:10.320 --> 00:27:15.440
+workshop which is really good it talks about how you do that but in general I'd say if you should
+
+302
+00:27:15.440 --> 00:27:19.280
+use GitHub actions if you want to reduce the amount of time developers spend on maintaining
+
+303
+00:27:19.280 --> 00:27:24.000
+the pipelines because it's just a lower barrier to entry and it's not so steep a learning curve
+
+304
+00:27:24.000 --> 00:27:27.600
+and if you don't need those specific AWS integrations code pipeline offers
+
+305
+00:27:27.600 --> 00:27:31.520
+it's I would see that more and more people are going to choose GitHub actions to do this in the
+
+306
+00:27:31.520 --> 00:27:39.440
+future so it would become the well-traveled path and code pipeline code build maybe you know it's
+
+307
+00:27:39.440 --> 00:27:44.800
+still very widely used because it's just part of all the AWS services and it's reasonably well
+
+308
+00:27:44.800 --> 00:27:50.320
+documented in terms of third-party community resources but not it will not be it's not the
+
+309
+00:27:50.320 --> 00:27:56.160
+juggernaut that GitHub is so you won't you just won't find the same level of support after that
+
+310
+00:27:56.160 --> 00:28:00.880
+yeah we're interested in everyone else's opinion also there's plenty of other third-party services
+
+311
+00:28:00.880 --> 00:28:05.040
+out there circle CI I've used in the past as well which has also been really easy to set up
+
+312
+00:28:05.040 --> 00:28:10.400
+and comparable I think in to GitHub actions in a lot of ways in terms of resources if people are
+
+313
+00:28:10.400 --> 00:28:15.760
+looking for other places to to go one of the reasons why we were inspired to talk about this
+
+314
+00:28:15.760 --> 00:28:19.600
+topic today is because Paul Swale released a really good article a couple of weeks ago
+
+315
+00:28:19.600 --> 00:28:24.880
+called why I switched from AWS code pipeline to GitHub actions it's really excellent article and
+
+316
+00:28:24.880 --> 00:28:29.680
+well worth a read we've also linked to a tutorial showing how you can set up authentication between
+
+317
+00:28:29.680 --> 00:28:36.560
+GitHub actions and building and deploying a web app to EC2 we'll also link to our previous episode
+
+318
+00:28:36.560 --> 00:28:41.760
+which is on the same theme when to use other alternatives to AWS services so please check
+
+319
+00:28:41.760 --> 00:28:45.360
+out that last episode if you haven't heard it already so thanks for listening and we'll see you
+
+320
+00:28:45.360 --> 00:29:01.840
+next time

@@ -1,0 +1,385 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:09.800
+Hello and welcome to AWS Bites, the weekly show where we answer questions about AWS in
+
+2
+00:00:09.800 --> 00:00:10.800
+about five minutes.
+
+3
+00:00:10.800 --> 00:00:14.560
+My name is Eoin and again, I'm joined by Luciano.
+
+4
+00:00:14.560 --> 00:00:18.640
+Before we get started, just make sure to give us a follow and subscribe so you can be notified
+
+5
+00:00:18.640 --> 00:00:21.900
+when we release the next episode.
+
+6
+00:00:21.900 --> 00:00:28.840
+And today's question we've got is, should you use Fargate or AWS Lambda for containers?
+
+7
+00:00:28.840 --> 00:00:30.320
+What do you think, Luciano?
+
+8
+00:00:30.320 --> 00:00:37.480
+Yeah, I think it's important to start by clarifying what do we really mean with the word container,
+
+9
+00:00:37.480 --> 00:00:41.240
+because I think there are at least two different ways of seeing a container.
+
+10
+00:00:41.240 --> 00:00:47.760
+One is when you look at a container as a packaging tool, so you put all the code in this unit
+
+11
+00:00:47.760 --> 00:00:50.400
+and there is also the idea of running that code.
+
+12
+00:00:50.400 --> 00:00:54.840
+So considering that container as a runtime environment, right?
+
+13
+00:00:54.840 --> 00:01:01.400
+So in that sense, in the context of Fargate and Lambda, if you're looking for a container
+
+14
+00:01:01.400 --> 00:01:07.720
+runtime that is maybe closer to something like Kubernetes, probably Fargate is a better
+
+15
+00:01:07.720 --> 00:01:12.040
+definition, a better service for that concept.
+
+16
+00:01:12.040 --> 00:01:17.800
+And instead, if you're looking just for something that helps you to run code without worrying
+
+17
+00:01:17.800 --> 00:01:23.040
+too much about how it's running, then maybe Lambda is a better service for that type of
+
+18
+00:01:23.040 --> 00:01:24.960
+idea.
+
+19
+00:01:24.960 --> 00:01:30.040
+And in general, also, it might make sense to think in terms of long-running services
+
+20
+00:01:30.040 --> 00:01:34.740
+rather than just run some code when an event happens.
+
+21
+00:01:34.740 --> 00:01:40.440
+So also that's another way of seeing the difference between Fargate and Lambda, because Fargate
+
+22
+00:01:40.440 --> 00:01:45.440
+is definitely more suitable for long-running services, maybe more traditional web servers
+
+23
+00:01:45.440 --> 00:01:51.440
+like, I don't know, an application written with Django or Spring Boot or Laravel, so
+
+24
+00:01:51.440 --> 00:01:57.400
+more traditional MVC frameworks where you are running a long-running server, that server
+
+25
+00:01:57.400 --> 00:02:01.960
+is accepting multiple requests, and all of that could be a unit that you are running
+
+26
+00:02:01.960 --> 00:02:04.080
+as a container on Fargate.
+
+27
+00:02:04.080 --> 00:02:10.020
+Instead, with Lambda, it gets much different, even the way you are going to write your code,
+
+28
+00:02:10.020 --> 00:02:15.460
+because you generally receive an HTTP event, there will be one Lambda dedicated to respond
+
+29
+00:02:15.460 --> 00:02:21.200
+to that HTTP request, and it's going to have to try to respond as quick as possible, because
+
+30
+00:02:21.200 --> 00:02:26.000
+of course your pricing is also related to how quick you can respond.
+
+31
+00:02:26.000 --> 00:02:32.880
+Yeah, but with that being said, I guess it might be interesting to see how do you get
+
+32
+00:02:32.880 --> 00:02:35.320
+started with both?
+
+33
+00:02:35.320 --> 00:02:37.440
+What do you think on that front?
+
+34
+00:02:37.440 --> 00:02:44.360
+Yeah, Lambda is still the more serverless kind of solution, so it's easier to get started,
+
+35
+00:02:44.360 --> 00:02:46.200
+you have less to do.
+
+36
+00:02:46.200 --> 00:02:49.840
+With Fargate, you have a lot of configuration to do, you have to create a cluster and a
+
+37
+00:02:49.840 --> 00:02:55.440
+service and you have to understand what a task definition is, and what a task is, so
+
+38
+00:02:55.440 --> 00:02:59.120
+it's a lot more of a container orchestration kind of an environment.
+
+39
+00:02:59.120 --> 00:03:03.560
+With Lambda, it's much more about run this code in response to this event.
+
+40
+00:03:03.560 --> 00:03:08.280
+So like you say, containers then are just a packaging mechanism, so if you're looking
+
+41
+00:03:08.280 --> 00:03:12.580
+for something that takes a lot of the heavy lifting off you, Lambda is definitely the
+
+42
+00:03:12.580 --> 00:03:16.480
+way to go.
+
+43
+00:03:16.480 --> 00:03:22.120
+You can simplify the Fargate deployment process like the CCS patterns in CDK, which are quite
+
+44
+00:03:22.120 --> 00:03:27.360
+useful for that, but realistically they're just hiding a lot of that complexity for you,
+
+45
+00:03:27.360 --> 00:03:31.880
+you have to kind of understand what magic is going on under the hood.
+
+46
+00:03:31.880 --> 00:03:36.240
+The other thing about the difference then between Lambda and Fargate is it's all about
+
+47
+00:03:36.240 --> 00:03:43.200
+limits, and Lambda's limits are reasonably well known, but when you deploy Lambdas with
+
+48
+00:03:43.200 --> 00:03:48.400
+a zip, you're limited to 250 megs of code, but with container images which were announced
+
+49
+00:03:48.400 --> 00:03:54.680
+last year, you have 10 gigabytes, you can put 10 gigabytes of a container image up there,
+
+50
+00:03:54.680 --> 00:03:59.480
+which really changes the number of use cases you can use for Lambda.
+
+51
+00:03:59.480 --> 00:04:03.920
+Your memory limit is also 10 gigs in Lambda now, but you don't get any disk, right, you
+
+52
+00:04:03.920 --> 00:04:09.360
+will leave temporary storage up to half a gig, but that compares with Fargate where
+
+53
+00:04:09.360 --> 00:04:15.400
+you have up to 30 gigs of memory and you can get up to 200 gigs of ephemeral storage.
+
+54
+00:04:15.400 --> 00:04:20.880
+So Fargate in that sense, in terms of memory and storage allows you to do a bit more, but
+
+55
+00:04:20.880 --> 00:04:26.680
+interestingly enough Lambda allows you to get up to six CPUs if you've got a lot of
+
+56
+00:04:26.680 --> 00:04:32.160
+concurrency going on in your compute, and Fargate's limit is actually just four CPUs,
+
+57
+00:04:32.160 --> 00:04:37.880
+so it depends on your context and you have to evaluate each thing separately.
+
+58
+00:04:37.880 --> 00:04:43.320
+So understanding that Fargate allows you to control CPU and memory separately, but with
+
+59
+00:04:43.320 --> 00:04:51.520
+Lambda you move the memory slider that also moves the CPU slider and the amount of networking
+
+60
+00:04:51.520 --> 00:04:56.680
+bandwidth you have, so it's all about your context and understanding which works best
+
+61
+00:04:56.680 --> 00:04:58.080
+for your workload.
+
+62
+00:04:58.080 --> 00:05:02.160
+So is there anything else we need to cover off when we're comparing Lambda and Fargate
+
+63
+00:05:02.160 --> 00:05:04.100
+for containers?
+
+64
+00:05:04.100 --> 00:05:10.420
+Maybe we can talk very quickly about cost, but again, it's very hard to give you a recipe
+
+65
+00:05:10.420 --> 00:05:14.400
+to calculate the cost because it really depends on the type of application you are trying
+
+66
+00:05:14.400 --> 00:05:19.640
+to run and how you build that, but I suppose in general we could say that Fargate tends
+
+67
+00:05:19.640 --> 00:05:21.760
+to be cheaper and more controllable.
+
+68
+00:05:21.760 --> 00:05:26.360
+As you said, you can control memory and CPU independently, so if you have applications
+
+69
+00:05:26.360 --> 00:05:30.760
+that don't require a lot of CPU and maybe a lot of memory or vice versa, you can probably
+
+70
+00:05:30.760 --> 00:05:37.360
+fine tune Fargate more than you could do with Lambda, so that could help you to save money.
+
+71
+00:05:37.360 --> 00:05:42.520
+Also Fargate runs on spot instances if you want to, so that's another option that will
+
+72
+00:05:42.520 --> 00:05:44.680
+help you to save a lot of money.
+
+73
+00:05:44.680 --> 00:05:50.200
+I think it's up to 70% and I think we have the article we already mentioned in a previous
+
+74
+00:05:50.200 --> 00:05:55.760
+episode that you wrote that can give you a lot more details around that, so we're going
+
+75
+00:05:55.760 --> 00:05:58.940
+to put that in the links.
+
+76
+00:05:58.940 --> 00:06:04.360
+Another thing in general, another dimension that is worth mentioning in terms of cost
+
+77
+00:06:04.360 --> 00:06:10.280
+is that Fargate, there might be a little bit more waste in terms of bootstrapping the container
+
+78
+00:06:10.280 --> 00:06:13.640
+and starting to run it and also shutting it down.
+
+79
+00:06:13.640 --> 00:06:19.120
+While with Lambda you tend to get a lot more instantaneous times for bootstrap and shutdown,
+
+80
+00:06:19.120 --> 00:06:24.800
+so if you have very short running tasks, maybe it's better to just write a Lambda and get
+
+81
+00:06:24.800 --> 00:06:27.720
+the Lambda to do that work.
+
+82
+00:06:27.720 --> 00:06:32.280
+You can also save money that way because you're going to be able to fine tune for those times
+
+83
+00:06:32.280 --> 00:06:36.520
+and save money on the bootstrap time, but again, you'll need to make an analysis and
+
+84
+00:06:36.520 --> 00:06:42.800
+see exactly how the different rules that you need to satisfy for your application will
+
+85
+00:06:42.800 --> 00:06:46.920
+affect the pricing and the characteristics of the runtime.
+
+86
+00:06:46.920 --> 00:06:49.440
+Yeah, that's a really good point.
+
+87
+00:06:49.440 --> 00:06:55.180
+With cost, always have to be aware of it and don't make assumptions about what's more expensive.
+
+88
+00:06:55.180 --> 00:06:56.520
+Your mileage may vary.
+
+89
+00:06:56.520 --> 00:06:59.000
+So we'll link to that article in the show notes again.
+
+90
+00:06:59.000 --> 00:07:04.000
+And also there's an article that we created around the topic of how Lambda container images
+
+91
+00:07:04.000 --> 00:07:09.240
+work, which might be useful for people who are coming from a traditional container deployment
+
+92
+00:07:09.240 --> 00:07:10.360
+environment.
+
+93
+00:07:10.360 --> 00:07:14.920
+So let's leave those in the show notes and wrap it up there.
+
+94
+00:07:14.920 --> 00:07:16.960
+I think that's all we've time for.
+
+95
+00:07:16.960 --> 00:07:21.960
+Please do follow us so that you get notified about the next episode and we'll catch you
+
+96
+00:07:21.960 --> 00:07:34.360
+for the next episode next week.

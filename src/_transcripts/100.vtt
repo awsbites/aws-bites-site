@@ -1,0 +1,2253 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:04.080
+AWS is all about removing undifferentiated heavy lifting.
+
+2
+00:00:04.080 --> 00:00:08.880
+As it evolves, we got more services that are meant to take away complexity and maintenance.
+
+3
+00:00:08.880 --> 00:00:12.480
+Now that we have become used to building with serverless and AWS,
+
+4
+00:00:12.480 --> 00:00:17.600
+we are beginning to take a step back and still notice that there is still plenty of complexity left.
+
+5
+00:00:17.600 --> 00:00:21.200
+While we wait for AWS to evolve further and handle more of this for us,
+
+6
+00:00:21.200 --> 00:00:24.880
+other companies are innovating and try and get there first.
+
+7
+00:00:24.880 --> 00:00:27.040
+Today, we're going to take a peek at Ampt,
+
+8
+00:00:27.040 --> 00:00:31.200
+a recently launched solution that builds on AWS but aims to take the pain away
+
+9
+00:00:31.200 --> 00:00:35.760
+and deliver the utopia of only ever focusing on the business value.
+
+10
+00:00:35.760 --> 00:00:39.760
+My name is Luciano and today I'm joined by Eoin and this is AWS Bites podcast.
+
+11
+00:00:39.760 --> 00:00:44.880
+And if you're wondering why I'm wearing a shirt, this is to celebrate our episode number 100 💯 🎉!
+
+12
+00:00:44.880 --> 00:00:46.160
+So let's get to it.
+
+13
+00:00:54.400 --> 00:00:57.520
+fourTheorem is the company that makes AWS Bites possible.
+
+14
+00:00:57.520 --> 00:01:02.720
+If you're looking for a partner to accompany on your crowd journey, check them out at fourtheorem.com.
+
+15
+00:01:03.920 --> 00:01:06.880
+Okay, Eoin, you spend a little bit of time playing with Ampt
+
+16
+00:01:06.880 --> 00:01:10.080
+and I think you have a fairly good idea at this point of what it is,
+
+17
+00:01:10.080 --> 00:01:11.360
+what is the value proposition.
+
+18
+00:01:11.360 --> 00:01:14.560
+So maybe we can start by describing high level,
+
+19
+00:01:14.560 --> 00:01:17.520
+what kind of problem does it try to solve and how it works.
+
+20
+00:01:21.600 --> 00:01:26.880
+I think we've discussed in previous episodes some of the efforts in this space and Ampt was one that sounded really interesting and just recently launched out of beta.
+
+21
+00:01:27.760 --> 00:01:31.040
+And I was quite curious to give it a try and I'm pretty impressed so far.
+
+22
+00:01:31.040 --> 00:01:33.120
+We'll go into all the details in a second.
+
+23
+00:01:33.120 --> 00:01:35.440
+So Ampt, you can find it at getampt.com.
+
+24
+00:01:35.440 --> 00:01:39.040
+The idea is that it's an approach to building applications and according to them,
+
+25
+00:01:39.040 --> 00:01:43.600
+it lets developers rapidly build, deploy and scale JavaScript apps in the cloud
+
+26
+00:01:43.600 --> 00:01:46.640
+without complicated configs or managing infrastructure.
+
+27
+00:01:47.280 --> 00:01:50.560
+And it's the without part that's probably the most appealing, right?
+
+28
+00:01:50.560 --> 00:01:52.560
+For people who've been building serverless applications,
+
+29
+00:01:52.560 --> 00:01:55.360
+you can understand that sometimes it can get pretty complex,
+
+30
+00:01:55.360 --> 00:01:58.800
+especially when you have to manage configurations of resources,
+
+31
+00:01:58.800 --> 00:02:01.760
+events, functions, permissions.
+
+32
+00:02:03.040 --> 00:02:06.640
+So Ampt has been, I think, kind of spun out of the serverless framework
+
+33
+00:02:06.640 --> 00:02:08.400
+and it's got some big names behind it.
+
+34
+00:02:08.400 --> 00:02:09.760
+Jeremy Daly is the CEO.
+
+35
+00:02:10.320 --> 00:02:11.840
+They've got a great team, it seems like,
+
+36
+00:02:11.840 --> 00:02:17.200
+and Adrian Cockcroft is one of the advisors, him of Netflix and AWS fame.
+
+37
+00:02:17.200 --> 00:02:19.120
+So I think they've got a pretty good team.
+
+38
+00:02:19.120 --> 00:02:20.800
+It gives a bit of confidence, I guess.
+
+39
+00:02:20.800 --> 00:02:22.560
+A few things to note then about the actual product.
+
+40
+00:02:23.120 --> 00:02:26.880
+It's JavaScript focused, so that includes TypeScript.
+
+41
+00:02:26.880 --> 00:02:29.360
+And basically right now that means no JS 18.
+
+42
+00:02:30.000 --> 00:02:33.920
+And it's really focused on building API backends and frontends
+
+43
+00:02:33.920 --> 00:02:36.640
+then with all of the modern frontend frameworks.
+
+44
+00:02:36.640 --> 00:02:38.640
+So it's about writing code, not infrastructure.
+
+45
+00:02:38.640 --> 00:02:39.680
+So what does that mean?
+
+46
+00:02:39.680 --> 00:02:43.040
+Well, the promise of Ampt seems to be that you deploy your code.
+
+47
+00:02:43.840 --> 00:02:46.960
+It auto-optimizes and creates the infrastructure for you.
+
+48
+00:02:46.960 --> 00:02:50.160
+I've seen this term, self-provisioning infrastructure.
+
+49
+00:02:50.160 --> 00:02:52.160
+So you don't have to worry about creating YAML
+
+50
+00:02:52.160 --> 00:02:53.600
+and configuring loads of resources.
+
+51
+00:02:53.600 --> 00:02:56.400
+You're just really writing the code for the logic
+
+52
+00:02:56.400 --> 00:03:00.400
+and the code that glues pieces of logic and your data together.
+
+53
+00:03:00.400 --> 00:03:01.200
+And that's really it.
+
+54
+00:03:01.200 --> 00:03:04.800
+So it's really boiling everything down to the essential fundamentals
+
+55
+00:03:04.800 --> 00:03:06.080
+and getting rid of all that mess
+
+56
+00:03:06.080 --> 00:03:08.240
+that we typically have to wrangle with on a daily basis.
+
+57
+00:03:09.120 --> 00:03:11.040
+And the other interesting thing about it
+
+58
+00:03:11.040 --> 00:03:13.920
+is that it provides isolation for every environment
+
+59
+00:03:13.920 --> 00:03:15.760
+and that includes developer sound boxes.
+
+60
+00:03:15.760 --> 00:03:17.680
+And that's just something that you get out of the box
+
+61
+00:03:17.680 --> 00:03:19.680
+from day one when you sign up.
+
+62
+00:03:19.680 --> 00:03:24.000
+And that's something that we've probably seen in AWS environments.
+
+63
+00:03:24.000 --> 00:03:26.080
+It can take you days, weeks or months or sometimes
+
+64
+00:03:26.080 --> 00:03:27.920
+to figure out how to do those things correctly.
+
+65
+00:03:27.920 --> 00:03:29.840
+So that's already a pretty big win.
+
+66
+00:03:29.840 --> 00:03:31.520
+Absolutely. Sounds really interesting.
+
+67
+00:03:31.520 --> 00:03:34.400
+But let's try maybe to understand a little bit better.
+
+68
+00:03:34.400 --> 00:03:36.320
+What kind of applications can you really build?
+
+69
+00:03:36.320 --> 00:03:40.960
+You mentioned APIs and frontends, but can you use any framework
+
+70
+00:03:40.960 --> 00:03:45.520
+or are you only forced to use specific things
+
+71
+00:03:45.520 --> 00:03:46.560
+that Ampt gives you?
+
+72
+00:03:46.560 --> 00:03:51.040
+Ampt gives you a JavaScript SDK and a CLI to get started with.
+
+73
+00:03:51.040 --> 00:03:53.600
+And then a couple of frameworks that you can use
+
+74
+00:03:53.600 --> 00:03:55.440
+if you're already using on the frontend,
+
+75
+00:03:56.160 --> 00:04:01.200
+Next.js, Nuxt, Remix, Angular, Nest, React, SvelteKit and Vue.
+
+76
+00:04:02.000 --> 00:04:04.720
+And also Eleventy if you're using Eleventy for static sites.
+
+77
+00:04:05.280 --> 00:04:07.680
+On the backend then, if you've got an API already
+
+78
+00:04:07.680 --> 00:04:11.120
+that uses one of the existing Node.js web frameworks
+
+79
+00:04:11.120 --> 00:04:13.680
+like Fastify, Restify, Koa or Express,
+
+80
+00:04:13.680 --> 00:04:17.280
+then you can automatically kind of plug those in to Ampt
+
+81
+00:04:17.280 --> 00:04:18.080
+and get up and running.
+
+82
+00:04:19.040 --> 00:04:21.120
+I guess the only major difference there is that
+
+83
+00:04:21.120 --> 00:04:23.280
+you're not doing a create server or a listen.
+
+84
+00:04:23.280 --> 00:04:25.280
+You're not actually opening a port and listening.
+
+85
+00:04:25.280 --> 00:04:27.040
+You basically just have one line of code
+
+86
+00:04:27.040 --> 00:04:29.760
+that's going to wire it into the Ampt ecosystem
+
+87
+00:04:29.760 --> 00:04:33.440
+and that will connect all of Ampt's magic into the roots
+
+88
+00:04:33.440 --> 00:04:34.560
+that you write in your code.
+
+89
+00:04:35.760 --> 00:04:38.320
+So you might then wonder how does this work?
+
+90
+00:04:38.320 --> 00:04:39.200
+Like if you don't have to create
+
+91
+00:04:39.200 --> 00:04:40.960
+any infrastructure in advance.
+
+92
+00:04:40.960 --> 00:04:42.720
+So you only write one type of code.
+
+93
+00:04:42.720 --> 00:04:44.880
+And this is really just your logic
+
+94
+00:04:44.880 --> 00:04:46.800
+and setting up the SDKs.
+
+95
+00:04:46.800 --> 00:04:49.280
+All of the infrastructure is kind of generated from that
+
+96
+00:04:49.280 --> 00:04:50.640
+or generated in advance.
+
+97
+00:04:51.520 --> 00:04:53.920
+The term infrastructure from code
+
+98
+00:04:53.920 --> 00:04:55.920
+as opposed to infrastructure as code
+
+99
+00:04:55.920 --> 00:04:57.600
+is being used to describe this.
+
+100
+00:04:57.600 --> 00:04:59.760
+So you don't need any CDK type code.
+
+101
+00:04:59.760 --> 00:05:00.960
+You don't need any YAML.
+
+102
+00:05:00.960 --> 00:05:03.200
+It doesn't really compare to things like CDK
+
+103
+00:05:03.200 --> 00:05:06.720
+or Pulumi or even Wing Lang.
+
+104
+00:05:06.720 --> 00:05:10.080
+That other new project that kind of gives you a new language
+
+105
+00:05:10.080 --> 00:05:11.680
+for generating your infrastructure.
+
+106
+00:05:11.680 --> 00:05:13.040
+You don't really think about the infrastructure
+
+107
+00:05:13.040 --> 00:05:15.040
+that's being generated too much here with Ampt.
+
+108
+00:05:16.240 --> 00:05:18.080
+So if you take the example of a database,
+
+109
+00:05:18.080 --> 00:05:20.720
+right now Ampt supports a key value data store.
+
+110
+00:05:20.720 --> 00:05:22.880
+So, and it's there and ready for you to use right away.
+
+111
+00:05:22.880 --> 00:05:25.200
+So in your code, you can start doing sets and gets
+
+112
+00:05:25.200 --> 00:05:27.600
+and remove operations.
+
+113
+00:05:27.600 --> 00:05:29.440
+You don't have to create any tables in advance.
+
+114
+00:05:29.440 --> 00:05:31.680
+And the same goes for objects, storage and events.
+
+115
+00:05:31.680 --> 00:05:33.280
+Everything's just there out of the box.
+
+116
+00:05:34.480 --> 00:05:36.880
+So if you take an example of creating an API,
+
+117
+00:05:36.880 --> 00:05:38.720
+you just write the API implementation
+
+118
+00:05:38.720 --> 00:05:40.320
+in the framework of choice.
+
+119
+00:05:40.320 --> 00:05:42.880
+And with one line of code, just wire it in.
+
+120
+00:05:42.880 --> 00:05:46.240
+And then Ampt will automatically handle the API infrastructure
+
+121
+00:05:46.240 --> 00:05:46.960
+and routing.
+
+122
+00:05:46.960 --> 00:05:48.560
+You don't have to think about load balancers
+
+123
+00:05:48.560 --> 00:05:51.040
+or API gateways, any of that stuff.
+
+124
+00:05:51.040 --> 00:05:53.520
+You're just writing routes like you would back
+
+125
+00:05:53.520 --> 00:05:58.240
+in the old days in more, let's say monolithic applications,
+
+126
+00:05:58.240 --> 00:05:58.800
+maybe.
+
+127
+00:06:01.040 --> 00:06:02.080
+That's a good point that makes me think about the next question.
+
+128
+00:06:02.080 --> 00:06:04.400
+Like where does the code run then, right?
+
+129
+00:06:04.400 --> 00:06:08.080
+There must be some kind of wrapping thing
+
+130
+00:06:08.080 --> 00:06:10.720
+that happens when you want to deploy to Ampt.
+
+131
+00:06:10.720 --> 00:06:12.480
+And in order to take all of your code
+
+132
+00:06:12.480 --> 00:06:14.640
+and package it in such a way that can be effectively
+
+133
+00:06:14.640 --> 00:06:18.000
+executed in a scalable way on AWS infrastructure, right?
+
+134
+00:06:21.520 --> 00:06:22.560
+I'd love to know more about exactly how some of this magic works under the hood.
+
+135
+00:06:22.560 --> 00:06:26.240
+What we do know is that it has this concept of smart compute.
+
+136
+00:06:26.240 --> 00:06:29.200
+And I think this is one of the most interesting and exciting
+
+137
+00:06:29.200 --> 00:06:32.240
+parts of Ampt because it allows your code to,
+
+138
+00:06:32.240 --> 00:06:33.520
+by default, run in Lambda.
+
+139
+00:06:33.520 --> 00:06:36.160
+And I think from day one, that's where your code will run.
+
+140
+00:06:36.160 --> 00:06:39.280
+But if they detect that your traffic is consistently high,
+
+141
+00:06:39.280 --> 00:06:41.200
+they can move that into AppRunner.
+
+142
+00:06:41.200 --> 00:06:42.640
+And you don't have to do anything.
+
+143
+00:06:43.200 --> 00:06:45.040
+Or if your tasks start to run for longer,
+
+144
+00:06:45.040 --> 00:06:47.520
+I think it's longer than five minutes at the moment,
+
+145
+00:06:47.520 --> 00:06:49.440
+they'll start running your code in Fargate.
+
+146
+00:06:49.440 --> 00:06:51.520
+I think you have to be on a certain pricing
+
+147
+00:06:51.520 --> 00:06:52.960
+tier for that to happen.
+
+148
+00:06:52.960 --> 00:06:54.640
+But the idea there is really nice, right?
+
+149
+00:06:54.640 --> 00:06:56.320
+That you don't have to think about monitoring
+
+150
+00:06:56.320 --> 00:06:59.280
+your function, optimizing memory, all of this stuff,
+
+151
+00:06:59.280 --> 00:07:02.400
+timeouts, scalability, quotas.
+
+152
+00:07:02.400 --> 00:07:05.120
+The idea that they can take your code
+
+153
+00:07:05.120 --> 00:07:07.040
+and move it around behind the scenes,
+
+154
+00:07:07.040 --> 00:07:10.320
+and you don't notice anything, but it's kind of cost
+
+155
+00:07:10.320 --> 00:07:12.000
+and performance optimized for you,
+
+156
+00:07:12.000 --> 00:07:13.440
+that's something that's really exciting.
+
+157
+00:07:13.440 --> 00:07:15.680
+And it's something I can imagine them doing a hell of a lot
+
+158
+00:07:15.680 --> 00:07:19.600
+more with when you think about maybe even automatically
+
+159
+00:07:19.600 --> 00:07:21.600
+optimizing your data storage as well.
+
+160
+00:07:21.600 --> 00:07:23.440
+You asked the question, where does it run?
+
+161
+00:07:23.440 --> 00:07:27.760
+And we're talking about Lambda and Fargate and AppRunner.
+
+162
+00:07:27.760 --> 00:07:29.680
+But that means it's running on AWS.
+
+163
+00:07:29.680 --> 00:07:33.360
+So all of Ampt's infrastructure is built on top of AWS.
+
+164
+00:07:33.360 --> 00:07:35.440
+And every developer gets their own sandbox,
+
+165
+00:07:35.440 --> 00:07:37.680
+which is really cool out of the box.
+
+166
+00:07:37.680 --> 00:07:39.840
+When you deploy as a developer on the team,
+
+167
+00:07:39.840 --> 00:07:42.320
+you automatically have an isolated environment
+
+168
+00:07:42.320 --> 00:07:44.480
+that you can share with other team members.
+
+169
+00:07:44.480 --> 00:07:46.480
+You can kind of share a snapshot of it.
+
+170
+00:07:46.480 --> 00:07:47.840
+But it's automatically synced as well.
+
+171
+00:07:47.840 --> 00:07:50.000
+So as long as you're running the Ampt front end,
+
+172
+00:07:50.000 --> 00:07:53.280
+it's automatically updating your infrastructure and code.
+
+173
+00:07:53.280 --> 00:07:54.960
+And I think it's doing a lot of smart stuff
+
+174
+00:07:54.960 --> 00:07:56.960
+in the background there, because the deployments
+
+175
+00:07:56.960 --> 00:07:59.120
+at times I've seen are pretty fast.
+
+176
+00:07:59.120 --> 00:08:00.560
+The feedback time is really good.
+
+177
+00:08:00.560 --> 00:08:02.720
+You can also then deploy your own Ampt server.
+
+178
+00:08:02.720 --> 00:08:04.640
+You can also then deploy to any stage,
+
+179
+00:08:04.640 --> 00:08:07.200
+just by running deploy space stage.
+
+180
+00:08:07.200 --> 00:08:10.240
+And you can create different stages like QA, pre-production,
+
+181
+00:08:10.240 --> 00:08:10.960
+and production.
+
+182
+00:08:10.960 --> 00:08:14.400
+This isolated environment, it's a big USP for Ampt,
+
+183
+00:08:14.400 --> 00:08:16.480
+because they're focused on kind of eliminating
+
+184
+00:08:16.480 --> 00:08:19.840
+any kind of resource contention problems, noisy neighbors.
+
+185
+00:08:19.840 --> 00:08:23.600
+And from what I understand of the launch party announcement,
+
+186
+00:08:23.600 --> 00:08:26.640
+it seems that each environment runs in its own AWS account
+
+187
+00:08:26.640 --> 00:08:27.280
+under the hood.
+
+188
+00:08:27.280 --> 00:08:29.640
+So you don't have these noisy neighbor problems
+
+189
+00:08:29.640 --> 00:08:31.800
+with quotas and rate limits and everything like that.
+
+190
+00:08:31.800 --> 00:08:34.400
+And I'd love to know how that's done.
+
+191
+00:08:34.400 --> 00:08:37.520
+But assuming that they've handled all of that,
+
+192
+00:08:37.520 --> 00:08:39.840
+it's really nice from a user perspective,
+
+193
+00:08:39.840 --> 00:08:41.760
+because you don't have to worry about setting up
+
+194
+00:08:41.760 --> 00:08:43.240
+those accounts and managing environments.
+
+195
+00:08:43.240 --> 00:08:44.760
+It just happens automatically for you.
+
+196
+00:08:47.240 --> 00:08:49.720
+Yeah, I can definitely see lots of edge cases in trying to think how they might come and implement
+
+197
+00:08:49.720 --> 00:08:50.760
+all of that.
+
+198
+00:08:50.760 --> 00:08:53.000
+But I mean, that doesn't mean that it's not possible.
+
+199
+00:08:53.000 --> 00:08:55.320
+I'm sure that considering that all the smart people that
+
+200
+00:08:55.320 --> 00:08:57.200
+work at this project, they have figured out
+
+201
+00:08:57.200 --> 00:08:58.680
+a bunch of interesting solutions,
+
+202
+00:08:58.680 --> 00:09:01.000
+would be nice at some point to discover some of them.
+
+203
+00:09:01.000 --> 00:09:03.280
+But that's maybe a topic for another episode.
+
+204
+00:09:03.280 --> 00:09:05.720
+OK, let's talk how do you get started.
+
+205
+00:09:05.720 --> 00:09:08.800
+Assuming we are kind of making you excited as well
+
+206
+00:09:08.800 --> 00:09:11.280
+and you want to know how to get started, what is the first step?
+
+207
+00:09:11.280 --> 00:09:12.720
+I'd suggest doing what I did, which
+
+208
+00:09:12.720 --> 00:09:14.320
+is just start with the very simple instructions
+
+209
+00:09:14.320 --> 00:09:14.920
+on the website.
+
+210
+00:09:14.920 --> 00:09:18.240
+You just npm install the CLI and then run the frontend
+
+211
+00:09:18.240 --> 00:09:19.120
+amped command.
+
+212
+00:09:19.120 --> 00:09:22.120
+And from that, it'll ask you to pick from a number of starter
+
+213
+00:09:22.120 --> 00:09:26.800
+templates, like an API backend with Express or Fastify,
+
+214
+00:09:26.800 --> 00:09:29.800
+for example, or a frontend application built on, say,
+
+215
+00:09:29.800 --> 00:09:31.040
+Astro.
+
+216
+00:09:31.040 --> 00:09:35.040
+And then it automatically gets generated for you and deployed.
+
+217
+00:09:35.040 --> 00:09:36.520
+So you immediately then get a link
+
+218
+00:09:36.520 --> 00:09:40.640
+to a dashboard where they've got a really nice UI where you can
+
+219
+00:09:40.640 --> 00:09:41.720
+monitor the applications.
+
+220
+00:09:41.720 --> 00:09:45.000
+And you can see the metrics and logs right away.
+
+221
+00:09:45.000 --> 00:09:48.320
+So I think the usability and the aesthetics around amped,
+
+222
+00:09:48.320 --> 00:09:49.800
+I've been pretty happy with.
+
+223
+00:09:49.800 --> 00:09:53.240
+I think they look much nicer, feel much like a better
+
+224
+00:09:53.240 --> 00:09:55.440
+developer experience than we're used to.
+
+225
+00:09:55.440 --> 00:09:59.120
+And there's obviously plenty to be done there,
+
+226
+00:09:59.120 --> 00:10:01.600
+I think, in terms of making the logs
+
+227
+00:10:01.600 --> 00:10:03.200
+accessible in different ways.
+
+228
+00:10:03.200 --> 00:10:04.720
+But I like that it's pretty simple.
+
+229
+00:10:04.720 --> 00:10:06.160
+And automatically with one command,
+
+230
+00:10:06.160 --> 00:10:08.120
+you're up and running with that dashboard.
+
+231
+00:10:08.120 --> 00:10:12.600
+And then you get a generated link for your API endpoint
+
+232
+00:10:12.600 --> 00:10:14.800
+or a static site, if that's what you've deployed.
+
+233
+00:10:14.800 --> 00:10:15.320
+OK.
+
+234
+00:10:15.320 --> 00:10:18.760
+In terms of features, you mentioned already HTTP APIs.
+
+235
+00:10:18.760 --> 00:10:20.960
+You also mentioned key-value store.
+
+236
+00:10:20.960 --> 00:10:23.320
+Is there anything else worth mentioning?
+
+237
+00:10:23.320 --> 00:10:25.720
+On the API side, I guess it's notable
+
+238
+00:10:25.720 --> 00:10:28.880
+that you've got support for API keys, also web sockets.
+
+239
+00:10:28.880 --> 00:10:30.840
+And even though I haven't tried it,
+
+240
+00:10:30.840 --> 00:10:33.600
+I've seen that HTTP response streaming is supported.
+
+241
+00:10:33.600 --> 00:10:35.800
+And I'm interested in how that works across the different
+
+242
+00:10:35.800 --> 00:10:36.680
+compute platforms.
+
+243
+00:10:36.680 --> 00:10:38.920
+But I guess that's another curiosity.
+
+244
+00:10:38.920 --> 00:10:41.880
+When it comes to the data side, what
+
+245
+00:10:41.880 --> 00:10:44.960
+I've seen from looking at it and observed
+
+246
+00:10:44.960 --> 00:10:48.440
+is that it's basically a much nicer API for DynamoDB.
+
+247
+00:10:48.440 --> 00:10:49.880
+That's what it feels like.
+
+248
+00:10:49.880 --> 00:10:53.120
+Because with DynamoDB, the API is a little bit strange,
+
+249
+00:10:53.120 --> 00:10:55.160
+takes a bit of getting used to.
+
+250
+00:10:55.160 --> 00:10:58.480
+This is like a more developer-friendly API.
+
+251
+00:10:58.480 --> 00:11:00.160
+So you don't have to create any tables
+
+252
+00:11:00.160 --> 00:11:02.560
+or worry about creating additional indexes.
+
+253
+00:11:02.560 --> 00:11:04.960
+You basically get set, remove, and add operations.
+
+254
+00:11:04.960 --> 00:11:06.480
+So you can do everything pretty much
+
+255
+00:11:06.480 --> 00:11:08.920
+that you could with DynamoDB through those operations.
+
+256
+00:11:08.920 --> 00:11:11.880
+And then you have nice things like they automatically
+
+257
+00:11:11.880 --> 00:11:14.760
+generate metadata, like created timestamps and modified
+
+258
+00:11:14.760 --> 00:11:16.000
+timestamps for your objects.
+
+259
+00:11:16.000 --> 00:11:19.160
+And then you have namespaces to separate
+
+260
+00:11:19.160 --> 00:11:23.560
+what would be your DynamoDB hash key and your range keys.
+
+261
+00:11:23.560 --> 00:11:26.440
+So it's just a little bit more easy to get used to.
+
+262
+00:11:26.440 --> 00:11:28.520
+And you don't have to worry about the different types
+
+263
+00:11:28.520 --> 00:11:29.200
+of operations.
+
+264
+00:11:29.200 --> 00:11:31.200
+You can just use wildcards, for example,
+
+265
+00:11:31.200 --> 00:11:32.720
+for searching starts with.
+
+266
+00:11:32.720 --> 00:11:34.480
+When you need to have secondary keys,
+
+267
+00:11:34.480 --> 00:11:36.880
+you just provide attributes that are called labels.
+
+268
+00:11:36.880 --> 00:11:39.040
+And these seem to automatically generate
+
+269
+00:11:39.040 --> 00:11:41.800
+these secondary keys for you under those.
+
+270
+00:11:41.800 --> 00:11:42.880
+So that's pretty nice.
+
+271
+00:11:42.880 --> 00:11:44.400
+So it's really just key value store.
+
+272
+00:11:44.400 --> 00:11:45.520
+If you need to use anything else,
+
+273
+00:11:45.520 --> 00:11:46.920
+like relational database, they're
+
+274
+00:11:46.920 --> 00:11:49.040
+recommending that you use partners
+
+275
+00:11:49.040 --> 00:11:51.800
+like PlanetScale, MongoDB, Memento,
+
+276
+00:11:51.800 --> 00:11:53.720
+and you just use their SDK.
+
+277
+00:11:53.720 --> 00:11:55.760
+They also have a nice support for parameters,
+
+278
+00:11:55.760 --> 00:11:58.880
+which can be automatically injected
+
+279
+00:11:58.880 --> 00:12:01.120
+into your application as environment variables.
+
+280
+00:12:01.120 --> 00:12:03.520
+You can have organization-wide parameters or application
+
+281
+00:12:03.520 --> 00:12:05.120
+specific parameters.
+
+282
+00:12:05.120 --> 00:12:06.600
+And then you have object storage,
+
+283
+00:12:06.600 --> 00:12:10.960
+which is just like S3, but also another simple S3 abstraction.
+
+284
+00:12:10.960 --> 00:12:13.840
+You don't have to worry about creating and managing buckets.
+
+285
+00:12:13.840 --> 00:12:16.920
+And then you have events.
+
+286
+00:12:16.920 --> 00:12:20.080
+And events and tasks are quite a nice feature as well.
+
+287
+00:12:20.080 --> 00:12:21.440
+So you can have your cron events,
+
+288
+00:12:21.440 --> 00:12:24.320
+like run events on a schedule every hour.
+
+289
+00:12:24.320 --> 00:12:28.080
+But you could also get events based on storage and data.
+
+290
+00:12:28.080 --> 00:12:30.880
+So if you have your data stored in the data store,
+
+291
+00:12:30.880 --> 00:12:32.520
+you can just say data.on.
+
+292
+00:12:32.520 --> 00:12:34.880
+And then you can put a filter which
+
+293
+00:12:34.880 --> 00:12:37.880
+says if an object is written with a certain key,
+
+294
+00:12:37.880 --> 00:12:39.600
+then call my function.
+
+295
+00:12:39.600 --> 00:12:41.760
+And this is where the infrastructure just
+
+296
+00:12:41.760 --> 00:12:44.880
+starts to disappear, because you're just basically writing
+
+297
+00:12:44.880 --> 00:12:47.040
+what looks like a Node.js event emitter or handler
+
+298
+00:12:47.040 --> 00:12:48.320
+or something.
+
+299
+00:12:48.320 --> 00:12:51.400
+It's just an on event, then call this function.
+
+300
+00:12:51.400 --> 00:12:54.120
+And after handling all of the wiring and the event
+
+301
+00:12:54.120 --> 00:12:55.840
+every bruise or whatever other magic
+
+302
+00:12:55.840 --> 00:12:57.280
+is happening under the hood.
+
+303
+00:12:57.280 --> 00:13:01.400
+I have seen that they create a queue in this account.
+
+304
+00:13:01.400 --> 00:13:03.680
+I have seen that just from snooping a little bit
+
+305
+00:13:03.680 --> 00:13:06.040
+into the environment variables in the code and stuff.
+
+306
+00:13:06.040 --> 00:13:07.640
+So I don't know if that's used for that
+
+307
+00:13:07.640 --> 00:13:10.400
+or if that's part of a future feature.
+
+308
+00:13:10.400 --> 00:13:11.760
+That's pretty interesting.
+
+309
+00:13:11.760 --> 00:13:14.880
+I am a bit curious to know how they deal with things like,
+
+310
+00:13:14.880 --> 00:13:17.440
+I don't know, if you're passing a callback to this event
+
+311
+00:13:17.440 --> 00:13:20.080
+interface, how do they actually serialize the callback
+
+312
+00:13:20.080 --> 00:13:23.560
+in a way that it is, I guess, responsive to events
+
+313
+00:13:23.560 --> 00:13:24.840
+in a distributed way.
+
+314
+00:13:24.840 --> 00:13:27.640
+It's not just running in one Node.js process.
+
+315
+00:13:27.640 --> 00:13:29.680
+But yeah, I don't think we have that information.
+
+316
+00:13:29.680 --> 00:13:30.640
+We can just speculate.
+
+317
+00:13:30.640 --> 00:13:33.120
+So again, maybe in future episodes,
+
+318
+00:13:33.120 --> 00:13:35.760
+we might be able to figure out this magic
+
+319
+00:13:35.760 --> 00:13:37.320
+and give you more details.
+
+320
+00:13:37.320 --> 00:13:37.960
+Yeah.
+
+321
+00:13:37.960 --> 00:13:40.520
+Maybe we can get talking to a member of the Ampt team
+
+322
+00:13:40.520 --> 00:13:43.960
+at some point and find out all of the great details.
+
+323
+00:13:43.960 --> 00:13:44.720
+Absolutely.
+
+324
+00:13:44.720 --> 00:13:46.000
+That would be fun.
+
+325
+00:13:46.000 --> 00:13:48.760
+But meanwhile, should we talk about pricing?
+
+326
+00:13:48.760 --> 00:13:52.400
+Because is there going to be a huge pricing,
+
+327
+00:13:52.400 --> 00:13:53.840
+is there still reasonable?
+
+328
+00:13:53.840 --> 00:13:56.040
+Because I guess that's where the trade-offs are.
+
+329
+00:13:56.040 --> 00:13:59.360
+You get a much nicer experience, simpler, get started,
+
+330
+00:13:59.360 --> 00:14:01.280
+complete your project quickly.
+
+331
+00:14:01.280 --> 00:14:03.400
+But if it's going to be too expensive,
+
+332
+00:14:03.400 --> 00:14:05.160
+is it going to be worth it?
+
+333
+00:14:05.160 --> 00:14:07.000
+Right now, it looks not too bad.
+
+334
+00:14:07.000 --> 00:14:08.560
+But I guess it depends on your usage.
+
+335
+00:14:08.560 --> 00:14:09.920
+And there's three tiers.
+
+336
+00:14:09.920 --> 00:14:11.600
+None of them are ridiculously expensive.
+
+337
+00:14:11.600 --> 00:14:14.680
+But the pricing is essentially per team member per month.
+
+338
+00:14:14.680 --> 00:14:16.720
+So you have a preview tier, and that will give you
+
+339
+00:14:16.720 --> 00:14:21.280
+three apps, 10 environments, and 500 invocations per hour.
+
+340
+00:14:21.280 --> 00:14:24.880
+And then you have a $7 tier and a $29 tier.
+
+341
+00:14:24.880 --> 00:14:26.120
+And it gets more capable.
+
+342
+00:14:26.120 --> 00:14:29.520
+You can have more team members, more apps, long-running tasks,
+
+343
+00:14:29.520 --> 00:14:30.880
+all of that stuff.
+
+344
+00:14:30.880 --> 00:14:33.920
+I don't know exactly how this works yet.
+
+345
+00:14:33.920 --> 00:14:37.000
+Like, if you've got pricing that kind of dictates
+
+346
+00:14:37.000 --> 00:14:38.640
+the number of invocations per hour,
+
+347
+00:14:38.640 --> 00:14:41.400
+but what happens if you're doing like a massive number of DynamoDB
+
+348
+00:14:41.400 --> 00:14:44.080
+calls in that one invocation?
+
+349
+00:14:44.080 --> 00:14:46.920
+And that causes a lot of spend on their side,
+
+350
+00:14:46.920 --> 00:14:48.000
+how that's managed.
+
+351
+00:14:48.000 --> 00:14:51.680
+They also say in the pricing details or in the FAQ,
+
+352
+00:14:51.680 --> 00:14:53.840
+they're working on implementing spending limits.
+
+353
+00:14:53.840 --> 00:14:55.640
+And I think that would be a big differentiator.
+
+354
+00:14:55.640 --> 00:14:57.800
+Obviously, we've talked a lot about how that feature is
+
+355
+00:14:57.800 --> 00:14:58.960
+missing from AWS.
+
+356
+00:14:58.960 --> 00:15:00.880
+If they can pull that one off, that would be really cool.
+
+357
+00:15:00.880 --> 00:15:02.600
+Yeah, that actually makes sense.
+
+358
+00:15:02.600 --> 00:15:05.800
+Considering they provide you that kind of abstraction layer,
+
+359
+00:15:05.800 --> 00:15:07.680
+they can probably see what kind of operations
+
+360
+00:15:07.680 --> 00:15:08.520
+that it's trying to do.
+
+361
+00:15:08.520 --> 00:15:10.360
+And then if they keep track of all of that
+
+362
+00:15:10.360 --> 00:15:12.320
+and the cost it might have, I think
+
+363
+00:15:12.320 --> 00:15:15.360
+they might be able to implement some kind of smart blocker
+
+364
+00:15:15.360 --> 00:15:17.840
+to limit the expenditure there.
+
+365
+00:15:17.840 --> 00:15:20.720
+But again, I'm just speculating just because, yeah, of course,
+
+366
+00:15:20.720 --> 00:15:23.160
+my mind is curious to figure out how would I build that kind
+
+367
+00:15:23.160 --> 00:15:25.880
+of feature with these ideas.
+
+368
+00:15:25.880 --> 00:15:28.400
+But speaking of which, another thing that I have in mind
+
+369
+00:15:28.400 --> 00:15:33.520
+is how easy it is to do CI/CD, which I think these days is
+
+370
+00:15:33.520 --> 00:15:35.240
+something that everyone is doing, possibly
+
+371
+00:15:35.240 --> 00:15:37.000
+through things like GitHub Actions.
+
+372
+00:15:37.000 --> 00:15:39.880
+So is that something mentioned in the documentation,
+
+373
+00:15:39.880 --> 00:15:41.440
+something you tried yourself?
+
+374
+00:15:41.440 --> 00:15:43.160
+I've tried a couple of different things.
+
+375
+00:15:43.160 --> 00:15:46.680
+One is using their GitHub app, which
+
+376
+00:15:46.680 --> 00:15:49.160
+is a bit like using Netlify or a lot of other services
+
+377
+00:15:49.160 --> 00:15:51.040
+like that, pretty seamless.
+
+378
+00:15:51.040 --> 00:15:54.240
+You just connect the GitHub app to Ampt,
+
+379
+00:15:54.240 --> 00:15:57.880
+and then it can automatically deploy your environment
+
+380
+00:15:57.880 --> 00:15:58.880
+to branches you set up.
+
+381
+00:15:58.880 --> 00:16:00.520
+So you can say, from this branch,
+
+382
+00:16:00.520 --> 00:16:02.040
+deploy to the staging environment,
+
+383
+00:16:02.040 --> 00:16:04.720
+from another branch, deploy to the production environment.
+
+384
+00:16:04.720 --> 00:16:07.320
+But you also get feature branch deployments out of the box
+
+385
+00:16:07.320 --> 00:16:09.320
+with that, which is really cool.
+
+386
+00:16:09.320 --> 00:16:10.720
+Apart from that, they're basically
+
+387
+00:16:10.720 --> 00:16:12.960
+just providing examples for you to write your own GitHub
+
+388
+00:16:12.960 --> 00:16:15.080
+Actions workflows.
+
+389
+00:16:15.080 --> 00:16:17.320
+And then you're just running the Ampt to deploy command.
+
+390
+00:16:17.320 --> 00:16:19.320
+So it's pretty straightforward.
+
+391
+00:16:19.320 --> 00:16:22.520
+It seems like every application is just an isolated piece.
+
+392
+00:16:22.520 --> 00:16:26.440
+There's no kind of, I guess you would say,
+
+393
+00:16:26.440 --> 00:16:28.960
+like microservice approach, where you're deploying lots
+
+394
+00:16:28.960 --> 00:16:31.280
+of things from one repo.
+
+395
+00:16:31.280 --> 00:16:33.040
+I guess you could do monorepo deployments,
+
+396
+00:16:33.040 --> 00:16:37.120
+but with separate deployment pipelines for each single
+
+397
+00:16:37.120 --> 00:16:38.560
+service, if you'd like.
+
+398
+00:16:38.560 --> 00:16:41.360
+So it seems like if you've got an API backend and then
+
+399
+00:16:41.360 --> 00:16:43.280
+another Ampt to app for your front end,
+
+400
+00:16:43.280 --> 00:16:45.720
+you would just do two deployment pipelines or just deploy them
+
+401
+00:16:45.720 --> 00:16:50.000
+separately in one pipeline, if that makes sense.
+
+402
+00:16:50.000 --> 00:16:52.720
+It does make sense, even though I'm not sure
+
+403
+00:16:52.720 --> 00:16:55.520
+how they could manage the fact that you still
+
+404
+00:16:55.520 --> 00:16:58.160
+have one environment per user.
+
+405
+00:16:58.160 --> 00:17:01.040
+I guess the question is, when you buy into CI/CD,
+
+406
+00:17:01.040 --> 00:17:03.160
+is it going to be just one user, or you can still
+
+407
+00:17:03.160 --> 00:17:07.400
+retain some control of which user space is going to be used?
+
+408
+00:17:07.400 --> 00:17:07.920
+Oh, yeah.
+
+409
+00:17:07.920 --> 00:17:09.440
+I think I have the answer to that one,
+
+410
+00:17:09.440 --> 00:17:11.840
+because when you're deploying from your local environment,
+
+411
+00:17:11.840 --> 00:17:13.360
+you're just running the Ampt command,
+
+412
+00:17:13.360 --> 00:17:17.040
+and that picks up your GitHub credentials or whatever way
+
+413
+00:17:17.040 --> 00:17:21.040
+you've logged in to Ampt, generates an environment name
+
+414
+00:17:21.040 --> 00:17:22.640
+for you from your name.
+
+415
+00:17:22.640 --> 00:17:25.000
+But then if you do deploy production,
+
+416
+00:17:25.000 --> 00:17:27.400
+it's deploying to the production environment, which is shared
+
+417
+00:17:27.400 --> 00:17:28.360
+by multiple developers.
+
+418
+00:17:28.360 --> 00:17:29.520
+OK.
+
+419
+00:17:29.520 --> 00:17:31.640
+So you will use the CI/CD only to deploy
+
+420
+00:17:31.640 --> 00:17:35.120
+to production, which is a shared account, effectively.
+
+421
+00:17:35.120 --> 00:17:37.280
+That seems like the pattern, yeah.
+
+422
+00:17:37.280 --> 00:17:39.640
+Yeah, actually makes a lot of sense.
+
+423
+00:17:39.640 --> 00:17:42.320
+OK, you mentioned that you were able to see some
+
+424
+00:17:42.320 --> 00:17:45.040
+of the underlying AWS stuff.
+
+425
+00:17:45.040 --> 00:17:47.480
+Well, first of all, how did you do that?
+
+426
+00:17:47.480 --> 00:17:49.520
+Was it really a feature, or did you
+
+427
+00:17:49.520 --> 00:17:52.800
+figure it out in some kind of an indirect way?
+
+428
+00:17:52.800 --> 00:17:54.520
+And how much did you get to see?
+
+429
+00:17:54.520 --> 00:17:56.920
+Yeah, it wasn't any advanced hacking or anything here.
+
+430
+00:17:56.920 --> 00:17:58.760
+I mean, they make it clear that it's running
+
+431
+00:17:58.760 --> 00:18:00.800
+on AWS that's completely open.
+
+432
+00:18:00.800 --> 00:18:03.240
+And then I just ran some code that
+
+433
+00:18:03.240 --> 00:18:05.960
+printed the environment variables of the process,
+
+434
+00:18:05.960 --> 00:18:09.440
+so I could see that there was a table name and a bucket name,
+
+435
+00:18:09.440 --> 00:18:10.800
+and a queue name in there.
+
+436
+00:18:10.800 --> 00:18:13.760
+And then I tried a few AWS SDK actions.
+
+437
+00:18:13.760 --> 00:18:16.040
+And I could see that they seem to have implemented
+
+438
+00:18:16.040 --> 00:18:18.640
+pretty good least privileged IAM policies, because I
+
+439
+00:18:18.640 --> 00:18:20.760
+wasn't able to do much snooping.
+
+440
+00:18:20.760 --> 00:18:23.080
+But I could list the objects in the bucket,
+
+441
+00:18:23.080 --> 00:18:25.920
+and I could do a scan on the DynamoDB table.
+
+442
+00:18:25.920 --> 00:18:27.840
+So it's not giving you the power to do anything
+
+443
+00:18:27.840 --> 00:18:32.000
+that you can't already do from the Ampt to SDK.
+
+444
+00:18:32.000 --> 00:18:34.720
+But like I said, I think they're going
+
+445
+00:18:34.720 --> 00:18:37.640
+to allow you support to deploy to your own AWS
+
+446
+00:18:37.640 --> 00:18:40.560
+account in the future, and then you would have full visibility,
+
+447
+00:18:40.560 --> 00:18:41.160
+I guess.
+
+448
+00:18:41.160 --> 00:18:42.840
+And you'd also get the benefit of being
+
+449
+00:18:42.840 --> 00:18:46.480
+able to monitor resources, connect into other AWS
+
+450
+00:18:46.480 --> 00:18:49.000
+applications, and even achieve compliance,
+
+451
+00:18:49.000 --> 00:18:51.920
+because it's not all abstracted away from you.
+
+452
+00:18:51.920 --> 00:18:53.520
+Yeah, that makes sense.
+
+453
+00:18:53.520 --> 00:18:55.280
+I guess you also get the risk of you
+
+454
+00:18:55.280 --> 00:18:58.040
+might mess up in different ways, because then you
+
+455
+00:18:58.040 --> 00:19:01.320
+might have more control that they would want you to have,
+
+456
+00:19:01.320 --> 00:19:06.560
+and either not change the table schema or stuff like that.
+
+457
+00:19:06.560 --> 00:19:11.040
+So let's maybe try to wrap up this episode by listing
+
+458
+00:19:11.040 --> 00:19:13.360
+what do we believe are the trade-offs here,
+
+459
+00:19:13.360 --> 00:19:15.320
+because of course, this is not going
+
+460
+00:19:15.320 --> 00:19:18.240
+to be the ultimate silver bullet to develop in the cloud.
+
+461
+00:19:18.240 --> 00:19:20.440
+I think it's just another way with a different set
+
+462
+00:19:20.440 --> 00:19:23.480
+of trade-offs, so probably worth remarking what those are.
+
+463
+00:19:23.480 --> 00:19:25.400
+The idea of Ampt, I don't know if it's
+
+464
+00:19:25.400 --> 00:19:28.400
+fair to call it like a "serverless Platform-as-a-service"
+
+465
+00:19:28.400 --> 00:19:29.160
+offering.
+
+466
+00:19:29.160 --> 00:19:31.880
+I think if it's very clear what applications
+
+467
+00:19:31.880 --> 00:19:34.240
+it's going to be geared for and optimizes for those,
+
+468
+00:19:34.240 --> 00:19:37.120
+I think it looks really, really promising.
+
+469
+00:19:37.120 --> 00:19:39.200
+Of course, if you compare it to the options in AWS,
+
+470
+00:19:39.200 --> 00:19:42.120
+there's a big trade-off, because AWS has hundreds of options
+
+471
+00:19:42.120 --> 00:19:44.520
+and thousands of permutations for building applications
+
+472
+00:19:44.520 --> 00:19:45.120
+like this.
+
+473
+00:19:45.120 --> 00:19:47.720
+In Ampt, you have a very limited set of options,
+
+474
+00:19:47.720 --> 00:19:49.760
+but that can be a really good thing.
+
+475
+00:19:49.760 --> 00:19:52.800
+Like in AWS, you have all the databases, all different types,
+
+476
+00:19:52.800 --> 00:19:55.200
+and then you have services for data analytics and machine
+
+477
+00:19:55.200 --> 00:19:58.760
+learning and chat and video, sending email.
+
+478
+00:19:58.760 --> 00:20:00.960
+With Ampt, it's more like a pass where
+
+479
+00:20:00.960 --> 00:20:03.200
+you will write the code for your business logic
+
+480
+00:20:03.200 --> 00:20:06.400
+and then integrate it into AWS services or other SaaS
+
+481
+00:20:06.400 --> 00:20:08.080
+to achieve all of that.
+
+482
+00:20:08.080 --> 00:20:10.800
+And it just depends on how much control you
+
+483
+00:20:10.800 --> 00:20:12.720
+want over that infrastructure.
+
+484
+00:20:12.720 --> 00:20:14.000
+There's other trade-offs there.
+
+485
+00:20:14.000 --> 00:20:15.840
+Like it doesn't seem to have very fine-grained access
+
+486
+00:20:15.840 --> 00:20:16.840
+control right now.
+
+487
+00:20:16.840 --> 00:20:19.000
+I don't know how that's going to work in the future.
+
+488
+00:20:19.000 --> 00:20:21.040
+The only way of protecting what you deploy
+
+489
+00:20:21.040 --> 00:20:22.520
+is to have an API key right now.
+
+490
+00:20:22.520 --> 00:20:24.120
+But I'm sure that will change.
+
+491
+00:20:24.120 --> 00:20:26.320
+They do mention that they will be providing support
+
+492
+00:20:26.320 --> 00:20:29.400
+for private VPCs if you have network connectivity needs
+
+493
+00:20:29.400 --> 00:20:30.760
+as well.
+
+494
+00:20:30.760 --> 00:20:34.200
+I'm also interested if there is a potential trade-off here
+
+495
+00:20:34.200 --> 00:20:37.320
+with the ability to have this code moving from Lambda
+
+496
+00:20:37.320 --> 00:20:39.200
+to Fargate to AppRunner.
+
+497
+00:20:39.200 --> 00:20:41.200
+Are there some cases where you might write code
+
+498
+00:20:41.200 --> 00:20:44.160
+that may run well because it's running in one environment
+
+499
+00:20:44.160 --> 00:20:46.680
+and then suddenly it starts running in another environment
+
+500
+00:20:46.680 --> 00:20:48.520
+but it won't execute correctly?
+
+501
+00:20:48.520 --> 00:20:50.280
+I know that if you've got container code,
+
+502
+00:20:50.280 --> 00:20:51.800
+sometimes it won't run in Lambda.
+
+503
+00:20:51.800 --> 00:20:54.160
+Yeah, I definitely had that question in mind as well.
+
+504
+00:20:54.160 --> 00:20:56.720
+And I was wondering, on the timeout example
+
+505
+00:20:56.720 --> 00:20:59.160
+that you gave before, what happens?
+
+506
+00:20:59.160 --> 00:21:01.960
+Do you get the timeout first and then they start to move
+
+507
+00:21:01.960 --> 00:21:03.400
+your compute to something else?
+
+508
+00:21:03.400 --> 00:21:07.440
+So you have a failure in the transition between one system
+
+509
+00:21:07.440 --> 00:21:07.960
+to the other?
+
+510
+00:21:07.960 --> 00:21:10.520
+Or there is some amazing smart system
+
+511
+00:21:10.520 --> 00:21:13.960
+that figures out before you get there and moves you in time
+
+512
+00:21:13.960 --> 00:21:15.960
+and avoids any failure, which I don't
+
+513
+00:21:15.960 --> 00:21:17.160
+know if it's even possible.
+
+514
+00:21:17.160 --> 00:21:20.520
+But I think that would be really cool if it worked that way.
+
+515
+00:21:20.520 --> 00:21:23.440
+So definitely curious to find out more.
+
+516
+00:21:23.440 --> 00:21:25.840
+And hopefully we will have the opportunity to do that.
+
+517
+00:21:25.840 --> 00:21:27.600
+But overall, I think it's fair to say
+
+518
+00:21:27.600 --> 00:21:30.600
+that if you're building web applications, API or full stack
+
+519
+00:21:30.600 --> 00:21:33.920
+application, Ampt seems like a very interesting contender,
+
+520
+00:21:33.920 --> 00:21:36.400
+definitely innovating in this space.
+
+521
+00:21:36.400 --> 00:21:38.880
+So it can also make a lot of things easier,
+
+522
+00:21:38.880 --> 00:21:40.440
+which is great to see.
+
+523
+00:21:40.440 --> 00:21:43.000
+So if you're building something that sticks
+
+524
+00:21:43.000 --> 00:21:45.800
+to the fundamentals of event-driven applications
+
+525
+00:21:45.800 --> 00:21:49.120
+or event-driven logic, API, compute data storage,
+
+526
+00:21:49.120 --> 00:21:52.280
+probably you can build a lot of complex things.
+
+527
+00:21:52.280 --> 00:21:54.960
+So you probably don't need all the potential of AWS
+
+528
+00:21:54.960 --> 00:21:57.720
+and all the millions of permutation and configuration
+
+529
+00:21:57.720 --> 00:21:58.240
+options.
+
+530
+00:21:58.240 --> 00:21:59.760
+So in that sense, it might really
+
+531
+00:21:59.760 --> 00:22:03.400
+be a good platform to use for many different kinds
+
+532
+00:22:03.400 --> 00:22:04.840
+of projects.
+
+533
+00:22:04.840 --> 00:22:07.240
+So we'll try to see if we will have in the future
+
+534
+00:22:07.240 --> 00:22:10.040
+the opportunity to try it in a more serious project, something
+
+535
+00:22:10.040 --> 00:22:12.160
+more big scale or production-ready,
+
+536
+00:22:12.160 --> 00:22:13.640
+just to see what the experience will
+
+537
+00:22:13.640 --> 00:22:15.680
+look like when you try to do something a little bit more
+
+538
+00:22:15.680 --> 00:22:16.560
+ambitious.
+
+539
+00:22:16.560 --> 00:22:18.880
+But there are actually some customer case studies
+
+540
+00:22:18.880 --> 00:22:21.200
+that you can see on the Ampt website.
+
+541
+00:22:21.200 --> 00:22:24.120
+So if you're curious to see what are some real cases that
+
+542
+00:22:24.120 --> 00:22:27.000
+exist today in the market, you can check out that page
+
+543
+00:22:27.000 --> 00:22:30.120
+and get yourself more informed on the capabilities
+
+544
+00:22:30.120 --> 00:22:33.560
+and the different solutions that people have built with this.
+
+545
+00:22:33.560 --> 00:22:35.400
+Now, again, I think it's worth remarking
+
+546
+00:22:35.400 --> 00:22:37.800
+that it's really admirable to see somebody trying
+
+547
+00:22:37.800 --> 00:22:41.680
+to innovate the cloud space, which it changes every day,
+
+548
+00:22:41.680 --> 00:22:44.160
+but we haven't seen this level of fundamentals
+
+549
+00:22:44.160 --> 00:22:45.360
+which in a while.
+
+550
+00:22:45.360 --> 00:22:48.080
+So I think it's trying to push a different approach.
+
+551
+00:22:48.080 --> 00:22:51.080
+And that's really something that is always really welcome,
+
+552
+00:22:51.080 --> 00:22:52.720
+because I think from this kind of ideas
+
+553
+00:22:52.720 --> 00:22:55.960
+come the best innovations that we see in general in the tech
+
+554
+00:22:55.960 --> 00:22:56.840
+industry.
+
+555
+00:22:56.840 --> 00:22:59.640
+So let's keep an open eye for the future of Ampt
+
+556
+00:22:59.640 --> 00:23:01.760
+or maybe other similar alternatives.
+
+557
+00:23:01.760 --> 00:23:04.240
+If there are other tools like this that you have been using
+
+558
+00:23:04.240 --> 00:23:06.720
+and you are happy with, please share them with us.
+
+559
+00:23:06.720 --> 00:23:09.240
+We'd be looking forward to check your suggestions
+
+560
+00:23:09.240 --> 00:23:11.000
+and maybe think about other episodes
+
+561
+00:23:11.000 --> 00:23:14.360
+where we explore alternatives like Ampt.
+
+562
+00:23:14.360 --> 00:23:16.240
+So that's all for today, and we look forward
+
+563
+00:23:16.240 --> 00:23:17.840
+to seeing you in the next episode.

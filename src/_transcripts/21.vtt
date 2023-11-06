@@ -1,0 +1,1881 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:02.880
+Hello, today we're going to answer the question,
+
+2
+00:00:02.880 --> 00:00:05.440
+what services should they use for events?
+
+3
+00:00:05.440 --> 00:00:08.120
+And we are going to cover in which context
+
+4
+00:00:08.120 --> 00:00:10.600
+is convenient to use messages and events.
+
+5
+00:00:10.600 --> 00:00:13.400
+What are the major services available in AWS
+
+6
+00:00:13.400 --> 00:00:15.160
+for these particular cases?
+
+7
+00:00:15.160 --> 00:00:18.460
+And then we are going to basically discussing
+
+8
+00:00:18.460 --> 00:00:20.320
+all the services at high level,
+
+9
+00:00:20.320 --> 00:00:23.620
+what are the major features and some of the examples.
+
+10
+00:00:23.620 --> 00:00:26.200
+My name is Luciano and today I'm joined by Eoin
+
+11
+00:00:26.200 --> 00:00:28.560
+and this is AWS Bites podcast.
+
+12
+00:00:28.560 --> 00:00:39.760
+Okay, so Eoin, do you want to start by giving us an idea
+
+13
+00:00:39.760 --> 00:00:43.560
+of contexts and use cases where it might make sense
+
+14
+00:00:43.560 --> 00:00:50.880
+to use a message passing or AWS services related to that?
+
+15
+00:00:50.880 --> 00:00:53.400
+Yeah, there's a lot to cover here.
+
+16
+00:00:53.400 --> 00:00:56.760
+And I suppose we're talking about asynchronous communication
+
+17
+00:00:56.760 --> 00:00:59.720
+between services or components or systems.
+
+18
+00:00:59.720 --> 00:01:01.280
+There's a lot of things you can do
+
+19
+00:01:01.280 --> 00:01:03.320
+with all of these services,
+
+20
+00:01:03.320 --> 00:01:05.560
+but we might be talking about integrations
+
+21
+00:01:05.560 --> 00:01:07.120
+between two different systems,
+
+22
+00:01:07.120 --> 00:01:10.060
+just communication between microservices
+
+23
+00:01:10.060 --> 00:01:12.460
+and event-driven serverless architectures,
+
+24
+00:01:12.460 --> 00:01:15.680
+which are really exciting when you look at what you can do
+
+25
+00:01:15.680 --> 00:01:18.260
+with things like Lambda and all these services.
+
+26
+00:01:18.260 --> 00:01:21.500
+Yeah, so I think we've got,
+
+27
+00:01:21.500 --> 00:01:22.660
+there's a lot of things we could cover.
+
+28
+00:01:22.660 --> 00:01:25.840
+We're going to cover the five different services,
+
+29
+00:01:25.840 --> 00:01:30.240
+SQS, SNS, EventBridge, and then Kinesis,
+
+30
+00:01:30.240 --> 00:01:35.960
+but also Kafka, managed streaming for Kafka, MSK.
+
+31
+00:01:35.960 --> 00:01:38.900
+So should we start with SQS,
+
+32
+00:01:38.900 --> 00:01:42.840
+given that it's, I think, the oldest AWS service,
+
+33
+00:01:42.840 --> 00:01:46.200
+what would you use SQS for?
+
+34
+00:01:46.200 --> 00:01:50.900
+Yeah, I suppose one first good way of seeing all the services
+
+35
+00:01:50.900 --> 00:01:52.680
+is trying to understand like high level,
+
+36
+00:01:52.680 --> 00:01:54.100
+what are the categories?
+
+37
+00:01:54.100 --> 00:01:56.520
+For instance, talking about SQS,
+
+38
+00:01:56.520 --> 00:01:59.640
+I will say that SQS is more like point-to-point
+
+39
+00:01:59.640 --> 00:02:01.400
+type of communication.
+
+40
+00:02:01.400 --> 00:02:05.500
+You generally have one producer that is creating tasks
+
+41
+00:02:05.500 --> 00:02:07.540
+or task definition, job definition,
+
+42
+00:02:07.540 --> 00:02:09.120
+whatever we want to call them.
+
+43
+00:02:09.120 --> 00:02:10.560
+They are stored in a queue.
+
+44
+00:02:10.560 --> 00:02:13.520
+So this idea that you push things from one side
+
+45
+00:02:13.520 --> 00:02:15.720
+and you consume them from another.
+
+46
+00:02:15.720 --> 00:02:19.440
+And generally you have one consumer
+
+47
+00:02:19.440 --> 00:02:21.880
+or a group of consumers,
+
+48
+00:02:21.880 --> 00:02:24.920
+but they are kind of consuming the same type of tasks.
+
+49
+00:02:24.920 --> 00:02:25.880
+Yeah.
+
+50
+00:02:25.880 --> 00:02:28.240
+So you generally would say that it's like one producer,
+
+51
+00:02:28.240 --> 00:02:31.160
+one consumer type of configuration when you use SQS.
+
+52
+00:02:31.160 --> 00:02:32.360
+For any usage, yeah.
+
+53
+00:02:32.360 --> 00:02:33.200
+Yeah.
+
+54
+00:02:34.600 --> 00:02:38.520
+While in comparison, we have something that is more PubSub,
+
+55
+00:02:38.520 --> 00:02:40.880
+publish and subscribe event,
+
+56
+00:02:40.880 --> 00:02:44.920
+and I would probably put SNS and EventBridge in that bucket.
+
+57
+00:02:44.920 --> 00:02:46.740
+And the reason is that with PubSub,
+
+58
+00:02:46.740 --> 00:02:49.120
+you generally have, again, one producer,
+
+59
+00:02:49.120 --> 00:02:51.920
+but on the other end, you might have from zero
+
+60
+00:02:51.920 --> 00:02:53.400
+to many consumers.
+
+61
+00:02:53.400 --> 00:02:55.520
+Like you are just saying, this is happening.
+
+62
+00:02:55.520 --> 00:02:57.480
+This is the definition of an event.
+
+63
+00:02:57.480 --> 00:02:59.160
+Nobody might listen to it.
+
+64
+00:02:59.160 --> 00:03:01.280
+So the event just phase away,
+
+65
+00:03:01.280 --> 00:03:04.920
+or you might have one or more consumer actually reacting
+
+66
+00:03:04.920 --> 00:03:06.880
+to that particular event.
+
+67
+00:03:06.880 --> 00:03:10.680
+And then the other case or group, if you want,
+
+68
+00:03:10.680 --> 00:03:14.440
+is a more streaming based use case.
+
+69
+00:03:14.440 --> 00:03:17.620
+And this is where I will put Kinesis or MSK.
+
+70
+00:03:17.620 --> 00:03:21.760
+Again, you have one producers, zero to many consumers.
+
+71
+00:03:21.760 --> 00:03:24.440
+The difference that messages are,
+
+72
+00:03:24.440 --> 00:03:26.400
+I would say somewhat more important
+
+73
+00:03:26.400 --> 00:03:29.440
+because they are persisted and they're kept around,
+
+74
+00:03:29.440 --> 00:03:31.100
+and that gives you more features.
+
+75
+00:03:31.100 --> 00:03:32.840
+For instance, you can replay them.
+
+76
+00:03:34.880 --> 00:03:38.760
+And also generally streaming as higher throughput.
+
+77
+00:03:38.760 --> 00:03:43.600
+So definitely a good candidate for Kinesis or MSKs
+
+78
+00:03:43.600 --> 00:03:47.280
+when you are really processing high throughput data
+
+79
+00:03:47.280 --> 00:03:50.320
+and you need to do like real time operations
+
+80
+00:03:50.320 --> 00:03:52.520
+on the incoming data.
+
+81
+00:03:52.520 --> 00:03:53.480
+That makes a lot of sense.
+
+82
+00:03:53.480 --> 00:03:57.120
+Yeah, so should we start with SQS first then
+
+83
+00:03:57.120 --> 00:03:58.720
+and think about some of the use cases
+
+84
+00:03:58.720 --> 00:03:59.800
+and where would you use it?
+
+85
+00:03:59.800 --> 00:04:00.720
+What do you think?
+
+86
+00:04:02.240 --> 00:04:06.440
+Yeah, so in general, I will use SQS in all those situations
+
+87
+00:04:06.440 --> 00:04:09.240
+where I want to make a system more resilient
+
+88
+00:04:09.240 --> 00:04:11.360
+because you can just put a queue
+
+89
+00:04:11.360 --> 00:04:13.880
+between a particular operation.
+
+90
+00:04:13.880 --> 00:04:16.340
+So whenever you receive the input
+
+91
+00:04:16.340 --> 00:04:18.040
+and where you are producing your output,
+
+92
+00:04:18.040 --> 00:04:19.700
+if you put a queue in between,
+
+93
+00:04:19.700 --> 00:04:22.360
+then that gives you the ability of first of all,
+
+94
+00:04:22.360 --> 00:04:24.440
+persisting all that input,
+
+95
+00:04:24.440 --> 00:04:28.960
+then decoupling that the collection of the input
+
+96
+00:04:28.960 --> 00:04:32.440
+from actually doing the work to produce the output.
+
+97
+00:04:32.440 --> 00:04:34.440
+And with that, you get a lot of features like,
+
+98
+00:04:34.440 --> 00:04:37.800
+I don't know, if something fails, you can easily retry it.
+
+99
+00:04:37.800 --> 00:04:40.000
+And you create that letter queue.
+
+100
+00:04:40.000 --> 00:04:42.900
+If you are actually unable, you retry it multiple times
+
+101
+00:04:42.900 --> 00:04:45.220
+and you are still failing, you can save it.
+
+102
+00:04:45.220 --> 00:04:48.100
+And somebody can analyze it manually,
+
+103
+00:04:48.100 --> 00:04:49.720
+figure out what went wrong.
+
+104
+00:04:49.720 --> 00:04:51.640
+And then from that letter queue,
+
+105
+00:04:51.640 --> 00:04:55.560
+maybe you can re-ingest the message and execute it again
+
+106
+00:04:55.560 --> 00:04:57.760
+after you realize what was going wrong.
+
+107
+00:04:57.760 --> 00:05:00.920
+So that's generally a good use case for SQS,
+
+108
+00:05:00.920 --> 00:05:02.880
+but it can also help for performance.
+
+109
+00:05:02.880 --> 00:05:05.400
+For instance, you can use a queue
+
+110
+00:05:05.400 --> 00:05:08.160
+for every single action in a system
+
+111
+00:05:08.160 --> 00:05:10.960
+where maybe you are receiving a user request,
+
+112
+00:05:10.960 --> 00:05:12.280
+you need to do some actions,
+
+113
+00:05:12.280 --> 00:05:14.140
+but those actions can be postponed.
+
+114
+00:05:14.140 --> 00:05:17.760
+You don't need to do them right now just to answer,
+
+115
+00:05:17.760 --> 00:05:19.580
+to produce a response for the user.
+
+116
+00:05:21.600 --> 00:05:25.040
+Just few examples, very common ones.
+
+117
+00:05:25.040 --> 00:05:28.800
+A user does something, you need to send a confirmation email.
+
+118
+00:05:28.800 --> 00:05:32.040
+You don't need to do that in line in the user request.
+
+119
+00:05:32.040 --> 00:05:33.680
+You can just save it to a queue
+
+120
+00:05:33.680 --> 00:05:35.560
+and a background process can pick it up
+
+121
+00:05:35.560 --> 00:05:37.160
+and actually send the email.
+
+122
+00:05:37.160 --> 00:05:40.180
+Very similarly, a user is uploading a picture,
+
+123
+00:05:40.180 --> 00:05:41.840
+you need to resize it.
+
+124
+00:05:41.840 --> 00:05:44.840
+You don't need to let the user wait in line
+
+125
+00:05:44.840 --> 00:05:46.260
+while you are resizing the pictures.
+
+126
+00:05:46.260 --> 00:05:49.120
+You can just say, okay, the picture was received
+
+127
+00:05:49.120 --> 00:05:50.640
+and you can do all the resizing
+
+128
+00:05:50.640 --> 00:05:52.160
+in the background using a queue.
+
+129
+00:05:53.140 --> 00:05:55.420
+Anything else worth adding?
+
+130
+00:05:56.720 --> 00:05:58.080
+I think that really covers it very well.
+
+131
+00:05:58.080 --> 00:06:00.520
+Like if you imagine at a very simple level,
+
+132
+00:06:00.520 --> 00:06:02.600
+if you've got a synchronous request
+
+133
+00:06:02.600 --> 00:06:04.060
+processing flow right now,
+
+134
+00:06:04.060 --> 00:06:06.000
+if you want to add resilience to that,
+
+135
+00:06:06.000 --> 00:06:07.360
+just put a queue in the middle.
+
+136
+00:06:07.360 --> 00:06:09.560
+And that's a good first step
+
+137
+00:06:09.560 --> 00:06:12.080
+to making your architecture more resilient
+
+138
+00:06:12.080 --> 00:06:13.080
+and more performant.
+
+139
+00:06:14.440 --> 00:06:15.640
+Yeah.
+
+140
+00:06:15.640 --> 00:06:18.860
+Do you want to move to SNS then?
+
+141
+00:06:18.860 --> 00:06:19.700
+Yeah, yeah.
+
+142
+00:06:19.700 --> 00:06:23.320
+So SNS is, back to the categorization,
+
+143
+00:06:23.320 --> 00:06:25.320
+it's a pub sub mechanisms.
+
+144
+00:06:25.320 --> 00:06:28.240
+So instead of having a point to point thing like SQS
+
+145
+00:06:28.240 --> 00:06:30.920
+where you typically have each message being processed
+
+146
+00:06:30.920 --> 00:06:33.600
+by one consumer, with SNS,
+
+147
+00:06:33.600 --> 00:06:36.660
+you want to target multiple subscribers.
+
+148
+00:06:36.660 --> 00:06:40.200
+So a subscriber could be something like a Lambda function.
+
+149
+00:06:40.200 --> 00:06:43.200
+It could be one of the other things that SNS supports
+
+150
+00:06:43.200 --> 00:06:46.040
+like email and SMS messages.
+
+151
+00:06:46.040 --> 00:06:48.160
+That's how it's kind of got started.
+
+152
+00:06:49.440 --> 00:06:50.920
+But it's essentially when you want to be able
+
+153
+00:06:50.920 --> 00:06:53.840
+to publish something and have other systems react,
+
+154
+00:06:53.840 --> 00:06:55.000
+but you don't necessarily know
+
+155
+00:06:55.000 --> 00:06:57.040
+what those other systems are in advance.
+
+156
+00:06:57.960 --> 00:07:00.400
+You can anticipate multiple potential subscribers
+
+157
+00:07:00.400 --> 00:07:01.560
+in the future.
+
+158
+00:07:01.560 --> 00:07:04.320
+So the thing about SNS is that you need to create
+
+159
+00:07:04.320 --> 00:07:05.320
+a couple of resources.
+
+160
+00:07:05.320 --> 00:07:07.760
+You need to create both the topic resource
+
+161
+00:07:07.760 --> 00:07:10.040
+and then you need to create one or more subscription
+
+162
+00:07:10.040 --> 00:07:12.340
+resources in order for messages to flow.
+
+163
+00:07:14.000 --> 00:07:17.640
+And it's also not inherently resilient.
+
+164
+00:07:17.640 --> 00:07:21.640
+So SNS, if you want your messages to be stored,
+
+165
+00:07:21.640 --> 00:07:24.800
+you would typically have an SQS subscriber
+
+166
+00:07:24.800 --> 00:07:28.340
+and then have your subscriber action for actually react
+
+167
+00:07:28.340 --> 00:07:30.680
+to the queue rather than the topic directly.
+
+168
+00:07:30.680 --> 00:07:34.140
+And that's very typical way of doing a fan out with SNS
+
+169
+00:07:34.140 --> 00:07:37.200
+and then multiple SQS queues at the end.
+
+170
+00:07:37.200 --> 00:07:39.040
+So the examples where you'd use them, I think,
+
+171
+00:07:39.040 --> 00:07:41.520
+are in a microservices architecture,
+
+172
+00:07:41.520 --> 00:07:44.020
+if you want to communicate events between domains.
+
+173
+00:07:45.520 --> 00:07:48.640
+I suppose, if you imagine an e-commerce application
+
+174
+00:07:48.640 --> 00:07:50.800
+with multiple microservices,
+
+175
+00:07:50.800 --> 00:07:53.240
+and let's say you've got an order service
+
+176
+00:07:53.240 --> 00:07:57.480
+and an order is created following a web request,
+
+177
+00:07:57.480 --> 00:07:59.520
+then you might have an analytic service
+
+178
+00:07:59.520 --> 00:08:01.440
+that picks up that order event and stores it
+
+179
+00:08:01.440 --> 00:08:04.800
+in the data warehouse to do some analytics
+
+180
+00:08:04.800 --> 00:08:07.080
+or ETL downstream.
+
+181
+00:08:07.080 --> 00:08:08.320
+Then you might have another service
+
+182
+00:08:08.320 --> 00:08:10.960
+that sends a confirmation email to a customer
+
+183
+00:08:10.960 --> 00:08:13.980
+and another service that starts the fulfillment workflow.
+
+184
+00:08:13.980 --> 00:08:17.320
+So if you're doing this kind of event-driven orchestration,
+
+185
+00:08:17.320 --> 00:08:18.860
+that's one of the ways you could do it.
+
+186
+00:08:18.860 --> 00:08:22.040
+SNS has so many different use cases.
+
+187
+00:08:22.040 --> 00:08:23.680
+Wherever you would use something,
+
+188
+00:08:23.680 --> 00:08:26.820
+even like a topic in some of the traditional services
+
+189
+00:08:26.820 --> 00:08:31.440
+like ActiveMQ or RabbitMQ, you could use SNS instead.
+
+190
+00:08:31.440 --> 00:08:32.960
+And it's pretty performant as well.
+
+191
+00:08:32.960 --> 00:08:35.000
+So the throughput is pretty good.
+
+192
+00:08:37.080 --> 00:08:39.440
+And so that brings up an interesting point
+
+193
+00:08:39.440 --> 00:08:43.760
+because SNS and EventBridge can seem quite similar
+
+194
+00:08:43.760 --> 00:08:45.680
+on the face of it.
+
+195
+00:08:45.680 --> 00:08:48.400
+How would you describe if somebody was choosing,
+
+196
+00:08:48.400 --> 00:08:50.800
+should I use SNS or should I use EventBridge?
+
+197
+00:08:50.800 --> 00:08:52.000
+They both seem like PubSUB.
+
+198
+00:08:52.000 --> 00:08:53.840
+What's the difference?
+
+199
+00:08:53.840 --> 00:08:55.000
+Yeah, that's a good question.
+
+200
+00:08:55.000 --> 00:08:57.560
+And if I have to be honest, I was a little bit confused
+
+201
+00:08:57.560 --> 00:09:01.200
+myself when EventBridge was announced to try to understand,
+
+202
+00:09:01.200 --> 00:09:05.600
+OK, why a new service when we have SNS?
+
+203
+00:09:05.600 --> 00:09:08.920
+And I think it's just it covers a very similar space.
+
+204
+00:09:08.920 --> 00:09:11.120
+So definitely there is an overlap between the two
+
+205
+00:09:11.120 --> 00:09:12.040
+services.
+
+206
+00:09:12.040 --> 00:09:14.600
+It's more the way that they provide you
+
+207
+00:09:14.600 --> 00:09:18.000
+all the tools and features that you might need to fulfill
+
+208
+00:09:18.000 --> 00:09:19.600
+that particular need.
+
+209
+00:09:19.600 --> 00:09:25.280
+So I think EventBridge is definitely more flexible than SNS
+
+210
+00:09:25.280 --> 00:09:26.840
+and in different ways.
+
+211
+00:09:26.840 --> 00:09:30.760
+So just to try to make a list, the first obvious difference
+
+212
+00:09:30.760 --> 00:09:33.440
+we will notice is that with EventBridge,
+
+213
+00:09:33.440 --> 00:09:36.400
+we don't need to explicitly create topics.
+
+214
+00:09:36.400 --> 00:09:39.080
+You have a default bus, it's called,
+
+215
+00:09:39.080 --> 00:09:43.560
+and you can just use that to publish all your messages.
+
+216
+00:09:43.560 --> 00:09:45.320
+Also, the other thing is in the way
+
+217
+00:09:45.320 --> 00:09:50.160
+you consume those messages with SNS,
+
+218
+00:09:50.160 --> 00:09:53.400
+you are basically listening on that particular channel
+
+219
+00:09:53.400 --> 00:09:56.400
+for all the events that are published on that channel.
+
+220
+00:09:56.400 --> 00:10:00.680
+With EventBridge, the mechanism is based on pattern matching.
+
+221
+00:10:00.680 --> 00:10:05.560
+So you could describe pretty flexible patterns
+
+222
+00:10:05.560 --> 00:10:08.400
+that will allow you to capture even different types of events
+
+223
+00:10:08.400 --> 00:10:10.760
+with just one expression.
+
+224
+00:10:10.760 --> 00:10:12.480
+So for instance, you could say, OK,
+
+225
+00:10:12.480 --> 00:10:15.560
+I want to listen for all the events produced
+
+226
+00:10:15.560 --> 00:10:18.720
+by a particular source, all the events that
+
+227
+00:10:18.720 --> 00:10:22.440
+contain a specific ID in a given field of the event.
+
+228
+00:10:22.440 --> 00:10:24.040
+So you can build all the patterns
+
+229
+00:10:24.040 --> 00:10:26.480
+in the way that makes the most sense for your application,
+
+230
+00:10:26.480 --> 00:10:29.520
+and that can be very powerful.
+
+231
+00:10:29.520 --> 00:10:31.960
+Other than that, it is very interesting
+
+232
+00:10:31.960 --> 00:10:37.600
+that EventBridge supports out of the box what I will call AWS
+
+233
+00:10:37.600 --> 00:10:39.520
+internal events, if you want.
+
+234
+00:10:39.520 --> 00:10:42.280
+So not necessarily specific for your application,
+
+235
+00:10:42.280 --> 00:10:46.240
+but events that happen in the context of a given AWS account.
+
+236
+00:10:46.240 --> 00:10:49.280
+And that's something you can use to build specific integration.
+
+237
+00:10:49.280 --> 00:10:53.160
+For instance, you could listen for a particular step function
+
+238
+00:10:53.160 --> 00:10:55.760
+that is changing its own state, and maybe you
+
+239
+00:10:55.760 --> 00:10:57.600
+would want to react to that.
+
+240
+00:10:57.600 --> 00:11:01.400
+Or very interestingly enough, you can listen for S3 events.
+
+241
+00:11:01.400 --> 00:11:05.840
+So you can listen for new files on an S3 bucket,
+
+242
+00:11:05.840 --> 00:11:08.400
+or files that are updated and deleted.
+
+243
+00:11:08.400 --> 00:11:12.040
+And similarly enough, you can listen for CrowdTrail events.
+
+244
+00:11:12.040 --> 00:11:14.760
+And in all these cases, you can still use pattern matching,
+
+245
+00:11:14.760 --> 00:11:17.120
+so you can have very sophisticated ways
+
+246
+00:11:17.120 --> 00:11:19.160
+of capturing very specific events that
+
+247
+00:11:19.160 --> 00:11:22.960
+matter to your application.
+
+248
+00:11:22.960 --> 00:11:27.440
+Other thing is that it supports many more targets than SNS.
+
+249
+00:11:27.440 --> 00:11:30.000
+For instance, you can use EventBridge
+
+250
+00:11:30.000 --> 00:11:35.240
+to basically propagate events to SNS itself, SQS, Lambda,
+
+251
+00:11:35.240 --> 00:11:39.800
+step function, log groups, event batch, an EC2,
+
+252
+00:11:39.800 --> 00:11:42.600
+or even other event buses in other regional accounts.
+
+253
+00:11:42.600 --> 00:11:44.880
+So definitely much more powerful in terms
+
+254
+00:11:44.880 --> 00:11:49.640
+of all the different ways you can distribute the messages.
+
+255
+00:11:49.640 --> 00:11:51.880
+Finally, there are other features,
+
+256
+00:11:51.880 --> 00:11:55.920
+like you can have schema, the schema registry where
+
+257
+00:11:55.920 --> 00:11:58.960
+you can visualize the shape of all the messages that
+
+258
+00:11:58.960 --> 00:12:00.520
+are going to the bus.
+
+259
+00:12:00.520 --> 00:12:04.160
+You have discovery functionality so that every time there
+
+260
+00:12:04.160 --> 00:12:07.760
+are new messages, the schema is registered,
+
+261
+00:12:07.760 --> 00:12:09.480
+and you can use it.
+
+262
+00:12:09.480 --> 00:12:13.200
+And then you can archive the messages for long retention,
+
+263
+00:12:13.200 --> 00:12:14.760
+and you can even replay the messages.
+
+264
+00:12:14.760 --> 00:12:18.960
+So definitely much more features from EventBridge
+
+265
+00:12:18.960 --> 00:12:21.560
+compared to SNS.
+
+266
+00:12:21.560 --> 00:12:23.760
+In terms of examples, I guess they
+
+267
+00:12:23.760 --> 00:12:27.280
+are pretty similar to what you will do with SNS.
+
+268
+00:12:27.280 --> 00:12:29.800
+So I think your re-commerce example is still valid.
+
+269
+00:12:29.800 --> 00:12:32.440
+You could implement that even with EventBridge.
+
+270
+00:12:32.440 --> 00:12:32.920
+Definitely.
+
+271
+00:12:32.920 --> 00:12:36.880
+Because you can also listen to AWS-specific events.
+
+272
+00:12:36.880 --> 00:12:40.000
+Another example could be you are interested in files
+
+273
+00:12:40.000 --> 00:12:42.560
+that are uploaded to an S3 bucket, maybe,
+
+274
+00:12:42.560 --> 00:12:45.400
+and you can build easily a pattern that
+
+275
+00:12:45.400 --> 00:12:47.240
+will capture those events.
+
+276
+00:12:47.240 --> 00:12:50.560
+And you can do, I don't know, a virus scan, maybe,
+
+277
+00:12:50.560 --> 00:12:53.040
+on files that are uploaded by users.
+
+278
+00:12:53.040 --> 00:12:54.920
+Or maybe if those are text files,
+
+279
+00:12:54.920 --> 00:12:57.560
+you can pick them up and index their content
+
+280
+00:12:57.560 --> 00:12:59.880
+so you can create a search functionality
+
+281
+00:12:59.880 --> 00:13:01.840
+on top of these files.
+
+282
+00:13:01.840 --> 00:13:03.560
+All of that is something you can build easily
+
+283
+00:13:03.560 --> 00:13:06.400
+because you don't need to create an event bus for them.
+
+284
+00:13:06.400 --> 00:13:09.720
+You don't need to create the events yourself.
+
+285
+00:13:09.720 --> 00:13:11.240
+But they will happen automatically
+
+286
+00:13:11.240 --> 00:13:14.680
+in the context of your AWS account.
+
+287
+00:13:14.680 --> 00:13:18.120
+So yeah, that's all I have.
+
+288
+00:13:18.120 --> 00:13:23.120
+Am I missing anything important from your perspective?
+
+289
+00:13:23.120 --> 00:13:25.160
+I think that covers a huge amount.
+
+290
+00:13:25.160 --> 00:13:27.880
+One of the things I've seen is that the performance
+
+291
+00:13:27.880 --> 00:13:31.480
+characteristics of EventBridge are slightly slower compared
+
+292
+00:13:31.480 --> 00:13:32.080
+to SNS.
+
+293
+00:13:32.080 --> 00:13:33.480
+So that's one consideration people
+
+294
+00:13:33.480 --> 00:13:34.640
+might want to bear in mind.
+
+295
+00:13:34.640 --> 00:13:37.080
+Sometimes if you need to process it within a few hundred
+
+296
+00:13:37.080 --> 00:13:39.920
+milliseconds, SNS might be the best option.
+
+297
+00:13:39.920 --> 00:13:43.120
+But generally, for these kind of events,
+
+298
+00:13:43.120 --> 00:13:44.560
+most of the events in EventBridge
+
+299
+00:13:44.560 --> 00:13:47.640
+are going to arrive pretty quickly anyway.
+
+300
+00:13:47.640 --> 00:13:50.320
+You may have some outliers that are a little bit slower.
+
+301
+00:13:50.320 --> 00:13:52.960
+So that's one thing to bear in mind,
+
+302
+00:13:52.960 --> 00:13:54.760
+especially when you're doing this common event
+
+303
+00:13:54.760 --> 00:13:56.200
+process you mentioned.
+
+304
+00:13:56.200 --> 00:13:59.680
+It's a very common thing to have an event bus for all
+
+305
+00:13:59.680 --> 00:14:02.680
+the lifecycle events for all of the resources
+
+306
+00:14:02.680 --> 00:14:05.040
+in your application get published.
+
+307
+00:14:05.040 --> 00:14:07.760
+But if you've got performance characteristics around that,
+
+308
+00:14:07.760 --> 00:14:09.840
+then you might want to think about something else.
+
+309
+00:14:09.840 --> 00:14:12.760
+Traditionally in microservices, people
+
+310
+00:14:12.760 --> 00:14:16.760
+may have used Kafka or a stream processing system in the past.
+
+311
+00:14:16.760 --> 00:14:20.680
+So maybe that brings us nicely along to the other category
+
+312
+00:14:20.680 --> 00:14:26.160
+we mentioned, Kinesis and Kafka and stream processing.
+
+313
+00:14:26.160 --> 00:14:29.160
+So I think we mentioned that it's
+
+314
+00:14:29.160 --> 00:14:30.400
+suitable for high throughput.
+
+315
+00:14:30.400 --> 00:14:32.240
+So definitely with these Kafka and Kinesis,
+
+316
+00:14:32.240 --> 00:14:35.120
+you're going to get lower latency,
+
+317
+00:14:35.120 --> 00:14:36.400
+like really low latency.
+
+318
+00:14:36.400 --> 00:14:38.480
+So when you really want low latency
+
+319
+00:14:38.480 --> 00:14:41.680
+and have to react in milliseconds to events,
+
+320
+00:14:41.680 --> 00:14:43.720
+this is what you need to be thinking about using
+
+321
+00:14:43.720 --> 00:14:45.680
+a stream processing.
+
+322
+00:14:45.680 --> 00:14:49.920
+Some people do use these stream processing systems
+
+323
+00:14:49.920 --> 00:14:52.560
+as pub sub buses because you can.
+
+324
+00:14:52.560 --> 00:14:57.240
+They all have a concept of like a channel or a stream
+
+325
+00:14:57.240 --> 00:14:59.600
+that you can treat like a topic.
+
+326
+00:14:59.600 --> 00:15:01.880
+And then you have consumers for it.
+
+327
+00:15:01.880 --> 00:15:04.640
+The difference is that the way they work
+
+328
+00:15:04.640 --> 00:15:07.560
+and the way data is stored is completely different.
+
+329
+00:15:07.560 --> 00:15:11.840
+It's almost like instead of a message bus,
+
+330
+00:15:11.840 --> 00:15:14.920
+it's almost like sequential lines in a file.
+
+331
+00:15:14.920 --> 00:15:17.160
+And the consumers are just pointing at a given line
+
+332
+00:15:17.160 --> 00:15:18.400
+number.
+
+333
+00:15:18.400 --> 00:15:20.000
+And that's kind of a simple model
+
+334
+00:15:20.000 --> 00:15:21.960
+for how those things work.
+
+335
+00:15:21.960 --> 00:15:24.160
+But what that means is that you can get guarantees
+
+336
+00:15:24.160 --> 00:15:25.880
+around ordering.
+
+337
+00:15:25.880 --> 00:15:29.440
+And that is one of the fundamental things that
+
+338
+00:15:29.440 --> 00:15:31.960
+can be beneficial with Kinesis and Kafka.
+
+339
+00:15:31.960 --> 00:15:34.600
+But you've got retention.
+
+340
+00:15:34.600 --> 00:15:37.240
+So Kinesis will allow you to store messages
+
+341
+00:15:37.240 --> 00:15:38.400
+for up to a year.
+
+342
+00:15:38.400 --> 00:15:41.520
+Kafka, you can serve it forever.
+
+343
+00:15:41.520 --> 00:15:43.160
+But you have to think about scalability
+
+344
+00:15:43.160 --> 00:15:48.040
+because if you're looking at a Kinesis consumer,
+
+345
+00:15:48.040 --> 00:15:50.600
+there's consumption throughput limits you need to think about.
+
+346
+00:15:50.600 --> 00:15:52.640
+There are producer throughput limits.
+
+347
+00:15:52.640 --> 00:15:55.600
+And in all these cases, you need to size the cluster
+
+348
+00:15:55.600 --> 00:15:58.840
+if it's Kafka, or you need to size the streams
+
+349
+00:15:58.840 --> 00:16:00.200
+if it's Kinesis.
+
+350
+00:16:00.200 --> 00:16:02.520
+So you really have to think about the numbers
+
+351
+00:16:02.520 --> 00:16:05.360
+and the mathematics around your event flow
+
+352
+00:16:05.360 --> 00:16:08.520
+if you want to use those things.
+
+353
+00:16:08.520 --> 00:16:10.440
+So there's more of an investment,
+
+354
+00:16:10.440 --> 00:16:12.560
+I would say, needed for them.
+
+355
+00:16:12.560 --> 00:16:16.080
+If you can get away with using SNS, SQS, and EventBridge
+
+356
+00:16:16.080 --> 00:16:18.800
+instead, it's going to be much simpler.
+
+357
+00:16:18.800 --> 00:16:20.040
+But they do have their places.
+
+358
+00:16:20.040 --> 00:16:25.000
+So I guess, yeah, maybe we should give some examples.
+
+359
+00:16:25.000 --> 00:16:27.160
+Do you have actually some examples, Vigianno,
+
+360
+00:16:27.160 --> 00:16:30.200
+that you could say are good?
+
+361
+00:16:30.200 --> 00:16:32.760
+Illustrate the differences between stream processing
+
+362
+00:16:32.760 --> 00:16:35.840
+and what you'd use it for as opposed to a PubSub?
+
+363
+00:16:35.840 --> 00:16:36.680
+Yeah, absolutely.
+
+364
+00:16:36.680 --> 00:16:40.080
+So one example that comes to mind is, for instance,
+
+365
+00:16:40.080 --> 00:16:42.520
+you have an application where you
+
+366
+00:16:42.520 --> 00:16:45.440
+have users interacting with, let's say, for instance,
+
+367
+00:16:45.440 --> 00:16:46.000
+products.
+
+368
+00:16:46.000 --> 00:16:48.760
+Again, just to stick with the e-commerce example.
+
+369
+00:16:48.760 --> 00:16:51.080
+Maybe you would be really interested in trying
+
+370
+00:16:51.080 --> 00:16:54.320
+to observe what the user is doing in the page
+
+371
+00:16:54.320 --> 00:16:56.680
+to understand maybe what other products you
+
+372
+00:16:56.680 --> 00:16:58.680
+can suggest to that user.
+
+373
+00:16:58.680 --> 00:17:00.880
+And you could implement something
+
+374
+00:17:00.880 --> 00:17:03.080
+that captures all the user clicks,
+
+375
+00:17:03.080 --> 00:17:04.640
+but not just the clicks, maybe even
+
+376
+00:17:04.640 --> 00:17:09.280
+the user offering specific elements in the page,
+
+377
+00:17:09.280 --> 00:17:11.160
+or even scrolling the page and looking
+
+378
+00:17:11.160 --> 00:17:13.520
+at a specific area of the page.
+
+379
+00:17:13.520 --> 00:17:16.160
+And you can create streams where you are basically
+
+380
+00:17:16.160 --> 00:17:19.320
+sending all these events in real time.
+
+381
+00:17:19.320 --> 00:17:22.160
+And then you can have analytics consuming
+
+382
+00:17:22.160 --> 00:17:24.600
+all this information real time and responding
+
+383
+00:17:24.600 --> 00:17:26.640
+with suggestions for other products
+
+384
+00:17:26.640 --> 00:17:30.360
+that the user might be interested to watch and maybe
+
+385
+00:17:30.360 --> 00:17:32.760
+purchase.
+
+386
+00:17:32.760 --> 00:17:35.200
+Or other examples that I've seen are, in general,
+
+387
+00:17:35.200 --> 00:17:37.680
+when you need to transfer large amounts of data
+
+388
+00:17:37.680 --> 00:17:38.640
+between systems.
+
+389
+00:17:38.640 --> 00:17:41.480
+And you need to do that as quick as possible.
+
+390
+00:17:41.480 --> 00:17:46.560
+For instance, logs or network traffic,
+
+391
+00:17:46.560 --> 00:17:50.120
+metadata about network happening in a particular, I don't know,
+
+392
+00:17:50.120 --> 00:17:52.400
+private network or something like that because you might want
+
+393
+00:17:52.400 --> 00:17:56.000
+to do a security analysis or things like that.
+
+394
+00:17:56.000 --> 00:17:58.680
+One cool thing about Kinesis is that basically you
+
+395
+00:17:58.680 --> 00:18:00.680
+send messages in batch.
+
+396
+00:18:00.680 --> 00:18:03.520
+And you can immediately receive the batch
+
+397
+00:18:03.520 --> 00:18:05.040
+as soon as it's available.
+
+398
+00:18:05.040 --> 00:18:07.160
+So for instance, as soon as you accumulate, let's say,
+
+399
+00:18:07.160 --> 00:18:09.360
+I don't know, 30 messages in a batch,
+
+400
+00:18:09.360 --> 00:18:12.720
+and that can happen in literally single digit milliseconds,
+
+401
+00:18:12.720 --> 00:18:14.560
+you will receive that message.
+
+402
+00:18:14.560 --> 00:18:19.280
+Or alternatively, you can define time-based window.
+
+403
+00:18:19.280 --> 00:18:21.560
+So if the batch is not complete within one second,
+
+404
+00:18:21.560 --> 00:18:23.160
+I still want to receive it straightaway
+
+405
+00:18:23.160 --> 00:18:25.640
+because I want to process as fast as possible.
+
+406
+00:18:25.640 --> 00:18:28.160
+So I think Kinesis will give you these capabilities that
+
+407
+00:18:28.160 --> 00:18:31.720
+are not easy to replicate with something like SNS or Event
+
+408
+00:18:31.720 --> 00:18:32.200
+Bridge.
+
+409
+00:18:35.120 --> 00:18:36.720
+Yeah, for sure.
+
+410
+00:18:36.720 --> 00:18:39.840
+Yeah, I think with that, we have a good overview of Kinesis.
+
+411
+00:18:39.840 --> 00:18:42.400
+Maybe it's worth spending a little bit more time trying
+
+412
+00:18:42.400 --> 00:18:45.680
+to highlight some of the differences with Kafka, MSK,
+
+413
+00:18:45.680 --> 00:18:49.200
+and why you might want to use that as an alternative
+
+414
+00:18:49.200 --> 00:18:50.360
+to Kinesis.
+
+415
+00:18:50.360 --> 00:18:53.520
+What do you think?
+
+416
+00:18:53.520 --> 00:18:55.960
+Yeah, that's true.
+
+417
+00:18:55.960 --> 00:18:57.880
+Because Kafka, I guess, is similar,
+
+418
+00:18:57.880 --> 00:19:00.560
+but has way more features than Kinesis and Minkisa,
+
+419
+00:19:00.560 --> 00:19:04.760
+Kinesis is deliberately simple.
+
+420
+00:19:04.760 --> 00:19:06.760
+You have to size it correctly.
+
+421
+00:19:06.760 --> 00:19:08.960
+Even both of those services recently
+
+422
+00:19:08.960 --> 00:19:11.800
+announced they have serverless mode.
+
+423
+00:19:11.800 --> 00:19:14.240
+So it's kind of auto-scales a little bit.
+
+424
+00:19:14.240 --> 00:19:18.000
+It's not completely serverless, but it helps.
+
+425
+00:19:18.000 --> 00:19:20.120
+You still have to think a lot more about sizing.
+
+426
+00:19:20.120 --> 00:19:22.040
+With Kafka, you'll get more features.
+
+427
+00:19:22.040 --> 00:19:24.320
+If you've already got Kafka, I would say,
+
+428
+00:19:24.320 --> 00:19:26.960
+it's a reason you would use MSK.
+
+429
+00:19:26.960 --> 00:19:29.640
+If you don't already have an existing investment in Kafka
+
+430
+00:19:29.640 --> 00:19:31.880
+and all of the tooling and the ecosystem around it,
+
+431
+00:19:31.880 --> 00:19:34.200
+which is really large and fairly complex,
+
+432
+00:19:34.200 --> 00:19:36.080
+then it's probably OK to go with Kinesis
+
+433
+00:19:36.080 --> 00:19:38.720
+if you need stream processing.
+
+434
+00:19:38.720 --> 00:19:42.280
+And I think that's really where MSK fits, is really
+
+435
+00:19:42.280 --> 00:19:44.480
+for people who are migrating to AWS,
+
+436
+00:19:44.480 --> 00:19:48.120
+and they've already got Kafka somewhere.
+
+437
+00:19:48.120 --> 00:19:50.920
+But it does have a huge feature set.
+
+438
+00:19:50.920 --> 00:19:53.840
+So if you've got lots of advanced stream processing
+
+439
+00:19:53.840 --> 00:19:59.440
+use cases at scale, then it's definitely worth a look.
+
+440
+00:19:59.440 --> 00:20:00.240
+Yeah, absolutely.
+
+441
+00:20:00.240 --> 00:20:02.040
+I will probably summarize it that Kafka
+
+442
+00:20:02.040 --> 00:20:06.600
+is more of an industry standard for this kind of task.
+
+443
+00:20:06.600 --> 00:20:07.120
+It is.
+
+444
+00:20:07.120 --> 00:20:08.160
+It's de facto.
+
+445
+00:20:08.160 --> 00:20:12.280
+So if you probably work in multi-cloud environments
+
+446
+00:20:12.280 --> 00:20:15.360
+or, I don't know, run your own Kubernetes clusters,
+
+447
+00:20:15.360 --> 00:20:17.680
+probably it's better to use something like Kafka
+
+448
+00:20:17.680 --> 00:20:19.920
+because you will have it available in all
+
+449
+00:20:19.920 --> 00:20:23.600
+the environments you need it to be, while Kinesis is AWS
+
+450
+00:20:23.600 --> 00:20:28.880
+specific, so you can pretty much run it on AWS.
+
+451
+00:20:28.880 --> 00:20:31.440
+And yeah, I think that brings us to the conclusion
+
+452
+00:20:31.440 --> 00:20:32.240
+of this episode.
+
+453
+00:20:32.240 --> 00:20:35.440
+Just to summarize, I think you can probably
+
+454
+00:20:35.440 --> 00:20:39.800
+cover 90% of the use cases by just sticking with SQS
+
+455
+00:20:39.800 --> 00:20:42.600
+and then SNS or EventBridge.
+
+456
+00:20:42.600 --> 00:20:46.200
+And then you can use only Kinesis or Kafka
+
+457
+00:20:46.200 --> 00:20:50.280
+for more advanced use cases where you need high throughput
+
+458
+00:20:50.280 --> 00:20:53.960
+or where maybe you need to store all the events for a long time
+
+459
+00:20:53.960 --> 00:20:55.680
+and you need all the additional features
+
+460
+00:20:55.680 --> 00:20:58.640
+that you get from something like Kafka.
+
+461
+00:20:58.640 --> 00:21:03.040
+So with that, I think we have covered pretty much all
+
+462
+00:21:03.040 --> 00:21:04.840
+that we wanted to cover today.
+
+463
+00:21:04.840 --> 00:21:08.680
+We will be doing a more in-depth series on all the services.
+
+464
+00:21:08.680 --> 00:21:10.360
+So if that's something that interests you,
+
+465
+00:21:10.360 --> 00:21:14.360
+make sure to subscribe and click that Like button
+
+466
+00:21:14.360 --> 00:21:16.840
+so you can support us and be notified every time we
+
+467
+00:21:16.840 --> 00:21:18.840
+publish the next episodes.
+
+468
+00:21:18.840 --> 00:21:20.480
+Thank you very much for being with us,
+
+469
+00:21:20.480 --> 00:21:22.160
+and we'll see you in the next episode.
+
+470
+00:21:22.160 --> 00:21:44.160
+Slac.

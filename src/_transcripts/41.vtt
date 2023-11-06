@@ -1,0 +1,1121 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:04.480
+Lambda functions are small units of code that achieve a very specific purpose.
+
+2
+00:00:04.480 --> 00:00:08.240
+It's always a good idea to keep your code short, clean and simple,
+
+3
+00:00:08.240 --> 00:00:12.640
+and yet sometimes you find yourself writing a lot of boilerplate code in every function to do common
+
+4
+00:00:12.640 --> 00:00:16.480
+things like parsing events, validation, loading parameters and a lot more.
+
+5
+00:00:17.440 --> 00:00:21.440
+The Middy.js framework was designed to help you keep Lambda function code simple,
+
+6
+00:00:21.440 --> 00:00:25.680
+letting you focus on the business logic and clearing away duplication and boilerplate.
+
+7
+00:00:25.680 --> 00:00:31.360
+By the end of this episode, you will know how Middy.js works with JavaScript and TypeScript,
+
+8
+00:00:31.360 --> 00:00:34.640
+how to perform validation, event parsing, parameters loading,
+
+9
+00:00:34.640 --> 00:00:37.680
+how can you even write and use your own middlewares with Middy.
+
+10
+00:00:38.320 --> 00:00:42.160
+And you're going to learn a little bit about the history of Middy, who is using Middy right now,
+
+11
+00:00:42.160 --> 00:00:45.280
+and how is the community evolving around Middy.
+
+12
+00:00:45.280 --> 00:00:58.160
+My name is Luciano and today I'm joined by Eoin and this is AWS Bites podcast.
+
+13
+00:00:58.160 --> 00:01:01.280
+Luciano, I know that you created Middy.
+
+14
+00:01:01.280 --> 00:01:05.680
+I remember hearing about it all the way back when it launched in 2017, 2018. How did it come about and why did you start it?
+
+15
+00:01:06.560 --> 00:01:10.160
+Yeah, it's an interesting story. I'm going to try to summarize it for a minute.
+
+16
+00:01:10.160 --> 00:01:14.000
+But basically I was working with this company, which was a spinoff of USB,
+
+17
+00:01:14.000 --> 00:01:17.040
+which in Ireland is one of the main electricity providers.
+
+18
+00:01:17.040 --> 00:01:20.960
+And we were building an innovative project around energy trading.
+
+19
+00:01:20.960 --> 00:01:25.440
+And we decided to build it entirely serverless, which I think it was very brave at the time.
+
+20
+00:01:25.440 --> 00:01:29.760
+This was around, I think 2016 was actually the year.
+
+21
+00:01:29.760 --> 00:01:34.240
+And so it was the very beginning of serverless. Lambda was still quite new.
+
+22
+00:01:34.240 --> 00:01:38.960
+There wasn't really a lot of documentation out there and case studies.
+
+23
+00:01:38.960 --> 00:01:44.480
+But we were really excited about this idea because the project was like a startup and we wanted to
+
+24
+00:01:44.480 --> 00:01:49.360
+keep different components very simple and then build on top of those and evolve it that way.
+
+25
+00:01:50.320 --> 00:01:57.600
+And funny enough, our assumption was that if we use Lambda, then our code is going to be very
+
+26
+00:01:57.600 --> 00:02:02.240
+simple and we're going to focus strictly on the business logic because everything else is done for
+
+27
+00:02:02.240 --> 00:02:06.320
+you by Lambda, by the runtime itself. That was kind of our initial assumption.
+
+28
+00:02:06.320 --> 00:02:11.040
+And then we realized very quickly after we wrote the first prototype that in reality,
+
+29
+00:02:11.040 --> 00:02:16.560
+our Lambdas were far from simple. There was so much boilerplate in every single Lambda
+
+30
+00:02:16.560 --> 00:02:20.560
+and there was so much inconsistency because we were literally copy pasting this boilerplate
+
+31
+00:02:20.560 --> 00:02:26.400
+around and then we were not keeping it in sync. And at that point, we realized that
+
+32
+00:02:26.400 --> 00:02:30.880
+there must have been a better way to manage all our code base and avoid all this duplication
+
+33
+00:02:30.880 --> 00:02:39.280
+and make sure that our function would be, I suppose, as focused with the business logic as possible.
+
+34
+00:02:39.280 --> 00:02:45.520
+So basically, we kind of explored some of the ideas that we have seen in frameworks like
+
+35
+00:02:45.520 --> 00:02:49.760
+Express.js or other Node.js frameworks. And we thought, OK, in those frameworks,
+
+36
+00:02:49.760 --> 00:02:53.840
+you literally have the same problems, even though you build more monolithic applications.
+
+37
+00:02:53.840 --> 00:02:58.960
+You still have to do a bunch of things like validation, authentication, and response
+
+38
+00:02:58.960 --> 00:03:03.920
+realization, all these kind of concerns that generally go around the actual business logic
+
+39
+00:03:03.920 --> 00:03:09.360
+that you want to implement in a particular endpoint. So we kind of took inspiration from
+
+40
+00:03:09.360 --> 00:03:14.800
+the way that frameworks like Express solved that problem by basically using middlewares and trying
+
+41
+00:03:14.800 --> 00:03:20.880
+to push all this concern outside your controllers or Lambdas or whatever you want to call your unit
+
+42
+00:03:20.880 --> 00:03:26.880
+of business logic for an endpoint. And we tried to apply that same principle to our Lambdas.
+
+43
+00:03:26.880 --> 00:03:31.680
+And at that point, we realized, OK, in a Lambda, you don't really have something like Express,
+
+44
+00:03:31.680 --> 00:03:35.840
+even though at the time there were already ways to put Express in a Lambda, but we didn't feel
+
+45
+00:03:35.840 --> 00:03:40.080
+that was the right way of doing it. And we also wanted something a little bit more generic that
+
+46
+00:03:40.080 --> 00:03:46.400
+we could use even for non-HTTP related Lambdas. So we basically ended up implementing our own
+
+47
+00:03:46.400 --> 00:03:52.400
+middleware engine for specifically built for Lambda. And then we used that and then helped
+
+48
+00:03:52.400 --> 00:03:58.640
+us a lot to simplify our code and remove all this duplication. All this generic boilerplate code
+
+49
+00:03:58.640 --> 00:04:03.920
+became a unit that we could easily write once, make it testable, reuse it, keep evolving it,
+
+50
+00:04:03.920 --> 00:04:09.360
+and then consistently use it everywhere else. And that was it. We basically used it for about one
+
+51
+00:04:09.360 --> 00:04:14.720
+year and we were very happy with it. And eventually we decided to open source it. And that was
+
+52
+00:04:14.720 --> 00:04:22.320
+basically how Midi came to be. OK, very good.
+
+53
+00:04:22.320 --> 00:04:26.560
+And I guess so you and your team and this startup were the original contributors. Have you managed to grow much of a community around it? Are there
+
+54
+00:04:26.560 --> 00:04:33.280
+other maintainers now?
+
+55
+00:04:33.280 --> 00:04:39.840
+Yeah, that's an interesting story because just shortly after we open sourced this project, then the company I was working with effectively stopped. It was a startup,
+
+56
+00:04:39.840 --> 00:04:44.960
+a very experimental project, kind of a spin-off board just to experiment a particular idea.
+
+57
+00:04:44.960 --> 00:04:50.080
+But then eventually they decided not to go ahead with that idea. So the whole project ended and
+
+58
+00:04:50.080 --> 00:04:56.720
+everyone found a different path working for other companies. So the main core group kind of dissolved
+
+59
+00:04:56.720 --> 00:05:01.200
+at that point and everyone was doing something else and people were not really interested in
+
+60
+00:05:01.200 --> 00:05:06.320
+continuing working on Midi because they didn't really have a use case anymore. So because I'm
+
+61
+00:05:06.320 --> 00:05:11.200
+very passionate about open source and I felt like there is something there that is worth continuing
+
+62
+00:05:11.200 --> 00:05:15.200
+and some people were starting to use it and they were very happy. They actually found it was
+
+63
+00:05:15.200 --> 00:05:20.320
+solving the same problems for them that we saw. So we realized, okay, there is value in the community
+
+64
+00:05:20.320 --> 00:05:24.560
+for something like this. So what I did, even though I moved to a company where I was not doing
+
+65
+00:05:24.560 --> 00:05:29.840
+that much serverless anymore, I kept maintaining Midi for about another year. And meanwhile,
+
+66
+00:05:29.840 --> 00:05:34.480
+there was a little bit of community that organically formed around the open source project,
+
+67
+00:05:34.480 --> 00:05:40.240
+like people that just were coming randomly asking for help or maybe submitting PRs and contributing
+
+68
+00:05:40.240 --> 00:05:46.000
+in all sorts of different ways, writing documentation as well. And among these people,
+
+69
+00:05:46.000 --> 00:05:51.200
+specifically, there was Will Farrell, who kind of was one of the main contributors and he was
+
+70
+00:05:51.760 --> 00:05:57.040
+helping a lot in making sure that Midi was like a serious project, not just something done and
+
+71
+00:05:57.040 --> 00:06:02.640
+left on GitHub and people might just copy paste things. Yeah. He was literally putting a lot of
+
+72
+00:06:02.640 --> 00:06:07.840
+effort in making sure that it was always up to date, documentation was clear, there were examples
+
+73
+00:06:07.840 --> 00:06:12.560
+and also adding more and more middlewares because Midi is not just the runtime, but there are also
+
+74
+00:06:12.560 --> 00:06:19.920
+a bunch of built-in middlewares that you can just use and configure. So eventually I decided I was
+
+75
+00:06:19.920 --> 00:06:26.640
+not having enough time and focus to continue being the main maintainer of Midi. So I asked if somebody
+
+76
+00:06:26.640 --> 00:06:33.760
+wanted to step in and take over and then Will decided to do that. And that was, I think, around
+
+77
+00:06:33.760 --> 00:06:42.880
+2019 and 2020, but I think we kind of officialized that in 2020 with the V1 release. Okay.
+
+78
+00:06:42.880 --> 00:06:49.280
+So I remember using the pre-V1 release and you could use Midi, you installed one package, it came,
+
+79
+00:06:49.280 --> 00:06:55.360
+I think, with a bunch of in-built middlewares and you can also write your own. How has it changed
+
+80
+00:06:55.360 --> 00:07:02.960
+since then? Because I know that you've had another milestone release recently.
+
+81
+00:07:02.960 --> 00:07:07.440
+Yeah, I think the first big change was that when we started working on Midi, it was still the time where everything
+
+82
+00:07:07.440 --> 00:07:14.240
+was callbacks, even like writing a lambda, it was like the signature was your function, then event,
+
+83
+00:07:14.240 --> 00:07:20.560
+context and callback. And actually Midi did support already a way to use callbacks,
+
+84
+00:07:20.560 --> 00:07:26.880
+to not use callbacks, but to use async-await and promises. But at the time, async-await wasn't even
+
+85
+00:07:26.880 --> 00:07:32.640
+available in different version of Node.js that were mainstream. So basically the way it was
+
+86
+00:07:32.640 --> 00:07:37.280
+working was kind of using Babel, you needed to transpire your code and then it was just giving
+
+87
+00:07:37.280 --> 00:07:41.840
+you an interface. But then at the end of the day, your lambda was still being exposed to the lambda
+
+88
+00:07:41.840 --> 00:07:46.240
+runtime as a callback-based function. So it was kind of an abstraction layer, it was a little bit
+
+89
+00:07:46.240 --> 00:07:52.720
+messy. And I think that's something that we kept doing throughout all the version 0.x. And then
+
+90
+00:07:52.720 --> 00:07:57.440
+with version 1, I think that the ecosystem was mature enough to start to use async-await
+
+91
+00:07:57.440 --> 00:08:02.560
+consistently. So then it was, we decided to go with version 1 because we kind of cleaned up
+
+92
+00:08:02.560 --> 00:08:09.200
+all that mess and make it much more integrated with the ecosystem, like basic, real async,
+
+93
+00:08:09.200 --> 00:08:13.760
+and not just like a simulation of all of that through transpilers. So that was the first big
+
+94
+00:08:13.760 --> 00:08:19.520
+milestone. And also in that milestone, we also, initially Midi was like very monolithic. It's just
+
+95
+00:08:19.520 --> 00:08:24.400
+like one package and you get everything, the core middleware engine, but also, I don't know,
+
+96
+00:08:24.400 --> 00:08:29.760
+I think there were something in the order of 10 or 12 different middlewares and all their own
+
+97
+00:08:29.760 --> 00:08:34.800
+dependencies, different middlewares might have different dependencies. So it was like a very,
+
+98
+00:08:34.800 --> 00:08:38.880
+it wasn't like really a small package. Like you really needed to have a strong use case to
+
+99
+00:08:40.080 --> 00:08:43.120
+make sense for you to import that package and include it in your lambdas.
+
+100
+00:08:44.240 --> 00:08:48.560
+So we decided, okay, if we break this down into smaller units and we do like a monorepo
+
+101
+00:08:48.560 --> 00:08:54.960
+where every unit is published independently, then people can just install the core and then only the
+
+102
+00:08:54.960 --> 00:08:59.600
+middlewares that they really need to use. And this way we can offer an API that is much more
+
+103
+00:08:59.600 --> 00:09:04.160
+lightweight and it's not going to affect your Lambda runtime because you are importing only
+
+104
+00:09:04.160 --> 00:09:09.440
+the code that you actually need. So this was another big change from version 0 to version 1.
+
+105
+00:09:09.440 --> 00:09:15.520
+Everything became like monorepo. We started to adopt the atmid namespace on npm, and then you
+
+106
+00:09:15.520 --> 00:09:19.600
+install atmid decor and then you decide to install all the other middlewares independently.
+
+107
+00:09:20.560 --> 00:09:26.720
+So that was, yeah, I suppose the story of experimenting with version 0.x and getting to
+
+108
+00:09:26.720 --> 00:09:30.800
+a state with version 1 where we felt, okay, this is really something that people can use and have
+
+109
+00:09:30.800 --> 00:09:35.920
+a good experience. Okay, nice. So you mentioned all these different middlewares then.
+
+110
+00:09:35.920 --> 00:09:39.520
+So what are some of the common things you can do with Middy? Maybe we could talk about some of the canonical
+
+111
+00:09:39.520 --> 00:09:47.040
+examples with these core middlewares.
+
+112
+00:09:47.040 --> 00:09:52.880
+Yeah, so there is actually a page in the documentation, and we'll drop a link in the show notes, that basically showcases all the official middlewares.
+
+113
+00:09:52.880 --> 00:09:58.080
+So we have this concept of community-maintained middlewares, but also official middlewares.
+
+114
+00:09:58.720 --> 00:10:03.360
+And the difference is that we recognize that there are a bunch of use cases that are so common that
+
+115
+00:10:03.360 --> 00:10:08.880
+it's worth to have those use cases solved within Middy. And every time we do a new release, we make
+
+116
+00:10:08.880 --> 00:10:14.000
+sure that all these middlewares are maintained and they work well with the new changes that we might
+
+117
+00:10:14.000 --> 00:10:18.720
+have introduced in the new version. So that's why we have this list of official middlewares,
+
+118
+00:10:18.720 --> 00:10:23.600
+and we basically maintain them together with the core engine. But then, of course, there is an
+
+119
+00:10:23.600 --> 00:10:27.360
+active community and people are creating all sorts of middlewares that are useful to them. So in the
+
+120
+00:10:27.360 --> 00:10:32.320
+website, you can also find a list of community-maintained middlewares, and they are not necessarily
+
+121
+00:10:32.320 --> 00:10:37.680
+always up to date or tested together with the core, but we kind of got a selection of the ones
+
+122
+00:10:37.680 --> 00:10:42.640
+that we think are reasonably well written and you might use without too many issues.
+
+123
+00:10:43.520 --> 00:10:49.440
+So the ones that are in the core, I'm just going to mention a few. We kind of group them in different
+
+124
+00:10:49.440 --> 00:10:57.680
+groups. There are ones that are related to basically like handling input, I don't know,
+
+125
+00:10:57.680 --> 00:11:04.160
+doing validation with the input or certain events in AWS are a little bit flaky. There are
+
+126
+00:11:04.160 --> 00:11:08.640
+certain gotchas that are not obvious, like I don't know, certain strings are encoded in ways that you
+
+127
+00:11:08.640 --> 00:11:14.800
+might not expect. And we have also middlewares that will normalize your JSON for you, basically
+
+128
+00:11:14.800 --> 00:11:19.680
+giving you a cleaner JSON and you don't have to think... For instance, the one use case that I
+
+129
+00:11:19.680 --> 00:11:24.080
+think is worth mentioning just to explain this better is S3 events. So when you have a file in
+
+130
+00:11:24.080 --> 00:11:31.760
+S3, if that file contains... the path of the file contains certain characters, you will receive
+
+131
+00:11:31.760 --> 00:11:38.320
+an object as an event that says the key of this file is a string, but that string encodes the
+
+132
+00:11:38.320 --> 00:11:43.040
+special characters in a certain way. And that might be actually, has been for me, source of
+
+133
+00:11:43.040 --> 00:11:48.400
+bugs in the past because I never realized that that string was encoded until I actually had the
+
+134
+00:11:48.400 --> 00:11:52.880
+case where it was using special characters. And then my lambda would explode because I
+
+135
+00:11:52.880 --> 00:11:57.200
+would just take the string as this and use it without realizing that I needed to decode it
+
+136
+00:11:57.200 --> 00:12:02.320
+first. So we have a normalizer that will take care of, make sure that if there is any special
+
+137
+00:12:02.320 --> 00:12:07.040
+character, when you get your event, it's already converted to a proper clean string that you can
+
+138
+00:12:07.040 --> 00:12:12.160
+just use. I think the example is if you have a space, rather than getting a space, you get a
+
+139
+00:12:12.960 --> 00:12:18.320
+percentage 20 or something like that, or a plus. I'm not really sure, but it's one of those gotchas
+
+140
+00:12:18.320 --> 00:12:24.560
+that, yeah, you don't expect. So this is one class where you can kind of simplify handling inputs
+
+141
+00:12:24.560 --> 00:12:28.640
+and validation and make sure that the events are clean enough so that you can just use the data
+
+142
+00:12:28.640 --> 00:12:35.440
+without having to do additional conversion. Then there is also parsing stuff. For instance,
+
+143
+00:12:35.440 --> 00:12:41.600
+if you are building, I don't know, an API that receives data from a form, you might want to use
+
+144
+00:12:41.600 --> 00:12:49.680
+the proper algorithm to decode that form encoded input. Or if it's a JSON, you don't want to do
+
+145
+00:12:49.680 --> 00:12:55.360
+JSON parse manually. Maybe you just want to have the body already parsed as an object. Or I don't
+
+146
+00:12:55.360 --> 00:13:00.480
+know, if it's XML, because you are implementing an API that needs to receive XML, there is a parser
+
+147
+00:13:00.480 --> 00:13:06.320
+for that as well. And then there is also something similar for responses. So if you're building an
+
+148
+00:13:06.320 --> 00:13:12.800
+API that needs to send a response in a certain format, like again, JSON or XML or YAML, whatever,
+
+149
+00:13:13.440 --> 00:13:18.000
+you can have your own serializers and do that. And the best part is that there is also a content
+
+150
+00:13:18.000 --> 00:13:22.960
+negotiation middleware, where if you want to build an API that can receive different types of inputs
+
+151
+00:13:22.960 --> 00:13:29.360
+and response in different formats, it follows the HTTP specification to negotiate, OK, I am
+
+152
+00:13:29.360 --> 00:13:35.040
+receiving an XML and I expect to receive back an XML, your lambda business logic remains completely
+
+153
+00:13:35.040 --> 00:13:39.520
+abstract from all of that. It just needs to receive an object and produce an object back.
+
+154
+00:13:39.520 --> 00:13:43.200
+And then this middleware takes care of the serializing and re-serializing
+
+155
+00:13:43.200 --> 00:13:50.080
+requests and response respectively. So basically you have all these middlewares to try to focus
+
+156
+00:13:50.080 --> 00:13:54.320
+more and more on the business logic and leave all these extra concerns to the middleware layers.
+
+157
+00:13:55.520 --> 00:14:00.000
+That sounds really great.
+
+158
+00:14:00.000 --> 00:14:04.640
+So let's say if I've got a set of lambda functions and I've been doing serverless for a few months or maybe even years, but I realize that every time I'm doing JSON.parse
+
+159
+00:14:04.640 --> 00:14:09.280
+on the body and I have to construct a response that has the status code and the encoded result,
+
+160
+00:14:09.280 --> 00:14:14.240
+and I'm thinking, OK, this is causing bugs. There's duplication everywhere. I want to clean
+
+161
+00:14:14.240 --> 00:14:17.040
+this all up. How do you get started then with Middy? What's the process?
+
+162
+00:14:17.920 --> 00:14:23.680
+Yes, so I will say that again, I'm going to point on the documentation.
+
+163
+00:14:23.680 --> 00:14:30.240
+There is like a getting started section, which gives you examples and so on. But I think the main thing you should do is
+
+164
+00:14:30.240 --> 00:14:36.080
+just do npm install at Middy slash core and that gives you just the middleware engine.
+
+165
+00:14:36.080 --> 00:14:41.360
+Just the middleware engine. And at that point you need to decide, OK, what am I doing? Am I building
+
+166
+00:14:41.360 --> 00:14:47.680
+an API? Do I need to parse JSON? If I need to do that, I can install the Middy at Middy slash
+
+167
+00:14:47.680 --> 00:14:54.560
+HTTP JSON body parser. And similarly, you can install a bunch of middlewares that you think
+
+168
+00:14:54.560 --> 00:15:00.480
+you're going to need, like validation, error handling and so on. And then the way that Middy
+
+169
+00:15:00.480 --> 00:15:05.680
+changes your way of writing lambda is actually very subtle. Like it's not very, it doesn't force
+
+170
+00:15:05.680 --> 00:15:11.360
+you to change your coding style too much because you are still writing your handler in the same way.
+
+171
+00:15:11.360 --> 00:15:15.920
+You are still writing the same signature of a function. The only difference is that for every
+
+172
+00:15:15.920 --> 00:15:20.800
+handler that you write, you need to, let's say something we call midify the handler,
+
+173
+00:15:20.800 --> 00:15:26.800
+which basically means take that handler and wrap it with this middleware layer, middleware runtime
+
+174
+00:15:26.800 --> 00:15:31.600
+engine. So this is literally a function that you import from core that is called Middy. So you just
+
+175
+00:15:31.600 --> 00:15:37.280
+need to say, call Middy, pass the handler inside and you are basically getting a new instance of
+
+176
+00:15:37.280 --> 00:15:42.720
+the same function handler, which has, let's say, additional superpowers. And this superpowers is
+
+177
+00:15:42.720 --> 00:15:50.960
+that you can use the.use syntax to basically specify which middlewares do you want to attach.
+
+178
+00:15:51.520 --> 00:15:55.440
+So the idea is that you write your handler, you don't worry too much about all these extra
+
+179
+00:15:55.440 --> 00:16:00.480
+concerns in your handler. So you assume that the data coming into your handler is already clean
+
+180
+00:16:00.480 --> 00:16:04.560
+and ready to be used and that you don't need to do anything extra to send back a response,
+
+181
+00:16:04.560 --> 00:16:10.640
+just provide an object. You midify this handler and then you attach all the middlewares that
+
+182
+00:16:10.640 --> 00:16:15.200
+you need to actually do all the pre-processing and post-processing of the request and response.
+
+183
+00:16:16.240 --> 00:16:22.160
+There are slightly variations in syntaxes that you can use today because we try to listen to
+
+184
+00:16:22.160 --> 00:16:27.520
+feedback and figure out ways that could be simpler in different use cases. So if you look at the
+
+185
+00:16:27.520 --> 00:16:33.200
+documentation, you can find that you can use other things, not just.use, you can use.before,.after,
+
+186
+00:16:33.200 --> 00:16:37.680
+.error because we have different use cases and if you're writing something very, very simple,
+
+187
+00:16:38.640 --> 00:16:43.280
+you don't necessarily need to write or use fully-fledged middlewares, you can find shortcuts.
+
+188
+00:16:43.280 --> 00:16:47.120
+So I'm going to let people check the documentation for more details about that, but
+
+189
+00:16:47.760 --> 00:16:54.160
+in broad strokes, write your handler, keep it simple, midify it and then.use all the
+
+190
+00:16:54.160 --> 00:16:58.400
+middlewares that you want to use.
+
+191
+00:16:58.400 --> 00:17:02.640
+And then you can start deleting all that boilerplate code you had before, which is nice. One of my favorite things in software development, deleting code you don't
+
+192
+00:17:02.640 --> 00:17:08.480
+need anymore. So given that you got started, maybe are there any kind of interesting examples of
+
+193
+00:17:08.480 --> 00:17:12.560
+people out there using Middy in production or like open source projects that are building on top of
+
+194
+00:17:12.560 --> 00:17:19.280
+Middy? Yeah, that's a good question.
+
+195
+00:17:19.280 --> 00:17:24.720
+So it's something that we are trying to collect more use cases and hopefully we'll be able to showcase them on the website. We haven't done that in a formal way yet,
+
+196
+00:17:24.720 --> 00:17:31.920
+but we have been very happy about mentions that we got in the public from actually pretty big name.
+
+197
+00:17:33.040 --> 00:17:37.920
+Like we had a conference, I think it was one of the serverless days a few years ago,
+
+198
+00:17:38.480 --> 00:17:43.520
+where Lego mentioned that they were using Middy internally for some of their own APIs built on
+
+199
+00:17:43.520 --> 00:17:49.680
+top of Lambda. Then we also had recently, I think it was in the last re-invent, if I'm not wrong,
+
+200
+00:17:50.400 --> 00:17:55.440
+Taco Bells that also mentioned Middy in their own presentation at re-invent as one of the things
+
+201
+00:17:55.440 --> 00:18:02.800
+that they use for serverless. And I think the best one is the fact that the upcoming TypeScript
+
+202
+00:18:02.800 --> 00:18:08.240
+power tools for Lambda also supports Middy. So of course, it's not the only way you can use
+
+203
+00:18:08.240 --> 00:18:13.040
+power tool, but if you are already using Middy, they make it easier for you to add all the extra
+
+204
+00:18:13.040 --> 00:18:19.200
+functionality that they are providing with power tools. So I think that's an interesting validation
+
+205
+00:18:19.200 --> 00:18:24.080
+also from AWS that they think Middy is actually solving a problem for the Lambda ecosystem in
+
+206
+00:18:24.080 --> 00:18:30.480
+Node.js. And I recently noticed that there is a repository called AWS Solutions, open source from
+
+207
+00:18:30.480 --> 00:18:36.720
+AWS, where there are also a bunch of examples that also use Middy and this is AWS providing examples
+
+208
+00:18:36.720 --> 00:18:42.000
+on how to use Lambda and they suggest to use Middy. So that's also another very good validation that
+
+209
+00:18:42.000 --> 00:18:46.000
+the project makes sense and it's actually solving a real problem for people. That's great.
+
+210
+00:18:46.000 --> 00:18:51.600
+I knew Middy was useful, but I didn't know that it was powering tacos. So that's... Yeah.
+
+211
+00:18:51.600 --> 00:18:57.920
+That was actually the comment I got from Will when we shared this news that we realized that it was
+
+212
+00:18:57.920 --> 00:19:01.680
+mentioned, it was like, oh, it's amazing to see that this open source project is helping people
+
+213
+00:19:01.680 --> 00:19:09.360
+to have more tacos. Making the world a better place. Okay.
+
+214
+00:19:09.360 --> 00:19:12.800
+So let's say you're up and running and using some of these really good official middlewares on some of the third party middlewares
+
+215
+00:19:12.800 --> 00:19:17.280
+out there. What about writing your own middleware? Is that something that people would commonly need
+
+216
+00:19:17.280 --> 00:19:23.440
+to do? And how would you set about that task? Yeah, that's a very good question.
+
+217
+00:19:23.440 --> 00:19:28.960
+So again, there is an intersection in the documentation with examples and so on, and we'll be linking that in
+
+218
+00:19:28.960 --> 00:19:34.960
+the show notes. But I will say that for simple use cases, you generally don't need to do that
+
+219
+00:19:34.960 --> 00:19:41.440
+because probably the default middlewares are going to cover most of the needs. But there are cases
+
+220
+00:19:41.440 --> 00:19:44.560
+where, I don't know, maybe you're doing something very custom. For instance, you have your own
+
+221
+00:19:44.560 --> 00:19:50.400
+authentication mechanism, right? So you'll need to validate credentials in a way that is not a
+
+222
+00:19:50.400 --> 00:19:55.120
+canonical way of doing it. Maybe it's not using JWT, maybe it's not using Cognito. So you have
+
+223
+00:19:55.120 --> 00:19:59.200
+your own mechanism, you need to use your own libraries to do that. And of course, this is one
+
+224
+00:19:59.200 --> 00:20:04.320
+of those concerns that you don't want to copy and paste into every single Lambda, or even you don't
+
+225
+00:20:04.320 --> 00:20:09.360
+want to call a function, remember to call a function inside your Lambda handler every time and
+
+226
+00:20:09.360 --> 00:20:14.640
+manage the error. And you probably want to just say, use validation somewhere, so use
+
+227
+00:20:14.640 --> 00:20:20.160
+authentication somewhere, and then keep your Lambda code as clean as possible. So this is one
+
+228
+00:20:20.160 --> 00:20:23.840
+use case where you could decide, okay, I'm just going to use Middy, write my own authentication
+
+229
+00:20:23.840 --> 00:20:28.080
+middleware, and then for every handler, I'm going to attach that particular middleware where I want
+
+230
+00:20:28.080 --> 00:20:33.520
+to use the authentication feature. And there are different ways you can write a middleware. The
+
+231
+00:20:33.520 --> 00:20:39.360
+simplest one is literally just write one function, and this one function needs to have a very
+
+232
+00:20:39.360 --> 00:20:44.560
+specific signature that, by the way, is the same signature as a Lambda function, you just receive
+
+233
+00:20:44.560 --> 00:20:52.720
+an event and context. Or you can just call it request, that is kind of an object that we use
+
+234
+00:20:52.720 --> 00:20:58.800
+that contains both the event and the context and give you extra functionality. And basically,
+
+235
+00:20:58.800 --> 00:21:03.600
+the only thing you need to do is rather than saying.use on the mid-defined handler, you say
+
+236
+00:21:03.600 --> 00:21:13.280
+.before and you pass this function inside it. And then that function can basically either return
+
+237
+00:21:13.280 --> 00:21:18.080
+or throw exception to try to handle the different use cases where you want to stop the execution
+
+238
+00:21:18.080 --> 00:21:23.200
+early with a success, or you want to fail because maybe the authentication is not valid, or if
+
+239
+00:21:23.200 --> 00:21:27.200
+basically you don't do anything in that function, you assume that everything was fine, the
+
+240
+00:21:27.200 --> 00:21:32.080
+authentication was okay, and at that point when that function completes, it's going to run for you,
+
+241
+00:21:32.080 --> 00:21:38.240
+your own handler. And that's one use case. Sometimes you want to have actions that happen
+
+242
+00:21:38.800 --> 00:21:44.400
+before your actual handler runs, after your handler runs, and also in case of error, you want
+
+243
+00:21:44.400 --> 00:21:49.520
+to have specific logic to be executed because maybe you need to clean up something. In those
+
+244
+00:21:49.520 --> 00:21:55.120
+cases, it's worth to write a fully-fledged middleware where the syntax is very similar,
+
+245
+00:21:55.120 --> 00:22:00.560
+but it's just that you have an object that contains a before function, an after function,
+
+246
+00:22:00.560 --> 00:22:04.960
+and an on error function, and you define the behaviors that want to happen in those three
+
+247
+00:22:04.960 --> 00:22:08.720
+different phases. That sounds really good.
+
+248
+00:22:08.720 --> 00:22:13.200
+And just as you were talking about authentication, I was thinking about the case where commonly you have with a multi-tenanted application,
+
+249
+00:22:13.200 --> 00:22:18.880
+the need in your Lambda function to assume a specific role that is scoped down for a tenant
+
+250
+00:22:18.880 --> 00:22:25.600
+or for a specific user, for example, that restricts them to specific key prefixes on S3.
+
+251
+00:22:25.600 --> 00:22:29.600
+We talked about that in the previous episode, for example. And that's the kind of thing that
+
+252
+00:22:29.600 --> 00:22:32.320
+you would be doing for every function, and you need to make sure that you're doing it for every
+
+253
+00:22:32.320 --> 00:22:37.120
+function and that people are using that scoped down policy. So that seems like an ideal application
+
+254
+00:22:37.120 --> 00:22:42.560
+for a custom middleware that could be invoked before your handler and ensure that your context
+
+255
+00:22:42.560 --> 00:22:50.240
+is decorated with a session that you can use to make calls out to AWS for DynamoDB in S3.
+
+256
+00:22:50.240 --> 00:22:53.920
+You mentioned that the documentation, and I've seen the documentation, is really good
+
+257
+00:22:53.920 --> 00:22:58.080
+and improving all the time. Is there anything specifically we need to point, or are there any
+
+258
+00:22:58.080 --> 00:23:04.320
+tutorials out there that people have contributed that will help people to get started?
+
+259
+00:23:05.680 --> 00:23:10.160
+Yeah, that's a good question. I think we have some links in the documentation.
+
+260
+00:23:10.160 --> 00:23:16.720
+There was one recently by Serverless Stack, I think, where they show how to use Middy with Serverless Stack.
+
+261
+00:23:16.720 --> 00:23:20.720
+And I think a good pointer, and this is something that we want to expand more in our own
+
+262
+00:23:20.720 --> 00:23:25.840
+official documentation, is that Middy integrates very well with basically all the tools, because
+
+263
+00:23:25.840 --> 00:23:32.240
+it's not an opinionated take on how you deploy your code. It's more helping you to write the code
+
+264
+00:23:32.240 --> 00:23:37.040
+with a different style that promotes focusing on the business logic and keeping
+
+265
+00:23:37.040 --> 00:23:43.360
+every other concern outside the business logic. Because of that, you can use Middy with Terraform,
+
+266
+00:23:43.360 --> 00:23:49.360
+with Serverless Framework, with Serverless Stack, with, I don't know, SDK, CloudFormation,
+
+267
+00:23:49.360 --> 00:23:54.400
+everything you are currently using. It just changes the way you use your code in the way
+
+268
+00:23:54.400 --> 00:23:59.600
+that any other library would affect your code. But it doesn't affect anything else outside the code.
+
+269
+00:24:00.240 --> 00:24:06.160
+So we want to have a section called integration in the documentation where we already started that.
+
+270
+00:24:06.160 --> 00:24:11.200
+But it's still pretty much a to-do. There are different pages, but if you open most of them,
+
+271
+00:24:11.200 --> 00:24:16.000
+it's like, please help us to fill this guide. But we really want to highlight the fact that
+
+272
+00:24:16.000 --> 00:24:21.040
+Middy plays well with most of the other tools, so it's not really going to force you down a particular part.
+
+273
+00:24:22.160 --> 00:24:26.320
+So maybe that's something for the audience. If people are actually already using Middy
+
+274
+00:24:26.320 --> 00:24:31.440
+and they want to contribute, it would be nice to get some help in writing some of this documentation.
+
+275
+00:24:31.440 --> 00:24:36.720
+I want to just give a final shout out to Will, who has been maintaining Middy in an excellent way
+
+276
+00:24:36.720 --> 00:24:42.800
+for, I think, more than two years at this point. Because I felt like I took my distance from the
+
+277
+00:24:42.800 --> 00:24:47.600
+project more and more in the last years, and this project wouldn't be today at this level if Will
+
+278
+00:24:47.600 --> 00:24:52.560
+wasn't there putting a lot of effort every day into maintaining it. So I just want to say again,
+
+279
+00:24:52.560 --> 00:24:57.200
+thank you to Will for making effectively the project available to everyone today.
+
+280
+00:24:57.200 --> 00:25:03.200
+Good shout. Yeah, that's great. Okay, thanks everyone for listening. We'll see you next time.

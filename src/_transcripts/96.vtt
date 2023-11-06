@@ -1,0 +1,1117 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:05.920
+According to AWS, good governance is a must-have from the get-go for customers of all sizes.
+
+2
+00:00:05.920 --> 00:00:10.000
+This area is not trivial, however, whether you are starting from a clean slate or you have been
+
+3
+00:00:10.000 --> 00:00:14.480
+winging it with AWS for many years. Luckily, there are plenty of tools to automate this and
+
+4
+00:00:14.480 --> 00:00:18.320
+guide you to a good setup from the start. But which one should you choose? If you stick until
+
+5
+00:00:18.320 --> 00:00:22.080
+the end of this episode, you'll know some of the best practices to set up your AWS accounts
+
+6
+00:00:22.080 --> 00:00:26.480
+correctly and which tools can help you to automate the work, including AWS Control Tower
+
+7
+00:00:26.480 --> 00:00:32.880
+and open source alternatives like OrgFormation or Terraform or OpenTF, should I say. I don't know.
+
+8
+00:00:32.880 --> 00:00:35.920
+My name is Luciano and I'm joined by Eoin and this is AWS Bites.
+
+9
+00:00:43.920 --> 00:00:48.320
+fourTheorem is the company that makes AWS Bites possible. If you're looking for a partner to
+
+10
+00:00:48.320 --> 00:00:52.240
+accompany you on your cloud journey, check them out at fourtheorem.com.
+
+11
+00:00:52.240 --> 00:00:57.280
+Luciano, you mentioned that this is a must-have, so what must we have? What are our objectives?
+
+12
+00:00:57.280 --> 00:01:01.120
+And we mentioned terms like landing zones and governance. What does this all mean?
+
+13
+00:01:05.920 --> 00:01:13.360
+Yeah, Landing Zone is a term that you probably hear a lot when you start to look into governance of AWS accounts. And it's something that if you look at the Well-Architected Framework is described as
+
+14
+00:01:13.360 --> 00:01:17.920
+basically a multi-account AWS environment that is scalable and secure. And it's something we
+
+15
+00:01:17.920 --> 00:01:23.760
+might have mentioned before in previous episodes, so check out our previous ones. But basically,
+
+16
+00:01:23.760 --> 00:01:29.600
+if you want to summarize that, the idea is that you most likely want to have a multi-account
+
+17
+00:01:29.600 --> 00:01:34.880
+setup for different reasons. And also multi-account setup is going to ensure you that you can have
+
+18
+00:01:34.880 --> 00:01:38.800
+isolation between workloads. For instance, if you have different teams, they're not going to step
+
+19
+00:01:38.800 --> 00:01:44.080
+onto each other's toes. For instance, by consuming each other quotas, you can keep the different
+
+20
+00:01:44.080 --> 00:01:49.200
+workloads separated in different accounts. From a security perspective, you can also use ideas like
+
+21
+00:01:49.200 --> 00:01:56.000
+security boundaries, which basically they can reduce the impact for security incidents. And
+
+22
+00:01:56.960 --> 00:02:01.840
+the other idea is that you probably want to automate the process of provisioning new accounts,
+
+23
+00:02:01.840 --> 00:02:06.640
+so just to make sure that you have all these best practices baked into the process. You don't have
+
+24
+00:02:06.640 --> 00:02:11.360
+to repeat the setup over and over again, and especially you don't want to do it manually.
+
+25
+00:02:11.360 --> 00:02:18.640
+And finally, a landing zone can also include the concept of auditing and compliance rules.
+
+26
+00:02:18.640 --> 00:02:22.320
+So how can you make sure that every time you create a new account that you have good
+
+27
+00:02:22.320 --> 00:02:26.320
+observability and you know exactly what's going on, you can collect the logs, and if you have
+
+28
+00:02:26.320 --> 00:02:31.680
+shared resources, you can have ways to accommodate for all of that. So basically, when we set up
+
+29
+00:02:31.680 --> 00:02:36.480
+a landing zone, we are looking for a solution that allows us to define all the accounts in
+
+30
+00:02:36.480 --> 00:02:40.960
+the organization structure. You can imagine that as a tree where you have units and then
+
+31
+00:02:40.960 --> 00:02:44.560
+under certain units you can have multiple accounts. We want to have that very clear,
+
+32
+00:02:44.560 --> 00:02:49.120
+but then we want to have a way to define all of that in a formal way, basically.
+
+33
+00:02:49.760 --> 00:02:54.800
+And we might want to set up service control policies or SCPs, which are permissions that
+
+34
+00:02:54.800 --> 00:02:59.200
+can be applied to multiple accounts within an organization unit. And sometimes they're also
+
+35
+00:02:59.200 --> 00:03:04.320
+referred to as preventive guardlays because they will stop certain actions from happening from the
+
+36
+00:03:04.320 --> 00:03:09.360
+very beginning. And just to give you an example, you might create an SCP that says this particular
+
+37
+00:03:09.360 --> 00:03:13.680
+set of accounts cannot spin up a large EC2 instance. And that's something that at the
+
+38
+00:03:13.680 --> 00:03:18.320
+account level is not going to be possible at all. It's like a policy that stops that action
+
+39
+00:03:18.320 --> 00:03:24.080
+from happening. You can also use things like AWS Config Rule for compliance. These are more
+
+40
+00:03:24.080 --> 00:03:29.120
+detective guardrails because they don't necessarily stop the action, but they will inform you if
+
+41
+00:03:29.120 --> 00:03:33.920
+certain things that are not compliant are actually happening in a given account. As just as an
+
+42
+00:03:33.920 --> 00:03:40.720
+example, I was looking into the set of managed rules that you get with AWS Config. And one of
+
+43
+00:03:40.720 --> 00:03:46.560
+them is if you have an API gateway, you might want to have X-Ray enabled in all of them. So you might
+
+44
+00:03:46.560 --> 00:03:51.280
+enable that rule for you and it's going to notify you if somebody creates an API gateway that doesn't
+
+45
+00:03:51.280 --> 00:03:56.480
+support, doesn't have X-Ray enabled. Another one is CloudTrail for log auditing.
+
+46
+00:03:57.040 --> 00:04:01.360
+And this is actually really, really important. Imagine if you know that some credentials may
+
+47
+00:04:01.360 --> 00:04:06.480
+have been leaked and you want to investigate if they were used and for what. If you have
+
+48
+00:04:06.480 --> 00:04:10.160
+CloudTrail configured from the very beginning, you know that you have coverage across all your
+
+49
+00:04:10.160 --> 00:04:15.280
+own accounts and you can have that peace of mind that if you ever need to check something,
+
+50
+00:04:15.280 --> 00:04:20.160
+you can just go there and access that information. Another important thing is Delegated Administrator Accounts.
+
+51
+00:04:20.160 --> 00:04:28.240
+So basically, if you need to run important services in the management account,
+
+52
+00:04:28.240 --> 00:04:34.480
+you basically don't want to use the management account for pretty much almost anything. You want
+
+53
+00:04:34.480 --> 00:04:39.200
+to use other accounts. And the reason is because the management account is somewhat special
+
+54
+00:04:39.200 --> 00:04:43.120
+because certain security features like service control policies don't really apply to them.
+
+55
+00:04:43.760 --> 00:04:49.760
+So basically, if you want to make sure proper security is enforced, try to avoid to use the
+
+56
+00:04:49.760 --> 00:04:54.800
+management account. So you need to think how do we delegate certain things to other administrator
+
+57
+00:04:54.800 --> 00:05:00.880
+accounts. And just to quickly mention other stuff that might be important, building alerts and budget,
+
+58
+00:05:00.880 --> 00:05:06.480
+enabling things like GuardDuty and using Security Hub, SSO, networking, creating, for instance,
+
+59
+00:05:06.480 --> 00:05:12.240
+VPCs and connecting them, or even deployment of common resources. Maybe by standard, you want to
+
+60
+00:05:12.240 --> 00:05:17.840
+have an EventBridge or an S3 bucket in every account. You might want to provision them
+
+61
+00:05:17.840 --> 00:05:23.520
+immediately as soon as the account is created. And again, just to reiterate, this idea is not
+
+62
+00:05:23.520 --> 00:05:28.720
+something that you need to do only if you are creating a landing zone from scratch, like if
+
+63
+00:05:28.720 --> 00:05:32.880
+for a new set of accounts, let's say, it's something you should think about even if you
+
+64
+00:05:32.880 --> 00:05:38.000
+already have a large usage of AWS in your organization, but you never created all this
+
+65
+00:05:38.000 --> 00:05:43.280
+kind of governance structure. And now is the time to put all of that into place. So it definitely
+
+66
+00:05:43.280 --> 00:05:50.080
+seems like a lot of work, and I think it is actually. But we need to find powerful allies here.
+
+67
+00:05:50.080 --> 00:05:54.240
+And in general, things like infrastructure as code can make your life so much easier when
+
+68
+00:05:54.240 --> 00:05:58.400
+dealing with this stuff. What kind of tools can we use and do they all support infrastructure as code?
+
+69
+00:05:58.400 --> 00:06:02.720
+What do you think, Eoin?
+
+70
+00:06:02.720 --> 00:06:07.440
+There are a lot of tools now. The set is growing and the capability of each is growing. And it's kind of catching up with what people actually want because it has been a
+
+71
+00:06:07.440 --> 00:06:11.920
+little bit difficult in the past. We're going to talk about three main ones, right? That's clues
+
+72
+00:06:11.920 --> 00:06:17.040
+in the title. The AWS solution is Control Tower, and we'll dive into that. Then you've got terraform,
+
+73
+00:06:17.040 --> 00:06:21.680
+which a lot of people will gravitate towards anyway. And another really, really good one is
+
+74
+00:06:21.680 --> 00:06:25.760
+org formation, which is an open source one. And you have some other options. You could look at
+
+75
+00:06:25.760 --> 00:06:32.240
+CDK. You could just look at using CloudFormation directly with stack sets and custom scripting or
+
+76
+00:06:32.240 --> 00:06:37.360
+orchestration to apply it to multiple accounts. You can't provision accounts with CloudFormation.
+
+77
+00:06:37.360 --> 00:06:41.200
+You can set up individual accounts with CloudFormation, but there are some gaps you need
+
+78
+00:06:41.200 --> 00:06:44.480
+to address yourself, and then you have to orchestrate it all. So we're going to focus on
+
+79
+00:06:44.480 --> 00:06:49.040
+Control Tower, org formation, and terraform. And we might as well start with Control Tower,
+
+80
+00:06:49.040 --> 00:06:54.160
+since this is the one that AWS is pushing and talking a lot about. It has been, I guess,
+
+81
+00:06:54.160 --> 00:06:58.400
+built on over the years and is becoming more and more capable. I think people are beginning to take
+
+82
+00:06:58.400 --> 00:07:03.200
+it more and more seriously as a contender here. The main thing I would say about Control Tower
+
+83
+00:07:03.200 --> 00:07:08.720
+and that differentiates it from all the others is that it's all driven from the console. So while
+
+84
+00:07:08.720 --> 00:07:14.720
+you can have some customizations in source control, it's not really infrastructure as code get ups
+
+85
+00:07:14.720 --> 00:07:19.760
+from the beginning. The setup and the administration of it is all through the AWS Management
+
+86
+00:07:19.760 --> 00:07:24.560
+Console. Now, this is great for some people. I know a lot of people who think this is fine,
+
+87
+00:07:24.560 --> 00:07:28.720
+but it's not for everyone, particularly if you want to have all that control and visibility
+
+88
+00:07:28.720 --> 00:07:33.200
+that goes with infrastructure as code. I think one of the good things about the Control Tower
+
+89
+00:07:33.200 --> 00:07:37.760
+approach is that it has an opinionated set of recommendations and best practices out of the box.
+
+90
+00:07:37.760 --> 00:07:42.160
+So it can help you to kind of jumpstart setup without worrying about all the different decisions
+
+91
+00:07:42.160 --> 00:07:47.120
+you have to make. AWS are basically just giving you the recommendation. With other solutions,
+
+92
+00:07:47.120 --> 00:07:51.760
+you tend to have to codify all of these practices yourself, although you can always take the
+
+93
+00:07:51.760 --> 00:07:57.120
+approach, which I have seen plenty of people do, which is just to copy and replicate the control
+
+94
+00:07:57.120 --> 00:08:01.440
+tower best practices in one of the other tools. Cost wise, there's no additional cost for control
+
+95
+00:08:01.440 --> 00:08:07.200
+tower itself because it is essentially something that orchestrates a lot of other AWS services.
+
+96
+00:08:07.200 --> 00:08:12.400
+And it's those services under the hood that you'll pay for - things like AWS Config and CloudTrail and
+
+97
+00:08:12.400 --> 00:08:17.040
+all the rest. When you go into the console and you set up Control Tower, it'll set up an
+
+98
+00:08:17.040 --> 00:08:22.560
+organizational unit structure for you with security OU, which is the one it has to create
+
+99
+00:08:22.560 --> 00:08:27.280
+from the start. It mandates that one. You can also create a sandbox OU for other accounts
+
+100
+00:08:27.280 --> 00:08:31.520
+at the start, and then it'll create your log archive account and your audit account.
+
+101
+00:08:31.520 --> 00:08:37.520
+It will also create things like the Identity Center, SSO users, if you want that, and
+
+102
+00:08:38.240 --> 00:08:42.160
+create service control policies from the start. So it'll do things like ensuring that you can only
+
+103
+00:08:42.160 --> 00:08:47.040
+use the regions you want to use and other preventative and detective controls.
+
+104
+00:08:47.840 --> 00:08:53.760
+So it's basically using things like AWS Config for the detective controls, AWS
+
+105
+00:08:54.480 --> 00:08:59.120
+service control policies for the preventative controls, and then it gives you a nice UI,
+
+106
+00:08:59.120 --> 00:09:03.920
+a dashboard on top of all that, and it presents us all in pretty much one pane of glass.
+
+107
+00:09:04.960 --> 00:09:09.440
+Now you can set it up with new accounts that don't even have an organization set up yet,
+
+108
+00:09:09.440 --> 00:09:15.760
+or if you've already got an organization set up, you can kickstart Control Tower in there too.
+
+109
+00:09:15.760 --> 00:09:20.720
+It'll basically just leave everything you have and set up new resources in parallel.
+
+110
+00:09:20.720 --> 00:09:25.200
+So it doesn't migrate any existing stuff you have over to Control Tower or anything like that.
+
+111
+00:09:25.200 --> 00:09:27.920
+It sounds pretty simple. It takes about half an hour to get it set up in an
+
+112
+00:09:27.920 --> 00:09:32.960
+account. But of course we know that there's a lot of services out there where they're quick to set
+
+113
+00:09:32.960 --> 00:09:37.920
+up, but can be painful to run in the long run. With Control Tower, it can be frustrating because
+
+114
+00:09:37.920 --> 00:09:41.920
+it does try to hide a lot of stuff from you. And when things go wrong, it can give you very vague
+
+115
+00:09:41.920 --> 00:09:45.600
+errors. Like I've seen errors that just say fail to set up landing zone, please try again.
+
+116
+00:09:46.640 --> 00:09:50.400
+And you don't really know what to do with that. And I was actually just trying with this today
+
+117
+00:09:51.200 --> 00:09:55.840
+as preparation for the episode in one of my own accounts, I went through the Control Tower
+
+118
+00:09:55.840 --> 00:10:01.440
+process and it failed because it said there was some error saying, oh, we can't deploy the stack
+
+119
+00:10:01.440 --> 00:10:06.560
+because the bucket policy for the CloudTrail bucket has an invalid bucket policy. And I was
+
+120
+00:10:06.560 --> 00:10:10.960
+thinking, well, I didn't create the policy, Control Tower did, yet it failed. So it can have a few
+
+121
+00:10:10.960 --> 00:10:16.320
+rough edges. And I sometimes think that Control Tower is best if you've got somebody from AWS,
+
+122
+00:10:16.320 --> 00:10:20.160
+like your technical account manager, your solutions architect, or a good support
+
+123
+00:10:20.160 --> 00:10:24.560
+or a good support agreement in place and they can guide you through the process.
+
+124
+00:10:25.760 --> 00:10:30.000
+Now, there are some pretty cool features like the Account Factory. So we mentioned the ability to
+
+125
+00:10:30.000 --> 00:10:36.240
+create new accounts in an automated way. Control Tower has this Account Factory, which allows users
+
+126
+00:10:36.240 --> 00:10:40.320
+to come along and self provision accounts. And then you can deploy resources into them,
+
+127
+00:10:40.320 --> 00:10:45.040
+like specific service catalog products. So you can ensure that people can self serve when they need
+
+128
+00:10:45.040 --> 00:10:49.680
+new accounts, but you can also have some guardrails around that. That's pretty nice. Another thing they
+
+129
+00:10:49.680 --> 00:10:56.320
+have is customizations. So Control Tower customizations are a means for you as an
+
+130
+00:10:56.960 --> 00:11:01.200
+administrator of an organization to say when people create new accounts, resources can be
+
+131
+00:11:01.200 --> 00:11:06.480
+automatically provisioned in them. So the way you work with Control Tower customizations is actually
+
+132
+00:11:06.480 --> 00:11:11.040
+a whole CloudFormation template you deploy once you've got your landings on set up. And that puts
+
+133
+00:11:11.040 --> 00:11:16.080
+a whole load of resources into your AWS account, like event bridge rules and step functions,
+
+134
+00:11:16.080 --> 00:11:20.640
+a code commit repository, code pipeline, S3 buckets, CloudFormation, the whole lot.
+
+135
+00:11:21.520 --> 00:11:26.400
+And it's basically this big machine that will listen for things like Control Tower accounts
+
+136
+00:11:26.400 --> 00:11:30.960
+being created. And then it responds to that event, kicks off Lambda functions, code pipeline,
+
+137
+00:11:30.960 --> 00:11:35.760
+pulls templates from your code commit repository and deploys them to all the different accounts.
+
+138
+00:11:35.760 --> 00:11:40.800
+So it works pretty well and it achieves the goal of having the ability to customize what happens
+
+139
+00:11:40.800 --> 00:11:44.880
+when an account is created. I have to say though, that the whole implementation scares me a lot.
+
+140
+00:11:44.880 --> 00:11:50.560
+It's one of those features that it seems like a Rube Goldberg machine where you've got all these
+
+141
+00:11:50.560 --> 00:11:56.240
+AWS services and one thing happens, it kicks off another, kicks off another event. And there's,
+
+142
+00:11:56.240 --> 00:12:00.320
+if you can look at the step function implementation, it's like got an amazing number
+
+143
+00:12:00.320 --> 00:12:04.560
+of states. And I just kind of worry a little bit about what will happen when this goes wrong and I
+
+144
+00:12:04.560 --> 00:12:08.560
+have to troubleshoot it because it's a bit of a leaky abstraction, if you know what I mean.
+
+145
+00:12:09.600 --> 00:12:12.880
+So, but Control Tower is getting a lot of popularity and I think a lot of even bigger
+
+146
+00:12:12.880 --> 00:12:18.000
+companies now enterprises are starting to adopt it. So it's definitely worth checking out,
+
+147
+00:12:18.000 --> 00:12:22.960
+especially if you're of the kind of letting AWS worry about it approach and don't want that
+
+148
+00:12:22.960 --> 00:12:27.280
+really tight control and customizability yourself. What other options should we talk about next?
+
+149
+00:12:27.280 --> 00:12:31.520
+Let's talk about OrgFormation. It is definitely quite different from Control Tower.
+
+150
+00:12:32.320 --> 00:12:38.080
+The main thing is that is a totally open source project. So it's a community effort. And the good
+
+151
+00:12:38.080 --> 00:12:42.560
+news about that is that if anything feels like magic, you just go and get up, check out the code
+
+152
+00:12:42.560 --> 00:12:49.120
+and try to figure out exactly what's happening when the magic behavior is presented. It focuses
+
+153
+00:12:49.120 --> 00:12:54.640
+on simple extensions. So it's basically trying to enhance the capabilities of CloudFormation
+
+154
+00:12:55.440 --> 00:13:00.080
+and then makes it a little bit simpler and more intuitive in a way, because if you know
+
+155
+00:13:00.080 --> 00:13:04.800
+CloudFormation, you can understand what's missing and what org formation is giving you on top of
+
+156
+00:13:04.800 --> 00:13:11.120
+CloudFormation. And because it supports CloudFormation, the idea is that they keep extending
+
+157
+00:13:11.120 --> 00:13:16.400
+on the idea of using YAML files. So it's all infrastructure as code. You have a special CLI
+
+158
+00:13:16.400 --> 00:13:21.520
+that you need to install from the repository. And at that point, you can use the CLI to give you
+
+159
+00:13:21.520 --> 00:13:26.880
+kind of an initial structure where it can create all the, you can import all the existing AWS
+
+160
+00:13:26.880 --> 00:13:30.880
+account that you might already have. And it generates all the YAML files that contain the
+
+161
+00:13:30.880 --> 00:13:36.240
+definition. And that could be a starting point for you. For instance, it's going to also figure out
+
+162
+00:13:36.240 --> 00:13:43.120
+if you have SCPs, it's going to import all of them into this definition. And again, this is a great
+
+163
+00:13:43.120 --> 00:13:48.000
+thing because at that point you can put all of this stuff in a repository and then you can manage
+
+164
+00:13:48.000 --> 00:13:54.960
+changes into your account structure using source control. When you want to deploy changes,
+
+165
+00:13:54.960 --> 00:13:59.920
+it's basically running CloudFormation, but it needs to orchestrate the execution of different
+
+166
+00:13:59.920 --> 00:14:06.960
+CloudFormation stacks across multiple regions and accounts. And it can do that in parallel as well.
+
+167
+00:14:06.960 --> 00:14:11.680
+It is interesting there because you might be wondering, okay, that's a fairly complicated
+
+168
+00:14:11.680 --> 00:14:16.880
+bit to execute correctly. And if there is an issue or in order to understand what's actually
+
+169
+00:14:16.880 --> 00:14:22.080
+changing or not, it needs to keep the state somewhere. And if you have been using Terraform,
+
+170
+00:14:22.080 --> 00:14:26.160
+that concept should be very clear to you. How do you manage the state of changes?
+
+171
+00:14:26.160 --> 00:14:32.160
+And it turns out that org formation uses the same idea, so it can manage its own state and it stores
+
+172
+00:14:32.160 --> 00:14:37.280
+it into an S3 bucket. So you can actually check it out how it is stored and how it keeps track of all
+
+173
+00:14:37.280 --> 00:14:44.400
+the changes. You can use it to manage the organization and accounts, but also you can deploy
+
+174
+00:14:44.400 --> 00:14:49.920
+stacks to multiple accounts. So in that way, it's similar to Control Tower because if you want to
+
+175
+00:14:49.920 --> 00:14:54.240
+provision a new account and deploy a set of resources, you can easily do that as well.
+
+176
+00:14:54.240 --> 00:14:59.040
+And the way you do that is by just defining CloudFormation code. So if you are familiar with cloud
+
+177
+00:14:59.040 --> 00:15:03.520
+formation, that shouldn't be anything surprising. You should be able to use it and learn how to do
+
+178
+00:15:03.520 --> 00:15:07.680
+that very, very quickly. There have been some interesting developments. For instance, you can
+
+179
+00:15:07.680 --> 00:15:12.320
+use CDK and Terraform as well, if that's something that you would prefer to use. So this is actually
+
+180
+00:15:12.320 --> 00:15:17.040
+a nice feature because it gives you still all that kind of orchestration, but then you can pick the
+
+181
+00:15:17.040 --> 00:15:21.200
+tool of your choice to write the infrastructure as code for the things you want to provision in
+
+182
+00:15:21.200 --> 00:15:26.000
+every account. And another very cool feature, which is probably a little bit outside the scope,
+
+183
+00:15:26.000 --> 00:15:31.120
+but still very closely related to the project, is that there are plenty of custom CloudFormation
+
+184
+00:15:31.120 --> 00:15:36.080
+resources that you can use to basically fill the gaps where CloudFormation is lacking a little
+
+185
+00:15:36.080 --> 00:15:40.960
+bit. For instance, SSO assignment groups, service quotas, and much more. There is a repository, we
+
+186
+00:15:40.960 --> 00:15:45.680
+will have the link in the show notes that you can check out to see all the additional resources that
+
+187
+00:15:45.680 --> 00:15:50.240
+the project is providing to you to make this whole experience even more powerful. This is
+
+188
+00:15:50.240 --> 00:15:55.600
+powerful. There is one big limitation. I have to say I really like it, but we have to be fair
+
+189
+00:15:55.600 --> 00:16:01.280
+and mention the limitation as well. It is not simple to do a diff, for instance, when you
+
+190
+00:16:01.280 --> 00:16:06.800
+have done a number of changes in your infrastructure as code definition and before you deploy,
+
+191
+00:16:07.760 --> 00:16:13.040
+you want some kind of reassurance that the changes you are trying to apply are actually the ones that
+
+192
+00:16:13.040 --> 00:16:17.360
+you want to see, like the effect is actually something you might want to see before applying
+
+193
+00:16:17.360 --> 00:16:23.360
+it. That feature is missing, so if you're doing something serious, it's not as simple as doing
+
+194
+00:16:23.360 --> 00:16:28.560
+a Terraform diff or a CDK diff if you have used these other tools. That feature is simply lacking,
+
+195
+00:16:28.560 --> 00:16:34.400
+so you just run it and hope that everything goes well. Maybe something that can be fixed at some
+
+196
+00:16:34.400 --> 00:16:41.360
+point in the future, but right now it's a pretty important lacking feature that is worth mentioning.
+
+197
+00:16:42.160 --> 00:16:46.880
+There are some very good examples which you can use as a starting point to create your own
+
+198
+00:16:46.880 --> 00:16:51.840
+landing zone structure, and we will have a link to the specific part of the
+
+199
+00:16:51.840 --> 00:16:56.000
+repository that has the examples in the show notes. That's pretty much it. Should we talk
+
+200
+00:16:56.000 --> 00:17:01.280
+about Terraform?
+
+201
+00:17:01.280 --> 00:17:06.720
+Terraform is one thing that's going to give you a good diff, which is probably a marked difference to OrgFormation. Although, I suppose, with OrgFormation, we have had the
+
+202
+00:17:06.720 --> 00:17:11.280
+ability here at fourTheorem to work around it by just implementing our own diff on top of it,
+
+203
+00:17:11.280 --> 00:17:17.040
+but it would really be nice to have proper implementation. Now, if you're not excited by
+
+204
+00:17:17.040 --> 00:17:21.920
+OrgFormation because of these disadvantages, they both have limitations when it comes to
+
+205
+00:17:21.920 --> 00:17:27.280
+either feature set or the level of control and visibility you get, but Terraform is a lot more
+
+206
+00:17:27.280 --> 00:17:31.600
+mature than either of those solutions, I'd say. Now, it's not necessarily designed for multi-account
+
+207
+00:17:31.600 --> 00:17:36.000
+deployment, especially across a large number of accounts, but it still has a lot of distinct
+
+208
+00:17:36.000 --> 00:17:41.680
+advantages. You could provision AWS organizations and accounts just as Terraform resources,
+
+209
+00:17:41.680 --> 00:17:46.240
+and there's a lot of great community modules that make this whole setup easy as well.
+
+210
+00:17:46.960 --> 00:17:50.640
+You can also create your own modules for resources that you want to be deployed across multiple
+
+211
+00:17:50.640 --> 00:17:58.080
+accounts to make it easy for teams to get onboarded quickly. I think the whole idea of
+
+212
+00:17:58.080 --> 00:18:03.040
+using Terraform for this has improved with Terraform Cloud as well, which is just a really
+
+213
+00:18:03.040 --> 00:18:08.880
+nice managed solution to manage your projects and your workspaces and integrates very well into
+
+214
+00:18:08.880 --> 00:18:13.120
+GitHub and AWS. Previously, it was a little bit difficult when you had to manage your state
+
+215
+00:18:13.120 --> 00:18:20.240
+yourself with S3 or DynamoDB. Terraform Cloud makes that a much more taken care of, robust
+
+216
+00:18:20.240 --> 00:18:26.160
+solution. You can also provision non-AWS resources, another major advantage. So if you wanted to think
+
+217
+00:18:26.160 --> 00:18:32.320
+about deploying Azure resources or GitHub repositories or even Terraform Cloud workspaces
+
+218
+00:18:32.320 --> 00:18:37.680
+themselves, you can do that with Terraform modules and do it in the same projects as your AWS resources.
+
+219
+00:18:37.680 --> 00:18:43.200
+When you do this, you get very nice deployment controls, so you can have really nice
+
+220
+00:18:43.200 --> 00:18:49.760
+GitOps workflows, and you can see when you have pull requests with changes to your infrastructure
+
+221
+00:18:49.760 --> 00:18:53.840
+and your organization, you'll get a very nice Terraform plan. It'll integrate well into your
+
+222
+00:18:53.840 --> 00:18:58.400
+pull requests. You get a really good visibility of it in Terraform Cloud, and you can put in place
+
+223
+00:18:58.400 --> 00:19:04.960
+manual approvals. So I think if you're a mature organization already familiar with Terraform,
+
+224
+00:19:04.960 --> 00:19:11.120
+this is going to really appeal to you. I think the only real disadvantage with Terraform is that
+
+225
+00:19:12.080 --> 00:19:19.120
+it's not really that easy, I don't know the good way at least, to have a dynamic number of Terraform
+
+226
+00:19:19.120 --> 00:19:22.880
+providers. And when you're deploying to multiple AWS accounts, which is essentially what we're
+
+227
+00:19:22.880 --> 00:19:27.920
+talking about here, you have to pretty much declare each Terraform provider for each account.
+
+228
+00:19:27.920 --> 00:19:32.960
+So it doesn't really have a seamless kind of Account Factory way, or for every account,
+
+229
+00:19:32.960 --> 00:19:38.480
+deploy the same stack concept like you do with control data and information. The more idiomatic
+
+230
+00:19:38.480 --> 00:19:43.680
+approach in Terraform is basically to copy paste the boilerplate at the start that says, okay,
+
+231
+00:19:43.680 --> 00:19:50.240
+here's my entry point, my main for a new account. And then within that, you just use modules to
+
+232
+00:19:50.240 --> 00:19:54.080
+compose everything else that goes underneath it. So you don't have to have a massive copy paste
+
+233
+00:19:54.080 --> 00:19:58.880
+everywhere, but you do have to have a kind of copy paste the entry point. And once you do that,
+
+234
+00:19:58.880 --> 00:20:05.520
+then you can integrate it seamlessly into your deployment workflow and get your diffs. You can
+
+235
+00:20:05.520 --> 00:20:10.320
+get Terraform plan, which is like a really nice feature every time you have a pull request. And
+
+236
+00:20:10.320 --> 00:20:16.400
+then when you merge it, you can have your approval workflow. I'm not an expert in this area at all,
+
+237
+00:20:16.400 --> 00:20:20.800
+but luckily we have a colleague, Conor Maher, who has done a huge amount of work in this space. And
+
+238
+00:20:20.800 --> 00:20:25.760
+he's also provided a nice demo repository showcasing a really nice mature landings on
+
+239
+00:20:25.760 --> 00:20:30.800
+set up with Terraform cloud, AWS and GitHub, and it's well documented as well. So we'll have that
+
+240
+00:20:30.800 --> 00:20:36.480
+link to Conor's Terraform demo in the show notes.
+
+241
+00:20:36.480 --> 00:20:42.800
+Yeah, let's close this episode with some honorable mentions. Another one is CDK. And there is a specific example that we will have
+
+242
+00:20:42.800 --> 00:20:48.560
+again in the show notes that shows how to do landing zones using CDK. It's not necessarily
+
+243
+00:20:48.560 --> 00:20:54.480
+the best solution for OptiMs or anyone will prefer a more declarative approach because CDK is more
+
+244
+00:20:54.480 --> 00:20:59.520
+like use a programming language and you instantiate classes that represent resources and then combine
+
+245
+00:20:59.520 --> 00:21:03.360
+them together. So it might be a little bit different from what you're used to if you do
+
+246
+00:21:03.360 --> 00:21:10.080
+declarative stuff, but it's still very powerful and it's still a very good dynamic way of doing
+
+247
+00:21:10.080 --> 00:21:15.680
+the provisioning of all the different accounts in your landing zone structure. And you can make it
+
+248
+00:21:15.680 --> 00:21:20.960
+very modular by using this idea of constructs that are somewhat similar to Terraform modules,
+
+249
+00:21:20.960 --> 00:21:26.240
+but again more in the concept of a programming languages where you can import a library and that
+
+250
+00:21:26.240 --> 00:21:30.800
+gives you a class that you can just instantiate and represents like an entire stack where you can
+
+251
+00:21:30.800 --> 00:21:38.000
+apply certain customizations very easily. So CDK is an option and you might want to consider it as
+
+252
+00:21:38.000 --> 00:21:43.200
+well, especially if you have CDK experience. The other one is AWS Control Tower Account Factory for
+
+253
+00:21:43.200 --> 00:21:49.360
+Terraform, also called AFT for short, and it's a way of using Terraform to customize accounts
+
+254
+00:21:49.360 --> 00:21:53.440
+instead of CloudFormation. And once you have Control Tower landing zone already set up,
+
+255
+00:21:53.440 --> 00:21:58.080
+you can enable that and then use Terraform if that's something that's more familiar to you.
+
+256
+00:21:58.800 --> 00:22:04.080
+We didn't try it yet, so we just heard people using it and being relatively happy with it, so
+
+257
+00:22:04.880 --> 00:22:09.680
+check it out. It might be worth experimenting, especially if you like kind of this mix of
+
+258
+00:22:09.680 --> 00:22:15.600
+features that come from Control Tower, but you also like the Terraform more as a kind of language
+
+259
+00:22:15.600 --> 00:22:22.000
+for writing resource definitions. Now to wrap things up, I'm gonna try to do a quick summary.
+
+260
+00:22:22.000 --> 00:22:27.760
+I think what we mentioned today is that the best option is really... it depends on your context. I
+
+261
+00:22:27.760 --> 00:22:33.280
+know it's a bit of a cliche answer, but it really depends on the level of expertise in your company,
+
+262
+00:22:33.280 --> 00:22:39.120
+the kind of tools that you might have used already, and if you prefer a specific approach in terms of
+
+263
+00:22:39.120 --> 00:22:44.560
+maybe you prefer to go through the UI, then Control Tower might be a little bit more friendly to you.
+
+264
+00:22:44.560 --> 00:22:49.360
+You prefer to do infrastructure as code, so maybe Terraform or OrgFormation are a little bit more
+
+265
+00:22:49.360 --> 00:22:54.160
+ideal in that sense, so definitely try to weight all the pros and cons of the different approaches
+
+266
+00:22:54.160 --> 00:23:01.520
+and pick the one that might be most suitable for your organization. I think if Control Tower had
+
+267
+00:23:01.520 --> 00:23:06.960
+some way of supporting infrastructure as code, it would come out much stronger, at least in our view
+
+268
+00:23:06.960 --> 00:23:11.680
+in this comparison, but it's still a good tool if you don't really care too much about infrastructure
+
+269
+00:23:11.680 --> 00:23:17.840
+as code. We will have more links in the show notes. We found some more additional deep dives
+
+270
+00:23:17.840 --> 00:23:21.600
+and additional material that you might want to check out to understand even more about this topic.
+
+271
+00:23:22.320 --> 00:23:27.280
+And again, there are probably many solutions out there. Let us know what works for you,
+
+272
+00:23:27.280 --> 00:23:31.760
+if you liked a specific tool, why, or if you didn't like some of them, what is the issue that is
+
+273
+00:23:31.760 --> 00:23:35.920
+missing. I think if we can have an healthy conversation about these tools, especially on
+
+274
+00:23:35.920 --> 00:23:39.760
+the open source ones, chances are that we can get the features that we are looking for, and we can
+
+275
+00:23:39.760 --> 00:23:44.640
+even contribute to make these features happen. Now, one last thing that I have to say is that
+
+276
+00:23:44.640 --> 00:23:51.600
+we are approaching 100 videos and almost 2,000 subscribers on YouTube, so please help us reach
+
+277
+00:23:51.600 --> 00:23:56.000
+out to that milestone by subscribing, and if you can please share this podcast with your colleagues
+
+278
+00:23:56.000 --> 00:24:01.120
+and friends, we would greatly appreciate that. So thank you very much, and we'll see you in the next
+
+279
+00:24:01.120 --> 00:24:07.760
+episode.

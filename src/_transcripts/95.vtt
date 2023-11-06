@@ -1,0 +1,661 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:03.520
+Everyone loves the simplicity of S3 for storing and retrieving data.
+
+2
+00:00:03.520 --> 00:00:07.280
+But when you start pushing the boundaries and want really large objects, high throughput,
+
+3
+00:00:07.280 --> 00:00:13.040
+and faster access, it can start to become a bit of a minefield. AWS recently released Mountpoint
+
+4
+00:00:13.040 --> 00:00:18.400
+for S3, a new client that promises to make fast access to S3 as simple as any file system.
+
+5
+00:00:18.400 --> 00:00:22.480
+Today, we're going to take a look at Mountpoint for S3. And by the end, you should know where
+
+6
+00:00:22.480 --> 00:00:27.360
+you might use it and when you should give this a hard pass. I'm Eoin. I'm joined by Luciano
+
+7
+00:00:27.360 --> 00:00:40.480
+for another episode of AWS Bites. fourTheorem is the company that makes AWS Bites possible.
+
+8
+00:00:40.480 --> 00:00:43.920
+If you're looking for a partner to accompany you on your cloud journey,
+
+9
+00:00:43.920 --> 00:00:49.760
+check them out at fourtheorem.com. Luciano, why would you need something like Mountpoint for S3?
+
+10
+00:00:49.760 --> 00:00:52.160
+What do you think? What are the use cases that it might solve?
+
+11
+00:00:52.960 --> 00:00:56.000
+Yeah, that's a good question.
+
+12
+00:00:56.000 --> 00:01:01.520
+So we were reading through the announcement, and there are some use cases that are detailed there. And the first one is big data application,
+
+13
+00:01:01.520 --> 00:01:07.520
+specifically when big data application like data lakes, they don't directly support S3. So you can
+
+14
+00:01:07.520 --> 00:01:13.680
+effectively use Mountpoint to mount S3 as a file system, like a FUSE file system, and then just
+
+15
+00:01:13.680 --> 00:01:18.160
+give it to the application you're using. But this is a bit of an interesting use case because for
+
+16
+00:01:18.160 --> 00:01:23.280
+the kind of big data application that we have been using, like Dremio, Snowflake, and others,
+
+17
+00:01:23.280 --> 00:01:28.400
+like all of them have already S3 integration, so it wasn't really convincing. But it seems that
+
+18
+00:01:28.400 --> 00:01:32.080
+there are other advantages. For instance, it's very optimized for performance. So if you're
+
+19
+00:01:32.080 --> 00:01:38.560
+dealing with large objects, or if you need to have very high read throughput, or if you need to read
+
+20
+00:01:38.560 --> 00:01:44.160
+without downloading an object entirely, you just need a subset of the data. In all those use cases,
+
+21
+00:01:44.160 --> 00:01:48.880
+I think Mountpoint can give you ideal performance. So maybe this is already good enough to justify
+
+22
+00:01:48.880 --> 00:01:54.560
+using Mountpoint. We were also trying to figure out some potentially additional use cases where
+
+23
+00:01:54.560 --> 00:01:59.600
+Mountpoint can be useful. And we were thinking, okay, what if you have created a script, maybe
+
+24
+00:01:59.600 --> 00:02:04.080
+you were doing something quick and dirty locally, and now you need to do it using data that is
+
+25
+00:02:04.080 --> 00:02:09.520
+available in S3. You're probably going to be fast enough just using Mountpoint rather than changing
+
+26
+00:02:09.520 --> 00:02:15.520
+all your code to actually use an SDK or the CLI. So that could be another use case.
+
+27
+00:02:15.520 --> 00:02:19.600
+And a common use case is like you have a Unix pipeline, you read from S3, you do some kind of manipulation,
+
+28
+00:02:19.600 --> 00:02:24.720
+you save to S3. And if you were doing that on a local file system, you can immediately support
+
+29
+00:02:24.720 --> 00:02:32.000
+S3 that way. And similarly, we have seen people doing a lot of work analyzing CSV files or Parquet
+
+30
+00:02:32.000 --> 00:02:37.840
+files using notebooks or logarithms, so all sorts of kind of analytics. And often enough, people
+
+31
+00:02:37.840 --> 00:02:42.400
+are just working off of logarithm files, and then they need to use real data in S3. And they have
+
+32
+00:02:42.400 --> 00:02:47.520
+all the code written for using generic file system operations. They don't want to change their code
+
+33
+00:02:47.520 --> 00:02:53.600
+to use maybe Porto3 or maybe some other kind of direct integration with S3. So in that case,
+
+34
+00:02:53.600 --> 00:03:01.040
+you have another valid use case for Mountpoint. And finally, this is always our... something we
+
+35
+00:03:01.040 --> 00:03:06.400
+like to remark that if you need to explore what you have in an S3 bucket and you are not very
+
+36
+00:03:06.400 --> 00:03:13.680
+familiar with AWS CLI, because maybe you haven't used AWS that much, you can just mount the S3
+
+37
+00:03:13.680 --> 00:03:18.880
+Mountpoint and then you can explore the files using familiar bash commands like ls, for instance.
+
+38
+00:03:18.880 --> 00:03:23.920
+So that could be another use case, and it might be much more convenient than just browsing through
+
+39
+00:03:23.920 --> 00:03:30.080
+the AWS web console, especially when you have lots and lots of files in the bucket. So should we talk
+
+40
+00:03:30.080 --> 00:03:36.240
+a little bit more about how it is really implemented and some of the modulated characteristics of
+
+41
+00:03:36.240 --> 00:03:39.840
+this implementation?
+
+42
+00:03:39.840 --> 00:03:46.080
+Yeah, this is where it gets actually kind of interesting in looking at how they're implementing this new client. It's written in Rust, like a lot of the new performance critical
+
+43
+00:03:46.080 --> 00:03:50.640
+things that they're doing at Amazon, they seem to be favoring Rust. And now it's only supported for
+
+44
+00:03:50.640 --> 00:03:57.920
+Linux at the moment. But the idea of using Rust is to reduce latency, the binary size, good for
+
+45
+00:03:57.920 --> 00:04:02.640
+serverless applications, thinking about cold starts, reducing resource consumption. And it
+
+46
+00:04:02.640 --> 00:04:08.400
+provides then a file system operation that is intended to deliver optimal S3 performance. So
+
+47
+00:04:08.400 --> 00:04:12.240
+the idea is that you get a simple interface, but you don't compromise on speed because they're
+
+48
+00:04:12.240 --> 00:04:18.880
+providing this level of abstraction. And it uses the Linux FUSE subsystem. So that's the
+
+49
+00:04:20.000 --> 00:04:24.720
+subsystem that you might've used before if you're a Linux user for providing user space file systems.
+
+50
+00:04:26.320 --> 00:04:30.720
+Now, one of the things, I was a little bit confused because there are alternatives that
+
+51
+00:04:30.720 --> 00:04:35.840
+already do this kind of thing in FUSE. I was wondering what this provides us slightly different.
+
+52
+00:04:35.840 --> 00:04:39.200
+And it seems from reading through the documentation and the code base, that the whole
+
+53
+00:04:39.200 --> 00:04:45.200
+philosophy here is to intentionally not implement operations that would result in suboptimal
+
+54
+00:04:45.200 --> 00:04:50.320
+performance. So to remove those foot guns where you might try and do a simple operation on the
+
+55
+00:04:50.320 --> 00:04:55.520
+file system that might result in thousands of operations with S3 under the hood that might take
+
+56
+00:04:55.520 --> 00:05:00.640
+days and might end up costing you a lot. So I think that is a little bit reassuring to see that
+
+57
+00:05:00.640 --> 00:05:07.120
+in practice. I will have to see how it plays out. And it's also built on top of the native CRT.
+
+58
+00:05:07.120 --> 00:05:12.880
+So CRT is something you might come across very rarely, but the CRT is common runtime. It's a
+
+59
+00:05:12.880 --> 00:05:17.840
+set of libraries that Amazon provide. And we can maybe talk a little bit about that further on.
+
+60
+00:05:17.840 --> 00:05:23.040
+So when doesn't it work? Given this implementation and design, when does it not work? Well, we've
+
+61
+00:05:23.040 --> 00:05:27.520
+already mentioned it doesn't work on anything that is in Linux because it uses FUSE. So it's not
+
+62
+00:05:27.520 --> 00:05:34.800
+supported on OSX. When I was playing around with it, I had to use Docker on Mac. And it doesn't
+
+63
+00:05:34.800 --> 00:05:40.640
+work in Fargate because it needs special permissions. And that's explicitly called out
+
+64
+00:05:40.640 --> 00:05:45.120
+in the documentation. Fargate doesn't provide the special permissions needed for the FUSE device.
+
+65
+00:05:46.080 --> 00:05:52.880
+So if you wanted to use S3 with Fargate today, you're left with using the object paradigm,
+
+66
+00:05:52.880 --> 00:05:57.600
+or you're just doing get object and put object yourself. Or you can use something like EFS with
+
+67
+00:05:57.600 --> 00:06:03.680
+data sync to sync up data from S3. And then when it comes to the specific operations,
+
+68
+00:06:04.320 --> 00:06:08.480
+you wouldn't use it when you need to do edits on an existing object. So you can't
+
+69
+00:06:08.480 --> 00:06:13.200
+change the middle of an object. You can only do sequential writes when you're writing an object
+
+70
+00:06:13.200 --> 00:06:19.200
+for the first time. You can't do symlinks because those aren't supported in S3. You can't do
+
+71
+00:06:19.200 --> 00:06:25.200
+directory renames. And in general, you wouldn't use it for something like web serving either.
+
+72
+00:06:25.200 --> 00:06:28.240
+I mean, you can do it, but performance is not going to be the best because you
+
+73
+00:06:28.240 --> 00:06:35.280
+generally want caching there. So maybe before we go into the CRT and some of those things,
+
+74
+00:06:35.280 --> 00:06:38.880
+Luciano, do you want to talk about some of the alternatives that are out there from Mountpoint
+
+75
+00:06:38.880 --> 00:06:44.400
+or other kind of use cases in this realm?
+
+76
+00:06:44.400 --> 00:06:49.920
+One that I've been using in the past is s3fs-fuse that I think you already mentioned before. It has been around for a long time. Seems
+
+77
+00:06:49.920 --> 00:06:56.160
+pretty reliable, but again, they try to make it as possible. So sometimes you might find this
+
+78
+00:06:56.160 --> 00:07:00.880
+kind of footcance where you try to do a simple operation and it results in something that's not
+
+79
+00:07:00.880 --> 00:07:06.480
+very optimal in S3. So it might be a little bit dangerous. And while we were researching for this
+
+80
+00:07:06.480 --> 00:07:11.040
+episode, we found out that there is an alternative called GOOFYS, which is written in Go. And in
+
+81
+00:07:11.040 --> 00:07:15.680
+terms of design principle, it's somewhat similar to Mountpoint, meaning that they don't try to
+
+82
+00:07:15.680 --> 00:07:21.520
+implement everything in a POSIX compliant way, but they try to keep it as performant as possible.
+
+83
+00:07:22.320 --> 00:07:29.280
+And in general, I would say the real alternative is don't try to do this stuff if you can. Try to
+
+84
+00:07:29.280 --> 00:07:35.840
+stick with the object storage paradigm and use the CLI or the SDK and do the specific operations
+
+85
+00:07:35.840 --> 00:07:40.800
+that the actual service is providing you. Don't try to simulate with different abstraction,
+
+86
+00:07:40.800 --> 00:07:47.440
+the same things, because all these abstractions are a bit leaky and they don't always map
+
+87
+00:07:47.440 --> 00:07:51.920
+one-to-one and you might end up in this kind of weird situation where either it doesn't work or
+
+88
+00:07:51.920 --> 00:07:58.240
+it's too expensive or it's too slow. And yeah, so the alternative is try not to do that whenever you
+
+89
+00:07:58.240 --> 00:08:05.920
+can. So speaking about performance, what can we say? Because that seems to be one of the main,
+
+90
+00:08:05.920 --> 00:08:09.520
+on one side, one of the main concerns because it might be a little bit obscure,
+
+91
+00:08:09.520 --> 00:08:13.360
+but on the other end, it's a bit of a promise that by using this kind of tool,
+
+92
+00:08:13.360 --> 00:08:15.920
+you get the best performance that you can possibly get.
+
+93
+00:08:19.120 --> 00:08:22.560
+Yeah, we mentioned that it's fairly simple just to read and write from S3 at the beginning, but when you start pushing the boundaries with large objects and high throughput,
+
+94
+00:08:22.560 --> 00:08:27.200
+that's when it gets a little bit trickier. And S3 will give you performance tips in the
+
+95
+00:08:27.200 --> 00:08:33.600
+documentation, like saying you should use byte range requests in parallel in order to get your
+
+96
+00:08:33.600 --> 00:08:39.120
+object faster rather than reading from start to finish. There's lots of other tricks like using
+
+97
+00:08:39.120 --> 00:08:46.720
+multi-part uploads to upload and even using multiple IP addresses. So if you're just using
+
+98
+00:08:46.720 --> 00:08:53.040
+DNS with S3, you might get back one IP address that's used for your request. But if you're on a
+
+99
+00:08:53.040 --> 00:08:57.760
+high bandwidth EC2 instance, you might want to maximize the number of flows you can do because
+
+100
+00:08:57.760 --> 00:09:01.200
+there's a cap on the bandwidth you can use for an individual flow. So you might want to use multiple
+
+101
+00:09:01.200 --> 00:09:05.680
+IP addresses. So this is how it starts to become a little bit of a minefield. And this was really
+
+102
+00:09:05.680 --> 00:09:12.000
+well illustrated in the Cloudanaut podcast when Michael and Andreas Fittig went through this whole
+
+103
+00:09:13.200 --> 00:09:18.880
+pain in order to try and download five terabyte objects, the maximum object size, really quickly.
+
+104
+00:09:18.880 --> 00:09:23.920
+And I'd really recommend checking out that episode. And they were using Node.js and ended
+
+105
+00:09:23.920 --> 00:09:28.880
+up creating their own custom Node.js client because the AWS SDK wasn't giving them the
+
+106
+00:09:28.880 --> 00:09:34.400
+bandwidth they needed to read these large objects quickly. So mount point is a little bit different
+
+107
+00:09:34.400 --> 00:09:39.840
+because it's not just using like the JavaScript SDK. It's using the CRT libraries we mentioned.
+
+108
+00:09:39.840 --> 00:09:45.920
+And CRT is like written in C native high performance libraries from AWS for lots of
+
+109
+00:09:45.920 --> 00:09:51.280
+different things, including they've built like a high performance HTTP client and MQTT client.
+
+110
+00:09:51.280 --> 00:09:57.360
+And they've also built an S3 client. And it's designed for low overhead, high throughput,
+
+111
+00:09:58.000 --> 00:10:02.240
+automatically uses byte range requests, parallelization, multi-part uploads.
+
+112
+00:10:02.240 --> 00:10:07.760
+And I think ultimately the goal with this CRT is to provide a common code base that all of the
+
+113
+00:10:07.760 --> 00:10:13.600
+SDKs can use so they don't have to implement all of this optimization in every language separately.
+
+114
+00:10:14.240 --> 00:10:20.320
+Now, right now, CRT can integrate fairly easily with the Java SDK. And it's possible with the
+
+115
+00:10:20.320 --> 00:10:25.120
+Python Boto3 one as well. But it seems to be very vague how to do it with other languages,
+
+116
+00:10:25.120 --> 00:10:30.480
+even though they provide kind of bindings for all languages. One of the interesting claims here is
+
+117
+00:10:30.480 --> 00:10:36.240
+that the team says that they prove algorithmic correctness using this fancy automated reasoning
+
+118
+00:10:36.240 --> 00:10:41.760
+that they're really into at AWS. So there's a link to that in the show notes. Now, going back
+
+119
+00:10:41.760 --> 00:10:46.960
+to mount point, mount point is built on top of CRT. So performance should be pretty optimal. But
+
+120
+00:10:47.600 --> 00:10:53.120
+as of yet, we don't see any published benchmarks. I don't see any benchmarks, even from the S3FS
+
+121
+00:10:53.120 --> 00:10:59.520
+FUSE teams showing what the difference is. So it would be really interesting. Setting up benchmarks
+
+122
+00:10:59.520 --> 00:11:04.000
+and running them on S3, there's a lot of effort to put into it. So we haven't had a chance to do
+
+123
+00:11:04.000 --> 00:11:08.240
+that yet. But if anyone out there feels like it, I'd be really interested to see what it would be
+
+124
+00:11:08.240 --> 00:11:12.960
+like. Are you optimistic Luciano, or do you see any potential problems with mount point?
+
+125
+00:11:13.600 --> 00:11:17.440
+Yeah, I think on one side, it's fair to say that it's a relatively new project.
+
+126
+00:11:18.160 --> 00:11:23.200
+So it will improve over time for sure. And it will get better, I imagine. So
+
+127
+00:11:24.800 --> 00:11:29.360
+although there are some potential problems that we have observed in this experimentation that we
+
+128
+00:11:29.360 --> 00:11:34.080
+did in the last few days, and one interesting thing is that we were wondering, because this
+
+129
+00:11:34.080 --> 00:11:40.640
+is an abstraction, how it's going to impact cost for me. Like what kind of S3 requests are actually
+
+130
+00:11:40.640 --> 00:11:46.400
+happening behind the scenes, right? So initially, we didn't really found a way to see that.
+
+131
+00:11:46.400 --> 00:11:51.040
+Eventually, we figured out that there is a CLI flag that you can enable to get advanced logs,
+
+132
+00:11:51.040 --> 00:11:55.760
+like you get more verbose logs. And these logs will give you a fair number of details about
+
+133
+00:11:55.760 --> 00:11:59.840
+the S3 operations that are happening. For instance, if you do a put, or if you do a get,
+
+134
+00:12:00.400 --> 00:12:05.440
+and you get details like how many parts are being used, for instance, when you do a put.
+
+135
+00:12:06.080 --> 00:12:11.280
+And that could be very useful to understand exactly what kind of operations are happening,
+
+136
+00:12:11.280 --> 00:12:15.040
+how fast they are, and can give you an indication of cost. The only annoying
+
+137
+00:12:15.040 --> 00:12:20.400
+gotcha there is that you don't see the parts being used in S3. So if you just look at the logs,
+
+138
+00:12:20.400 --> 00:12:25.520
+it's a little bit out of context. If you try to correlate the different operations with what you
+
+139
+00:12:25.520 --> 00:12:31.760
+were trying to do, you need to stick together your, I guess, common line history with the logs
+
+140
+00:12:31.760 --> 00:12:36.080
+that you see there to make sense of everything. But this is probably just something that's missing.
+
+141
+00:12:36.080 --> 00:12:40.800
+It could be easily added by the team. Or maybe if somebody is willing to do a PR, that's probably
+
+142
+00:12:40.800 --> 00:12:44.960
+an easy feature to try to add to the project, which after all is an open source project.
+
+143
+00:12:45.680 --> 00:12:49.200
+And the other problem, and we have been saying that over and over during this episode,
+
+144
+00:12:49.200 --> 00:12:56.240
+but I think it's worth reiterating that, is that we are using a POSIX model, which is not really
+
+145
+00:12:56.240 --> 00:13:01.360
+POSIX. So lots of footcans there. It could be dangerous. It's probably wrong in the first place.
+
+146
+00:13:01.360 --> 00:13:06.080
+So if you use it, use it with moderation and be aware of exactly the kind of trade-offs
+
+147
+00:13:06.080 --> 00:13:11.120
+you are buying into. Because if you try to use it as a general file system, you are going to have
+
+148
+00:13:11.120 --> 00:13:16.400
+problems for sure. What do you think is that? Should we say that the final verdict is to use
+
+149
+00:13:16.400 --> 00:13:22.480
+it or not to use it?
+
+150
+00:13:22.480 --> 00:13:26.480
+Generally not, I would say right now! Then again, if people have found it interesting and want to try it out for their own use cases, they'll probably already have a good
+
+151
+00:13:26.480 --> 00:13:30.560
+feeling from what we've said so far. I think it's better to stick with the object paradigm when
+
+152
+00:13:30.560 --> 00:13:37.280
+you're talking about an object store rather than trying to shoehorn it into a file system model.
+
+153
+00:13:37.280 --> 00:13:42.720
+But look, you could use it for a period of time during a migration while you work on the changes
+
+154
+00:13:42.720 --> 00:13:47.680
+in order to use an object storage paradigm. I think you gave a good example of that back in the
+
+155
+00:13:47.680 --> 00:13:56.240
+episode where we talked about migrating like a CMS or for a legal firm to AWS and using something
+
+156
+00:13:56.240 --> 00:14:02.480
+like S3FS views at the time. It's better, I think, to try and use more native S3 integrations.
+
+157
+00:14:03.040 --> 00:14:07.920
+I'm curious to hear if there's cases where you really need something like this. But look,
+
+158
+00:14:07.920 --> 00:14:12.320
+if you need to use it, you can use it as a last resource, understand the risks and put your logging
+
+159
+00:14:12.320 --> 00:14:17.600
+and metrics in place. If you wanted to use it for web serving, ultimately, you're really better off
+
+160
+00:14:17.600 --> 00:14:23.120
+using a CTN in front of S3. So I think in general, the jury is still out. If there are very compelling
+
+161
+00:14:23.120 --> 00:14:27.520
+use cases that we haven't spotted, let us know because we're really curious. And if you've done
+
+162
+00:14:27.520 --> 00:14:31.920
+any benchmarking, please share them with everybody because I think the whole area of S3 performance,
+
+163
+00:14:31.920 --> 00:14:37.440
+when it gets into really optimizing it, it can take a lot of time. But if you've got any data
+
+164
+00:14:37.440 --> 00:14:41.440
+on that, I'd love to see it because we can all benefit from it. So thanks very much for listening.
+
+165
+00:14:41.440 --> 00:14:44.880
+Please like and subscribe and share with your friends and we'll see you in the next episode.

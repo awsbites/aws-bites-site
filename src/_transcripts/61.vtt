@@ -1,0 +1,3161 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:02.160
+Things were simpler back when we could buy hardware
+
+2
+00:00:02.160 --> 00:00:03.560
+and a few software licenses,
+
+3
+00:00:03.560 --> 00:00:04.720
+hoping that it was enough,
+
+4
+00:00:04.720 --> 00:00:06.440
+but not too much to run whatever we needed,
+
+5
+00:00:06.440 --> 00:00:07.400
+and that was it.
+
+6
+00:00:07.400 --> 00:00:09.560
+In the cloud, we don't have to pay for much upfront,
+
+7
+00:00:09.560 --> 00:00:12.600
+and we can scale way beyond what we originally anticipated.
+
+8
+00:00:12.600 --> 00:00:14.520
+This flexibility, though, comes with a trade-off.
+
+9
+00:00:14.520 --> 00:00:16.840
+We are talking about cost complexity.
+
+10
+00:00:16.840 --> 00:00:18.680
+If the cost of cloud is holding you back,
+
+11
+00:00:18.680 --> 00:00:20.080
+this episode is for you.
+
+12
+00:00:20.080 --> 00:00:22.280
+We're going to talk about understanding AWS pricing
+
+13
+00:00:22.280 --> 00:00:23.120
+and billing,
+
+14
+00:00:23.120 --> 00:00:25.160
+and share tools and tips to get better visibility
+
+15
+00:00:25.160 --> 00:00:27.440
+and control on your AWS costs.
+
+16
+00:00:27.440 --> 00:00:28.720
+We will also let you know some ways
+
+17
+00:00:28.720 --> 00:00:31.320
+you can get AWS to pay the bill for you.
+
+18
+00:00:31.320 --> 00:00:32.920
+I'm Eoin, I'm here with Luciano,
+
+19
+00:00:32.920 --> 00:00:34.800
+and this is the AWS Bites podcast.
+
+20
+00:00:42.160 --> 00:00:44.160
+AWS Bites is sponsored by fourTheorem.
+
+21
+00:00:44.160 --> 00:00:46.040
+fourTheorem is an AWS consulting partner
+
+22
+00:00:46.040 --> 00:00:47.520
+offering training, cloud migration,
+
+23
+00:00:47.520 --> 00:00:49.440
+and modern application architecture.
+
+24
+00:00:49.440 --> 00:00:51.160
+Find out more at fourtheorem.com.
+
+25
+00:00:51.160 --> 00:00:53.840
+You'll find the link in the show notes.
+
+26
+00:00:53.840 --> 00:00:55.920
+Luciano, cloud computing is often compared
+
+27
+00:00:55.920 --> 00:00:58.520
+to your domestic utilities like electricity.
+
+28
+00:00:58.520 --> 00:00:59.960
+You pay for what you use,
+
+29
+00:00:59.960 --> 00:01:01.640
+and this is probably very appealing
+
+30
+00:01:01.640 --> 00:01:03.960
+if you've got very low or very sporadic usage,
+
+31
+00:01:03.960 --> 00:01:06.440
+since you don't pay for the idle time.
+
+32
+00:01:06.440 --> 00:01:07.680
+So if this is the case,
+
+33
+00:01:07.680 --> 00:01:10.880
+why does cloud computing cost scare people off so much?
+
+34
+00:01:10.880 --> 00:01:14.640
+Yeah, I think it's because everything looks great
+
+35
+00:01:14.640 --> 00:01:16.640
+when you don't have surprises,
+
+36
+00:01:16.640 --> 00:01:18.560
+and you can have some surprises
+
+37
+00:01:18.560 --> 00:01:21.320
+because the billing model is a bit complicated.
+
+38
+00:01:21.320 --> 00:01:23.400
+So people are naturally scared about,
+
+39
+00:01:23.400 --> 00:01:25.560
+okay, what if I didn't get it right?
+
+40
+00:01:25.560 --> 00:01:28.480
+What if it doesn't turn out to be as cheap
+
+41
+00:01:28.480 --> 00:01:29.920
+as people say it should be?
+
+42
+00:01:29.920 --> 00:01:31.560
+Because so many variables,
+
+43
+00:01:31.560 --> 00:01:33.320
+I don't really have a lot of confidence
+
+44
+00:01:33.320 --> 00:01:36.240
+that my understanding of this model is correct.
+
+45
+00:01:36.240 --> 00:01:37.760
+And the way I'm gonna be using
+
+46
+00:01:37.760 --> 00:01:40.520
+this cloud computing magic thing,
+
+47
+00:01:40.520 --> 00:01:43.400
+maybe it's not necessarily the same as other people do.
+
+48
+00:01:43.400 --> 00:01:45.280
+So it might be cheaper for them,
+
+49
+00:01:45.280 --> 00:01:47.400
+but it might not necessarily be cheaper for me.
+
+50
+00:01:47.400 --> 00:01:49.240
+So, and another interesting thing
+
+51
+00:01:49.240 --> 00:01:51.440
+is that there is this concept of free tier,
+
+52
+00:01:51.440 --> 00:01:53.840
+which is kind of a way for AWS
+
+53
+00:01:53.840 --> 00:01:56.120
+to allow people to just step into AWS
+
+54
+00:01:56.120 --> 00:01:58.240
+and play around and try different things.
+
+55
+00:01:58.240 --> 00:02:01.760
+Theoretically without incurring any costs.
+
+56
+00:02:01.760 --> 00:02:03.280
+But again, you need to be very careful
+
+57
+00:02:03.280 --> 00:02:04.640
+about what is the promise there?
+
+58
+00:02:04.640 --> 00:02:07.000
+What are the limits that you need to be careful?
+
+59
+00:02:07.000 --> 00:02:09.320
+Like when are you within this free tier?
+
+60
+00:02:09.320 --> 00:02:10.880
+It's not something obvious.
+
+61
+00:02:10.880 --> 00:02:13.120
+It depends on how you use AWS.
+
+62
+00:02:13.120 --> 00:02:15.360
+So it might be very easy for you to,
+
+63
+00:02:15.360 --> 00:02:16.960
+don't even realize that you are actually going
+
+64
+00:02:16.960 --> 00:02:19.200
+over the free tier and end up with a bill
+
+65
+00:02:19.200 --> 00:02:21.880
+that might actually be even significant for you.
+
+66
+00:02:21.880 --> 00:02:24.880
+We actually have a link in the show notes
+
+67
+00:02:24.880 --> 00:02:28.000
+with the definition of what the free tier actually is
+
+68
+00:02:28.000 --> 00:02:30.200
+and some frequently asked questions around it.
+
+69
+00:02:30.200 --> 00:02:33.040
+So that's another thing that we suggest people to look into
+
+70
+00:02:33.040 --> 00:02:36.280
+if you are still a little bit skeptical about AWS
+
+71
+00:02:36.280 --> 00:02:38.000
+getting started, what is the free tier?
+
+72
+00:02:38.000 --> 00:02:40.160
+What can you get effectively for free?
+
+73
+00:02:40.160 --> 00:02:41.840
+So that can be a very good resource
+
+74
+00:02:41.840 --> 00:02:46.840
+to kind of figure out exactly where to start
+
+75
+00:02:46.840 --> 00:02:48.800
+and what can you get for free.
+
+76
+00:02:48.800 --> 00:02:50.200
+I want to give you another example
+
+77
+00:02:50.200 --> 00:02:53.480
+just to make the point that sometimes things
+
+78
+00:02:53.480 --> 00:02:56.160
+can be surprisingly expensive.
+
+79
+00:02:56.160 --> 00:02:59.280
+And that's something that you hear stories
+
+80
+00:02:59.280 --> 00:03:00.560
+and then scare people off.
+
+81
+00:03:00.560 --> 00:03:02.400
+Then they say, no, I don't want to go to AWS
+
+82
+00:03:02.400 --> 00:03:04.000
+because I don't want to be that next person
+
+83
+00:03:04.000 --> 00:03:06.360
+to have a horror story about billing.
+
+84
+00:03:06.360 --> 00:03:10.000
+And this is very typical and it's about NAT gateways.
+
+85
+00:03:10.000 --> 00:03:12.600
+We have been talking about them a lot in the past,
+
+86
+00:03:12.600 --> 00:03:15.120
+also in our "Horror Stories" episode.
+
+87
+00:03:15.120 --> 00:03:16.720
+So it's a recurring one.
+
+88
+00:03:16.720 --> 00:03:18.920
+And the point is that whenever you are building
+
+89
+00:03:18.920 --> 00:03:20.040
+an application in the cloud,
+
+90
+00:03:20.040 --> 00:03:22.040
+you need to do some networking
+
+91
+00:03:22.040 --> 00:03:23.200
+and it's very common that you create
+
+92
+00:03:23.200 --> 00:03:24.400
+your own private networks.
+
+93
+00:03:24.400 --> 00:03:27.160
+And then when you need to have compute
+
+94
+00:03:27.160 --> 00:03:28.840
+that needs to access the internet,
+
+95
+00:03:28.840 --> 00:03:30.560
+you end up provisioning a NAT gateway
+
+96
+00:03:30.560 --> 00:03:32.240
+in your private networks.
+
+97
+00:03:32.240 --> 00:03:34.600
+And NAT gateway is a service from AWS.
+
+98
+00:03:34.600 --> 00:03:37.000
+So it comes with its own cost structure
+
+99
+00:03:37.000 --> 00:03:38.600
+that you need to understand.
+
+100
+00:03:38.600 --> 00:03:42.960
+And it looks very cheap because it's like 5 cents per hour.
+
+101
+00:03:42.960 --> 00:03:45.360
+And then you pay a certain amount for data processing,
+
+102
+00:03:45.360 --> 00:03:48.000
+which might feel like a little bit of a need than cost.
+
+103
+00:03:48.000 --> 00:03:50.720
+And at first glance can look very cheap as well
+
+104
+00:03:50.720 --> 00:03:52.680
+because it's 5 cents per gigabyte,
+
+105
+00:03:52.680 --> 00:03:54.800
+more or less depending on the region.
+
+106
+00:03:54.800 --> 00:03:56.800
+Oh, there is also an additional 10 cents
+
+107
+00:03:56.800 --> 00:04:00.480
+for the amount of data that goes
+
+108
+00:04:00.480 --> 00:04:02.320
+to the public internet, I believe.
+
+109
+00:04:02.320 --> 00:04:04.840
+So depending on how much traffic you are actually having
+
+110
+00:04:04.840 --> 00:04:09.680
+from your private VPC to the public internet,
+
+111
+00:04:09.680 --> 00:04:11.720
+that might end up escalating very, very quickly.
+
+112
+00:04:11.720 --> 00:04:13.360
+And you might end up with a massive bill
+
+113
+00:04:13.360 --> 00:04:15.280
+without even realizing,
+
+114
+00:04:15.280 --> 00:04:18.640
+like just with a NAT gateway, you end up paying so much.
+
+115
+00:04:18.640 --> 00:04:20.840
+So this is just one of the other stories
+
+116
+00:04:20.840 --> 00:04:24.040
+that people use as evidence that the cost structure
+
+117
+00:04:24.040 --> 00:04:25.160
+is not easy to understand.
+
+118
+00:04:25.160 --> 00:04:27.520
+And you might end up with surprises
+
+119
+00:04:27.520 --> 00:04:29.040
+that are not nice to have.
+
+120
+00:04:29.040 --> 00:04:31.640
+I think there's just some things you have to be aware of
+
+121
+00:04:31.640 --> 00:04:32.920
+that you can't really escape.
+
+122
+00:04:32.920 --> 00:04:35.320
+And the NAT gateway is a classic example,
+
+123
+00:04:35.320 --> 00:04:36.800
+but I think data transfer in general
+
+124
+00:04:36.800 --> 00:04:39.240
+is one of those things that's frequently complained about
+
+125
+00:04:39.240 --> 00:04:40.960
+when it comes to AWS pricing.
+
+126
+00:04:40.960 --> 00:04:43.440
+It's always free to get your data in,
+
+127
+00:04:43.440 --> 00:04:46.440
+but unsurprisingly, maybe it's costly to send it out.
+
+128
+00:04:46.440 --> 00:04:50.160
+So you pay for data transfer between AWS regions
+
+129
+00:04:50.160 --> 00:04:52.120
+for data transfer out to the internet.
+
+130
+00:04:52.120 --> 00:04:53.280
+You also pay for data transfer
+
+131
+00:04:53.280 --> 00:04:55.920
+between availability zones in a region.
+
+132
+00:04:55.920 --> 00:04:57.280
+So you can have an EC2 instance
+
+133
+00:04:57.280 --> 00:05:00.200
+that's talking to an RDS database in a different AZ,
+
+134
+00:05:00.200 --> 00:05:02.000
+and you'll pay for that.
+
+135
+00:05:02.000 --> 00:05:03.720
+S3 pricing has become a bit better.
+
+136
+00:05:03.720 --> 00:05:05.920
+We talked about that in a few previous episodes
+
+137
+00:05:05.920 --> 00:05:08.720
+because of the competition from Cloudflare
+
+138
+00:05:08.720 --> 00:05:10.080
+with their S3 alternative.
+
+139
+00:05:10.080 --> 00:05:12.240
+Now you can get 100 gigabytes out for free.
+
+140
+00:05:13.480 --> 00:05:16.840
+So maybe we can paint a picture of cost complexity
+
+141
+00:05:16.840 --> 00:05:18.040
+with an example.
+
+142
+00:05:18.040 --> 00:05:20.840
+So if you imagine we have a typical web server architecture
+
+143
+00:05:20.840 --> 00:05:24.240
+with a database cluster, EC2 instances,
+
+144
+00:05:24.240 --> 00:05:26.120
+some EBS volumes attached to those,
+
+145
+00:05:26.120 --> 00:05:29.560
+a load balancer, internet gateway, NAT gateway, DNS,
+
+146
+00:05:29.560 --> 00:05:31.720
+you've got a number of services there already.
+
+147
+00:05:31.720 --> 00:05:34.160
+But for each of those services,
+
+148
+00:05:34.160 --> 00:05:37.040
+you'll also have multiple different pricing dimensions.
+
+149
+00:05:37.040 --> 00:05:39.080
+So if we just look at the EBS component,
+
+150
+00:05:39.960 --> 00:05:41.760
+the price for your EBS volumes,
+
+151
+00:05:41.760 --> 00:05:44.800
+so having this disk essentially attached to your instance
+
+152
+00:05:44.800 --> 00:05:46.400
+will depend on the volume type,
+
+153
+00:05:46.400 --> 00:05:48.000
+and you will choose a different volume type
+
+154
+00:05:48.000 --> 00:05:49.800
+depending on whether you're optimizing for throughput
+
+155
+00:05:49.800 --> 00:05:51.520
+or IO operations.
+
+156
+00:05:51.520 --> 00:05:53.680
+And then it's a function of that volume type,
+
+157
+00:05:53.680 --> 00:05:57.040
+the size, the throughput, the number of IO operations.
+
+158
+00:05:57.040 --> 00:05:59.440
+And then you also have things like EBS snapshots,
+
+159
+00:05:59.440 --> 00:06:01.640
+and you might have backups as well.
+
+160
+00:06:01.640 --> 00:06:04.520
+And these are difficult things to understand.
+
+161
+00:06:04.520 --> 00:06:07.200
+Like EBS snapshots are kind of incremental in deltas.
+
+162
+00:06:07.200 --> 00:06:09.480
+So it's not very easy to always predict
+
+163
+00:06:09.480 --> 00:06:11.200
+what the cost is going to be.
+
+164
+00:06:11.200 --> 00:06:12.400
+And in that example as well,
+
+165
+00:06:12.400 --> 00:06:14.800
+load balancer cost is another tricky one.
+
+166
+00:06:14.800 --> 00:06:16.720
+With load balancers, you pay a standing charge,
+
+167
+00:06:16.720 --> 00:06:19.280
+but also you pay for LCUs,
+
+168
+00:06:19.280 --> 00:06:21.680
+which are load balancer capacity units.
+
+169
+00:06:21.680 --> 00:06:24.840
+Lots of different AWS services have <something> CU,
+
+170
+00:06:26.000 --> 00:06:28.080
+like DynamoDB has write capacity units,
+
+171
+00:06:28.080 --> 00:06:31.520
+and even the new Neptune serverless has, I think,
+
+172
+00:06:31.520 --> 00:06:34.400
+Neptune capacity units or something.
+
+173
+00:06:34.400 --> 00:06:35.480
+With the load balancer case,
+
+174
+00:06:35.480 --> 00:06:38.560
+each LCU gives you like a number of connections,
+
+175
+00:06:38.560 --> 00:06:40.800
+a number of new connections, data throughput,
+
+176
+00:06:40.800 --> 00:06:42.040
+rule evaluations.
+
+177
+00:06:42.040 --> 00:06:43.920
+So you have to work out all these things for your workload
+
+178
+00:06:43.920 --> 00:06:46.160
+and figure out what the cost is going to be.
+
+179
+00:06:46.160 --> 00:06:50.600
+So unfortunately, a lot of the advice here is,
+
+180
+00:06:50.600 --> 00:06:52.440
+do your homework and become good at it.
+
+181
+00:06:52.440 --> 00:06:54.320
+It's just becoming part of software architecture
+
+182
+00:06:54.320 --> 00:06:56.240
+that you have to understand pricing models
+
+183
+00:06:56.240 --> 00:06:57.280
+just as much as you do,
+
+184
+00:06:57.280 --> 00:06:59.800
+understand performance and scalability.
+
+185
+00:06:59.800 --> 00:07:02.480
+But look, it's not all horror stories.
+
+186
+00:07:02.480 --> 00:07:05.280
+There's actually quite a lot you could do.
+
+187
+00:07:05.280 --> 00:07:08.080
+It can also be really advantageous in terms of cost
+
+188
+00:07:08.080 --> 00:07:08.960
+if you get it right.
+
+189
+00:07:08.960 --> 00:07:10.200
+I mean, some people get away
+
+190
+00:07:10.200 --> 00:07:12.840
+with ridiculously low AWS bills.
+
+191
+00:07:12.840 --> 00:07:15.200
+I think one good example was A Cloud Guru,
+
+192
+00:07:15.200 --> 00:07:19.160
+who ended up building their entire learning management system
+
+193
+00:07:19.160 --> 00:07:20.760
+on serverless and AWS,
+
+194
+00:07:20.760 --> 00:07:23.080
+and frequently publicly talked about how,
+
+195
+00:07:23.080 --> 00:07:24.560
+despite the fact that they were pretty much
+
+196
+00:07:24.560 --> 00:07:27.120
+the poster child for serverless applications
+
+197
+00:07:27.120 --> 00:07:28.280
+for a number of years,
+
+198
+00:07:28.280 --> 00:07:31.200
+with hundreds of thousands of users and massive revenues,
+
+199
+00:07:31.200 --> 00:07:33.080
+their AWS bill was essentially zero.
+
+200
+00:07:34.480 --> 00:07:37.640
+So there's a good side to this as well.
+
+201
+00:07:37.640 --> 00:07:39.200
+But what would you recommend, Luciano,
+
+202
+00:07:39.200 --> 00:07:41.720
+for first early adopters to AWS
+
+203
+00:07:41.720 --> 00:07:43.440
+to try and ease the burden and complexity here?
+
+204
+00:07:43.440 --> 00:07:45.280
+Because it does end up a bit scary.
+
+205
+00:07:45.280 --> 00:07:47.240
+Yeah, I want to echo what you just said,
+
+206
+00:07:47.240 --> 00:07:50.280
+that you need to do your own homework and get good at it.
+
+207
+00:07:50.280 --> 00:07:51.800
+And there are some tools that can help.
+
+208
+00:07:51.800 --> 00:07:53.760
+For instance, there are billing simulators,
+
+209
+00:07:53.760 --> 00:07:56.400
+even official AWS ones that you can use.
+
+210
+00:07:56.400 --> 00:07:58.680
+And we might have a link in the show notes.
+
+211
+00:07:58.680 --> 00:08:01.080
+But what I find most of the time more useful
+
+212
+00:08:01.080 --> 00:08:02.200
+is just use a spreadsheet
+
+213
+00:08:02.200 --> 00:08:03.560
+or whatever tool makes sense to you,
+
+214
+00:08:03.560 --> 00:08:06.360
+because that's, I think it forces you a little bit more
+
+215
+00:08:06.360 --> 00:08:08.080
+to understand these dimensions
+
+216
+00:08:08.080 --> 00:08:10.560
+when you have to build the model yourself.
+
+217
+00:08:10.560 --> 00:08:12.560
+Like it makes you go a little bit deeper
+
+218
+00:08:12.560 --> 00:08:13.800
+than just using a simulator
+
+219
+00:08:13.800 --> 00:08:16.600
+where you might forget to look at a particular field.
+
+220
+00:08:16.600 --> 00:08:19.080
+And then you won't consider a particular dimension,
+
+221
+00:08:19.080 --> 00:08:20.640
+which might end up being very relevant
+
+222
+00:08:20.640 --> 00:08:22.840
+in the final cost calculation.
+
+223
+00:08:22.840 --> 00:08:24.720
+And building your own spreadsheet,
+
+224
+00:08:24.720 --> 00:08:26.920
+it can be an interesting exercise.
+
+225
+00:08:26.920 --> 00:08:29.000
+I don't know if you have startup experience,
+
+226
+00:08:29.000 --> 00:08:31.000
+but when I end up doing this exercise myself,
+
+227
+00:08:31.000 --> 00:08:33.520
+it always feels like I am doing a business plan
+
+228
+00:08:33.520 --> 00:08:34.680
+for a startup.
+
+229
+00:08:34.680 --> 00:08:36.480
+And when you do a business plan for a startup,
+
+230
+00:08:36.480 --> 00:08:38.840
+it's always a lot of like guesstimation,
+
+231
+00:08:38.840 --> 00:08:40.440
+because there are so many dimensions
+
+232
+00:08:40.440 --> 00:08:42.400
+that you might have a feeling on
+
+233
+00:08:42.400 --> 00:08:44.680
+where this might go over time.
+
+234
+00:08:44.680 --> 00:08:46.400
+But again, it's just a wild guess,
+
+235
+00:08:46.400 --> 00:08:47.360
+more or less informed,
+
+236
+00:08:47.360 --> 00:08:50.080
+depending on how much control you actually have
+
+237
+00:08:50.080 --> 00:08:51.480
+on that particular dimension.
+
+238
+00:08:51.480 --> 00:08:52.320
+And most of the time,
+
+239
+00:08:52.320 --> 00:08:54.080
+you don't really have a lot of control.
+
+240
+00:08:54.080 --> 00:08:57.480
+So it could be interesting to do all of that exercise,
+
+241
+00:08:57.480 --> 00:09:00.240
+but when you do that exercise for a startup,
+
+242
+00:09:00.240 --> 00:09:03.000
+there is an element of how much it's gonna cost me,
+
+243
+00:09:03.000 --> 00:09:05.120
+but you always try to add another element
+
+244
+00:09:05.120 --> 00:09:06.600
+of where can I save money?
+
+245
+00:09:06.600 --> 00:09:09.520
+Like, can I get some credits or something from somewhere?
+
+246
+00:09:09.520 --> 00:09:11.280
+And you can definitely do the same exercise
+
+247
+00:09:11.280 --> 00:09:12.440
+with AWS as well,
+
+248
+00:09:12.440 --> 00:09:14.320
+because as we said in the intro,
+
+249
+00:09:14.320 --> 00:09:17.040
+there are also ways to get discounts
+
+250
+00:09:17.040 --> 00:09:20.640
+or get AWS to pay something for you in a way or another.
+
+251
+00:09:20.640 --> 00:09:23.280
+And one thing that is actually really, really interesting
+
+252
+00:09:23.280 --> 00:09:26.440
+is a program called AWS Activate
+
+253
+00:09:26.440 --> 00:09:28.320
+that can give you credits
+
+254
+00:09:28.320 --> 00:09:30.800
+if you are a startup or a solo founder.
+
+255
+00:09:30.800 --> 00:09:32.920
+We are gonna have, again, the link in the show notes,
+
+256
+00:09:32.920 --> 00:09:35.280
+but the idea is that if you are a startup,
+
+257
+00:09:36.520 --> 00:09:40.560
+you can get up to $100,000 in credits.
+
+258
+00:09:40.560 --> 00:09:42.320
+There are, of course, constraints and limits
+
+259
+00:09:42.320 --> 00:09:43.160
+that you need to check
+
+260
+00:09:43.160 --> 00:09:45.800
+to make sure you actually classify for that.
+
+261
+00:09:45.800 --> 00:09:48.360
+But if you can, of course, it's a huge advantage
+
+262
+00:09:48.360 --> 00:09:50.280
+to have that kind of level of discount,
+
+263
+00:09:50.280 --> 00:09:52.720
+especially for a company that is not stable yet.
+
+264
+00:09:52.720 --> 00:09:55.560
+You might be scared that the cloud can just bankrupt you
+
+265
+00:09:55.560 --> 00:09:57.560
+if you don't do it in the right way.
+
+266
+00:09:57.560 --> 00:09:59.440
+And at the very beginning, maybe you're not confident,
+
+267
+00:09:59.440 --> 00:10:01.160
+you're not gonna have all the skills
+
+268
+00:10:01.160 --> 00:10:03.200
+to get the right architecture set away.
+
+269
+00:10:03.200 --> 00:10:04.280
+You might need to experiment,
+
+270
+00:10:04.280 --> 00:10:06.240
+you might need to pivot, try different things.
+
+271
+00:10:06.240 --> 00:10:10.680
+So just having that extra cash available for you
+
+272
+00:10:10.680 --> 00:10:12.240
+that you don't have to spend yourself,
+
+273
+00:10:12.240 --> 00:10:13.920
+I think it can just boost your confidence,
+
+274
+00:10:13.920 --> 00:10:16.200
+it can just boost your success rate as well,
+
+275
+00:10:16.200 --> 00:10:18.520
+because you will have a lot more freedom to do mistakes
+
+276
+00:10:18.520 --> 00:10:20.240
+and then recover from them.
+
+277
+00:10:20.240 --> 00:10:22.600
+So that's also something you can do
+
+278
+00:10:22.600 --> 00:10:24.720
+even if you are a solo founder
+
+279
+00:10:24.720 --> 00:10:25.800
+and you are just starting,
+
+280
+00:10:25.800 --> 00:10:28.760
+and it's actually quite easy to get Activate credits
+
+281
+00:10:28.760 --> 00:10:30.000
+up to $1,000.
+
+282
+00:10:30.000 --> 00:10:32.240
+So even if you just have a very simple idea
+
+283
+00:10:32.240 --> 00:10:35.800
+that you want to test, and again, you don't have any revenue
+
+284
+00:10:35.800 --> 00:10:36.640
+because you don't even know
+
+285
+00:10:36.640 --> 00:10:38.440
+if that idea is gonna be successful,
+
+286
+00:10:38.440 --> 00:10:40.440
+you can pretty much get the credit
+
+287
+00:10:40.440 --> 00:10:42.520
+and probably build everything for free
+
+288
+00:10:42.520 --> 00:10:44.800
+because probably with $1,000,
+
+289
+00:10:44.800 --> 00:10:47.560
+you can build a lot of stuff and validate your idea.
+
+290
+00:10:47.560 --> 00:10:50.360
+And then maybe decide if it's the case to invest more,
+
+291
+00:10:50.360 --> 00:10:52.280
+grow the company, hire somebody,
+
+292
+00:10:52.280 --> 00:10:55.120
+maybe try again for the Activate program
+
+293
+00:10:55.120 --> 00:10:57.320
+at a bigger level and get more credits.
+
+294
+00:10:58.800 --> 00:11:00.760
+And we need to keep in mind that of course,
+
+295
+00:11:00.760 --> 00:11:02.880
+if you are a company that has been in the market
+
+296
+00:11:02.880 --> 00:11:05.720
+for very long, you might not be considered a startup.
+
+297
+00:11:05.720 --> 00:11:07.280
+So what are the option there
+
+298
+00:11:07.280 --> 00:11:08.400
+if you are an established company?
+
+299
+00:11:08.400 --> 00:11:10.000
+Does it mean that you don't get any credits
+
+300
+00:11:10.000 --> 00:11:12.680
+or is there something else you would do there?
+
+301
+00:11:12.680 --> 00:11:15.440
+Yeah, there's even more options, I would say,
+
+302
+00:11:15.440 --> 00:11:16.320
+for larger companies.
+
+303
+00:11:16.320 --> 00:11:17.960
+Before we get to that, actually,
+
+304
+00:11:17.960 --> 00:11:20.880
+I've previously used AWS Activate credits.
+
+305
+00:11:20.880 --> 00:11:23.920
+I was a solo founder of a company.
+
+306
+00:11:23.920 --> 00:11:26.400
+I think my advice there is ask for the credits.
+
+307
+00:11:26.400 --> 00:11:28.200
+Don't just look at the official channels.
+
+308
+00:11:28.200 --> 00:11:30.600
+I mean, generally you have to go through an accelerator
+
+309
+00:11:30.600 --> 00:11:32.080
+or incubator to get them,
+
+310
+00:11:32.080 --> 00:11:34.720
+but AWS are keen to give you those credits.
+
+311
+00:11:34.720 --> 00:11:37.600
+And it's an investment from them as well
+
+312
+00:11:37.600 --> 00:11:40.280
+because I was in a case where I used those credits,
+
+313
+00:11:40.280 --> 00:11:43.600
+did a lot with AWS, went on in subsequent companies
+
+314
+00:11:43.600 --> 00:11:45.840
+to do even more with AWS
+
+315
+00:11:45.840 --> 00:11:47.880
+and it's all good for their business, right?
+
+316
+00:11:47.880 --> 00:11:50.000
+So they want people to get stuck into AWS
+
+317
+00:11:50.000 --> 00:11:52.440
+and have success stories building on AWS.
+
+318
+00:11:52.440 --> 00:11:54.080
+And you can apply multiple times as well
+
+319
+00:11:54.080 --> 00:11:56.080
+to hit that $100,000 limit.
+
+320
+00:11:56.080 --> 00:11:58.360
+So definitely don't be shy
+
+321
+00:11:58.360 --> 00:12:01.640
+when it comes to applying for AWS Activate credits.
+
+322
+00:12:01.640 --> 00:12:04.880
+For larger companies, there's one great program,
+
+323
+00:12:04.880 --> 00:12:06.880
+which is called the AWS MAP program
+
+324
+00:12:06.880 --> 00:12:09.160
+or the Migration Acceleration Program.
+
+325
+00:12:09.160 --> 00:12:12.400
+And this is a significant fund for migrating to AWS.
+
+326
+00:12:12.400 --> 00:12:14.400
+And when we're talking about migrating to AWS,
+
+327
+00:12:14.400 --> 00:12:17.040
+that could be an existing on-prem application
+
+328
+00:12:17.040 --> 00:12:18.680
+or it could be hosted somewhere else,
+
+329
+00:12:18.680 --> 00:12:21.760
+or it could even be something that's a set of Excel sheets
+
+330
+00:12:21.760 --> 00:12:25.080
+and a business process you have internally in your company.
+
+331
+00:12:25.080 --> 00:12:28.480
+And there's a load of funds available for that.
+
+332
+00:12:28.480 --> 00:12:31.160
+So if you, they break it down into three phases.
+
+333
+00:12:31.160 --> 00:12:33.240
+You've got a fund for the assessment phase.
+
+334
+00:12:33.240 --> 00:12:34.680
+This is kind of where you're doing discovery
+
+335
+00:12:34.680 --> 00:12:37.760
+and planning for your migration.
+
+336
+00:12:37.760 --> 00:12:40.560
+And they'll pay for a partner like fourTheorem
+
+337
+00:12:40.560 --> 00:12:42.920
+to do a lot of that work for you.
+
+338
+00:12:42.920 --> 00:12:45.720
+And they'll fund up to $60,000 for that.
+
+339
+00:12:45.720 --> 00:12:47.920
+And then the next phase is Mobilize.
+
+340
+00:12:47.920 --> 00:12:49.200
+So this is basically when you're getting ready
+
+341
+00:12:49.200 --> 00:12:50.600
+to actually do the migration.
+
+342
+00:12:50.600 --> 00:12:53.440
+So that could be running proof of concept projects.
+
+343
+00:12:53.440 --> 00:12:55.400
+It could be preparing your AWS organization
+
+344
+00:12:55.400 --> 00:12:56.800
+with landing zones, et cetera.
+
+345
+00:12:56.800 --> 00:12:58.880
+And they'll pay for half of that as well.
+
+346
+00:12:58.880 --> 00:13:01.080
+Then when we get into the actual migration,
+
+347
+00:13:01.080 --> 00:13:03.280
+AWS will give you credits or cash back
+
+348
+00:13:03.280 --> 00:13:07.400
+for up to 25% of the annual recurring revenue.
+
+349
+00:13:07.400 --> 00:13:11.960
+So for anybody migrating to AWS, it's a bit of a no-brainer.
+
+350
+00:13:11.960 --> 00:13:14.640
+You do have to reach certain targets.
+
+351
+00:13:14.640 --> 00:13:16.080
+So there's two different versions of the program,
+
+352
+00:13:16.080 --> 00:13:18.720
+but it depends on your, ultimately your annual revenue.
+
+353
+00:13:18.720 --> 00:13:19.680
+But I would always say,
+
+354
+00:13:19.680 --> 00:13:20.880
+no matter what you're doing with AWS,
+
+355
+00:13:20.880 --> 00:13:24.960
+always pester your solutions architect and account manager
+
+356
+00:13:24.960 --> 00:13:27.680
+as much as possible to do as much for you.
+
+357
+00:13:27.680 --> 00:13:28.520
+The more you talk to them,
+
+358
+00:13:28.520 --> 00:13:31.200
+the more you'll find out about these programs.
+
+359
+00:13:31.200 --> 00:13:32.680
+You can also talk to us about this.
+
+360
+00:13:32.680 --> 00:13:34.160
+Like I mentioned, fourTheorem,
+
+361
+00:13:34.160 --> 00:13:36.280
+our employer and the sponsor of the show
+
+362
+00:13:36.280 --> 00:13:38.000
+is an accredited MAP partner.
+
+363
+00:13:38.000 --> 00:13:40.520
+So we can do these migration workloads.
+
+364
+00:13:40.520 --> 00:13:42.520
+There's a lot of due diligence that goes into making sure
+
+365
+00:13:42.520 --> 00:13:44.120
+that the people who help you with the workloads
+
+366
+00:13:44.120 --> 00:13:45.600
+know how to do it.
+
+367
+00:13:45.600 --> 00:13:47.120
+So we'll give a link in the show notes
+
+368
+00:13:47.120 --> 00:13:49.080
+to the fourTheorem page just about MAP,
+
+369
+00:13:49.080 --> 00:13:51.160
+because it covers a very nice,
+
+370
+00:13:51.160 --> 00:13:53.160
+it's a very nice summary of what it provides there.
+
+371
+00:13:53.160 --> 00:13:55.040
+But you can also do this for multiple workloads.
+
+372
+00:13:55.040 --> 00:13:55.960
+So if you're an enterprise
+
+373
+00:13:55.960 --> 00:13:57.960
+and you've got lots to migrate to AWS,
+
+374
+00:13:57.960 --> 00:14:00.160
+you can apply for multiple MAP programs.
+
+375
+00:14:01.480 --> 00:14:03.840
+So when it comes down to that back to, you know,
+
+376
+00:14:03.840 --> 00:14:06.600
+tips and tools for optimizing costs then,
+
+377
+00:14:06.600 --> 00:14:09.640
+one thing I'd recommend setting up is AWS Budgets.
+
+378
+00:14:09.640 --> 00:14:11.400
+And of all the tooling that's out there
+
+379
+00:14:11.400 --> 00:14:13.240
+for setting up cost optimization
+
+380
+00:14:13.240 --> 00:14:14.640
+and getting control of budgets,
+
+381
+00:14:14.640 --> 00:14:17.040
+AWS Budgets is a pretty simple one.
+
+382
+00:14:17.040 --> 00:14:18.400
+It doesn't take very long to set up
+
+383
+00:14:18.400 --> 00:14:21.240
+and it gives you a bit of a safety factor right away.
+
+384
+00:14:21.240 --> 00:14:22.920
+So with these budgets, the simplest approach
+
+385
+00:14:22.920 --> 00:14:25.320
+is just to set a cost amount for your organization
+
+386
+00:14:25.320 --> 00:14:26.800
+or for each account.
+
+387
+00:14:26.800 --> 00:14:30.560
+And when your budget is either in reality
+
+388
+00:14:30.560 --> 00:14:32.920
+exceeding that threshold or is forecast,
+
+389
+00:14:32.920 --> 00:14:36.000
+you can configure it to use real data or forecasts,
+
+390
+00:14:36.000 --> 00:14:38.560
+it's forecast to reach your threshold, you'll get an alert.
+
+391
+00:14:38.560 --> 00:14:40.360
+So that alert can come in via email
+
+392
+00:14:40.360 --> 00:14:43.080
+or it can come in via Slack over SMS, et cetera.
+
+393
+00:14:44.000 --> 00:14:45.560
+You can make them more advanced.
+
+394
+00:14:45.560 --> 00:14:48.480
+Like you can select specific services for your budget,
+
+395
+00:14:48.480 --> 00:14:49.920
+like have a different budget for EC2
+
+396
+00:14:49.920 --> 00:14:51.920
+and a different one for S3.
+
+397
+00:14:51.920 --> 00:14:54.400
+But the simplest thing is to just start off with,
+
+398
+00:14:54.400 --> 00:14:58.920
+okay, let's put X dollars on each account
+
+399
+00:14:58.920 --> 00:15:01.440
+and measure over time and adjust the budgets.
+
+400
+00:15:01.440 --> 00:15:03.080
+And it works pretty well.
+
+401
+00:15:04.800 --> 00:15:06.240
+You can also set up budgets for things like
+
+402
+00:15:06.240 --> 00:15:07.960
+Reserved Instances and Compute Saving Plans,
+
+403
+00:15:07.960 --> 00:15:10.040
+which we'll mention later.
+
+404
+00:15:10.040 --> 00:15:11.360
+The last thing on those budgets
+
+405
+00:15:11.360 --> 00:15:12.680
+is that you can even automate actions.
+
+406
+00:15:12.680 --> 00:15:16.640
+So when budgets are exceeded, you can take serious action,
+
+407
+00:15:16.640 --> 00:15:18.160
+like denying people in the accounts
+
+408
+00:15:18.160 --> 00:15:21.080
+from doing EC2 RunInstance.
+
+409
+00:15:21.080 --> 00:15:23.400
+So if you really, really, really have to ensure
+
+410
+00:15:23.400 --> 00:15:25.160
+that you're not going to incur those costs,
+
+411
+00:15:25.160 --> 00:15:27.440
+is there's always this balance between giving developers
+
+412
+00:15:27.440 --> 00:15:31.280
+and AWS practitioners freedom,
+
+413
+00:15:32.240 --> 00:15:33.520
+but also controlling costs.
+
+414
+00:15:33.520 --> 00:15:36.880
+So you need to decide how much leeway you're going to give.
+
+415
+00:15:36.880 --> 00:15:38.760
+The different companies have different philosophies
+
+416
+00:15:38.760 --> 00:15:39.600
+on that, you know.
+
+417
+00:15:39.600 --> 00:15:42.520
+I remember hearing, I don't know if it was Brian Scanlon
+
+418
+00:15:42.520 --> 00:15:45.320
+or somebody else from Intercom speaking at an event
+
+419
+00:15:45.320 --> 00:15:46.400
+a few years ago, talking about it,
+
+420
+00:15:46.400 --> 00:15:48.080
+their AWS approach to costs
+
+421
+00:15:48.080 --> 00:15:50.680
+and their approach to cost was always retroactive.
+
+422
+00:15:50.680 --> 00:15:52.160
+So give developers as much freedom
+
+423
+00:15:52.160 --> 00:15:53.960
+to create the resources they need,
+
+424
+00:15:53.960 --> 00:15:56.760
+and they'll look at the cost in retrospect
+
+425
+00:15:56.760 --> 00:15:58.280
+and see if they need to take action.
+
+426
+00:15:58.280 --> 00:16:00.840
+Their belief was that it's always more,
+
+427
+00:16:00.840 --> 00:16:04.640
+it's better for business to allow people freedom
+
+428
+00:16:04.640 --> 00:16:08.680
+and innovation and accept the cost surprises
+
+429
+00:16:08.680 --> 00:16:10.840
+that might come along, rather than slowing people down
+
+430
+00:16:10.840 --> 00:16:13.200
+and always having that ongoing expense
+
+431
+00:16:13.200 --> 00:16:14.320
+in terms of people power.
+
+432
+00:16:14.320 --> 00:16:16.080
+Yeah, there are other tools that you can find
+
+433
+00:16:16.080 --> 00:16:18.080
+in the AWS console that can be very useful
+
+434
+00:16:18.080 --> 00:16:19.720
+to try to understand cost
+
+435
+00:16:19.720 --> 00:16:21.960
+and also manage it in a way or another.
+
+436
+00:16:21.960 --> 00:16:24.640
+One of the most famous is definitely Cost Explorer,
+
+437
+00:16:25.640 --> 00:16:28.560
+which is an interesting one because it's not the simplest,
+
+438
+00:16:28.560 --> 00:16:30.200
+but when you get the grips on it,
+
+439
+00:16:30.200 --> 00:16:33.040
+it can be pretty helpful because you can effectively
+
+440
+00:16:33.040 --> 00:16:35.800
+drill down and make kind of interactive visualization
+
+441
+00:16:35.800 --> 00:16:37.480
+on what is your actual cost.
+
+442
+00:16:38.480 --> 00:16:40.600
+There are some rough edges, for instance,
+
+443
+00:16:40.600 --> 00:16:44.640
+sometimes the usage type, it's a bit confusing.
+
+444
+00:16:44.640 --> 00:16:48.120
+Like it's a bit hard to actually attribute some costs
+
+445
+00:16:48.120 --> 00:16:49.760
+to something specific.
+
+446
+00:16:49.760 --> 00:16:51.640
+And this again has to do with the way
+
+447
+00:16:51.640 --> 00:16:53.760
+certain type of costs are grouped together,
+
+448
+00:16:53.760 --> 00:16:57.280
+but all over it's a pretty useful tool.
+
+449
+00:16:57.280 --> 00:16:59.360
+And as soon as you learn what are the things
+
+450
+00:16:59.360 --> 00:17:01.000
+that are a little bit misleading,
+
+451
+00:17:01.000 --> 00:17:03.240
+everything else is still very, very valuable.
+
+452
+00:17:03.240 --> 00:17:06.400
+One interesting thing is that it has a forecast feature.
+
+453
+00:17:06.400 --> 00:17:10.040
+So it gives you like a figure of how much are you
+
+454
+00:17:10.040 --> 00:17:12.840
+probably gonna be spending at the end of the month
+
+455
+00:17:12.840 --> 00:17:16.200
+for a particular visualization that you are building.
+
+456
+00:17:16.200 --> 00:17:18.480
+And that of course might be more or less accurate
+
+457
+00:17:18.480 --> 00:17:20.960
+depending on how predictable is your cost.
+
+458
+00:17:20.960 --> 00:17:25.240
+Like if you have a very spiky service where the fact
+
+459
+00:17:25.240 --> 00:17:26.920
+that it's spiky doesn't really depend on anything
+
+460
+00:17:26.920 --> 00:17:29.480
+that you do recurringly, maybe, I don't know.
+
+461
+00:17:29.480 --> 00:17:32.560
+You just have randomly mentioned in the news
+
+462
+00:17:32.560 --> 00:17:34.840
+and therefore your traffic multiplies by 100.
+
+463
+00:17:34.840 --> 00:17:37.480
+Of course, this is not something that the cost calculator
+
+464
+00:17:37.480 --> 00:17:39.360
+is gonna be able to predict very well.
+
+465
+00:17:39.360 --> 00:17:42.280
+So it gives you more or less a figure of if everything
+
+466
+00:17:42.280 --> 00:17:44.920
+remains more or less as the same shape
+
+467
+00:17:44.920 --> 00:17:46.840
+that we have observed before,
+
+468
+00:17:46.840 --> 00:17:48.520
+it could be actually pretty accurate.
+
+469
+00:17:48.520 --> 00:17:53.480
+So something to keep checking to make sure that your cost,
+
+470
+00:17:53.480 --> 00:17:56.000
+you have a figure that is kind of also a little bit
+
+471
+00:17:56.000 --> 00:17:57.360
+projected in the future.
+
+472
+00:17:57.360 --> 00:17:59.400
+One case where that can be useful is for instance,
+
+473
+00:17:59.400 --> 00:18:00.840
+if you are testing new services,
+
+474
+00:18:00.840 --> 00:18:03.360
+like you're spinning up clusters, so I don't know,
+
+475
+00:18:03.360 --> 00:18:05.360
+Cassandra, just to make an example,
+
+476
+00:18:05.360 --> 00:18:07.880
+then you can see that prediction actually skyrocketing
+
+477
+00:18:07.880 --> 00:18:09.760
+because it gets projected in the future.
+
+478
+00:18:09.760 --> 00:18:12.120
+So that can be one case where this particular feature
+
+479
+00:18:12.120 --> 00:18:14.200
+can be very, very beneficial because it can give you
+
+480
+00:18:14.200 --> 00:18:17.600
+an early indication that you have done some important change
+
+481
+00:18:17.600 --> 00:18:20.400
+that is actually projecting at much higher cost
+
+482
+00:18:20.400 --> 00:18:21.280
+in the future.
+
+483
+00:18:21.280 --> 00:18:23.920
+So keep that in mind, try it, play around with it,
+
+484
+00:18:23.920 --> 00:18:25.880
+and maybe you can find some value in it.
+
+485
+00:18:28.880 --> 00:18:32.400
+There is also Cost and Usage Reports, which allow you to export effectively CSV to S3.
+
+486
+00:18:32.400 --> 00:18:34.760
+So you can take all the data about cost
+
+487
+00:18:34.760 --> 00:18:36.520
+and analyze it with whatever tool
+
+488
+00:18:36.520 --> 00:18:41.040
+is the more convenient for you to do kind of fine-grained
+
+489
+00:18:41.040 --> 00:18:44.800
+queries on the data and you can aggregate it as you need.
+
+490
+00:18:44.800 --> 00:18:46.320
+It is updated once per day.
+
+491
+00:18:46.320 --> 00:18:49.400
+So at the end of the day, you can use all the data
+
+492
+00:18:49.400 --> 00:18:51.920
+and you can build your own tooling around that
+
+493
+00:18:51.920 --> 00:18:54.240
+if you really want to have fine-grained control
+
+494
+00:18:54.240 --> 00:18:56.200
+around the cost data.
+
+495
+00:18:57.240 --> 00:19:00.480
+Of course, you can also query it with AWS tools.
+
+496
+00:19:00.480 --> 00:19:04.400
+For instance, Athena, it's a very good tool to query data
+
+497
+00:19:04.400 --> 00:19:06.600
+in a structured form in S3.
+
+498
+00:19:06.600 --> 00:19:08.440
+So definitely you can just use Athena
+
+499
+00:19:08.440 --> 00:19:09.800
+to do more advanced queries.
+
+500
+00:19:09.800 --> 00:19:11.560
+You don't need to build your own infrastructure
+
+501
+00:19:11.560 --> 00:19:13.240
+just to query that data.
+
+502
+00:19:13.240 --> 00:19:16.240
+So I suppose the next question will be,
+
+503
+00:19:16.240 --> 00:19:18.040
+assuming that you are a large enough company
+
+504
+00:19:18.040 --> 00:19:20.680
+where you have maybe different departments,
+
+505
+00:19:20.680 --> 00:19:23.480
+different groups with different responsibilities,
+
+506
+00:19:23.480 --> 00:19:25.920
+and you might have different microservices,
+
+507
+00:19:25.920 --> 00:19:29.360
+so different areas of your company are responsible
+
+508
+00:19:29.360 --> 00:19:30.920
+for different microservices,
+
+509
+00:19:30.920 --> 00:19:34.800
+probably you want to see cost at the department level.
+
+510
+00:19:34.800 --> 00:19:35.960
+What can we do there?
+
+511
+00:19:35.960 --> 00:19:38.920
+Like what kind of suggestion would you have there?
+
+512
+00:19:38.920 --> 00:19:41.680
+Maybe my feeling is that you can use a cloud service
+
+513
+00:19:41.680 --> 00:19:44.240
+and maybe my feeling is that you can use accounts
+
+514
+00:19:44.240 --> 00:19:45.640
+and organize things by accounts.
+
+515
+00:19:45.640 --> 00:19:47.800
+Maybe you can use tags, but I don't know Eoin,
+
+516
+00:19:47.800 --> 00:19:50.120
+if you have any tip or best practice
+
+517
+00:19:50.120 --> 00:19:52.080
+that you would recommend there.
+
+518
+00:19:52.080 --> 00:19:53.400
+I agree 100%.
+
+519
+00:19:53.400 --> 00:19:55.160
+I think the two things you can do there,
+
+520
+00:19:55.160 --> 00:19:57.440
+I think generally people recommend tags
+
+521
+00:19:57.440 --> 00:20:00.000
+and that was always because it was normal
+
+522
+00:20:00.000 --> 00:20:01.320
+to have shared accounts in the past.
+
+523
+00:20:01.320 --> 00:20:03.120
+So tagging was more important.
+
+524
+00:20:03.120 --> 00:20:05.880
+Tagging is still important and that depends on your business
+
+525
+00:20:05.880 --> 00:20:08.080
+and how it's structured and how many cost centers you have
+
+526
+00:20:08.080 --> 00:20:09.840
+and where the budget is allocated.
+
+527
+00:20:09.840 --> 00:20:12.280
+To have like a cost center tag if you need to,
+
+528
+00:20:12.280 --> 00:20:14.800
+and then to have project specific tags as well,
+
+529
+00:20:14.800 --> 00:20:16.040
+because you'll end up with resources
+
+530
+00:20:16.040 --> 00:20:18.480
+that can be shared in some accounts
+
+531
+00:20:18.480 --> 00:20:20.720
+and that's just the useful thing to do.
+
+532
+00:20:20.720 --> 00:20:24.600
+But if you've got kind of a modern AWS landing zone
+
+533
+00:20:24.600 --> 00:20:27.240
+with different accounts for different workloads,
+
+534
+00:20:27.240 --> 00:20:29.920
+then it's actually easier then to allocate costs
+
+535
+00:20:29.920 --> 00:20:32.680
+because you can just look at it per account.
+
+536
+00:20:32.680 --> 00:20:35.600
+But I would definitely recommend having both if you can.
+
+537
+00:20:35.600 --> 00:20:38.040
+By the way, we have an episode dedicated to tagging.
+
+538
+00:20:38.040 --> 00:20:40.480
+We are gonna be posting the link on the show notes
+
+539
+00:20:40.480 --> 00:20:42.880
+if you want to deep dive on that topic.
+
+540
+00:20:42.880 --> 00:20:44.800
+You mentioned like with cost and usage reports,
+
+541
+00:20:44.800 --> 00:20:46.240
+you get data that's updated once per day.
+
+542
+00:20:46.240 --> 00:20:49.040
+So what do you do if you wanna react quicker?
+
+543
+00:20:49.040 --> 00:20:51.880
+And sometimes people feel like a day isn't enough.
+
+544
+00:20:51.880 --> 00:20:54.440
+I could have run up $50,000 by then.
+
+545
+00:20:54.440 --> 00:20:58.440
+So one thing I would recommend is for having good,
+
+546
+00:20:58.440 --> 00:21:01.200
+if we go back to our CloudWatch episodes,
+
+547
+00:21:01.200 --> 00:21:03.560
+we talked about having active monitoring
+
+548
+00:21:03.560 --> 00:21:04.880
+on CloudWatch metrics.
+
+549
+00:21:04.880 --> 00:21:07.000
+And those can be a useful proxy for billing
+
+550
+00:21:07.000 --> 00:21:08.960
+because if you've got excessive service usage,
+
+551
+00:21:08.960 --> 00:21:11.920
+that can mean a billing spike as well.
+
+552
+00:21:11.920 --> 00:21:12.760
+So if you've got Lambda
+
+553
+00:21:12.760 --> 00:21:14.880
+and you're worried about all of a sudden having like
+
+554
+00:21:14.880 --> 00:21:17.760
+some sort of cascading Lambda or recursive Lambda bug
+
+555
+00:21:17.760 --> 00:21:21.880
+that causes a herd of functions to be allocated
+
+556
+00:21:21.880 --> 00:21:25.440
+with your maximum account concurrency for 24 hours,
+
+557
+00:21:25.440 --> 00:21:29.920
+then I would say, put an alarm on the concurrent executions
+
+558
+00:21:29.920 --> 00:21:33.920
+of your Lambda functions and monitor that.
+
+559
+00:21:33.920 --> 00:21:35.800
+You can put an anomaly detection alarm
+
+560
+00:21:35.800 --> 00:21:38.560
+or you can say, look, I don't expect any of my functions
+
+561
+00:21:38.560 --> 00:21:40.760
+to be invoked very frequently,
+
+562
+00:21:40.760 --> 00:21:42.560
+especially if you're like early stage startup,
+
+563
+00:21:42.560 --> 00:21:43.680
+because I'd like just put an alarm
+
+564
+00:21:43.680 --> 00:21:45.840
+if all my functions are being invoked
+
+565
+00:21:45.840 --> 00:21:49.440
+with more than 100 concurrent executions
+
+566
+00:21:49.440 --> 00:21:51.080
+for an hour long period.
+
+567
+00:21:51.080 --> 00:21:52.240
+And all of a sudden you've got an alarm
+
+568
+00:21:52.240 --> 00:21:54.560
+and that can give you early indicator
+
+569
+00:21:54.560 --> 00:21:55.680
+that there might be something
+
+570
+00:21:55.680 --> 00:21:58.160
+that might eventually cause a billing issue.
+
+571
+00:21:58.160 --> 00:22:00.000
+You can also create your own metrics.
+
+572
+00:22:00.000 --> 00:22:02.360
+So there's useful metrics around API usage.
+
+573
+00:22:02.360 --> 00:22:05.080
+There's a set of CloudWatch metrics called API usage metrics.
+
+574
+00:22:05.080 --> 00:22:08.080
+So you can find out how often certain APIs are called.
+
+575
+00:22:08.080 --> 00:22:11.000
+You can use that to build, get cost insights in advance,
+
+576
+00:22:11.000 --> 00:22:12.640
+but you can also create your own metrics.
+
+577
+00:22:12.640 --> 00:22:15.840
+And we've done this in the past with containers.
+
+578
+00:22:15.840 --> 00:22:17.520
+So if you want to monitor the number of containers,
+
+579
+00:22:17.520 --> 00:22:20.600
+if you've got large fleets of instances or containers,
+
+580
+00:22:20.600 --> 00:22:22.720
+AWS doesn't give you very good metrics out of the box
+
+581
+00:22:22.720 --> 00:22:24.400
+that tells you how many instances of each type
+
+582
+00:22:24.400 --> 00:22:25.640
+you've got running all the time.
+
+583
+00:22:25.640 --> 00:22:27.120
+So you can create your own, right?
+
+584
+00:22:27.120 --> 00:22:29.240
+Just have a function or on the schedule
+
+585
+00:22:29.240 --> 00:22:31.280
+or something that monitors the number of instances
+
+586
+00:22:31.280 --> 00:22:32.880
+of a certain type you want to monitor,
+
+587
+00:22:32.880 --> 00:22:35.160
+create your own metric and put an alarm on it.
+
+588
+00:22:35.160 --> 00:22:37.800
+And then you can automatically turn off resources
+
+589
+00:22:37.800 --> 00:22:39.360
+with Lambda functions or Systems Manager
+
+590
+00:22:39.360 --> 00:22:40.440
+based on those alarms.
+
+591
+00:22:41.680 --> 00:22:42.960
+So if you don't want to be focused
+
+592
+00:22:42.960 --> 00:22:45.440
+on just detection and mediation, you can get strict.
+
+593
+00:22:45.440 --> 00:22:46.720
+If you wanna get real draconian,
+
+594
+00:22:46.720 --> 00:22:49.320
+you can be taking more of a preventative approach.
+
+595
+00:22:49.320 --> 00:22:52.040
+I mean, I guess, but like there is a reasonable case
+
+596
+00:22:52.040 --> 00:22:54.760
+for having some more preventative measures in place.
+
+597
+00:22:54.760 --> 00:22:56.320
+So you can use Service Control Policies.
+
+598
+00:22:56.320 --> 00:22:58.400
+A very simple thing is to, say,
+
+599
+00:22:58.400 --> 00:23:01.280
+exclude regions that you don't expect to be using, right?
+
+600
+00:23:01.280 --> 00:23:03.720
+Because then you don't have somebody who accidentally
+
+601
+00:23:03.720 --> 00:23:07.040
+or just does an experiment in a region you're not monitoring
+
+602
+00:23:07.040 --> 00:23:09.880
+and all of a sudden you end up with a cost in that region.
+
+603
+00:23:09.880 --> 00:23:12.400
+So just limit the amount of surface area
+
+604
+00:23:12.400 --> 00:23:14.640
+you have to observe for your billing data
+
+605
+00:23:14.640 --> 00:23:15.760
+by turning off regions.
+
+606
+00:23:15.760 --> 00:23:18.480
+But you can also turn off certain services.
+
+607
+00:23:18.480 --> 00:23:20.680
+If you don't expect people to be using Sumerian,
+
+608
+00:23:20.680 --> 00:23:21.960
+then turn it off, right?
+
+609
+00:23:21.960 --> 00:23:24.280
+You can just turn it off at an organizational level
+
+610
+00:23:24.280 --> 00:23:26.320
+and you can also limit resources of specific types.
+
+611
+00:23:26.320 --> 00:23:30.240
+Like you can limit access to those really awesome,
+
+612
+00:23:30.240 --> 00:23:35.240
+expensive EC2 instances that have like terabytes of RAM.
+
+613
+00:23:35.440 --> 00:23:37.200
+When we're talking about costs,
+
+614
+00:23:37.200 --> 00:23:39.000
+are we normally talking about compute?
+
+615
+00:23:39.000 --> 00:23:40.960
+Like EC2, containers, Lambda,
+
+616
+00:23:40.960 --> 00:23:43.240
+is that where the bulk of cost is gonna come from?
+
+617
+00:23:43.240 --> 00:23:46.400
+Yeah, I think it might, but it also might not.
+
+618
+00:23:46.400 --> 00:23:49.120
+There is definitely a lot more to explore.
+
+619
+00:23:49.120 --> 00:23:52.360
+And every deployment is somewhat different.
+
+620
+00:23:52.360 --> 00:23:54.920
+You might end up using entirely different set
+
+621
+00:23:54.920 --> 00:23:57.120
+of resources in AWS.
+
+622
+00:23:57.120 --> 00:23:59.640
+So I think it's important to try to have a full picture
+
+623
+00:23:59.640 --> 00:24:01.520
+of where the cost might be.
+
+624
+00:24:01.520 --> 00:24:03.960
+And then you try to apply that to your use case
+
+625
+00:24:03.960 --> 00:24:05.520
+and see exactly, okay, my use case,
+
+626
+00:24:05.520 --> 00:24:08.040
+I might be using more storage rather than compute
+
+627
+00:24:08.040 --> 00:24:11.080
+or more networking rather than anything else.
+
+628
+00:24:11.080 --> 00:24:14.200
+And so yeah, definitely do the research
+
+629
+00:24:14.200 --> 00:24:15.920
+and try to spend the time to understand
+
+630
+00:24:15.920 --> 00:24:17.520
+what your workflow looks like
+
+631
+00:24:17.520 --> 00:24:18.360
+and what are the things
+
+632
+00:24:18.360 --> 00:24:19.520
+that you're gonna be using the most
+
+633
+00:24:19.520 --> 00:24:21.520
+because those will be probably the ones
+
+634
+00:24:21.520 --> 00:24:24.080
+that will contribute the most to the final cost.
+
+635
+00:24:24.080 --> 00:24:26.800
+And there are certain things that you might want to look
+
+636
+00:24:26.800 --> 00:24:31.440
+into to understand how can you actually fine tune
+
+637
+00:24:31.440 --> 00:24:34.120
+your cost depending on what you're actually going
+
+638
+00:24:34.120 --> 00:24:35.240
+to be using the most.
+
+639
+00:24:35.240 --> 00:24:37.560
+For instance, if you feel that instances,
+
+640
+00:24:37.560 --> 00:24:39.040
+like virtual machines, is the things
+
+641
+00:24:39.040 --> 00:24:41.200
+that you are going to be spending most of your money
+
+642
+00:24:41.200 --> 00:24:43.600
+in the AWS building, you can look into,
+
+643
+00:24:43.600 --> 00:24:45.280
+okay, how do I optimize instances?
+
+644
+00:24:45.280 --> 00:24:47.360
+So you might start to look at different distance types
+
+645
+00:24:47.360 --> 00:24:50.720
+that maybe are more optimized for your specific workloads.
+
+646
+00:24:50.720 --> 00:24:53.480
+You don't need to buy a big machine
+
+647
+00:24:53.480 --> 00:24:56.280
+where you have tons of CPU and tons of memory
+
+648
+00:24:56.280 --> 00:24:59.320
+and graphic cards, maybe if you just need a good CPU.
+
+649
+00:24:59.320 --> 00:25:01.760
+You can find machines that give you only the good CPU
+
+650
+00:25:01.760 --> 00:25:03.360
+and they don't really give you everything else
+
+651
+00:25:03.360 --> 00:25:04.320
+if you don't need it.
+
+652
+00:25:04.320 --> 00:25:05.840
+And this is just to make an example.
+
+653
+00:25:05.840 --> 00:25:10.000
+There are so many combinations of EC2 instances
+
+654
+00:25:10.000 --> 00:25:10.960
+and even with re:Invent,
+
+655
+00:25:10.960 --> 00:25:13.600
+we are seeing new ones being created all the time.
+
+656
+00:25:13.600 --> 00:25:15.480
+So definitely there is a CPU configuration,
+
+657
+00:25:15.480 --> 00:25:18.760
+sorry, a EC2 configuration instance type
+
+658
+00:25:18.760 --> 00:25:20.880
+that can match exactly the kind of use case
+
+659
+00:25:20.880 --> 00:25:22.320
+that you have.
+
+660
+00:25:22.320 --> 00:25:24.560
+So do your research and look into that.
+
+661
+00:25:24.560 --> 00:25:25.800
+But that's not the only option
+
+662
+00:25:25.800 --> 00:25:30.040
+because sometimes you think you need a lot of EC2 instances
+
+663
+00:25:30.040 --> 00:25:33.160
+because you have a very variable workflow.
+
+664
+00:25:33.160 --> 00:25:35.080
+But in reality, you don't always need
+
+665
+00:25:35.080 --> 00:25:36.920
+all these EC2 instances all the time.
+
+666
+00:25:36.920 --> 00:25:38.440
+So you can start to think about,
+
+667
+00:25:38.440 --> 00:25:40.200
+okay, how can I make it cheaper?
+
+668
+00:25:40.200 --> 00:25:42.000
+So maybe you can figure out,
+
+669
+00:25:42.000 --> 00:25:44.400
+can you use auto scaling groups to spin up
+
+670
+00:25:44.400 --> 00:25:46.080
+instances up and down depending on
+
+671
+00:25:46.080 --> 00:25:49.160
+what is your actual usage, what is your actual traffic?
+
+672
+00:25:49.160 --> 00:25:51.160
+Or another thing that you can do is
+
+673
+00:25:51.160 --> 00:25:52.840
+you can think about spot instances,
+
+674
+00:25:52.840 --> 00:25:56.200
+which is another entirely different model,
+
+675
+00:25:56.200 --> 00:25:57.280
+which is really interesting.
+
+676
+00:25:57.280 --> 00:25:58.760
+Maybe we'll have a dedicated episode
+
+677
+00:25:58.760 --> 00:26:00.800
+to talk more about that.
+
+678
+00:26:00.800 --> 00:26:03.080
+But the gist of it is that you are not going to be paying
+
+679
+00:26:03.080 --> 00:26:05.760
+the full price of an EC2 instance.
+
+680
+00:26:05.760 --> 00:26:07.200
+You're going to be paying something,
+
+681
+00:26:07.200 --> 00:26:09.040
+some kind of discounted price.
+
+682
+00:26:09.040 --> 00:26:10.440
+But because the caveat is that
+
+683
+00:26:10.440 --> 00:26:12.520
+that instance is somewhat volatile,
+
+684
+00:26:12.520 --> 00:26:14.480
+like it's not going to stick there forever.
+
+685
+00:26:14.480 --> 00:26:16.480
+You can use it as long as that instance
+
+686
+00:26:16.480 --> 00:26:18.000
+is not being used by somebody
+
+687
+00:26:18.000 --> 00:26:20.520
+that's willing to pay a bigger price for it.
+
+688
+00:26:20.520 --> 00:26:23.080
+So it's kind of an auction market for
+
+689
+00:26:23.080 --> 00:26:24.920
+available EC2 instances.
+
+690
+00:26:24.920 --> 00:26:27.240
+But if you can afford for your compute model
+
+691
+00:26:27.240 --> 00:26:29.840
+to have an instance that can go down any minute,
+
+692
+00:26:29.840 --> 00:26:31.520
+that can be much cheaper for you to use.
+
+693
+00:26:31.520 --> 00:26:33.440
+So you might have a pool of instances
+
+694
+00:26:33.440 --> 00:26:34.880
+that are actually reserved,
+
+695
+00:26:34.880 --> 00:26:37.520
+but you can also extend that pool with spot instances
+
+696
+00:26:37.520 --> 00:26:39.080
+that will give you extra compute
+
+697
+00:26:39.080 --> 00:26:41.560
+when you need it at a much cheaper price.
+
+698
+00:26:41.560 --> 00:26:43.960
+And another thing is Reserved Instances,
+
+699
+00:26:43.960 --> 00:26:48.200
+which is when you pay some amount upfront.
+
+700
+00:26:48.200 --> 00:26:50.120
+Again, this is something maybe worth going into
+
+701
+00:26:50.120 --> 00:26:52.200
+more detail in a future episode,
+
+702
+00:26:52.200 --> 00:26:54.360
+but the idea is that if you know in advance
+
+703
+00:26:54.360 --> 00:26:56.200
+you're going to be needing these EC2 instances
+
+704
+00:26:56.200 --> 00:26:57.640
+for the next five years,
+
+705
+00:26:57.640 --> 00:26:59.760
+why not trying to get a discount on them?
+
+706
+00:26:59.760 --> 00:27:01.240
+Try to reserve them for five years,
+
+707
+00:27:01.240 --> 00:27:04.280
+AWS is going to give you a better deal on those instances.
+
+708
+00:27:04.280 --> 00:27:06.320
+So this is another way that you can decrease
+
+709
+00:27:06.320 --> 00:27:08.680
+that compute cost.
+
+710
+00:27:08.680 --> 00:27:10.840
+And there are other things like Compute Savings Plans.
+
+711
+00:27:10.840 --> 00:27:12.640
+So again, the idea is once you understand
+
+712
+00:27:12.640 --> 00:27:13.960
+what is the bulk of your cost,
+
+713
+00:27:13.960 --> 00:27:16.840
+try to think what are the things that I can play with
+
+714
+00:27:16.840 --> 00:27:18.080
+to reduce that cost.
+
+715
+00:27:18.080 --> 00:27:19.240
+And sometimes it's architecture,
+
+716
+00:27:19.240 --> 00:27:21.120
+sometimes it means using other services,
+
+717
+00:27:21.120 --> 00:27:24.400
+sometimes it's trying to figure out a better usage model
+
+718
+00:27:24.400 --> 00:27:26.720
+where you try to fit your actual usage
+
+719
+00:27:26.720 --> 00:27:29.560
+to something where you have less waste, basically.
+
+720
+00:27:29.560 --> 00:27:32.880
+You are paying exactly for what you use.
+
+721
+00:27:32.880 --> 00:27:34.400
+We already mentioned cost calculator,
+
+722
+00:27:34.400 --> 00:27:35.600
+we already mentioned spreadsheet,
+
+723
+00:27:35.600 --> 00:27:39.960
+so try to exercise those muscles and use it
+
+724
+00:27:39.960 --> 00:27:41.240
+and you'll get better at it.
+
+725
+00:27:41.240 --> 00:27:43.800
+You'll understand more and more the more you use AWS
+
+726
+00:27:43.800 --> 00:27:46.560
+and I think it's going to become less and less scary.
+
+727
+00:27:46.560 --> 00:27:48.320
+And it's going to become just another capability
+
+728
+00:27:48.320 --> 00:27:50.640
+that you have in your business
+
+729
+00:27:50.640 --> 00:27:53.960
+to every time you want to do something also to put in place,
+
+730
+00:27:53.960 --> 00:27:56.600
+some time and some expertise
+
+731
+00:27:56.600 --> 00:27:58.920
+to understand the cost in advance
+
+732
+00:27:58.920 --> 00:28:01.840
+and include that as part of building new workloads
+
+733
+00:28:01.840 --> 00:28:04.600
+and new capabilities into your business.
+
+734
+00:28:04.600 --> 00:28:06.080
+I think that's all I have in my side.
+
+735
+00:28:06.080 --> 00:28:08.760
+I don't know Eoin if you have any closing advice
+
+736
+00:28:08.760 --> 00:28:09.600
+that we can give people?
+
+737
+00:28:09.600 --> 00:28:12.520
+I think, yeah, I definitely recommend people checking out
+
+738
+00:28:12.520 --> 00:28:14.120
+that AWS Pricing Calculator.
+
+739
+00:28:15.080 --> 00:28:16.880
+You just go to calculator.aws
+
+740
+00:28:16.880 --> 00:28:18.320
+so that should be pretty easy to remember.
+
+741
+00:28:18.320 --> 00:28:20.400
+You don't even need to look at the link in the show notes,
+
+742
+00:28:20.400 --> 00:28:22.280
+but it's a web-based application, right?
+
+743
+00:28:22.280 --> 00:28:23.840
+And you can just pick your services,
+
+744
+00:28:23.840 --> 00:28:26.480
+enter the different units for the different dimensions
+
+745
+00:28:26.480 --> 00:28:28.520
+and it'll give you a cost and you can share,
+
+746
+00:28:28.520 --> 00:28:29.360
+you get a shareable link
+
+747
+00:28:29.360 --> 00:28:30.960
+that you can share with other people
+
+748
+00:28:30.960 --> 00:28:33.280
+and you can also download a spreadsheet from it as well.
+
+749
+00:28:33.280 --> 00:28:35.080
+There are some bugs and niggles with it.
+
+750
+00:28:35.080 --> 00:28:36.200
+I've heard people say that sometimes
+
+751
+00:28:36.200 --> 00:28:38.480
+all of the calculation data doesn't stick.
+
+752
+00:28:38.480 --> 00:28:40.120
+So just be careful with that.
+
+753
+00:28:40.120 --> 00:28:42.560
+But I always recommend doing a spreadsheet approach anyway,
+
+754
+00:28:42.560 --> 00:28:44.640
+especially if you're doing a serious cost calculation
+
+755
+00:28:44.640 --> 00:28:48.240
+and not just a back of an envelope kind of a calculation.
+
+756
+00:28:48.240 --> 00:28:49.200
+What you can do with spreadsheets
+
+757
+00:28:49.200 --> 00:28:50.880
+is that you can get a little bit more granular
+
+758
+00:28:50.880 --> 00:28:53.680
+and you can say, okay, based on this number of users,
+
+759
+00:28:53.680 --> 00:28:55.600
+then I expect this number of API requests
+
+760
+00:28:55.600 --> 00:28:58.120
+and this number of function invocations.
+
+761
+00:28:58.120 --> 00:28:59.220
+So then you can actually play around
+
+762
+00:28:59.220 --> 00:29:00.400
+with the business inputs as well.
+
+763
+00:29:00.400 --> 00:29:04.360
+Like what if I get, you know, peak usage on Black Friday?
+
+764
+00:29:04.360 --> 00:29:06.920
+What would that look like in terms of cost?
+
+765
+00:29:06.920 --> 00:29:07.760
+Spreadsheets are good.
+
+766
+00:29:07.760 --> 00:29:08.840
+And then you can use the spreadsheet
+
+767
+00:29:08.840 --> 00:29:11.960
+to validate the cost calculator outputs and vice versa.
+
+768
+00:29:11.960 --> 00:29:13.120
+I think it's also worth mentioning
+
+769
+00:29:13.120 --> 00:29:17.560
+the AWS Well-Architected Framework Cost Optimization Pillar.
+
+770
+00:29:17.560 --> 00:29:19.520
+It's one of the six pillars.
+
+771
+00:29:19.520 --> 00:29:22.520
+And that documentation is, you know,
+
+772
+00:29:22.520 --> 00:29:24.760
+just good advice on cost optimization in general
+
+773
+00:29:24.760 --> 00:29:26.640
+and putting the practices in place.
+
+774
+00:29:26.640 --> 00:29:28.360
+There's also a hands-on lab.
+
+775
+00:29:28.360 --> 00:29:30.040
+And then just a reminder as well,
+
+776
+00:29:30.040 --> 00:29:33.120
+don't forget to check out the AWS Activate and MAP programs.
+
+777
+00:29:33.120 --> 00:29:34.360
+What better way to deal with your building
+
+778
+00:29:34.360 --> 00:29:36.880
+getting AWS to pay it for you?
+
+779
+00:29:36.880 --> 00:29:37.920
+We have experience of both.
+
+780
+00:29:37.920 --> 00:29:39.160
+So if you have any questions,
+
+781
+00:29:39.160 --> 00:29:41.840
+feel free to reach out to Luciano or myself.
+
+782
+00:29:41.840 --> 00:29:43.920
+And finally then if you like AWS Bites,
+
+783
+00:29:43.920 --> 00:29:45.640
+please share the link with a friend or a colleague
+
+784
+00:29:45.640 --> 00:29:47.800
+because, you know, our audience is growing more
+
+785
+00:29:47.800 --> 00:29:49.320
+all the time as the audience grows.
+
+786
+00:29:49.320 --> 00:29:52.160
+We got lots of good ideas, suggestions and feedback.
+
+787
+00:29:52.160 --> 00:29:54.760
+So keep those comments coming on YouTube and Twitter as well.
+
+788
+00:29:54.760 --> 00:29:55.600
+Thanks for joining us.
+
+789
+00:29:55.600 --> 00:29:56.760
+We'll see you in the next episode.
+
+790
+00:29:56.760 --> 00:30:12.680
+See you in the next one.

@@ -1,0 +1,585 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:11.200
+Hello and welcome to another episode of AWS Bites, the weekly show where we try to answer
+
+2
+00:00:11.200 --> 00:00:14.360
+AWS questions in just about five minutes.
+
+3
+00:00:14.360 --> 00:00:18.240
+My name is Luciano and today I'm joined by Eoin.
+
+4
+00:00:18.240 --> 00:00:22.980
+And before we get started, I would like to suggest you to follow and subscribe so you
+
+5
+00:00:22.980 --> 00:00:27.320
+can be updated the next time that we publish a new episode.
+
+6
+00:00:27.320 --> 00:00:32.480
+This question was suggested by Emily Shih and it was on Twitter.
+
+7
+00:00:32.480 --> 00:00:36.520
+And the question is, when do you use step functions?
+
+8
+00:00:36.520 --> 00:00:41.840
+I will say before we try to answer that question, maybe we should give a very quick description
+
+9
+00:00:41.840 --> 00:00:45.080
+of what step function actually is.
+
+10
+00:00:45.080 --> 00:00:46.600
+Yeah.
+
+11
+00:00:46.600 --> 00:00:52.580
+So step functions are AWS's service for implementing state machines.
+
+12
+00:00:52.580 --> 00:00:58.040
+So what that allows you to do is to create workflows that are composed of sequences of
+
+13
+00:00:58.040 --> 00:01:03.480
+steps and they might have, you know, control flow if statements in them and you create
+
+14
+00:01:03.480 --> 00:01:06.700
+them declaratively in JSON or YAML rather.
+
+15
+00:01:06.700 --> 00:01:11.300
+So it's an alternative to trying to implement workflow in something like a Lambda function
+
+16
+00:01:11.300 --> 00:01:16.120
+where you might be using code or using an event driven kind of orchestration approach.
+
+17
+00:01:16.120 --> 00:01:18.120
+So that's what step functions are.
+
+18
+00:01:18.120 --> 00:01:25.240
+Yeah, to me, I like to describe them as like the power user version of something like Zapier.
+
+19
+00:01:25.240 --> 00:01:28.440
+So where you can easily integrate different services.
+
+20
+00:01:28.440 --> 00:01:33.000
+And the reason why I like to say that is because especially recently they published a new visual
+
+21
+00:01:33.000 --> 00:01:34.000
+editor.
+
+22
+00:01:34.000 --> 00:01:38.400
+So I think the barrier to entry is much lower now and it's easier to just even drag and
+
+23
+00:01:38.400 --> 00:01:41.540
+drop different things and integrate them together.
+
+24
+00:01:41.540 --> 00:01:44.620
+So I like that analogy.
+
+25
+00:01:44.620 --> 00:01:48.660
+And I like to actually to give an example of what was the first thing I implemented
+
+26
+00:01:48.660 --> 00:01:50.540
+using step functions.
+
+27
+00:01:50.540 --> 00:01:54.020
+I was working in the electricity industry.
+
+28
+00:01:54.020 --> 00:01:59.120
+So we were working in a company that was selling electricity and we needed to calculate billing
+
+29
+00:01:59.120 --> 00:02:00.720
+for every customer.
+
+30
+00:02:00.720 --> 00:02:03.100
+And that process was actually quite complex.
+
+31
+00:02:03.100 --> 00:02:09.000
+We needed to fetch data from a number of different sources in a different format, different databases.
+
+32
+00:02:09.000 --> 00:02:14.160
+There was like FTP, SQL, CSV repositories.
+
+33
+00:02:14.160 --> 00:02:18.480
+And after we got all the data, basically we needed to do a bunch of different calculations.
+
+34
+00:02:18.480 --> 00:02:21.420
+And then finally we had that billing figure.
+
+35
+00:02:21.420 --> 00:02:26.360
+Now interesting enough, there was also manual step to somebody actually review the numbers
+
+36
+00:02:26.360 --> 00:02:28.720
+because those were big industrial customers.
+
+37
+00:02:28.720 --> 00:02:32.040
+So we wanted to be double sure that everything was okay.
+
+38
+00:02:32.040 --> 00:02:37.460
+And then when the final bill was reviewed, somebody will click a button somewhere and
+
+39
+00:02:37.460 --> 00:02:40.240
+that will make the step function continue.
+
+40
+00:02:40.240 --> 00:02:44.880
+And the step function will send the final PDF by email, save it in a bunch of different
+
+41
+00:02:44.880 --> 00:02:49.080
+places and finalize the billing process.
+
+42
+00:02:49.080 --> 00:02:50.800
+So that was an interesting use case.
+
+43
+00:02:50.800 --> 00:02:55.640
+And using step function was helpful to us because we would actually for every customer,
+
+44
+00:02:55.640 --> 00:03:00.800
+just open the step function page and see literally what was the state, the current state.
+
+45
+00:03:00.800 --> 00:03:04.580
+If there was some error, we would implement the retry mechanisms.
+
+46
+00:03:04.580 --> 00:03:11.140
+So it was very convenient rather than orchestrating all of that in like one big Lambda.
+
+47
+00:03:11.140 --> 00:03:15.800
+Do you have any use case on your side Eoin that you want to share?
+
+48
+00:03:15.800 --> 00:03:21.080
+
+
+49
+00:03:21.080 --> 00:03:22.080
+Yeah, you can use it for so much these days because now it's actually integrated into the AWS SDK.
+
+50
+00:03:22.080 --> 00:03:27.720
+So it used to be able to integrate with DynamoDB and Lambda and a few other services, but now
+
+51
+00:03:27.720 --> 00:03:30.660
+you can actually call any AWS SDK service.
+
+52
+00:03:30.660 --> 00:03:33.920
+So the possibilities are pretty unlimited.
+
+53
+00:03:33.920 --> 00:03:39.840
+One of the examples I covered off in the book I co-wrote with Peter Elger, the AI as a service
+
+54
+00:03:39.840 --> 00:03:46.120
+book is actually implementing a simple web crawler in the step function.
+
+55
+00:03:46.120 --> 00:03:47.280
+So that was an interesting use case.
+
+56
+00:03:47.280 --> 00:03:52.640
+I wouldn't necessarily implement Google using step functions, but it was a case where you
+
+57
+00:03:52.640 --> 00:03:54.600
+have a page to crawl.
+
+58
+00:03:54.600 --> 00:04:00.560
+You need to traverse through the page recursively and do some analysis on it.
+
+59
+00:04:00.560 --> 00:04:07.360
+You're actually extracting text and then using AWS Comprehend to analyze the text and figuring
+
+60
+00:04:07.360 --> 00:04:12.440
+out if there are any dates or locations mentioned in the webpage.
+
+61
+00:04:12.440 --> 00:04:14.400
+So we use step functions to implement that.
+
+62
+00:04:14.400 --> 00:04:20.320
+And it's quite good for that kind of thing where you've got loops, recursive flows, or
+
+63
+00:04:20.320 --> 00:04:25.520
+you've got AWS services you want to call out to that might take a long time to execute.
+
+64
+00:04:25.520 --> 00:04:29.080
+It's like some of the AI services.
+
+65
+00:04:29.080 --> 00:04:30.080
+So that's one thing.
+
+66
+00:04:30.080 --> 00:04:36.200
+I also find it, I think where it really shines and will be adopted more and more is in enterprise
+
+67
+00:04:36.200 --> 00:04:38.720
+workflow cases.
+
+68
+00:04:38.720 --> 00:04:43.180
+When you've got businesses that need to do process business rules, and that could be
+
+69
+00:04:43.180 --> 00:04:50.260
+like batch processing based on some rules relating to pension schemes or insurance policies
+
+70
+00:04:50.260 --> 00:04:53.960
+or financial rules.
+
+71
+00:04:53.960 --> 00:04:58.800
+All of the FinTech banking insurance sector has a lot of that kind of stuff that might
+
+72
+00:04:58.800 --> 00:05:03.120
+run on a scheduled basis or in response to an event.
+
+73
+00:05:03.120 --> 00:05:07.600
+And it needs to evaluate some complex workflow and perform a series of steps.
+
+74
+00:05:07.600 --> 00:05:12.400
+And being able to visualize them in the step functions console is really handy, especially
+
+75
+00:05:12.400 --> 00:05:16.200
+when you're troubleshooting for standard workflows that is.
+
+76
+00:05:16.200 --> 00:05:19.240
+Maybe we can get into express workflows too.
+
+77
+00:05:19.240 --> 00:05:26.080
+So I think those kind of business process modeling cases where you might have used other
+
+78
+00:05:26.080 --> 00:05:31.760
+very complex custom code or business process modeling engines in the past, those are really
+
+79
+00:05:31.760 --> 00:05:34.200
+good places where you can use step functions.
+
+80
+00:05:34.200 --> 00:05:35.200
+Yeah.
+
+81
+00:05:35.200 --> 00:05:40.960
+All the use cases you just described struck me as like long running, I don't know, pieces
+
+82
+00:05:40.960 --> 00:05:42.480
+of business logic.
+
+83
+00:05:42.480 --> 00:05:47.040
+So I'm starting to ask myself, what are the limitations that maybe you should consider
+
+84
+00:05:47.040 --> 00:05:50.120
+before using step function for something?
+
+85
+00:05:50.120 --> 00:05:51.120
+Yep.
+
+86
+00:05:51.120 --> 00:05:53.360
+Yeah, that's a good one.
+
+87
+00:05:53.360 --> 00:05:59.600
+The interesting, slightly amusing limitation for step functions that you can run each execution
+
+88
+00:05:59.600 --> 00:06:02.560
+for up to a year.
+
+89
+00:06:02.560 --> 00:06:05.600
+So I think it's the longest time limit of any service.
+
+90
+00:06:05.600 --> 00:06:11.360
+But yeah, and obviously that brings its own challenges because how do you test something
+
+91
+00:06:11.360 --> 00:06:14.720
+that expires after a year?
+
+92
+00:06:14.720 --> 00:06:17.680
+It's an interesting challenge in the development and test.
+
+93
+00:06:17.680 --> 00:06:19.440
+So you can have long run against executions.
+
+94
+00:06:19.440 --> 00:06:22.800
+And the reason for that is because you can have manual approval steps like you've already
+
+95
+00:06:22.800 --> 00:06:24.080
+outlined Luciano.
+
+96
+00:06:24.080 --> 00:06:26.080
+So that's why you might need that.
+
+97
+00:06:26.080 --> 00:06:29.320
+People might take months to actually approve something.
+
+98
+00:06:29.320 --> 00:06:31.120
+You also have a limit on the number of transitions.
+
+99
+00:06:31.120 --> 00:06:35.200
+So in a standard workflow, that's 10,000 transitions.
+
+100
+00:06:35.200 --> 00:06:42.840
+And that can hit you, especially if you've got a wait and retry event loop, if you're
+
+101
+00:06:42.840 --> 00:06:46.080
+waiting for a service to run, or if you've got a lot of items.
+
+102
+00:06:46.080 --> 00:06:51.140
+You've also got a limit into the number of the amount of data you can process, right?
+
+103
+00:06:51.140 --> 00:06:57.280
+So you can't throw megabytes of data into a step function, and you can't process millions
+
+104
+00:06:57.280 --> 00:07:03.360
+of items in a map state or a parallel state, some of those really useful control flow states.
+
+105
+00:07:03.360 --> 00:07:06.760
+Have you hit some of those limits?
+
+106
+00:07:06.760 --> 00:07:11.480
+I have hit some of these limits once, and I needed to figure out a different solution.
+
+107
+00:07:11.480 --> 00:07:14.840
+I don't remember exactly what it was, but I think I was doing all the orchestration
+
+108
+00:07:14.840 --> 00:07:21.560
+in a lambda for that particular step, which was a little bit unsatisfying, I'd say, because
+
+109
+00:07:21.560 --> 00:07:25.040
+I lost the benefit of step function at that point.
+
+110
+00:07:25.040 --> 00:07:30.100
+But on the number of transition, you reminded me that that's actually an interesting thing
+
+111
+00:07:30.100 --> 00:07:35.260
+to consider, because the pricing model is actually based on how many transitions you
+
+112
+00:07:35.260 --> 00:07:39.500
+are doing in the execution of a step function, including even start and end.
+
+113
+00:07:39.500 --> 00:07:45.720
+So even if you have just one step, you are still paying at least three transitions there.
+
+114
+00:07:45.720 --> 00:07:50.240
+It might get very expensive if you do a lot of transitions very quickly and you do a lot
+
+115
+00:07:50.240 --> 00:07:54.080
+of executions, so that's maybe something else to consider.
+
+116
+00:07:54.080 --> 00:08:00.040
+If you have very simple use cases, maybe with a lot of transitions, maybe if you need to
+
+117
+00:08:00.040 --> 00:08:04.200
+save money, don't go directly into step functions.
+
+118
+00:08:04.200 --> 00:08:08.680
+That's also something that could become a limitation, the pricing model there.
+
+119
+00:08:08.680 --> 00:08:09.680
+Yeah.
+
+120
+00:08:09.680 --> 00:08:15.720
+And they introduced the Express workflows then, so that can help with the pricing, but
+
+121
+00:08:15.720 --> 00:08:19.040
+only if you have a very short running execution.
+
+122
+00:08:19.040 --> 00:08:23.200
+So when would you use Express workflows as opposed to standard workflows?
+
+123
+00:08:23.200 --> 00:08:29.200
+Yeah, as far as I know, Express workflow, they work in synchronous mode.
+
+124
+00:08:29.200 --> 00:08:32.720
+So basically it's like you can implement a request response type of pattern.
+
+125
+00:08:32.720 --> 00:08:38.000
+So if you need to have, maybe you have still a complicated workload behind the scene, but
+
+126
+00:08:38.000 --> 00:08:42.120
+the way of consuming that workflow, you just make a request and you expect a response as
+
+127
+00:08:42.120 --> 00:08:43.480
+soon as possible.
+
+128
+00:08:43.480 --> 00:08:50.280
+I think in that case, using the Express version of step function will be a much better suit
+
+129
+00:08:50.280 --> 00:08:51.600
+for that use case.
+
+130
+00:08:51.600 --> 00:08:52.600
+Yeah.
+
+131
+00:08:52.600 --> 00:08:57.120
+
+
+132
+00:08:57.120 --> 00:08:58.320
+And then you've got a five minute limit, which is obviously a completely different scale to a standard workflow.
+
+133
+00:08:58.320 --> 00:08:59.320
+Yeah.
+
+134
+00:08:59.320 --> 00:09:03.720
+So it's for really, really fast executions and things that might be behind an API.
+
+135
+00:09:03.720 --> 00:09:04.720
+Okay.
+
+136
+00:09:04.720 --> 00:09:09.840
+So now we are approaching the 10 minutes mark, so I think this is time to do the closing.
+
+137
+00:09:09.840 --> 00:09:11.320
+That's all we have for today.
+
+138
+00:09:11.320 --> 00:09:13.160
+Thank you for listening.
+
+139
+00:09:13.160 --> 00:09:18.800
+And if you enjoyed this episode, of course, make sure to subscribe and like.
+
+140
+00:09:18.800 --> 00:09:21.000
+And we are always curious to know your opinion.
+
+141
+00:09:21.000 --> 00:09:24.320
+So if you have other interesting use cases that you want to share, or if you disagree
+
+142
+00:09:24.320 --> 00:09:30.360
+with our opinion, absolutely send us a comment or reach out to us on our social channels.
+
+143
+00:09:30.360 --> 00:09:34.880
+We'd be more than happy to chat with you and compare our experiences.
+
+144
+00:09:34.880 --> 00:09:36.520
+And with that, thanks again.
+
+145
+00:09:36.520 --> 00:09:38.320
+We'll see you at the next episode.
+
+146
+00:09:38.320 --> 00:10:06.320
+Bye.

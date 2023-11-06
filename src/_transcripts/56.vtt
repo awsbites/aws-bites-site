@@ -1,0 +1,741 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:04.640
+Uploading and downloading files are some of the most common operations for web applications.
+
+2
+00:00:04.640 --> 00:00:10.640
+But let's face it, as common as they are, they are still challenging features to implement in a reliable and scalable way.
+
+3
+00:00:10.640 --> 00:00:18.640
+This is especially true when we talk about serverless environment, where you have strict limits in payload size and you cannot have long-running connections.
+
+4
+00:00:18.640 --> 00:00:24.080
+So what is the solution? If you're using S3, presigned URLs can help you quite a bit.
+
+5
+00:00:24.080 --> 00:00:26.960
+And in this episode, we're going to be talking about presigned URLs.
+
+6
+00:00:26.960 --> 00:00:33.280
+And if you stick until the very end of this episode, we're going to disclose an interesting and quite unknown tip about presigned URLs.
+
+7
+00:00:33.280 --> 00:00:37.280
+My name is Luciano and today I'm joined by Eoin and this is AWS Bites podcast.
+
+8
+00:00:37.280 --> 00:00:56.080
+So Eoin, maybe we can start with describing some of the use cases, like what kind of operations do we generally do when we talk about upload and download in the context of web applications?
+
+9
+00:00:56.080 --> 00:01:00.080
+Yeah, okay. Let's set some context here by talking about a few of the use cases.
+
+10
+00:01:00.080 --> 00:01:07.040
+So let's say you're signing up in a mobile application for your service and you want people to take a photo so they've got their avatar.
+
+11
+00:01:07.040 --> 00:01:13.120
+That would be an upload. Another one might be you're offering some digital download, like a software.
+
+12
+00:01:13.120 --> 00:01:17.120
+People are paying for the software and then they want to download a large binary application.
+
+13
+00:01:17.120 --> 00:01:21.360
+You might want to have a download facility that's scalable and fast there.
+
+14
+00:01:21.360 --> 00:01:28.800
+Or a very typical one actually is if you're sending people a newsletter and you want them to be able to download a white paper using a link in the email.
+
+15
+00:01:28.800 --> 00:01:32.640
+Or maybe, you know, they give you their signup details and then you give them a link in the email.
+
+16
+00:01:32.640 --> 00:01:40.640
+You also have other things which are maybe less user-facing, but even between systems you might have two applications or two services talking to each other.
+
+17
+00:01:40.640 --> 00:01:51.360
+They might have an API where they've got an event, but associated with that event is like a large file or an attachment, some like larger payloads that you don't want to put in every message.
+
+18
+00:01:51.360 --> 00:01:58.400
+So instead you'll give a link in the message and that link will allow them to retrieve whatever large data that is.
+
+19
+00:01:58.400 --> 00:02:05.040
+So those are the kind of use cases we're talking about. You said it's one of the challenging things that comes up is trying to upload and download files.
+
+20
+00:02:05.040 --> 00:02:07.360
+So what are the challenges?
+
+21
+00:02:07.360 --> 00:02:14.960
+Yeah, so first of all, when you talk about uploading and downloading, those are generally what we can call streaming operations.
+
+22
+00:02:14.960 --> 00:02:20.880
+So you have a TCP connection and you will have to transfer bytes for a long enough period of time.
+
+23
+00:02:20.880 --> 00:02:29.440
+And generally you don't want to put boundaries there because you might have a particular context where you are uploading or downloading very large files.
+
+24
+00:02:29.440 --> 00:02:36.800
+Imagine, I don't know, videos or I don't know, like you mentioned big binaries because you are downloading an application.
+
+25
+00:02:36.800 --> 00:02:41.840
+So you can imagine that you need to transfer a lot of data for a sustained period of time.
+
+26
+00:02:41.840 --> 00:02:48.240
+And if you're using a serverless environment, this is a big challenge because we know serverless environment tends to have very strict limits.
+
+27
+00:02:48.240 --> 00:02:54.000
+Like in Lambda you have, I think it's five megabytes, the maximum payload that you can receive in a request.
+
+28
+00:02:54.000 --> 00:02:57.600
+And also the response that you can send from a Lambda is quite limited as well.
+
+29
+00:02:57.600 --> 00:03:07.120
+So you can immediately see that if you want to implement this stuff straight in a Lambda, it's not really giving you a lot of amount of data that you can deal with.
+
+30
+00:03:07.120 --> 00:03:15.760
+And another problem when we talk about downloads is that generally you want to keep all the data in a protected place.
+
+31
+00:03:15.760 --> 00:03:20.720
+And then you only want to enable specific downloads after certain actions.
+
+32
+00:03:20.720 --> 00:03:26.000
+Maybe the user is authenticated and you realize, okay, this particular user is actually authorized to view this resource.
+
+33
+00:03:26.000 --> 00:03:30.320
+So I would like somehow to give only them the permission to download the file.
+
+34
+00:03:30.960 --> 00:03:36.640
+So this is another challenge because of course if you think about S3 you might think, okay, I'm just going to make a bucket entirely public.
+
+35
+00:03:36.640 --> 00:03:42.560
+But then anyone can, as soon as they discover the key and the bucket name, can download that particular file.
+
+36
+00:03:42.560 --> 00:03:46.480
+So this is not really going to be a sustainable solution.
+
+37
+00:03:46.480 --> 00:03:51.760
+And if you think, okay, I'm going to put a Lambda in front of that, then again you have the problem of payload size.
+
+38
+00:03:51.760 --> 00:03:54.000
+So again, what's the solution?
+
+39
+00:03:54.000 --> 00:04:01.680
+And thankfully if we use S3, there is a feature in S3 that is called Presigned URLs that can help us a lot in solving this particular kind of problems.
+
+40
+00:04:02.480 --> 00:04:09.760
+The idea is that you can easily generate a URL that allows users to upload the content of an object directly into S3.
+
+41
+00:04:09.760 --> 00:04:17.840
+This is the case of upload, but at the same time you can also do the same thing basically to generate URLs for downloading a file from S3.
+
+42
+00:04:17.840 --> 00:04:25.680
+So again, every time you want to authorize either an upload or a download, you can generate in that particular moment a specific URL for the user.
+
+43
+00:04:25.680 --> 00:04:30.720
+And the user can use that URL to either upload or download from or to S3.
+
+44
+00:04:30.720 --> 00:04:39.600
+So the interesting thing is that why this is called Presigned, because it's basically the URL contains a lot of information.
+
+45
+00:04:39.600 --> 00:04:46.000
+And some of this information, like if you ever look into Presigned URLs, is actually quite big URL with a lot of query string parameters.
+
+46
+00:04:46.000 --> 00:04:48.880
+And some of these parameters are actually authentication parameters.
+
+47
+00:04:48.880 --> 00:04:58.080
+So literally you have created a URL that has already built in the credentials that are needed for the user to either upload or download that particular resource.
+
+48
+00:04:58.080 --> 00:05:06.640
+And at the end of the day, this is good because you are relying entirely on a managed service like S3, so you don't have to be worried about the infrastructure.
+
+49
+00:05:06.640 --> 00:05:10.560
+Is it going to scale? Is it going to support all the data they need to support?
+
+50
+00:05:10.560 --> 00:05:20.800
+So really you don't need any additional infrastructure or compute, you just need to make sure you generate the URLs at the right time before the user performs that particular action.
+
+51
+00:05:21.760 --> 00:05:25.600
+So I suppose the next question is, how do we actually generate this kind of URLs?
+
+52
+00:05:25.600 --> 00:05:34.080
+Yeah, like if you want to just generate one ad hoc for whatever reason without building it into the application, you can use the AWS CLI to do that.
+
+53
+00:05:34.080 --> 00:05:37.440
+You can also use the S3 console in the AWS Management Console.
+
+54
+00:05:38.800 --> 00:05:48.240
+And you also have like IDE integrations, so the AWS Explorer for Visual Studio, but also allows you to browse your bucket and right click and get a Presigned URL for it.
+
+55
+00:05:48.240 --> 00:05:56.160
+So those examples, the console and Visual Studio, that only works for download, it doesn't allow you to do uploads.
+
+56
+00:05:56.160 --> 00:06:05.040
+The more I suppose powerful, flexible way to do it is with the AWS API or the SDK where you can generate Presigned URLs for uploads and downloads.
+
+57
+00:06:05.040 --> 00:06:08.480
+So then if we take those two cases, how do you do a download?
+
+58
+00:06:08.480 --> 00:06:13.040
+Well, you need to specify, okay, what's the bucket and what's the key?
+
+59
+00:06:13.040 --> 00:06:24.320
+You need to specify, okay, what's the bucket and what's the key? And then you can also specify some additional configuration, like some headers that are associated with the download or an expiry.
+
+60
+00:06:24.320 --> 00:06:28.240
+So how long does this Presigned URL remain valid for?
+
+61
+00:06:29.200 --> 00:06:36.320
+And once you do that, you will get this really big URL you mentioned with loads of query string parameters, and that will link to the file.
+
+62
+00:06:36.320 --> 00:06:47.520
+So if user clicks on that or curls it, they will be able to download that file as long as they haven't changed the HTTP request anyway, that would invalidate the signature that's embedded in the URL.
+
+63
+00:06:47.520 --> 00:06:51.920
+And as long as the expiry time has not elapsed.
+
+64
+00:06:51.920 --> 00:06:56.400
+So that's the GET method and it works in a very similar way for uploads.
+
+65
+00:06:56.400 --> 00:06:59.440
+With uploads, you actually got a couple of options.
+
+66
+00:06:59.440 --> 00:07:02.720
+You can use a Presigned PUT, which works exactly the same way as the Presigned GET.
+
+67
+00:07:02.720 --> 00:07:10.320
+Everything is in the URL and you can also put in the content type and the content length header that's required.
+
+68
+00:07:10.320 --> 00:07:15.520
+And then basically you just put the body of your file into the HTTP request body.
+
+69
+00:07:15.520 --> 00:07:18.160
+So that's how PUT works.
+
+70
+00:07:18.160 --> 00:07:21.440
+Presigned POST is actually like a special feature.
+
+71
+00:07:21.440 --> 00:07:24.800
+It's an additional kind, it's a different kind of a Presigned URL.
+
+72
+00:07:24.800 --> 00:07:39.120
+And it uses form data, like HTTP form data instead of using like a normal post with an Octet stream or a binary payload.
+
+73
+00:07:39.120 --> 00:07:51.520
+The Presigned POST, it comes with, you actually get a much shorter URL, but instead of having all of the data embedded in query string parameters, you get a set of fields back that you have to put into your form data.
+
+74
+00:07:51.520 --> 00:07:58.720
+And a form data is basically like a multi-part body where you specify each field in the form.
+
+75
+00:07:58.720 --> 00:08:04.160
+One of those, all of those fields that AWS tells you you have to provide in your Presigned POST response.
+
+76
+00:08:04.160 --> 00:08:09.360
+And then one of them will also be the file content encoded in there too.
+
+77
+00:08:09.360 --> 00:08:14.640
+And there is a really good post actually talking about how this is sometimes the best option to use.
+
+78
+00:08:14.640 --> 00:08:17.440
+It's by Zach Charles and we'll link to that in the show notes.
+
+79
+00:08:17.440 --> 00:08:20.400
+And it's a good guide to using the POST method.
+
+80
+00:08:20.400 --> 00:08:27.120
+The real advantage with Presigned POST is that you can specify limits on the file size that's going to be uploaded.
+
+81
+00:08:27.120 --> 00:08:39.360
+Nice. So I suppose another interesting point of conversation is generally if you're building an application and you receive a file from an upload, you are trying to do something with that file, right?
+
+82
+00:08:39.360 --> 00:08:42.800
+There is some workflow that is intrinsically part of your application.
+
+83
+00:08:42.800 --> 00:08:53.600
+Just to make an example, you upload a picture and maybe you want to process it with, I don't know, recognition to try to identify objects or text or something like that in that particular picture.
+
+84
+00:08:53.600 --> 00:08:58.400
+And then maybe you can attach some metadata and store it somewhere and make it available to users.
+
+85
+00:08:58.400 --> 00:09:01.280
+So how do you actually trigger the second part of the workflow?
+
+86
+00:09:01.280 --> 00:09:07.200
+We know at this point how you can perform the upload, but what actually triggers is the rest of the workflow.
+
+87
+00:09:07.200 --> 00:09:09.760
+And there are different ways that you can actually do that.
+
+88
+00:09:09.760 --> 00:09:13.120
+Some are asynchronous and some can be synchronous.
+
+89
+00:09:13.120 --> 00:09:15.760
+The asynchronous one is basically relying on notifications.
+
+90
+00:09:15.760 --> 00:09:25.840
+You can either set up S3 object notifications or event breach notifications, and then you can listen to those notifications and trigger, for instance, a Lambda and then Lambda can orchestrate the rest of the workflow.
+
+91
+00:09:25.840 --> 00:09:27.680
+Or maybe you can start a step function.
+
+92
+00:09:27.680 --> 00:09:30.960
+There is really no limit in how you actually process it.
+
+93
+00:09:30.960 --> 00:09:41.360
+The only thing you want to know is exactly the point where the file was completed, completely uploaded, and at that point you can receive the notification and decide how to process that notification.
+
+94
+00:09:41.360 --> 00:09:55.040
+Another use case that I've seen is basically, for instance, I don't know, the case that you are uploading an avatar in a web application and then maybe you want to make sure your profile is actually updated to reflect the new avatar.
+
+95
+00:09:55.040 --> 00:09:59.280
+So you can implement that in a slightly different way, for instance, rather than using events.
+
+96
+00:09:59.280 --> 00:10:02.400
+What you could be doing, you could have two different API calls.
+
+97
+00:10:02.400 --> 00:10:06.000
+The first API call is actually using the pre-signed URL to upload the file.
+
+98
+00:10:06.000 --> 00:10:13.360
+And then there is a second API call where you say, update my profile with this key, which is going to be my new avatar.
+
+99
+00:10:13.360 --> 00:10:19.760
+So it's a little bit up to the client to coordinate the two different requests, but it's another valid solution.
+
+100
+00:10:19.760 --> 00:10:29.280
+The other point I was going to mention on the automated processing is that you might ask, is the new S3 object lambda feature something that will help us here?
+
+101
+00:10:29.280 --> 00:10:41.200
+But the S3 object lambda is something that allows you to do lambda post-processing when you do a GET or a HEAD request, but it doesn't support any kind of automation on her post.
+
+102
+00:10:41.200 --> 00:10:43.520
+So no joy here, at least yet.
+
+103
+00:10:43.520 --> 00:10:52.960
+And if you don't know about this particular feature, we have a blog post by Eoin that describes how to use all of that and what are the limits.
+
+104
+00:10:52.960 --> 00:10:56.640
+So we'll have it in the show notes.
+
+105
+00:10:56.640 --> 00:10:57.920
+Excellent. Excellent.
+
+106
+00:10:57.920 --> 00:11:02.240
+Now, I suppose it's also worth mentioning that pre-signed URLs, you don't always have to use them.
+
+107
+00:11:02.240 --> 00:11:08.000
+So if you've got full control over the client application, you have some other options as well.
+
+108
+00:11:08.000 --> 00:11:19.360
+So what you can do instead is just embed the whole AWS SDK S3 client in your front end web application or in your mobile application and just use the higher level APIs that the SDK give you.
+
+109
+00:11:19.360 --> 00:11:28.080
+Sometimes there are some optimizations in there around large file uploads with multi-part that will be more beneficial if you just use the SDK directly.
+
+110
+00:11:28.080 --> 00:11:33.920
+And all you need in order to be able to do that is some temporary IAM credentials that you can use in the client.
+
+111
+00:11:33.920 --> 00:11:43.920
+So it's another way of doing it. So instead of signing the URL with IAM credentials on the server side, you basically just issue IAM credentials using like STS.
+
+112
+00:11:43.920 --> 00:11:49.040
+You can also do use AWS Cognito with identity pools to do that.
+
+113
+00:11:49.040 --> 00:11:55.520
+So if that's something that you're comfortable with, it's just another approach that you should probably be aware of and maybe think about whether that's best.
+
+114
+00:11:55.520 --> 00:12:01.280
+The Amplify SDK also makes that whole thing a lot easier.
+
+115
+00:12:01.280 --> 00:12:08.880
+So it allows you to, I think through its storage API, allows you to interact with S3 in a reasonably simple way.
+
+116
+00:12:08.880 --> 00:12:11.360
+It's probably worthwhile just talking about some of the limitations.
+
+117
+00:12:11.360 --> 00:12:18.080
+And we've already said that for a push upload, you need to know the file size in advance because you have to set that content length header.
+
+118
+00:12:18.080 --> 00:12:25.040
+That's a bit unfortunate because it limits your ability to stream the content from an indeterminate source.
+
+119
+00:12:25.040 --> 00:12:33.040
+So you can't really limit the amount of data you're uploading unless you do some really funky stuff like updating the policy of the bucket itself.
+
+120
+00:12:33.040 --> 00:12:37.440
+So every bucket has a resource policy and you can put lots of restrictions in there.
+
+121
+00:12:37.440 --> 00:12:42.400
+And even those restrictions can apply to certain object prefixes, key prefixes.
+
+122
+00:12:42.400 --> 00:12:47.200
+But it's not the kind of thing that you want to be updating all the time for very specific user flows.
+
+123
+00:12:47.200 --> 00:12:53.680
+So there's another blog post that we can put in the show notes from bobbyhads.com and that's worth a look.
+
+124
+00:12:53.680 --> 00:12:57.680
+And of course, the maximum file size worth stating that it's five terabytes.
+
+125
+00:12:57.680 --> 00:13:03.120
+But that applies on S3, whether you use presigned URLs or not.
+
+126
+00:13:03.120 --> 00:13:09.280
+Worth restating again that if you use that special post presigned URL with the form data, you can overcome some of those limitations.
+
+127
+00:13:09.280 --> 00:13:17.200
+You can, you don't need to specify the file size in advance and you can specify conditions that include what range of content sizes you support.
+
+128
+00:13:17.200 --> 00:13:21.600
+And that includes a minimum and a maximum content length then.
+
+129
+00:13:21.600 --> 00:13:26.560
+Presigned URLs, they do have an expiry time, so they have a limited time, but you cannot limit the number of downloads or uploads.
+
+130
+00:13:26.560 --> 00:13:28.640
+There's no easy way to do that.
+
+131
+00:13:28.640 --> 00:13:34.160
+And you can't also easily limit the number of downloads or the downloads based on IP address.
+
+132
+00:13:34.160 --> 00:13:38.960
+You would again have to go and change the bucket policy to put in a source IP condition.
+
+133
+00:13:38.960 --> 00:13:42.400
+But it's probably more work than you really want to do to maintain all of these policies.
+
+134
+00:13:42.400 --> 00:13:50.720
+And you might end up incurring quotas for like adding so many specific user in specific rules into that policy.
+
+135
+00:13:50.720 --> 00:13:59.120
+So those are the limitations. With that in mind, and given that we've explained what it is, how to use it, do we have any closing recommendations for people?
+
+136
+00:13:59.120 --> 00:14:02.880
+You also gave a hint that you might have a secret tip.
+
+137
+00:14:02.880 --> 00:14:08.080
+Yeah, I'll try to pay back everyone that is listening so far.
+
+138
+00:14:08.080 --> 00:14:16.880
+So basically in terms of recommendations, one of the most common recommendations that you will find is to try to keep URLs, presigned URLs short lived.
+
+139
+00:14:16.880 --> 00:14:21.680
+Because a presigned URL doesn't really expire after you use it.
+
+140
+00:14:21.680 --> 00:14:26.480
+It only expires after the time, the expiry time is elapsed.
+
+141
+00:14:26.480 --> 00:14:32.640
+So if a user has a presigned URL, nothing is stopping them from using it twice or even more.
+
+142
+00:14:32.640 --> 00:14:35.520
+So they can re-upload, they can re-download the file.
+
+143
+00:14:35.520 --> 00:14:41.200
+So the only real way that you can protect against that is to keep the expiry time as short as possible.
+
+144
+00:14:41.200 --> 00:14:50.640
+But of course, don't keep it too short because some people have observed that if you keep it too short, there might be clock slightly off sync between servers.
+
+145
+00:14:50.640 --> 00:14:56.640
+So if you keep it, for instance, in the order of a few seconds, the link, as soon as the user starts to use it, it's already expired.
+
+146
+00:14:56.640 --> 00:15:01.600
+So probably slightly above one minute or two, it's probably fine for most use cases.
+
+147
+00:15:02.720 --> 00:15:04.560
+Another tip is to enable cores.
+
+148
+00:15:04.560 --> 00:15:10.240
+And I think this is especially important if you want to use it from the front end.
+
+149
+00:15:10.240 --> 00:15:14.720
+If you want to use both presigned URLs, or I think that applies also if you use the SDK.
+
+150
+00:15:14.720 --> 00:15:15.760
+Right, Eoin?
+
+151
+00:15:15.760 --> 00:15:20.400
+You still need to enable cores in order to be able to do API calls from the front end.
+
+152
+00:15:23.280 --> 00:15:25.280
+I'm not sure about that. I'd have to think about that.
+
+153
+00:15:25.280 --> 00:15:25.520
+Okay.
+
+154
+00:15:25.520 --> 00:15:26.560
+Cut me off guard.
+
+155
+00:15:26.560 --> 00:15:29.680
+Worth verifying. If you know it, please leave it in the comments.
+
+156
+00:15:30.320 --> 00:15:32.400
+But now let's get to the secret tip.
+
+157
+00:15:32.400 --> 00:15:37.280
+And this is something that we actually discovered quite recently and we were quite impressed by it.
+
+158
+00:15:37.280 --> 00:15:43.280
+So it turns out that presigned URLs are not only valid for uploads and downloads,
+
+159
+00:15:43.280 --> 00:15:47.840
+but actually you can use them for any kind of S3 operation.
+
+160
+00:15:47.840 --> 00:15:51.760
+And if you don't believe us, the simplest thing you can do to actually verify the statement
+
+161
+00:15:51.760 --> 00:15:56.560
+is to try to use the SDK to create a presigned URL for a least bagged operation.
+
+162
+00:15:57.280 --> 00:15:59.680
+And then use that URL and see what's the response.
+
+163
+00:16:00.560 --> 00:16:05.680
+And I'll give you another thing that you can try, which is actually a little bit more useful in practice, I believe.
+
+164
+00:16:05.680 --> 00:16:10.960
+Which is, for instance, you can do a multi-part upload using presigned URLs.
+
+165
+00:16:10.960 --> 00:16:15.200
+And the way you do that is basically you do the first operation of a multi-part upload.
+
+166
+00:16:15.200 --> 00:16:18.240
+By the way, if you don't know what a multi-part upload is, it's basically
+
+167
+00:16:18.240 --> 00:16:22.320
+rather than uploading the file in sequence, like byte after byte,
+
+168
+00:16:22.320 --> 00:16:26.400
+you can split that file into multiple parts and then you can upload all the
+
+169
+00:16:26.400 --> 00:16:30.720
+bytes of every parts in parallel. So it's basically a way to try to speed up the upload.
+
+170
+00:16:30.720 --> 00:16:33.600
+And the way it works is that you generally have to do two API calls.
+
+171
+00:16:33.600 --> 00:16:37.440
+One to start the multi-part upload and one to finish.
+
+172
+00:16:37.440 --> 00:16:42.880
+And in between, you can create new parts. And when you create new parts, you can basically
+
+173
+00:16:42.880 --> 00:16:49.040
+use the presigned URLs to do that. And at that point, you have URLs that you can use to trigger
+
+174
+00:16:49.040 --> 00:16:52.320
+that upload without needing to have additional credentials.
+
+175
+00:16:52.320 --> 00:16:57.360
+And actually, this is something we figured out in a blog post by altostra.com.
+
+176
+00:16:57.360 --> 00:17:00.400
+So we're going to have that blog post as well in the show notes.
+
+177
+00:17:00.400 --> 00:17:04.000
+And there are examples of code you can see there, which I think makes all of
+
+178
+00:17:04.000 --> 00:17:08.800
+that thing a little bit more clear. So with that being said, I think we are
+
+179
+00:17:08.800 --> 00:17:15.280
+at the end of these episodes and we are really curious to know if you knew about S3 present URLs
+
+180
+00:17:15.280 --> 00:17:18.800
+and if you have been using them in production, what kind of use cases do you have?
+
+181
+00:17:18.800 --> 00:17:22.720
+And I don't know if this is your favorite S3 feature.
+
+182
+00:17:22.720 --> 00:17:25.280
+It kind of is my favorite S3 feature right now.
+
+183
+00:17:25.280 --> 00:17:29.360
+So if this is not your favorite S3 feature, please tell us in the comment, what is your
+
+184
+00:17:29.360 --> 00:17:34.240
+actual S3 feature that you like the most? So with that being said, thank you very much
+
+185
+00:17:34.240 --> 00:17:59.680
+for being with us. Remember to like and subscribe and we'll see you in the next episode.

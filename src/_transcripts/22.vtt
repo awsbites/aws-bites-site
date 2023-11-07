@@ -1,0 +1,1045 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:03.680
+Hello, today we are going to answer the question, how do you use SQS?
+
+2
+00:00:03.680 --> 00:00:08.480
+And so by the end of this episode, you will know when to use an SQS queue and we'll give
+
+3
+00:00:08.480 --> 00:00:13.760
+some example use cases. We'll talk about the main features of SQS, how to send and receive messages,
+
+4
+00:00:14.400 --> 00:00:18.480
+how to customize the configuration of a queue, and we'll also talk a lot about the integration
+
+5
+00:00:18.480 --> 00:00:30.160
+between SQS and Lambda. My name is Eoin and I'm joined by Luciano and this is the AWS Bites podcast.
+
+6
+00:00:33.040 --> 00:00:37.280
+In the last episode, we talked about all the different AWS event services you have
+
+7
+00:00:37.840 --> 00:00:44.400
+and today we're going to do a deep dive on SQS. So I think we had a classification of event systems
+
+8
+00:00:44.400 --> 00:00:49.920
+the last time Luciano, we had point-to-point systems, we had PubSub and we had streaming.
+
+9
+00:00:49.920 --> 00:00:54.560
+So SQS is a point-to-point system. What is it good for?
+
+10
+00:00:55.600 --> 00:01:02.320
+Yeah, so in the last episode we gave a few high-level details about SQS, so let's deep dive.
+
+11
+00:01:02.320 --> 00:01:07.840
+We mentioned that decoupling producers and consumers is generally a good use case for SQS.
+
+12
+00:01:07.840 --> 00:01:15.520
+Also, it's a good service to add reliability because basically when you add SQS, you have an
+
+13
+00:01:15.520 --> 00:01:21.680
+easy way to store messages persistently, so you can consume them later and this is good for
+
+14
+00:01:21.680 --> 00:01:27.200
+instance in cases where your consumer might not be immediately available or it might be overloaded.
+
+15
+00:01:27.200 --> 00:01:33.200
+You can have a queue in between and that allows you to be able to manage these kind of situations
+
+16
+00:01:33.200 --> 00:01:41.200
+in a more reliable way. The other thing is that a characteristic of SQS is that each message is
+
+17
+00:01:41.200 --> 00:01:48.800
+expected to be processed by one consumer and that will have implications that we'll discuss later
+
+18
+00:01:48.800 --> 00:01:57.040
+with some of the examples. Also, multiple consumers allows you to scale highly. For instance, if you
+
+19
+00:01:57.040 --> 00:02:01.680
+are producing many, many messages and for some reason your application is not working, you can
+
+20
+00:02:01.680 --> 00:02:05.760
+for some reason your application is more and more successful, so the number of messages grows
+
+21
+00:02:05.760 --> 00:02:10.320
+exponentially, you can keep allocating more and more consumers and you will just get all the
+
+22
+00:02:10.320 --> 00:02:18.240
+messages being distributed and you can compute in a more parallelized way. So that let's say SQS is
+
+23
+00:02:18.240 --> 00:02:23.920
+generally a good way to scale workloads when the number of items to process increases over time.
+
+24
+00:02:24.800 --> 00:02:29.840
+And the other thing is that it can be used even for cross-region or cross-account communication
+
+25
+00:02:29.840 --> 00:02:36.080
+because from one region you can publish messages in another region or even from one account you
+
+26
+00:02:36.080 --> 00:02:43.440
+can publish messages in another account. So it can be used for communicating that way across
+
+27
+00:02:43.440 --> 00:02:49.440
+regions and accounts. Is there any example use case that you want to mention to try to clarify
+
+28
+00:02:50.960 --> 00:02:56.400
+these points we just mentioned?
+
+29
+00:02:56.400 --> 00:03:01.360
+There are loads of use cases where you can really make great use of SQS but I suppose some of the simple ones we talked about the last time were you want to send
+
+30
+00:03:01.360 --> 00:03:08.880
+an email so you could have a service that consumes email sending requests and SQS is ideal for that
+
+31
+00:03:08.880 --> 00:03:15.840
+or if you have some sort of batch processing like a service to process picture resizing requests.
+
+32
+00:03:16.960 --> 00:03:22.000
+That's a typical example and you can imagine the same thing being applied to a lot of enterprise
+
+33
+00:03:22.000 --> 00:03:27.280
+batch processing workloads as well like if you're doing some sort of calculation or modeling an
+
+34
+00:03:27.280 --> 00:03:33.280
+aggregation task these are all jobs that you can put on an SQS queue and then have one or many
+
+35
+00:03:33.280 --> 00:03:39.120
+many workers that pull from that queue. It could be an AI modeling workload as well so you can just
+
+36
+00:03:39.120 --> 00:03:44.880
+imagine having a pool of workers and that pool can scale auto scale according to the queue depth the
+
+37
+00:03:44.880 --> 00:03:51.920
+number of messages in your queue. That's a pretty typical pattern. You've also got I suppose thinking
+
+38
+00:03:51.920 --> 00:03:58.320
+like about enterprise architecture or event driven microservices the architecture and decoupling
+
+39
+00:03:58.320 --> 00:04:04.480
+systems SQS is really useful in all of those situations so decoupling within systems at a
+
+40
+00:04:04.480 --> 00:04:09.680
+finer grain or at a macro level across a big enterprise full of applications.
+
+41
+00:04:09.680 --> 00:04:15.360
+So yeah that's that's particularly useful you could also use it as an SNS subscription so
+
+42
+00:04:15.360 --> 00:04:19.520
+we mentioned that it's a point-to-point channel but you can also use it with PubSub
+
+43
+00:04:20.160 --> 00:04:24.960
+and together you get point-to-point with reliability or sorry PubSub with reliability.
+
+44
+00:04:26.560 --> 00:04:33.440
+You also have DLQs so DLQs there's lots of enterprise integration patterns and DLQ is
+
+45
+00:04:33.440 --> 00:04:39.760
+one of the most well known and that's essentially a dead letter queue which so it's a queue where
+
+46
+00:04:39.760 --> 00:04:45.120
+if you have messages that have failed to be processed repeatedly you can put them into
+
+47
+00:04:45.120 --> 00:04:50.400
+a dead letter queue and then manually re-inspect them and schedule them for redelivery later.
+
+48
+00:04:51.280 --> 00:04:59.120
+So SQS queues can be used as DLQs in their own right with any system but SQS also has a feature
+
+49
+00:04:59.120 --> 00:05:06.000
+but SQS also has a feature which allows you to send failed messages to another queue which is a DLQ.
+
+50
+00:05:06.720 --> 00:05:12.320
+So that's one of the one of the cool features of SQS. Should we go through and run through the
+
+51
+00:05:12.320 --> 00:05:19.360
+highlight features of SQS quickly? Where would you start? Yeah I think so.
+
+52
+00:05:19.360 --> 00:05:24.560
+So yeah the first thing that we also mentioned in the previous episode is that we have two different types of queues in SQS.
+
+53
+00:05:24.560 --> 00:05:31.760
+One type is called regular queues I guess for lack of better naming and the other type is FIFO queues.
+
+54
+00:05:31.760 --> 00:05:40.400
+So with regular queues you get different types of guarantees and the idea is that a queue will do
+
+55
+00:05:40.400 --> 00:05:47.360
+like a best effort delivery in terms of ordering so you are not guaranteed to have messages
+
+56
+00:05:47.360 --> 00:05:53.920
+strictly ordered when you consume them and the other thing is that you get at least once delivery
+
+57
+00:05:53.920 --> 00:05:58.160
+which basically means that when you receive the messages it might happen that you get the same
+
+58
+00:05:58.160 --> 00:06:05.360
+message more than once. When you need a little bit more strict guarantees you can use FIFO queues
+
+59
+00:06:05.360 --> 00:06:11.280
+and FIFO queues will give you ordering guarantees so if you produce messages with a certain order
+
+60
+00:06:11.280 --> 00:06:17.600
+those messages are consumed in the same order and also get exactly once delivery so FIFO queues have
+
+61
+00:06:17.600 --> 00:06:24.000
+a mechanism to remove potentially duplicated messages coming in again into the queue
+
+62
+00:06:24.880 --> 00:06:29.680
+and we'll probably give you a few more details about that later on during this episode.
+
+63
+00:06:30.320 --> 00:06:35.360
+Another interesting feature is DLQ. We already mentioned it. It's something that needs to be
+
+64
+00:06:35.360 --> 00:06:41.280
+enabled and we'll discuss a little bit more how to enable that but it's very easy to have it
+
+65
+00:06:41.280 --> 00:06:47.920
+built in and this is very convenient because it's very common that you define a number of messages
+
+66
+00:06:47.920 --> 00:06:54.080
+types in your application then your code evolves eventually you might be introducing a bug in the
+
+67
+00:06:54.080 --> 00:07:00.320
+code that is processing a job and what happens is that if your job if your worker is always crashing
+
+68
+00:07:00.880 --> 00:07:05.200
+then you're not going to be able to process that message ever so rather than keep retrying it
+
+69
+00:07:05.200 --> 00:07:10.800
+indefinitely it will eventually be moved to a DLQ somebody can investigate and then when you
+
+70
+00:07:10.800 --> 00:07:16.480
+realize what's the problem you fix the bug you can easily reingest from the DLQ and actually process
+
+71
+00:07:16.480 --> 00:07:22.160
+the message so this is actually a very critical feature that I think most applications using
+
+72
+00:07:22.160 --> 00:07:31.760
+IQ should avail of. Another interesting detail is that the protocol of Sqs is not one of the common
+
+73
+00:07:31.760 --> 00:07:40.000
+protocols generally seen in other queuing systems like RabbitMQ or ActiveMQ that uses protocol like
+
+74
+00:07:40.000 --> 00:07:50.880
+AMQP or MQTT. In the case of Sqs the protocol is HTTP. I don't think it makes a huge difference at
+
+75
+00:07:50.880 --> 00:07:56.000
+the end of the day because the way you interact is through the SDK so you don't get to really work at
+
+76
+00:07:56.000 --> 00:08:02.880
+the protocol level but there might be different features and different characteristics in terms
+
+77
+00:08:02.880 --> 00:08:07.920
+of performance because of the underlying protocol so that that might be interesting to know for some
+
+78
+00:08:07.920 --> 00:08:16.480
+people that are coming from other queuing systems. Then we also have a server-side encryption so
+
+79
+00:08:17.120 --> 00:08:25.120
+messages are encrypted in transit and I suppose also they are stored encrypted.
+
+80
+00:08:28.480 --> 00:08:31.520
+We have message delays which basically allows us to
+
+81
+00:08:31.520 --> 00:08:39.920
+configure in different ways how and when the message should appear in the queue. We'll mention
+
+82
+00:08:39.920 --> 00:08:47.280
+a few examples later on. The other very interesting thing is that Sqs is durable and available pretty
+
+83
+00:08:47.280 --> 00:08:55.760
+much by default, also scalable. That means for instance if we look in contrast Kinesis, with
+
+84
+00:08:55.760 --> 00:09:01.600
+Kinesis you need to do a little bit of capacity planning. You need to understand how many shards
+
+85
+00:09:01.600 --> 00:09:07.760
+you need to provision and that's generally based on what is the throughput that you want to achieve.
+
+86
+00:09:07.760 --> 00:09:12.720
+With Sqs you don't have to worry about all the stuff. Queues will automatically scale for you
+
+87
+00:09:12.720 --> 00:09:18.720
+and you don't need to pre-provision any of that stuff. In general I would say that the biggest
+
+88
+00:09:18.720 --> 00:09:25.760
+feature of Sqs is that it is a very simple, true to its name, a very simple queuing system
+
+89
+00:09:26.400 --> 00:09:33.600
+and therefore it's very easy to integrate in most applications and you get very good performance
+
+90
+00:09:34.240 --> 00:09:37.760
+basically straight away without having to go crazy with configuration.
+
+91
+00:09:39.520 --> 00:09:44.400
+Is there anything else worth mentioning? Maybe, I don't know, some interesting integrations with
+
+92
+00:09:44.400 --> 00:09:52.720
+other services. What do you think? Yeah, for sure.
+
+93
+00:09:52.720 --> 00:09:57.440
+On the integration with other services side we can think of I suppose about the producer side and the consumer side. So when you're producing messages
+
+94
+00:09:58.720 --> 00:10:03.920
+a lot of services are there that target Sqs already. So if you've got an API gateway you can
+
+95
+00:10:04.640 --> 00:10:08.000
+back that with a queue. So you can send messages from API gateway directly to a queue.
+
+96
+00:10:08.000 --> 00:10:15.120
+We already mentioned SNS subscriptions so SNS and Sqs play very nicely together. EventBridge too,
+
+97
+00:10:15.120 --> 00:10:20.560
+in the same way and you can also integrate it into step functions. So it's pretty well integrated on
+
+98
+00:10:20.560 --> 00:10:27.760
+the production side. Of course we could talk about the consumption side but for both consumption and
+
+99
+00:10:27.760 --> 00:10:33.280
+production you can also use it programmatically. So let's talk about how do you send a message and
+
+100
+00:10:33.280 --> 00:10:38.560
+how do you receive a message. So on the sending side there's a send message API and there's also
+
+101
+00:10:38.560 --> 00:10:43.360
+a send message batch API. So you can send a single message or you can send up to 10 in a batch.
+
+102
+00:10:43.360 --> 00:10:50.080
+So that's the limit in a batch. Then when you receive you call on the consumption side
+
+103
+00:10:51.280 --> 00:10:57.200
+it's essentially a pull mode. So you have an SDK or an API that you use to call receive message and
+
+104
+00:10:57.200 --> 00:11:02.400
+receive message and it also allows you to receive up to 10 messages at a time. So you can choose
+
+105
+00:11:02.400 --> 00:11:09.120
+to receive one or up to 10. And that operates in two modes. You've got short polling mode and long
+
+106
+00:11:09.120 --> 00:11:14.880
+polling mode. So short polling is basically saying give me a message if one is available
+
+107
+00:11:14.880 --> 00:11:20.080
+but if no message is available just return. So that's essentially a zero seconds wait time.
+
+108
+00:11:20.080 --> 00:11:24.560
+But you can also do long polling where you can say wait up to 20 seconds for messages to appear
+
+109
+00:11:24.560 --> 00:11:30.160
+and then return. So the difference there is it depends on the volume of messages you're
+
+110
+00:11:30.160 --> 00:11:35.760
+expecting and the nature of your system. I suppose it's important to kind of bear in mind that if
+
+111
+00:11:35.760 --> 00:11:41.520
+you're polling more frequently that's an extra request. SQS is priced essentially on the number
+
+112
+00:11:41.520 --> 00:11:47.200
+of requests. There's also data transfer but it's fundamentally about the number of requests so you
+
+113
+00:11:47.200 --> 00:11:50.800
+can bear that in mind. So once you've called receive message then you can do your message
+
+114
+00:11:50.800 --> 00:11:57.200
+processing and then delete. So it's essentially like you're starting a job and then you're
+
+115
+00:11:57.200 --> 00:12:02.400
+committing to the fact that you've processed the job by calling delete message at the end.
+
+116
+00:12:02.400 --> 00:12:08.480
+So there's three steps essentially when you're a consumer. So the interesting thing there is
+
+117
+00:12:08.480 --> 00:12:16.160
+what happens when you forget to delete and yeah that's really important. So can you describe that
+
+118
+00:12:16.160 --> 00:12:21.360
+Luciano? What would you expect to happen if you forget to delete a message from a queue after
+
+119
+00:12:21.360 --> 00:12:27.760
+you've processed it? Yeah so I'm gonna try to give a brief description of that.
+
+120
+00:12:27.760 --> 00:12:33.600
+I think we will understand more how that really works when we deep dive into the actual configuration. But in
+
+121
+00:12:33.600 --> 00:12:41.680
+general SQS never really deletes messages that have been delivered to a consumer because it's
+
+122
+00:12:41.680 --> 00:12:47.840
+waiting for the consumer to acknowledge that the job was completed and that's done through
+
+123
+00:12:47.840 --> 00:12:54.480
+an explicit call to the delete message API. And so if that doesn't happen because either you
+
+124
+00:12:54.480 --> 00:12:59.680
+forget to do that in your code or maybe there is a bug and the worker crashes before is actually
+
+125
+00:12:59.680 --> 00:13:05.200
+able to delete the message, the only thing that SQS can do is assume that something went wrong.
+
+126
+00:13:05.200 --> 00:13:10.320
+Maybe the message was not delivered, maybe the job was not processed correctly, so it's gonna
+
+127
+00:13:10.320 --> 00:13:15.440
+make the job eventually reappear in the queue so that it can be processed again. So it's kind of
+
+128
+00:13:15.440 --> 00:13:21.360
+taking a sane default to make sure that you have a chance to process that message again in case
+
+129
+00:13:22.080 --> 00:13:29.360
+something went wrong. So yeah make sure to delete the message when you completed processing it,
+
+130
+00:13:29.360 --> 00:13:36.240
+otherwise you'll end up reprocessing the same job over and over again. And of course your queue
+
+131
+00:13:36.240 --> 00:13:41.280
+will grow indefinitely because you keep accumulating more and more messages that will
+
+132
+00:13:41.280 --> 00:13:47.520
+always reappear in the queue until they are completely expired because of the direction of a
+
+133
+00:13:47.520 --> 00:13:55.600
+message in the queue. So given that we are starting to talk more and more about the different
+
+134
+00:13:55.600 --> 00:14:02.960
+configuration options, should we deep dive into that? Let's do that.
+
+135
+00:14:02.960 --> 00:14:07.600
+You mentioned around the deletion, it's all down to visibility. You mentioned this thing about messages,
+
+136
+00:14:07.600 --> 00:14:13.680
+they're not deleted, they just become invisible. So then my understanding of message visibility,
+
+137
+00:14:13.680 --> 00:14:19.440
+maybe you can chime in here, but if you receive a message, it remains in the queue,
+
+138
+00:14:19.440 --> 00:14:24.720
+so we said that prevents other consumers from seeing it. So it gives you, the first
+
+139
+00:14:24.720 --> 00:14:30.000
+consumer, a chance to process it. There's a visibility timeout, so the clock is ticking
+
+140
+00:14:30.000 --> 00:14:36.160
+and the consumer has to process it within this visibility timeout. And after that timeout has
+
+141
+00:14:36.160 --> 00:14:42.880
+elapsed, if it hasn't been explicitly deleted, it's going to reappear. So this is a configuration
+
+142
+00:14:42.880 --> 00:14:48.720
+setting then you can set a queue level, but you can also set it at an individual message level
+
+143
+00:14:48.720 --> 00:14:54.880
+when you call receive message. So it can be zero seconds, it can be up to 12 hours,
+
+144
+00:14:54.880 --> 00:15:00.640
+but the default is 30 seconds.
+
+145
+00:15:00.640 --> 00:15:06.000
+Yeah, I guess one case where this can be important is if you have a job that you know is going to take you a long time to process, make sure to find the
+
+146
+00:15:06.000 --> 00:15:10.800
+fine tune this visibility timeout, because if it's too low, while you are still processing
+
+147
+00:15:10.800 --> 00:15:17.040
+that message, it will already reappear in the queue. So you end up with duplicated processing
+
+148
+00:15:17.040 --> 00:15:21.120
+because of that. So that can be another issue that can happen when you have long running
+
+149
+00:15:21.120 --> 00:15:26.240
+processing jobs. Yeah, that's a good one.
+
+150
+00:15:26.240 --> 00:15:31.440
+And we're going to talk about Lambda later, but Lambda has its own timeout and you want to make sure that they align the SQS timeout and
+
+151
+00:15:31.440 --> 00:15:37.200
+the Lambda timeout because it doesn't make sense for your Lambda to take longer than your visibility
+
+152
+00:15:37.200 --> 00:15:42.720
+timeout because you'll end up with that situation. Another configuration option I think worth
+
+153
+00:15:42.720 --> 00:15:49.280
+mentioning before we kind of move on is message groups because we talked about FIFO queues and the
+
+154
+00:15:49.280 --> 00:15:54.160
+ordering guarantees that you get. So those ordering guarantees aren't per for the whole
+
+155
+00:15:54.160 --> 00:16:00.080
+queue, you can actually partition it into ordered streams using message groups. It's a bit like
+
+156
+00:16:00.080 --> 00:16:06.880
+the way ordering works with Kinesis shards except different, but the concept is the same, right?
+
+157
+00:16:06.880 --> 00:16:12.640
+Because it means that you can say define multiple groups and then you can still get parallel
+
+158
+00:16:12.640 --> 00:16:19.760
+processing with ordering. So it's a nice way to balance that. But then the order guarantees and
+
+159
+00:16:19.760 --> 00:16:25.360
+the delivery guarantees are per message group ID. So that's interesting to know. There's a whole
+
+160
+00:16:25.360 --> 00:16:30.000
+set of other configuration options like you can set up message delay, you can set up the queue
+
+161
+00:16:30.000 --> 00:16:38.400
+retention up to 14 days, you could put a specific resource policy in there for security, a redrive
+
+162
+00:16:38.400 --> 00:16:44.480
+policy for DLQs, we mentioned that already. And on FIFO queues actually you can also do
+
+163
+00:16:44.480 --> 00:16:51.120
+deduplication. So you can ensure that you got the exactly once delivery semantics by making sure
+
+164
+00:16:51.120 --> 00:17:00.000
+SQS can recognize when you've got a duplicate. These FIFO queues also support high throughput
+
+165
+00:17:00.000 --> 00:17:08.480
+mode, which is interesting because when you do those FIFO queues, because you've got ordering,
+
+166
+00:17:09.120 --> 00:17:12.560
+by its very nature, you're limiting throughput because you have to process them in order.
+
+167
+00:17:13.920 --> 00:17:19.840
+So there's a number of settings like setting the FIFO throughput limit and stuff that you can use
+
+168
+00:17:19.840 --> 00:17:26.160
+to make sure you get the maximum throughput for FIFO queues. Throughput for standard queues,
+
+169
+00:17:26.160 --> 00:17:32.800
+it's essentially unlimited. So those are the configuration options. Are there any kind of
+
+170
+00:17:32.800 --> 00:17:37.360
+constraints, limitations, a lot of AWS services, you know, you have to understand all the quotas
+
+171
+00:17:37.360 --> 00:17:41.760
+and limitations. What's the soft limit? What's the hard limit? There aren't a lot with SQS, are there?
+
+172
+00:17:42.480 --> 00:17:47.920
+Yeah, there aren't.
+
+173
+00:17:47.920 --> 00:17:54.880
+I think the main ones is that there is a limit on the message sides, which is 256 kilobytes. But a common pattern that I've seen is you can use, for instance, S3 and
+
+174
+00:17:54.880 --> 00:18:01.520
+just put a reference to the file in S3 in the message when you need to use more data.
+
+175
+00:18:03.440 --> 00:18:08.160
+Then it's interesting to see that there are no limits in terms of the number of messages that
+
+176
+00:18:08.160 --> 00:18:14.000
+can be stored in a queue. So you can keep pushing more and more messages and you don't have a limit
+
+177
+00:18:14.000 --> 00:18:22.400
+there. And there aren't API limits in terms of requests except in the FIFO queues where you have,
+
+178
+00:18:22.400 --> 00:18:26.960
+I think, 300 API calls per second. Is that right? Yep.
+
+179
+00:18:26.960 --> 00:18:32.400
+And 3,000 if you use batching because you can do 10 at a time, basically.
+
+180
+00:18:34.960 --> 00:18:40.240
+And also there is another interesting limit, which is the number of messages that can be in-flight.
+
+181
+00:18:40.240 --> 00:18:45.760
+We didn't... I don't think we explained what in-flight means, but basically it's those
+
+182
+00:18:45.760 --> 00:18:50.000
+messages that are currently being processed by workers on the other side.
+
+183
+00:18:50.640 --> 00:18:52.960
+Received but not deleted. Exactly.
+
+184
+00:18:52.960 --> 00:18:59.680
+Yeah. And the visibility time out hasn't expired yet, so they haven't reappeared in the queue.
+
+185
+00:19:00.240 --> 00:19:08.880
+Yep. And there is a limit of 120,000 for regular queues and 20,000 for FIFO queues.
+
+186
+00:19:08.880 --> 00:19:13.680
+Now, this is something I wanted to mention because one of the tools that we have mentioned also in
+
+187
+00:19:13.680 --> 00:19:19.360
+previous episodes called SlickWatch, which allows you to easily get observability in serverless
+
+188
+00:19:19.360 --> 00:19:25.920
+projects if you're using the serverless framework. In that serverless plugin that we built,
+
+189
+00:19:25.920 --> 00:19:34.560
+we already give you a pre-configured alarm and dashboard that you can have in your application
+
+190
+00:19:34.560 --> 00:19:39.120
+in your application to monitor if you are actually reaching this threshold
+
+191
+00:19:39.120 --> 00:19:43.840
+of too many in-flight requests. So if you want to check that out,
+
+192
+00:19:43.840 --> 00:19:50.560
+we'll put the link in the description. Yeah, that's good.
+
+193
+00:19:50.560 --> 00:19:53.760
+It's a bit of a shameless self-promotion, but it's definitely worthwhile because those are the kinds of things you
+
+194
+00:19:53.760 --> 00:19:58.000
+never think about. And then in the rare situation where you've got a problem and your number of
+
+195
+00:19:58.000 --> 00:20:04.720
+in-flight messages goes through the roof, you'll get an alarm with it. I think it's worthwhile
+
+196
+00:20:04.720 --> 00:20:10.320
+talking about AWS Lambda because AWS Lambda works really well with SQS, but it has a whole set of
+
+197
+00:20:10.320 --> 00:20:15.520
+different considerations. So I think it's worthwhile talking about it. When you've got EC2 or ECS
+
+198
+00:20:15.520 --> 00:20:21.760
+consumers, containers somewhere, the operation model for consumers is relatively straightforward
+
+199
+00:20:21.760 --> 00:20:25.440
+because you're in control and you have to build all the infrastructure and scale it out yourself.
+
+200
+00:20:25.440 --> 00:20:32.240
+With Lambda, there's something called an event source mapping. It's the same part of the Lambda
+
+201
+00:20:32.240 --> 00:20:40.320
+service that's also used with Kinesis and Kafka sources and DynamoDB streams. But event source
+
+202
+00:20:40.320 --> 00:20:46.800
+mapping is essentially a consumer for SQS that is managed for you within the Lambda service,
+
+203
+00:20:46.800 --> 00:20:53.840
+and it pulls those messages for you. So we mentioned how SQS integrates with other
+
+204
+00:20:53.840 --> 00:20:58.880
+services on the producer side. On the consumer side, it basically doesn't integrate with anything
+
+205
+00:20:58.880 --> 00:21:04.160
+because you have to pull messages out of it. But the exception is Lambda because it does that for
+
+206
+00:21:04.160 --> 00:21:10.800
+you. So one of the interesting things that I came across with Lambda and SQS is how it scales
+
+207
+00:21:10.800 --> 00:21:17.840
+differently than other Lambda sources. So if you're expecting that if you've got, we talked
+
+208
+00:21:17.840 --> 00:21:23.440
+about the batch processing workload, if you've got many, many containers or many Lambda instances
+
+209
+00:21:23.440 --> 00:21:29.760
+running and they're taking a long time to process SQS messages, some type of machine learning workload
+
+210
+00:21:29.760 --> 00:21:37.520
+running in Lambda might take 90 seconds to process an event, for example. The event source mapping is
+
+211
+00:21:37.520 --> 00:21:42.800
+only going to scale to 60 concurrent instances per minute. And this is dramatically different
+
+212
+00:21:42.800 --> 00:21:47.200
+to other event sources where you, I mean, if you call invoke Lambda, you can get a thousand
+
+213
+00:21:47.200 --> 00:21:55.200
+running instantly and you can get another thousand every minute. And that scales really fast. But
+
+214
+00:21:55.200 --> 00:22:01.600
+with SQS, you can't scale that way. And even if you use provision concurrency, which I tried,
+
+215
+00:22:01.600 --> 00:22:07.520
+it's still 60 per second to consume your SQS messages. So that can be a limit, but it depends
+
+216
+00:22:07.520 --> 00:22:10.720
+on how long it takes to process your messages. Obviously, if your messages are going to be
+
+217
+00:22:10.720 --> 00:22:16.080
+processed in seconds or hundreds of milliseconds, you're still going to be able to process
+
+218
+00:22:16.080 --> 00:22:20.560
+thousands of messages or thousands of batches of messages very quickly. But it's just important
+
+219
+00:22:20.560 --> 00:22:27.440
+to be aware of that. Well, if you've got FIFO queues then as well, you get one batch at a time
+
+220
+00:22:27.440 --> 00:22:34.400
+per message group ID. So that's, I suppose that's probably intuitive, but if you've got five
+
+221
+00:22:34.400 --> 00:22:37.280
+different message group IDs, then you're going to have a maximum of five consumers.
+
+222
+00:22:39.280 --> 00:22:44.000
+There's also some interesting configuration options like the batching. So you can configure
+
+223
+00:22:44.000 --> 00:22:51.120
+if it should invoke your Lambda after a predefined number of seconds,
+
+224
+00:22:51.120 --> 00:22:56.800
+like every six seconds, for example, or if it had received a certain threshold number of messages,
+
+225
+00:22:57.600 --> 00:23:02.480
+or also just based on the payload size. So the number of megabytes that it has accumulated.
+
+226
+00:23:04.560 --> 00:23:08.960
+So that's a whole set of configuration that you get with the Lambda service in SQS.
+
+227
+00:23:08.960 --> 00:23:12.640
+And a really new one is the event filtering, which came out just late last year.
+
+228
+00:23:12.640 --> 00:23:16.480
+And this is kind of interesting because you can filter at the event source mapping level and say,
+
+229
+00:23:16.480 --> 00:23:20.240
+I only want to filter messages matching this pattern. And you can do, you know,
+
+230
+00:23:20.240 --> 00:23:25.360
+JSON filter or a string filter. What that actually means sometimes is that if your consumer
+
+231
+00:23:26.240 --> 00:23:31.760
+doesn't match a filter, you can still end up losing messages because they've been processed
+
+232
+00:23:31.760 --> 00:23:36.320
+by the event source mapping, but they just haven't been sent onto your Lambda because
+
+233
+00:23:36.320 --> 00:23:42.160
+you filter them out. So you have to really think about the semantics there and whether you can
+
+234
+00:23:42.160 --> 00:23:46.160
+and if you want another consumer to be able to pick up that message, you might need to
+
+235
+00:23:46.160 --> 00:23:53.120
+re-architect the message delivery setup. And the last thing I'd say about Lambda is
+
+236
+00:23:53.120 --> 00:23:58.720
+just that cross account Lambdas with an SQS in a different account are also possible,
+
+237
+00:23:58.720 --> 00:24:03.600
+which is really helpful. I wish that was available for all the services, including Kinesis,
+
+238
+00:24:03.600 --> 00:24:07.440
+but that's really helpful for integration across multiple applications when you've got a multi
+
+239
+00:24:07.440 --> 00:24:13.280
+account set up, which is best practice these days, you know, separate account per application,
+
+240
+00:24:13.280 --> 00:24:18.160
+per environment. So if you want to communicate across applications, it's a really good way to do
+
+241
+00:24:18.160 --> 00:24:23.200
+it.
+
+242
+00:24:23.200 --> 00:24:29.200
+Yeah, I think the way you described the integration with Lambda, it feels like there is a lot of magic that AWS does for you. So you have, you can basically build something quicker,
+
+243
+00:24:29.200 --> 00:24:34.640
+but I think it's interesting to understand what's really going on under the hood. So you don't have
+
+244
+00:24:34.640 --> 00:24:37.920
+surprises there. So I think that that was a good one to cover.
+
+245
+00:24:39.920 --> 00:24:44.160
+Yeah. Yeah.
+
+246
+00:24:44.160 --> 00:24:47.280
+It's an interesting one because Lambda is simple, SQS is simple, but they've got, they're building more and more configuration options to make it more powerful.
+
+247
+00:24:48.080 --> 00:24:51.600
+So, you know, you sacrifice some of that simplicity with the power then you get.
+
+248
+00:24:54.160 --> 00:24:59.600
+I think that Lambda kind of concludes a lot of the topics around SQS, but I did want to call out
+
+249
+00:24:59.600 --> 00:25:05.520
+a couple of talks that came up at reInvent last year, some really good new talks all around the
+
+250
+00:25:05.520 --> 00:25:10.560
+idea of enterprise integration patterns and message driven architectures, and it covers SQS,
+
+251
+00:25:10.560 --> 00:25:13.600
+but also all the other services that we're going to talk about in this series.
+
+252
+00:25:14.800 --> 00:25:19.280
+And one of them was by Gregor Hopa, who was one of the authors of the enterprise integrations
+
+253
+00:25:19.280 --> 00:25:24.240
+patterns book, a book I read a long time ago, which is very good for understanding all the
+
+254
+00:25:24.240 --> 00:25:29.520
+different types of message driven workflows you can have in applications. So there's one by him,
+
+255
+00:25:29.520 --> 00:25:34.320
+and there's a couple of others that we're going to put in the show notes. And if people are
+
+256
+00:25:34.320 --> 00:25:40.160
+interested in event driven architectures and how you can build really powerful architectures with
+
+257
+00:25:40.160 --> 00:25:44.000
+very simple services without having to build a whole lot of infrastructure, I think these
+
+258
+00:25:44.000 --> 00:25:50.320
+are really, really worthwhile. So really strong recommendations on those. And with that, I think
+
+259
+00:25:50.320 --> 00:25:56.480
+we'll leave it for this episode, but please follow us, especially if you want to hear more about the
+
+260
+00:25:56.480 --> 00:26:01.680
+event driven architecture series, we're going to cover the SNS in the next episode. So thanks very
+
+261
+00:26:01.680 --> 00:26:27.200
+much for being with us and we'll talk to you then.

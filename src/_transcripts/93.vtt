@@ -1,0 +1,1317 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:03.000
+Today, we are going to be diving into the world of CDK patterns,
+
+2
+00:00:03.200 --> 00:00:06.160
+what they are, where to find them and why you might want to use them.
+
+3
+00:00:06.360 --> 00:00:09.200
+Join us as we discuss the benefits and challenges of using these powerful,
+
+4
+00:00:09.400 --> 00:00:12.800
+reusable modules and explore some alternatives available
+
+5
+00:00:13.000 --> 00:00:15.240
+if the thought of generating infrastructure with dynamic,
+
+6
+00:00:15.440 --> 00:00:17.520
+reusable code gives you nightmares.
+
+7
+00:00:17.520 --> 00:00:30.440
+I am Eoin, here again with Luciano for another episode of the AWS Bites podcast.
+
+8
+00:00:30.640 --> 00:00:33.320
+fourTheorem is the company that makes AWS Bites possible.
+
+9
+00:00:33.520 --> 00:00:36.440
+If you're looking for a partner to accompany you on your cloud journey,
+
+10
+00:00:36.640 --> 00:00:39.840
+check them out at fourtheorem.com.
+
+11
+00:00:40.040 --> 00:00:44.480
+Luciano, can you give me a quick recap on CDK, just for people who don't remember
+
+12
+00:00:44.680 --> 00:00:46.240
+or don't know what it's all about?
+
+13
+00:00:49.400 --> 00:00:53.560
+Yes, so CDK stands for Cloud Development Kit, and it's basically an object-oriented abstraction for CloudFormation.
+
+14
+00:00:53.760 --> 00:00:57.800
+So the idea is that rather than using YAML or JSON to write your infrastructure
+
+15
+00:00:58.000 --> 00:01:02.120
+as code, you can actually use real code like JavaScript, TypeScript, Python,
+
+16
+00:01:02.320 --> 00:01:05.920
+C-sharp, Java or Go, I believe are the ones supported,
+
+17
+00:01:06.120 --> 00:01:08.960
+to actually define the infrastructure that you want to be provisioned
+
+18
+00:01:09.160 --> 00:01:10.360
+in your AWS environment.
+
+19
+00:01:10.560 --> 00:01:12.960
+It's actually not really limited to CloudFormation,
+
+20
+00:01:12.960 --> 00:01:16.320
+because if you look at the bigger picture in the realm of CDK,
+
+21
+00:01:16.520 --> 00:01:18.600
+you also have this project called CDK Terraform.
+
+22
+00:01:18.800 --> 00:01:22.320
+So you can also generate infrastructure that then is deployed with Terraform.
+
+23
+00:01:22.520 --> 00:01:26.280
+And I think there is also a project that allows you to provision
+
+24
+00:01:26.480 --> 00:01:29.640
+Kubernetes configuration using CDK as well.
+
+25
+00:01:29.840 --> 00:01:32.040
+Today, we only want to focus on the CloudFormation one,
+
+26
+00:01:32.040 --> 00:01:34.240
+because this is the one that we have been using the most
+
+27
+00:01:34.440 --> 00:01:36.240
+and the one we know the best.
+
+28
+00:01:36.440 --> 00:01:41.400
+So, yeah, infrastructure as code, as we said, is generally declarative.
+
+29
+00:01:41.400 --> 00:01:46.320
+And that brings certain challenges, because it's always very tricky to do
+
+30
+00:01:46.520 --> 00:01:51.280
+things like loops or condition logics, or if you want to add extra code,
+
+31
+00:01:51.480 --> 00:01:53.520
+hooks, maybe do something before or after.
+
+32
+00:01:53.720 --> 00:01:55.440
+You always need to figure out your own
+
+33
+00:01:55.640 --> 00:02:01.040
+orchestration, your own bash scripts to wrap around things or generate code
+
+34
+00:02:01.240 --> 00:02:03.160
+dynamically using Jinja templates.
+
+35
+00:02:03.160 --> 00:02:04.840
+I've seen all sorts of variations of that,
+
+36
+00:02:04.840 --> 00:02:08.000
+just because there are limitations into the way you typically write
+
+37
+00:02:08.000 --> 00:02:11.920
+infrastructure as code in a declarative way with languages like YAML or JSON.
+
+38
+00:02:12.120 --> 00:02:16.320
+So, CDK tries to fill that gap and try to give you a nicer experience.
+
+39
+00:02:16.520 --> 00:02:18.920
+And the idea is that you write code
+
+40
+00:02:19.120 --> 00:02:23.440
+that effectively, by instantiating a bunch of classes, you are defining the things
+
+41
+00:02:23.440 --> 00:02:26.560
+that you want to appear in your infrastructure and how they are configured
+
+42
+00:02:26.680 --> 00:02:28.120
+and how they are integrated together,
+
+43
+00:02:28.120 --> 00:02:30.880
+because you can easily reference properties from one another.
+
+44
+00:02:31.080 --> 00:02:33.400
+And then at some point, when you're happy with it,
+
+45
+00:02:33.600 --> 00:02:35.800
+you can run a step that is called synthesize.
+
+46
+00:02:35.800 --> 00:02:39.560
+And what synthesize does is basically taking all of that code definition,
+
+47
+00:02:39.560 --> 00:02:41.080
+whatever is your language of choice,
+
+48
+00:02:41.280 --> 00:02:46.120
+somehow evaluating it and converting it into a proper cloud formation stack
+
+49
+00:02:46.320 --> 00:02:50.920
+that can be used to be deployed, still using cloud formation behind the scenes.
+
+50
+00:02:51.120 --> 00:02:55.080
+So CDK gives you all the fundamental building blocks
+
+51
+00:02:55.280 --> 00:03:00.520
+and it generally maps one to one to what you get with cloud formation.
+
+52
+00:03:00.720 --> 00:03:04.720
+But then you also have other things that are like other abstractions on top of it.
+
+53
+00:03:04.720 --> 00:03:07.680
+And the basic abstraction is constructs,
+
+54
+00:03:07.880 --> 00:03:12.840
+which is like representing all the entities that you can define in cloud formation.
+
+55
+00:03:13.040 --> 00:03:16.960
+But also you can start to use constructs to define your own custom things.
+
+56
+00:03:17.160 --> 00:03:20.360
+And then you also have assets, which are not really a cloud formation thing,
+
+57
+00:03:20.560 --> 00:03:25.600
+but a nice extension that CDK gives you to be able to deploy code,
+
+58
+00:03:25.600 --> 00:03:28.640
+for instance, in Lambda functions or container images as part
+
+59
+00:03:28.640 --> 00:03:30.920
+of your own infrastructure definition.
+
+60
+00:03:30.920 --> 00:03:34.560
+So how do we start to make sense of all these different concepts?
+
+61
+00:03:34.560 --> 00:03:39.040
+For instance, can we start by describing better what constructs are and how they are organized?
+
+62
+00:03:39.240 --> 00:03:43.840
+Yeah, the construct is the main thing you need to be concerned with with CDK.
+
+63
+00:03:43.840 --> 00:03:45.800
+And they're essentially classes that are
+
+64
+00:03:46.000 --> 00:03:49.000
+going to generate one or more cloud formation resources.
+
+65
+00:03:49.200 --> 00:03:50.720
+And you have three different levels.
+
+66
+00:03:50.920 --> 00:03:52.560
+There's actually a fourth level,
+
+67
+00:03:52.760 --> 00:03:57.480
+but the level one, two, three are the main ones you would encounter in the wild.
+
+68
+00:03:57.680 --> 00:03:59.720
+And level one constructs are just simple
+
+69
+00:03:59.720 --> 00:04:03.080
+representations of the cloud formation resource exactly as it's defined
+
+70
+00:04:03.080 --> 00:04:05.960
+in the cloud formation doc that just generated.
+
+71
+00:04:06.160 --> 00:04:09.480
+It's just the same as writing cloud formation, except it's represented by a class.
+
+72
+00:04:09.680 --> 00:04:11.680
+So you get type safety and code completion.
+
+73
+00:04:11.880 --> 00:04:14.240
+And often for new services, this is all you get.
+
+74
+00:04:14.440 --> 00:04:21.480
+You just get the `Cfn` resources because all L1 constructs or level one constructs always begin with `Cfn`.
+
+75
+00:04:21.680 --> 00:04:26.440
+Then you have where it really starts to add value is with the level two or L2 constructs.
+
+76
+00:04:26.440 --> 00:04:30.680
+And they provide more convenient helper functions and types to reduce the amount
+
+77
+00:04:30.680 --> 00:04:34.640
+of code that you have to write and allow you to connect resources together more easily.
+
+78
+00:04:34.840 --> 00:04:40.080
+So if we take an example, an L1 construct for an S3 bucket would be the `CfnBucket`
+
+79
+00:04:40.080 --> 00:04:43.360
+class, and it would require you to pass a string for the encryption method.
+
+80
+00:04:43.560 --> 00:04:46.320
+But the L2 construct for bucket has typed
+
+81
+00:04:46.520 --> 00:04:49.800
+values for unencrypted KMS, S3 managed, etc.
+
+82
+00:04:50.000 --> 00:04:54.400
+So the L2 construct then also has helper functions like grant put that will
+
+83
+00:04:54.400 --> 00:04:59.480
+generate the right resource policy statement to allow principal to put an object on that bucket.
+
+84
+00:04:59.680 --> 00:05:03.760
+And this is one of the big benefits of level two constructs for many,
+
+85
+00:05:03.960 --> 00:05:07.840
+since it can reduce the human error encountered in creating IAM policies.
+
+86
+00:05:08.040 --> 00:05:09.720
+And we know all about that.
+
+87
+00:05:09.920 --> 00:05:12.280
+Then if we're moving into the realm of CDK patterns,
+
+88
+00:05:12.480 --> 00:05:15.760
+then we're looking at generally level three or L3 constructs.
+
+89
+00:05:15.960 --> 00:05:20.560
+And these are really higher order constructs that combine multiple level one
+
+90
+00:05:20.560 --> 00:05:23.680
+and level two constructs together to achieve a specific use case.
+
+91
+00:05:23.680 --> 00:05:28.480
+For example, you could create a construct to create a cluster of EC2 instances,
+
+92
+00:05:28.680 --> 00:05:33.000
+security groups, VPC, network routing, logging backups all in one class.
+
+93
+00:05:33.200 --> 00:05:38.680
+You can kind of compare it to React components or you have simple
+
+94
+00:05:38.680 --> 00:05:40.680
+components and then you have higher order components.
+
+95
+00:05:40.880 --> 00:05:44.280
+And that's exactly what L3 constructs are trying to do.
+
+96
+00:05:44.480 --> 00:05:46.960
+So today we're talking about CDK patterns,
+
+97
+00:05:46.960 --> 00:05:49.760
+and these are often created by providing L3 constructs.
+
+98
+00:05:49.960 --> 00:05:52.400
+And there are tons of CDK patterns out there.
+
+99
+00:05:52.400 --> 00:05:54.600
+And you can also create your own quite easily.
+
+100
+00:05:54.800 --> 00:05:57.200
+So Luciano, where can people start to find
+
+101
+00:05:57.400 --> 00:05:59.960
+the CDK patterns and level three constructs?
+
+102
+00:06:00.160 --> 00:06:04.560
+The first thing that comes to mind is that CDK itself has a concept of patterns built in.
+
+103
+00:06:04.760 --> 00:06:09.120
+And there are a couple of interesting sub libraries that are already available
+
+104
+00:06:09.320 --> 00:06:13.600
+once you install CDK. And one is called AWS ECS patterns and another one is called
+
+105
+00:06:13.800 --> 00:06:18.680
+AWS Route 53 patterns. The ECS one, I think, is fairly powerful
+
+106
+00:06:18.680 --> 00:06:22.560
+because also ECS is notoriously complex to configure yourself.
+
+107
+00:06:22.560 --> 00:06:26.760
+There are so many resources, so many configuration options that having patterns
+
+108
+00:06:26.760 --> 00:06:30.200
+is really needed there because otherwise you might be always reinventing the wheel
+
+109
+00:06:30.400 --> 00:06:32.680
+and always bumping into the same old mistakes.
+
+110
+00:06:32.880 --> 00:06:38.680
+So what you get out of the box with AWS ECS patterns is if you want to do
+
+111
+00:06:38.880 --> 00:06:43.320
+a web application running on Fargate, backed by a load balancer,
+
+112
+00:06:43.520 --> 00:06:47.360
+all of that stuff is made very easy if you use this specific pattern.
+
+113
+00:06:47.360 --> 00:06:51.560
+Similarly, you can switch the application load balancer for a network load balancer as well.
+
+114
+00:06:51.760 --> 00:06:55.480
+Or another use case that is covered very nicely is when you want to use Fargate,
+
+115
+00:06:55.680 --> 00:06:59.520
+for instance, to process jobs coming from an SQS queue.
+
+116
+00:06:59.720 --> 00:07:04.640
+And you can do all of that with a container running on Fargate that scales.
+
+117
+00:07:04.640 --> 00:07:07.800
+And it's very easy to configure all the different resources this way
+
+118
+00:07:08.000 --> 00:07:09.880
+when you use this particular pattern.
+
+119
+00:07:10.080 --> 00:07:14.560
+And the interesting thing, again, is because it's a pattern,
+
+120
+00:07:14.760 --> 00:07:16.880
+they will give you a higher level abstraction.
+
+121
+00:07:16.880 --> 00:07:22.040
+So you just in your code, you just instantiate one class or very few classes.
+
+122
+00:07:22.240 --> 00:07:24.960
+And then behind the scenes, it doesn't really map one to one,
+
+123
+00:07:24.960 --> 00:07:26.280
+like one class with one resource,
+
+124
+00:07:26.280 --> 00:07:29.240
+but actually ends up creating all the necessary resources for you.
+
+125
+00:07:29.440 --> 00:07:32.120
+So you get load balancer, you also get health checks.
+
+126
+00:07:32.120 --> 00:07:34.240
+If it needs to create queues, it's going to create the queue,
+
+127
+00:07:34.240 --> 00:07:36.080
+it's going to create auto scaling rules for you.
+
+128
+00:07:36.280 --> 00:07:39.120
+And of course, everything that is customizable,
+
+129
+00:07:39.120 --> 00:07:44.160
+you just will have a higher level interface to specify how to customize the different things.
+
+130
+00:07:44.160 --> 00:07:48.560
+And another interesting detail is that you can even let it create VPCs
+
+131
+00:07:48.760 --> 00:07:52.280
+or you can use a VPC that you already have in your account, for instance.
+
+132
+00:07:52.280 --> 00:07:56.320
+So you can also reference other existing resources in some cases.
+
+133
+00:07:56.520 --> 00:07:59.280
+So the cool thing is that it's something that is going to save you a lot of time,
+
+134
+00:07:59.280 --> 00:08:02.560
+it's going to save you a lot of headache because it's easier to end up
+
+135
+00:08:02.760 --> 00:08:06.040
+with the result you want without doing mistakes.
+
+136
+00:08:06.240 --> 00:08:09.520
+But at the same time, it's hiding a little bit what's being generated.
+
+137
+00:08:09.720 --> 00:08:13.560
+You need to be really diligent into looking into the generated resources.
+
+138
+00:08:13.560 --> 00:08:16.520
+They are not so transparent anymore from the code that you are writing.
+
+139
+00:08:16.720 --> 00:08:19.680
+So sometimes there might be things that you didn't account for.
+
+140
+00:08:19.680 --> 00:08:21.920
+Maybe it's creating a NET Gateway that you didn't need,
+
+141
+00:08:21.920 --> 00:08:23.520
+but now you're suddenly paying for it.
+
+142
+00:08:23.720 --> 00:08:28.400
+So the general advice is there is to don't trust CDK blindly.
+
+143
+00:08:28.400 --> 00:08:32.000
+Always spend time looking at what's being generated, review the stacks,
+
+144
+00:08:32.000 --> 00:08:34.960
+review all the resources in the stack and make sure you understand
+
+145
+00:08:34.960 --> 00:08:38.360
+why all the resources are there and if you really need them.
+
+146
+00:08:38.560 --> 00:08:42.800
+AWS also have this open source extensions set for CDK
+
+147
+00:08:42.800 --> 00:08:44.720
+called solution constructs.
+
+148
+00:08:44.920 --> 00:08:49.200
+So this is a different type of CDK pattern really, because rather than
+
+149
+00:08:49.200 --> 00:08:54.680
+providing these kind of reusable higher order constructs for complex
+
+150
+00:08:54.880 --> 00:08:57.920
+configurations like Fargate with load balancers and all the other
+
+151
+00:08:57.920 --> 00:09:01.520
+integrations, this is essentially around 50 different simple patterns for
+
+152
+00:09:01.600 --> 00:09:05.640
+connecting commonly used resources together and normally like two resources.
+
+153
+00:09:05.840 --> 00:09:09.720
+So an example would be connecting a CloudFront distribution to an API gateway.
+
+154
+00:09:09.720 --> 00:09:13.400
+So they're not as rich as ECS patterns, but more just examples of connecting
+
+155
+00:09:13.400 --> 00:09:15.840
+two services together with the right permissions.
+
+156
+00:09:20.400 --> 00:09:23.040
+Yeah, actually that reminds me of another similar project, which is more open source and community driven called cdkpatterns.com.
+
+157
+00:09:23.240 --> 00:09:26.000
+And you might have heard of this one because it was also mentioned by
+
+158
+00:09:26.000 --> 00:09:28.640
+Vernon Vogels at one of the recent Dreambands.
+
+159
+00:09:28.840 --> 00:09:30.680
+So that it's kind of a similar idea.
+
+160
+00:09:30.680 --> 00:09:36.440
+It's still giving you examples of solutions that you might want to deploy using CDK.
+
+161
+00:09:36.440 --> 00:09:39.200
+So it's code that you can easily take and bring into your own CDK
+
+162
+00:09:39.200 --> 00:09:40.800
+and do all the necessary changes.
+
+163
+00:09:41.000 --> 00:09:46.040
+And just to give you some examples, there might be things like you can do an API
+
+164
+00:09:46.040 --> 00:09:49.880
+where the backend is Lambda and that backend is using Polly and Translate,
+
+165
+00:09:49.880 --> 00:09:53.120
+maybe to do interesting things with audio and text.
+
+166
+00:09:53.320 --> 00:09:59.160
+Or you have other examples where you take a CSV and import it into DynamoDB
+
+167
+00:09:59.160 --> 00:10:03.080
+and from there you create a processing pipeline that does other interesting things.
+
+168
+00:10:03.280 --> 00:10:06.840
+And these are typically not L3 constructs.
+
+169
+00:10:06.840 --> 00:10:11.640
+Again, more of examples that you can take and change as needed.
+
+170
+00:10:11.640 --> 00:10:15.960
+So not meant to be highly reusable, highly configurable, but more
+
+171
+00:10:15.960 --> 00:10:18.360
+these are use cases that we commonly see.
+
+172
+00:10:18.360 --> 00:10:22.240
+Just take them and adapt them to your actual needs.
+
+173
+00:10:22.440 --> 00:10:27.480
+But I think the main question that we still have is what is really the value there?
+
+174
+00:10:27.480 --> 00:10:32.000
+Why we would want to use L3 constructs or higher level constructs in general?
+
+175
+00:10:34.920 --> 00:10:38.520
+But the reason for using CDK patterns and level three constructs particularly are they're like reusable modules that can be shared
+
+176
+00:10:38.520 --> 00:10:43.200
+within a community or an organization, especially if you're all in on CDK.
+
+177
+00:10:43.200 --> 00:10:48.200
+We've seen companies do this where they go all in on CDK, use it for everything
+
+178
+00:10:48.400 --> 00:10:51.560
+and then do lots of sharing and collaboration and have central teams
+
+179
+00:10:51.560 --> 00:10:53.600
+managing these reusable components.
+
+180
+00:10:53.880 --> 00:10:55.720
+And there's lots of good reasons for doing that.
+
+181
+00:10:56.440 --> 00:10:59.560
+Firstly, it allows you to encapsulate proven best practices.
+
+182
+00:11:00.080 --> 00:11:02.960
+It also allows you to build in well-architected framework principles.
+
+183
+00:11:02.960 --> 00:11:06.040
+And you mentioned duplication and reusability.
+
+184
+00:11:06.040 --> 00:11:09.760
+It helps you to be dry by avoiding duplicating the same configuration
+
+185
+00:11:09.760 --> 00:11:11.600
+for groups of resources everywhere you go.
+
+186
+00:11:12.120 --> 00:11:15.560
+And then you can get just consistency and usage of services across the organization.
+
+187
+00:11:15.840 --> 00:11:18.760
+So when people go from one team to another and one project to another,
+
+188
+00:11:18.960 --> 00:11:21.600
+they've got consistency and they can understand how things work.
+
+189
+00:11:21.920 --> 00:11:26.200
+So it just stops you from reinventing the wheel and provides you with hopefully
+
+190
+00:11:26.200 --> 00:11:29.160
+something that allows your teams to go faster because they're getting
+
+191
+00:11:29.160 --> 00:11:32.960
+the encapsulated best practices for your organization out of the box.
+
+192
+00:11:33.480 --> 00:11:36.600
+So that's the positive, but it's not without its trade-offs.
+
+193
+00:11:36.600 --> 00:11:37.880
+So what are some of the challenges?
+
+194
+00:11:43.720 --> 00:11:47.120
+Indeed, there are challenges as with every technology is always a trade-off between some nice things, some less nicer things, and you need to find the balance
+
+195
+00:11:47.120 --> 00:11:48.840
+and figure out when it's worth it or not.
+
+196
+00:11:49.480 --> 00:11:52.760
+So one of the challenges is versioning and keeping teams up to date
+
+197
+00:11:52.760 --> 00:11:54.480
+when improvements are made.
+
+198
+00:11:54.480 --> 00:11:56.800
+And this is both changes in CDK itself.
+
+199
+00:11:56.800 --> 00:12:00.400
+We have seen, for instance, a fairly big change between version one and version two.
+
+200
+00:12:00.960 --> 00:12:04.000
+So there might have been some disruptions for people having to upgrade
+
+201
+00:12:04.000 --> 00:12:05.840
+from one version to the next one.
+
+202
+00:12:05.840 --> 00:12:09.320
+But also changes that you do in your own CDK code, right?
+
+203
+00:12:09.320 --> 00:12:11.560
+How do you keep that in sync with other teams?
+
+204
+00:12:11.840 --> 00:12:15.440
+If you change some of the best practices, how can you track down the places where
+
+205
+00:12:15.440 --> 00:12:17.080
+you are not using that best practice yet?
+
+206
+00:12:17.440 --> 00:12:21.160
+And all this kind of concern wouldn't exist even if you use other tools.
+
+207
+00:12:21.360 --> 00:12:24.640
+So it's not necessarily a problem with CDK itself, but it's still something
+
+208
+00:12:24.640 --> 00:12:28.360
+that you need to think about CDK is not magically solving that problem for you.
+
+209
+00:12:29.280 --> 00:12:34.680
+And in general, I would say that if everyone is using patterns, again,
+
+210
+00:12:34.680 --> 00:12:39.600
+there is a risk that you don't think anymore in terms of AWS resources being
+
+211
+00:12:39.600 --> 00:12:43.800
+created, you just think about use cases and you kind of start to lose track
+
+212
+00:12:43.880 --> 00:12:45.280
+of the bigger picture there.
+
+213
+00:12:45.280 --> 00:12:48.920
+Like at the end of the day, you want to know which resources you are creating
+
+214
+00:12:48.920 --> 00:12:52.880
+because they will impact you in terms of cost, quota, security.
+
+215
+00:12:52.880 --> 00:12:57.520
+So if you stop looking at those, you might end up with lots of problems
+
+216
+00:12:57.520 --> 00:13:01.760
+that you didn't expect and be surprised when you have a security issue or when
+
+217
+00:13:01.760 --> 00:13:05.280
+you start to reach quota, or maybe you have a massive build shock and you are
+
+218
+00:13:05.280 --> 00:13:08.840
+not really realizing why, maybe you just deployed a simple API project and it's
+
+219
+00:13:08.840 --> 00:13:10.400
+costing you way more than it should.
+
+220
+00:13:10.920 --> 00:13:13.000
+So all these things might be a problem.
+
+221
+00:13:13.000 --> 00:13:17.440
+And again, the suggestion there is always try to put an eye on what's happening
+
+222
+00:13:17.440 --> 00:13:21.200
+behind the scenes and always try to think in terms of AWS resources at the end of
+
+223
+00:13:21.200 --> 00:13:23.080
+the day, not necessarily.
+
+224
+00:13:23.920 --> 00:13:28.240
+You still should focus on the abstraction layers, but without forgetting that those
+
+225
+00:13:28.240 --> 00:13:31.760
+abstraction layers will create resources that ultimately is what you should be
+
+226
+00:13:31.760 --> 00:13:32.400
+caring about.
+
+227
+00:13:33.600 --> 00:13:39.080
+And another thing is that CDK is not necessarily deterministic because of
+
+228
+00:13:39.080 --> 00:13:40.040
+various reasons.
+
+229
+00:13:40.360 --> 00:13:45.520
+Again, changes in CDK itself, the way you write your stack might not be
+
+230
+00:13:45.520 --> 00:13:46.680
+deterministic on its own.
+
+231
+00:13:46.680 --> 00:13:49.920
+For instance, I don't know if you do a mat random in your code, right?
+
+232
+00:13:49.920 --> 00:13:52.920
+That value will change every single time you synthesize your stack.
+
+233
+00:13:52.920 --> 00:13:57.280
+And if you're using that to synthesize different resources or maybe to change the
+
+234
+00:13:57.280 --> 00:14:01.880
+name of a property, maybe the name of a resource, you end up with a stack that is
+
+235
+00:14:01.880 --> 00:14:02.600
+always different.
+
+236
+00:14:02.600 --> 00:14:06.600
+So when you try to deploy that, you will always have changes, even though you might
+
+237
+00:14:06.600 --> 00:14:10.560
+not want those changes because logically you are not changing anything relevant.
+
+238
+00:14:10.960 --> 00:14:15.280
+So these are just issues that people will bump into initially when they start to use
+
+239
+00:14:15.280 --> 00:14:19.200
+CDK because they think about, I can write all the code I want.
+
+240
+00:14:19.200 --> 00:14:20.040
+It's just code.
+
+241
+00:14:20.040 --> 00:14:24.240
+But I think it's still important to understand that there is a very specific mental
+
+242
+00:14:24.240 --> 00:14:24.600
+model.
+
+243
+00:14:24.600 --> 00:14:25.520
+There are phases.
+
+244
+00:14:25.800 --> 00:14:27.840
+Ultimately, you are generating cloud formation.
+
+245
+00:14:27.840 --> 00:14:29.600
+You are still deploying a cloud formation stack.
+
+246
+00:14:29.600 --> 00:14:33.800
+So you really need to understand some of the inner workings of CDK to avoid some
+
+247
+00:14:33.800 --> 00:14:34.680
+common mistakes.
+
+248
+00:14:34.960 --> 00:14:40.880
+I was personally burned a few times by trying to do conditional logic with values
+
+249
+00:14:40.880 --> 00:14:44.920
+that sometimes are not immediately available when the CDK code is evaluated.
+
+250
+00:14:44.920 --> 00:14:49.880
+CDK has this concept of tokens, which are values that will be available only at
+
+251
+00:14:49.880 --> 00:14:50.640
+deployment time.
+
+252
+00:14:50.920 --> 00:14:55.440
+So if you try to do if statements, maybe checking if those kind of values are true or
+
+253
+00:14:55.440 --> 00:15:00.400
+false and then based on that generate some resources or others, that code is just not
+
+254
+00:15:00.400 --> 00:15:01.040
+going to work for you.
+
+255
+00:15:01.040 --> 00:15:03.360
+It's just going to always be true or always be false.
+
+256
+00:15:03.760 --> 00:15:06.640
+And that conditional logic is not going to work the way you expect.
+
+257
+00:15:06.840 --> 00:15:10.440
+And similarly, you can have other problems if you use the same approach for loops.
+
+258
+00:15:10.440 --> 00:15:14.760
+Maybe you don't go through the loop at all, or maybe you just do one iteration or maybe
+
+259
+00:15:14.760 --> 00:15:16.160
+you do endless iterations.
+
+260
+00:15:16.480 --> 00:15:22.040
+So just be aware that you really need to understand what is the mental model, how the
+
+261
+00:15:22.040 --> 00:15:26.520
+execution flow of CDK works, because you cannot really write all the code you want.
+
+262
+00:15:26.520 --> 00:15:29.480
+It's not going to magically do everything you want to do in code.
+
+263
+00:15:29.960 --> 00:15:34.360
+The code you write still needs to fit nicely with the model that CDK was built for.
+
+264
+00:15:35.440 --> 00:15:40.320
+It is possible to address those challenges, but it's also good to be aware of what it
+
+265
+00:15:40.320 --> 00:15:42.600
+takes to mitigate the risk there.
+
+266
+00:15:42.600 --> 00:15:46.640
+So lots of automated testing and continuous delivery is one thing that will definitely
+
+267
+00:15:46.640 --> 00:15:46.880
+help.
+
+268
+00:15:48.400 --> 00:15:52.080
+If you have an organization and are going all in on CDK, having dedicated people to
+
+269
+00:15:52.080 --> 00:15:56.600
+maintain these constructs as well, rather than trying to scramble to maintain them in
+
+270
+00:15:56.600 --> 00:15:59.600
+a distributed fashion across multiple teams who are focused on other goals.
+
+271
+00:16:00.560 --> 00:16:03.680
+Good semantic versioning enforcement, of course, is always important for reusable
+
+272
+00:16:03.680 --> 00:16:04.160
+modules.
+
+273
+00:16:04.560 --> 00:16:09.160
+Great documentation will really help because it helps to make everybody self-sufficient.
+
+274
+00:16:09.160 --> 00:16:13.640
+Observability as well, so that when things go wrong, you can detect early and have maybe
+
+275
+00:16:13.640 --> 00:16:16.360
+like canary checks in your deployment pipeline as well.
+
+276
+00:16:16.360 --> 00:16:20.120
+So that even if things build and deploy successfully, you can check what happens.
+
+277
+00:16:20.680 --> 00:16:24.320
+Cost management is another thing, because if you're using patterns and aren't really
+
+278
+00:16:24.320 --> 00:16:28.400
+looking at what's being generated, then one of the risks is that you can incur cost
+
+279
+00:16:28.400 --> 00:16:28.880
+under the hood.
+
+280
+00:16:29.160 --> 00:16:32.560
+So if you've got good observability on the cost side of things, that will help with
+
+281
+00:16:32.560 --> 00:16:33.040
+that risk.
+
+282
+00:16:33.440 --> 00:16:37.080
+And then a really simple one is just keeping a close eye on change sits.
+
+283
+00:16:37.080 --> 00:16:40.280
+Another simple one is just keeping a close eye on change sets.
+
+284
+00:16:40.600 --> 00:16:45.360
+So using CDK diff and CloudFormation change sets and inspecting generated output and
+
+285
+00:16:45.360 --> 00:16:49.760
+what has changed from one to the other so that you can detect if you're upgrading to a
+
+286
+00:16:49.760 --> 00:16:53.600
+new version of a construct that there are changes that you may not have expected.
+
+287
+00:16:54.960 --> 00:16:57.720
+So this is the CDK world of reusable modules.
+
+288
+00:16:57.720 --> 00:17:01.840
+But do we have to use CDK if we want to get this level of reusability or are there
+
+289
+00:17:01.840 --> 00:17:05.160
+alternatives for people who just don't want to go into CDK?
+
+290
+00:17:09.040 --> 00:17:11.720
+Yeah, there are definitely alternatives and I know lots of people that don't like this idea of writing code to define stacks.
+
+291
+00:17:11.720 --> 00:17:13.400
+They prefer something more declarative.
+
+292
+00:17:13.400 --> 00:17:15.960
+They still prefer something that looks more like YAML.
+
+293
+00:17:16.280 --> 00:17:20.200
+And I can understand the way of thinking, of course, there are good reasons for that.
+
+294
+00:17:20.680 --> 00:17:22.200
+So what can you do in that case?
+
+295
+00:17:22.200 --> 00:17:26.600
+If you are more on that side, you want to stick with writing infrastructures code in a
+
+296
+00:17:26.600 --> 00:17:28.880
+declarative way, not using programming languages.
+
+297
+00:17:29.200 --> 00:17:31.240
+So if you use CloudFormation, there are a few options.
+
+298
+00:17:31.560 --> 00:17:33.640
+For instance, you can create your own CloudFormation library.
+
+299
+00:17:33.640 --> 00:17:37.880
+For instance, you can create your own CloudFormation macros to try to do more stuff or
+
+300
+00:17:37.880 --> 00:17:40.520
+even try to do things that CloudFormation cannot do today.
+
+301
+00:17:41.320 --> 00:17:44.560
+Maybe integrate with other providers outside AWS.
+
+302
+00:17:44.560 --> 00:17:46.480
+You can definitely use macros for that.
+
+303
+00:17:47.360 --> 00:17:49.280
+You can also use CloudFormation templates.
+
+304
+00:17:49.280 --> 00:17:53.320
+There is actually a really good repository that we will have in the show notes that has
+
+305
+00:17:53.320 --> 00:17:54.400
+lots of examples.
+
+306
+00:17:54.520 --> 00:17:58.080
+So with CloudFormation templates, you basically build stacks that are highly
+
+307
+00:17:58.080 --> 00:17:58.880
+parameterized.
+
+308
+00:17:58.880 --> 00:18:03.440
+And then by just passing the specific parameters, you can adjust that particular stack
+
+309
+00:18:03.440 --> 00:18:04.760
+or solution to your needs.
+
+310
+00:18:05.200 --> 00:18:08.720
+And there is also service catalog, which is somewhat similar to the idea of
+
+311
+00:18:08.720 --> 00:18:09.840
+CloudFormation templates.
+
+312
+00:18:10.400 --> 00:18:15.200
+Instead, if you are a user of Terraform, Terraform comes with a built-in concept of
+
+313
+00:18:15.200 --> 00:18:15.760
+modules.
+
+314
+00:18:15.760 --> 00:18:20.720
+So there is already an idea in Terraform itself to have reusable units that are
+
+315
+00:18:20.720 --> 00:18:22.880
+configurable and you can compose them together.
+
+316
+00:18:23.360 --> 00:18:27.920
+And there is a really good repository called Terraform AWS modules, which has a huge
+
+317
+00:18:27.920 --> 00:18:30.800
+collection of solutions and high-level models.
+
+318
+00:18:30.800 --> 00:18:36.320
+Somehow they remind me of L3 constructs in CDK, but applied to Terraform.
+
+319
+00:18:36.320 --> 00:18:38.640
+So we will have that link as well in the show notes.
+
+320
+00:18:38.640 --> 00:18:42.560
+And it's definitely a must if you're doing AWS using Terraform.
+
+321
+00:18:42.560 --> 00:18:43.920
+We have plenty of options there.
+
+322
+00:18:43.920 --> 00:18:47.200
+Well, I think that's it for today's episode of AWS Bites.
+
+323
+00:18:47.200 --> 00:18:50.640
+We hope we gave you a valuable take on CDK patterns and the power you get, but also
+
+324
+00:18:50.640 --> 00:18:54.000
+the responsibility you need to take if you want to make them work well.
+
+325
+00:18:54.000 --> 00:18:58.480
+As always, we want to thank you for learning and sharing AWS ideas with us.
+
+326
+00:18:58.480 --> 00:19:01.680
+Please leave us a review and share the podcast with your colleagues and friends.
+
+327
+00:19:01.680 --> 00:19:05.440
+We really appreciate your support and look forward to bringing you more cloud goodness
+
+328
+00:19:05.440 --> 00:19:06.400
+in the next episode.
+
+329
+00:19:06.400 --> 00:19:24.400
+Catch you then.

@@ -1,0 +1,397 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:10.640
+Hello and welcome to another episode of AWS Bites, the weekly show where we answer questions
+
+2
+00:00:10.640 --> 00:00:14.000
+about AWS in about five minutes.
+
+3
+00:00:14.000 --> 00:00:16.780
+My name is Eoin and I'm joined again by Luciano.
+
+4
+00:00:16.780 --> 00:00:23.720
+And today's question is, is AWS Lambda cheap or expensive?
+
+5
+00:00:23.720 --> 00:00:29.200
+So I suppose the great thing about AWS Lambda is you pay for it only when it runs.
+
+6
+00:00:29.200 --> 00:00:32.640
+That's the whole business model behind Lambda.
+
+7
+00:00:32.640 --> 00:00:36.880
+And if you imagine Lambda when it runs, it's like this ephemeral resource.
+
+8
+00:00:36.880 --> 00:00:42.720
+It starts when a given event occurs, it processes that event, and then it shuts down and you're
+
+9
+00:00:42.720 --> 00:00:45.720
+not paying for it after that point.
+
+10
+00:00:45.720 --> 00:00:47.840
+So how does that fit into the pricing model, Luciano?
+
+11
+00:00:47.840 --> 00:00:49.200
+Can you take us through that?
+
+12
+00:00:49.200 --> 00:00:54.980
+Yeah, so in short, there are like two parts to the pricing of Lambda.
+
+13
+00:00:54.980 --> 00:01:00.640
+One is called like the fixed cost of Lambda and it's basically you pay per number of invocations.
+
+14
+00:01:00.640 --> 00:01:06.620
+It's like, I think, 20 cents of dollar per one million invocation, which in my experience
+
+15
+00:01:06.620 --> 00:01:10.880
+is quite negligible because in reality, the bulk of the cost is going to be the variable
+
+16
+00:01:10.880 --> 00:01:11.880
+part.
+
+17
+00:01:11.880 --> 00:01:17.720
+And the variable part is basically based on the actual execution, as you said.
+
+18
+00:01:17.720 --> 00:01:22.860
+And it's a function of the time that you are actually running a given Lambda, but also
+
+19
+00:01:22.860 --> 00:01:26.960
+the amount of memory that you are allocating for that Lambda.
+
+20
+00:01:26.960 --> 00:01:31.720
+So you can imagine that these two dimensions, you multiply them together and you get the
+
+21
+00:01:31.720 --> 00:01:35.960
+actual price for a Lambda execution.
+
+22
+00:01:35.960 --> 00:01:42.400
+The interesting bit, there is a caveat there that you might think, okay, then I'm going
+
+23
+00:01:42.400 --> 00:01:46.040
+to be very cheap and not allocate a lot of memory.
+
+24
+00:01:46.040 --> 00:01:48.960
+So I kind of save money that way.
+
+25
+00:01:48.960 --> 00:01:56.280
+In reality, memory and CPU are very closely related, which basically means that if you
+
+26
+00:01:56.280 --> 00:02:01.880
+allocate more memory to your Lambda, you will also get proportionally more CPU allocated
+
+27
+00:02:01.880 --> 00:02:08.800
+for that Lambda, which sometimes it means non-obvious things like depending on your
+
+28
+00:02:08.800 --> 00:02:13.880
+workload, if you're using a lot of CPU, you might be better off allocating more memory,
+
+29
+00:02:13.880 --> 00:02:17.880
+even though you don't really need that memory because you get more powerful CPU, then you
+
+30
+00:02:17.880 --> 00:02:20.840
+are probably going to complete the execution faster.
+
+31
+00:02:20.840 --> 00:02:23.640
+So at the end of the day, it's going to be cheaper for you.
+
+32
+00:02:23.640 --> 00:02:29.760
+And of course, all these mechanisms are not very easy to predict in all sorts of different
+
+33
+00:02:29.760 --> 00:02:30.880
+use cases.
+
+34
+00:02:30.880 --> 00:02:37.200
+So there is an interesting tool that I want to mention by Alex Casalboni called AWS Lambda
+
+35
+00:02:37.200 --> 00:02:42.800
+Power Tuning that allows you to actually run a simulation of a given Lambda with all the
+
+36
+00:02:42.800 --> 00:02:48.440
+different dimensions and see what is the configuration that is probably going to be cheaper for you
+
+37
+00:02:48.440 --> 00:02:49.800
+long term.
+
+38
+00:02:49.800 --> 00:02:54.400
+So definitely have a look at that in the cases where you are not 100% sure what's going to
+
+39
+00:02:54.400 --> 00:02:58.440
+be the best configuration for your Lambdas.
+
+40
+00:02:58.440 --> 00:03:02.780
+But yeah, I have to say that it's hard to estimate that.
+
+41
+00:03:02.780 --> 00:03:09.600
+So I don't know, Eoin, if you want to add anything to this observation.
+
+42
+00:03:09.600 --> 00:03:11.600
+Yeah, it is.
+
+43
+00:03:11.600 --> 00:03:18.600
+I mean, if you compare it to EC2, it's easier to understand when you're billed by the hour
+
+44
+00:03:18.600 --> 00:03:23.560
+based on the machine size and the configuration.
+
+45
+00:03:23.560 --> 00:03:28.280
+The cost is just based on how long that machine is active, whether you're doing anything with
+
+46
+00:03:28.280 --> 00:03:30.760
+it or not.
+
+47
+00:03:30.760 --> 00:03:35.560
+But if you're going to say, OK, well, how does Lambda pricing compare to EC2, then it
+
+48
+00:03:35.560 --> 00:03:39.800
+depends on how much traffic you have at any given moment.
+
+49
+00:03:39.800 --> 00:03:45.340
+If you've got stable, consistent workloads running all the time and you're optimizing
+
+50
+00:03:45.340 --> 00:03:50.080
+your EC2 instance to those workloads, it actually might be cheaper over time.
+
+51
+00:03:50.080 --> 00:03:53.060
+But that's just one of the factors, right?
+
+52
+00:03:53.060 --> 00:03:57.800
+So there's other cost factors you need to consider, like the time it takes to maintain
+
+53
+00:03:57.800 --> 00:04:01.760
+provision, run these EC2 instances, patch them.
+
+54
+00:04:01.760 --> 00:04:02.760
+There's a lot of factors involved.
+
+55
+00:04:02.760 --> 00:04:06.880
+So it's not exactly a simple use case, a simple calculation, is it?
+
+56
+00:04:06.880 --> 00:04:12.880
+
+
+57
+00:04:12.880 --> 00:04:15.640
+Yeah, I remember there is a very good article by Yan Cui, I believe, that is like the total cost of ownership of serverless.
+
+58
+00:04:15.640 --> 00:04:20.340
+And I think it was the first time where I got this idea that, yeah, you shouldn't look
+
+59
+00:04:20.340 --> 00:04:26.920
+only at the bill that you get from AWS when you think about the cost, but you should think
+
+60
+00:04:26.920 --> 00:04:33.680
+more about your entire operation, how much is it costing you to operate on Lambda compared
+
+61
+00:04:33.680 --> 00:04:34.960
+to operate on EC2?
+
+62
+00:04:34.960 --> 00:04:37.720
+Like how many people do you need to hire and responsibilities?
+
+63
+00:04:37.720 --> 00:04:43.480
+How do they spend their time compared also to the features that will make you money?
+
+64
+00:04:43.480 --> 00:04:50.200
+Is it just patching instances, something that will make your business more successful or
+
+65
+00:04:50.200 --> 00:04:54.880
+you can just avoid to do that because with Lambda you can focus more on features and
+
+66
+00:04:54.880 --> 00:04:56.360
+be more productive?
+
+67
+00:04:56.360 --> 00:05:01.920
+So that's definitely another read that I recommend people to have a look at.
+
+68
+00:05:01.920 --> 00:05:10.080
+Okay, so yeah, it's interesting that you say that pretty much depends on the use case,
+
+69
+00:05:10.080 --> 00:05:14.800
+but do you have an expectation that maybe, because Lambda is so convenient, right?
+
+70
+00:05:14.800 --> 00:05:17.480
+And we are seeing more and more adoption.
+
+71
+00:05:17.480 --> 00:05:22.760
+So is there maybe any hope or a chance that AWS will revisit the price structure to make
+
+72
+00:05:22.760 --> 00:05:31.500
+it more, I guess, palatable, even if you are doing long running jobs?
+
+73
+00:05:31.500 --> 00:05:38.800
+If I was to place a bet, I would expect that the need for wider Lambda adoption will result
+
+74
+00:05:38.800 --> 00:05:41.680
+in some price changes at some point.
+
+75
+00:05:41.680 --> 00:05:46.920
+If we look at, there was an article I wrote last week, last actually this year, I think,
+
+76
+00:05:46.920 --> 00:05:53.280
+in response to this, having had experience running Lambda in various different workloads,
+
+77
+00:05:53.280 --> 00:05:59.520
+when we see where you've got constantly running functions doing machine learning or business
+
+78
+00:05:59.520 --> 00:06:05.300
+rule execution for hours at a time with thousands of containers, it really starts to look expensive.
+
+79
+00:06:05.300 --> 00:06:09.100
+And sometimes it's just optics and perception when people look at this price and compare
+
+80
+00:06:09.100 --> 00:06:10.640
+it to EC2.
+
+81
+00:06:10.640 --> 00:06:14.020
+I covered all of those calculations in the article, but sometimes it's a massive factor
+
+82
+00:06:14.020 --> 00:06:20.480
+of difference, like 10 to 20 times difference if you compare it to EC2 spot.
+
+83
+00:06:20.480 --> 00:06:26.020
+But people don't generally consider the total cost of ownership, and that's the unfortunate
+
+84
+00:06:26.020 --> 00:06:27.500
+reality of it.
+
+85
+00:06:27.500 --> 00:06:30.020
+They look at the ticket price.
+
+86
+00:06:30.020 --> 00:06:36.880
+So I think in order to just meet people where their thought process is, it will require
+
+87
+00:06:36.880 --> 00:06:41.060
+some more adaptive pricing in the future.
+
+88
+00:06:41.060 --> 00:06:44.480
+But look, I wouldn't say people should fear Lambda pricing.
+
+89
+00:06:44.480 --> 00:06:48.100
+Lambda is still the best service to adopt for compute just because it allows you to
+
+90
+00:06:48.100 --> 00:06:50.080
+get things done so quickly.
+
+91
+00:06:50.080 --> 00:06:56.040
+So I would say, be aware of your cost, but don't fear your cost.
+
+92
+00:06:56.040 --> 00:06:58.440
+Just understand how the model works.
+
+93
+00:06:58.440 --> 00:07:04.460
+Go with it and try and optimize when you need to.
+
+94
+00:07:04.460 --> 00:07:06.500
+So we will have all the links.
+
+95
+00:07:06.500 --> 00:07:09.560
+I'll link into that article in the show notes.
+
+96
+00:07:09.560 --> 00:07:12.220
+But otherwise, let's wrap it up for today.
+
+97
+00:07:12.220 --> 00:07:15.780
+Thanks again for listening and let us know what you think in the comments.
+
+98
+00:07:15.780 --> 00:07:18.300
+Send us your own questions for future episodes.
+
+99
+00:07:18.300 --> 00:07:31.180
+Follow us and subscribe us and we'll see you next time.

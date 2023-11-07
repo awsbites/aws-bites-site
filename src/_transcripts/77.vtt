@@ -1,0 +1,1193 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:04.400
+The AWS Lambda team recently announced an exciting new feature that might be interesting
+
+2
+00:00:04.400 --> 00:00:08.400
+to all of the JavaScript and TypeScript developers out there using Lambda.
+
+3
+00:00:08.400 --> 00:00:13.120
+We're talking about Lambda response streaming, which allows for sending data incrementally from
+
+4
+00:00:13.120 --> 00:00:19.040
+a Lambda function, reducing the time to first byte. I'm Eoin, joined by Luciano, and in this
+
+5
+00:00:19.040 --> 00:00:23.600
+episode of AWS Bites, we will tell you everything there is to know about this new Lambda feature.
+
+6
+00:00:24.240 --> 00:00:28.800
+We will discuss the benefits of streaming over buffering, talk about the provided API,
+
+7
+00:00:28.800 --> 00:00:33.440
+what we like and what we don't like about it, and we'll mention quotas and pricing. And finally,
+
+8
+00:00:33.440 --> 00:00:38.080
+we're going to speculate on whether we can expect a more streamable future for Lambda. So stick
+
+9
+00:00:38.080 --> 00:00:42.880
+around for the full episode to learn more about Lambda response streaming and how it can benefit
+
+10
+00:00:42.880 --> 00:00:45.200
+your JavaScript Lambda functions.
+
+11
+00:00:53.280 --> 00:00:57.840
+AWS Bites is sponsored by fourTheorem. fourTheorem is an AWS partner for migration, architecture,
+
+12
+00:00:57.840 --> 00:01:01.920
+and training. Find out more at fourtheorem.com. That link is in the show notes.
+
+13
+00:01:03.200 --> 00:01:09.280
+Okay, Luciano, for Lambda response streaming, let's talk a little bit about what it is. It was
+
+14
+00:01:09.280 --> 00:01:14.480
+announced, I think, just about a week ago, and it's a Lambda feature and it's currently only
+
+15
+00:01:14.480 --> 00:01:20.800
+possible for Node.js runtimes and custom runtimes as well. And the idea here is that it allows you
+
+16
+00:01:20.800 --> 00:01:24.960
+to send a response from a Lambda function incrementally. Previously, you had to kind
+
+17
+00:01:24.960 --> 00:01:29.280
+of build up your whole response and then send it back in one go. So instead of sending it back in
+
+18
+00:01:29.280 --> 00:01:34.080
+one block, you can now start to send some bytes as soon as you have them and your client can start
+
+19
+00:01:34.080 --> 00:01:39.120
+receiving them. So this is useful for streaming data, like let's think about some use cases,
+
+20
+00:01:39.120 --> 00:01:43.920
+let's say records from a CSV file if you're generating them on the fly, or even server
+
+21
+00:01:43.920 --> 00:01:48.400
+side rendering. I think that's a big use case for this kind of functionality. So the client can
+
+22
+00:01:48.400 --> 00:01:53.360
+start receiving the data straight away, even while processing is still happening. Now, how do you
+
+23
+00:01:53.360 --> 00:01:57.520
+actually integrate this into your client? So it currently works with Lambda function URLs. This
+
+24
+00:01:57.520 --> 00:02:01.680
+is something we talked about in a very recent episode, link is in the show notes, but you can
+
+25
+00:02:01.680 --> 00:02:06.640
+also use that then with a CloudFront distribution in front of it if you want to get all the benefits
+
+26
+00:02:06.640 --> 00:02:13.360
+of caching and edge locations with CloudFront CDN. It doesn't really work with API Gateway or
+
+27
+00:02:13.360 --> 00:02:17.920
+Application Load Balancer. I mean, it kind of works, but it doesn't give you the streaming
+
+28
+00:02:17.920 --> 00:02:23.680
+benefit. So you can send use it with an API Gateway in front of it, but the API Gateway
+
+29
+00:02:23.680 --> 00:02:28.480
+is still going to buffer it up for you. But there are actually some subtle differences when you use
+
+30
+00:02:28.480 --> 00:02:33.520
+it with API Gateway that give you some benefits and we'll cover that later. On support, it's
+
+31
+00:02:33.520 --> 00:02:37.920
+supported in CloudFormation and SAM. I mean, you don't actually have to change the Lambda function
+
+32
+00:02:37.920 --> 00:02:43.040
+itself, only the code. But if you want to use it with function URLs, there is a new CloudFormation
+
+33
+00:02:43.040 --> 00:02:48.800
+feature. It's not available in CDK yet. It is available in SAM and it's not yet available in
+
+34
+00:02:48.800 --> 00:02:54.720
+the serverless framework, although there is a pull request open for it. Luciano, you're a bit of a
+
+35
+00:02:54.720 --> 00:02:58.720
+streaming guru, if you don't mind me saying so. What is a stream really and how does it differ
+
+36
+00:02:58.720 --> 00:03:05.440
+from buffering? Now I feel the pressure.
+
+37
+00:03:06.320 --> 00:03:11.520
+Okay, let me try to explain what is the difference between streaming and not streaming. Because on one side, if you think about sending data over the wire,
+
+38
+00:03:11.520 --> 00:03:17.040
+like networking is inherently streaming, like you keep appending bytes in a channel. So it's more
+
+39
+00:03:17.040 --> 00:03:22.080
+of a conceptual model on how do you actually produce the data before sending it to the wire
+
+40
+00:03:22.080 --> 00:03:28.560
+or while sending it to the wire. So when we talk about buffering, basically the idea is that you
+
+41
+00:03:28.560 --> 00:03:33.760
+are creating some kind of response object or some kind of response data. And of course, it's a
+
+42
+00:03:33.760 --> 00:03:38.960
+sequence of bytes, represents some serialization, represents some kind of structure. And you might
+
+43
+00:03:38.960 --> 00:03:42.880
+be accumulating all of that information in memory for a while until you actually have the entire
+
+44
+00:03:42.880 --> 00:03:47.280
+message ready. And this is kind of what we mean when we say buffering. You buffer all of that
+
+45
+00:03:47.280 --> 00:03:52.080
+information in memory and only when you complete that, you start to send the bytes over the wire.
+
+46
+00:03:52.080 --> 00:03:58.800
+As opposed to streaming where maybe you can have meaningful chunks of that information, maybe,
+
+47
+00:03:58.800 --> 00:04:03.760
+again, your example of CSV records, I think it's a very good one. So you might be able to send
+
+48
+00:04:03.760 --> 00:04:07.440
+partial information over the wire as you are accumulating that information. Actually,
+
+49
+00:04:07.440 --> 00:04:12.400
+you don't even accumulate. You keep kind of passing the bytes as they are becoming available.
+
+50
+00:04:12.400 --> 00:04:16.720
+And your client can start to make sense of that information as soon as the first row, for instance,
+
+51
+00:04:16.720 --> 00:04:21.440
+if the CSV record arrives, you can actually start to take advantage of that information.
+
+52
+00:04:21.440 --> 00:04:27.920
+So again, in a CSV file example, what that can be useful for is the client can start to do analysis
+
+53
+00:04:27.920 --> 00:04:32.400
+on that CSV data. Maybe it's doing a query so I can filter out the records that are relevant
+
+54
+00:04:32.400 --> 00:04:37.680
+and keep only the ones that display to the user the ones that match the query. Or maybe if it
+
+55
+00:04:37.680 --> 00:04:41.680
+needs to do some kind of streaming aggregation, I don't know, maybe you're calculating a sum or
+
+56
+00:04:41.680 --> 00:04:46.880
+an average or something like that, you can start to do all the computation real time. And even with
+
+57
+00:04:46.880 --> 00:04:52.480
+partial data, you can start to show something useful to the user. Other examples are you could,
+
+58
+00:04:52.480 --> 00:04:58.160
+for instance, if you are plotting a chart that has thousands or millions of points,
+
+59
+00:04:58.160 --> 00:05:02.480
+if those points are sent to you in a streaming fashion, you can start to display them straight
+
+60
+00:05:02.480 --> 00:05:07.760
+away as soon as they arrive rather than waiting for the entire response to arrive. Similarly,
+
+61
+00:05:07.760 --> 00:05:13.680
+you could render pictures that are encoding formats that are progressive, so you could
+
+62
+00:05:13.680 --> 00:05:18.720
+start to render the picture as it arrives, even before it's all received. Or even web pages,
+
+63
+00:05:18.720 --> 00:05:25.280
+you mentioned the case of server-side rendering pages, and I think this is kind of a common trend
+
+64
+00:05:25.280 --> 00:05:30.880
+in the front-end world. Lots of single-pages application frameworks now have capabilities
+
+65
+00:05:30.880 --> 00:05:36.640
+to server-side render to make sure that you get the advantage of that time to first byte,
+
+66
+00:05:36.640 --> 00:05:42.080
+which is a very important metric on the web today. Search engines will prioritize web pages that
+
+67
+00:05:42.080 --> 00:05:47.120
+will start to render as soon as possible. So this is probably the most interesting use case,
+
+68
+00:05:47.120 --> 00:05:52.960
+and I would bet that this is the main motivation why AWS spent energies enabling this feature,
+
+69
+00:05:52.960 --> 00:05:57.520
+because I've seen a lot of other competitors trying to support the story of if you're using
+
+70
+00:05:57.520 --> 00:06:00.960
+Svelte, if you're using Vue.js, if you're using React, if you're using Solid or Quick,
+
+71
+00:06:01.680 --> 00:06:07.600
+they all offer today ways to server-side render and be able to send dynamic content to the users,
+
+72
+00:06:07.600 --> 00:06:12.720
+and probably Lambda needs to be on par with these other engines and make sure that this use case is
+
+73
+00:06:12.720 --> 00:06:18.000
+supported as well. Now, another interesting technical detail is that if you're really curious
+
+74
+00:06:18.000 --> 00:06:23.360
+to understand what is the actual protocol that gets used, this is just using plain HTTP chunked
+
+75
+00:06:23.360 --> 00:06:27.040
+encoding behind the scenes, and we will have a link in the show notes if you're curious,
+
+76
+00:06:27.040 --> 00:06:32.480
+but the idea is that because you need to send small frames of data, you need to tell the
+
+77
+00:06:32.480 --> 00:06:37.360
+receiving side how big is every frame, so there is a protocol that kind of documents how do you
+
+78
+00:06:37.360 --> 00:06:42.480
+encode that information, so not just the raw data, but encapsulated in a frame that also specifies
+
+79
+00:06:42.480 --> 00:06:48.080
+the length of that frame, and then of course there is a way to mention, well, to specify when the
+
+80
+00:06:48.080 --> 00:06:53.680
+entire stream is over and the entire request can be considered completed, so I hope that kind of
+
+81
+00:06:53.680 --> 00:06:57.920
+clarifies what do we mean when we say buffering and streaming and what are the benefits there
+
+82
+00:06:57.920 --> 00:07:03.920
+and the use cases, but I don't know, maybe there is something more to add on why one model could
+
+83
+00:07:03.920 --> 00:07:09.520
+be better than the other or when one is more convenient than the other.
+
+84
+00:07:09.520 --> 00:07:14.080
+I think you already mentioned the main benefit, which is the time to first byte metric, and you also mentioned that
+
+85
+00:07:14.080 --> 00:07:19.040
+this is useful for search engine optimization and also for performance metrics like Lighthouse,
+
+86
+00:07:19.840 --> 00:07:23.840
+so it's pretty important for web applications and mobile applications these days, but the other
+
+87
+00:07:23.840 --> 00:07:31.040
+thing I suppose is that with streaming you can handle potentially infinite amounts of data in a
+
+88
+00:07:31.040 --> 00:07:35.840
+pretty efficient way, so you've already got the alternatives of doing frequent polling if you
+
+89
+00:07:35.840 --> 00:07:41.200
+wanted to get periodic data like to render a chart based on real-time data, but it's much more
+
+90
+00:07:41.200 --> 00:07:46.960
+efficient to do with streaming. You don't have the request overhead every time and you don't have to
+
+91
+00:07:46.960 --> 00:07:53.520
+specify the content length up front with junked encoding. It can dynamically evolve in that way.
+
+92
+00:07:54.960 --> 00:08:00.240
+It could also be used for say streaming footage from a video camera, a security camera for
+
+93
+00:08:00.240 --> 00:08:04.560
+example, but from an application development point of view the nice thing about streams I suppose is
+
+94
+00:08:04.560 --> 00:08:10.320
+that they are composable, so you can have streams within streams and if you're a Node.js developer
+
+95
+00:08:10.320 --> 00:08:13.840
+you'll probably see this quite often, but it's also possible with lots of other languages
+
+96
+00:08:15.280 --> 00:08:20.240
+where you've got streaming abstractions that allow you to nest streams. For example, you can have a
+
+97
+00:08:20.240 --> 00:08:27.840
+zip stream or an encryption stream and you might have then a base64 encoding on top of that and by
+
+98
+00:08:27.840 --> 00:08:33.040
+writing into one stream you get that automatically happening for you under the hood and the base64
+
+99
+00:08:33.040 --> 00:08:40.480
+gzipped version is being streamed out at the other end. I suppose there is a disadvantage with
+
+100
+00:08:40.480 --> 00:08:43.920
+streaming as well in that it can be a little bit more complex and harder to reason about.
+
+101
+00:08:43.920 --> 00:08:49.360
+Buffering is a little bit of a simpler model and easier to debug, but I still think that in modern
+
+102
+00:08:49.360 --> 00:08:54.240
+web applications it's hard to avoid streaming. So maybe Lutiano, you've done a lot of content,
+
+103
+00:08:54.240 --> 00:09:00.080
+a lot of speaking and writing about Node.js streams and all the different generations of
+
+104
+00:09:00.080 --> 00:09:05.680
+how streaming works in Node.js, so you're probably best place of anybody to talk about how this will
+
+105
+00:09:05.680 --> 00:09:10.320
+work in Lambda with response streaming. So how does it work under the hood?
+
+106
+00:09:10.320 --> 00:09:16.160
+Yeah, not going to go too much in depth, but I think it's worth giving a very quick summary of
+
+107
+00:09:16.160 --> 00:09:21.600
+why Node.js is particularly suitable for streams and for this particular use case in Lambda.
+
+108
+00:09:21.600 --> 00:09:26.320
+And I think it's because streams in Node.js are kind of a first-class citizen. They always have
+
+109
+00:09:26.320 --> 00:09:32.160
+been, even from the very early versions of Node.js. And there are some primitives that get used in
+
+110
+00:09:32.160 --> 00:09:37.600
+different places in the Node.js core library and third-party libraries. And these are all different
+
+111
+00:09:37.600 --> 00:09:42.000
+kinds of streams that you can use and compose in different ways. So the main ones are readable
+
+112
+00:09:42.000 --> 00:09:46.080
+streams, which are basically an abstraction that allows you to consume data from a source.
+
+113
+00:09:46.080 --> 00:09:51.520
+That can be a file from the file system, a network socket basically is how do you read data in a
+
+114
+00:09:51.520 --> 00:09:57.120
+streamable fashion. Similarly, there are writable streams. So again, if you are trying to send data
+
+115
+00:09:57.120 --> 00:10:03.920
+to a file or send data over the wire or maybe write to standard output, you can use writable
+
+116
+00:10:03.920 --> 00:10:08.080
+streams, which again, is just an abstraction to basically allow you to write data incrementally
+
+117
+00:10:08.080 --> 00:10:14.160
+into whatever source of data. Then there are transform streams, which are kind of something
+
+118
+00:10:14.160 --> 00:10:18.960
+in between. They basically allow you to take data from readable stream, do some transformation,
+
+119
+00:10:18.960 --> 00:10:24.480
+and then send it to a writable stream on the other side. So these are generally, if you can imagine,
+
+120
+00:10:24.480 --> 00:10:28.240
+streams are like plumbing. These are generally something you put in between a readable and
+
+121
+00:10:28.240 --> 00:10:33.840
+a writable to change the data on the flight. And good use cases also in the standard library are
+
+122
+00:10:33.840 --> 00:10:40.080
+encryption, compression, and yeah, basically you can use them even together. Like you can even
+
+123
+00:10:40.080 --> 00:10:43.760
+pipe two transform streams and add encryption and compression at the same time.
+
+124
+00:10:43.760 --> 00:10:48.240
+And finally, there is duplex streams, which is kind of an abstraction that represents
+
+125
+00:10:48.240 --> 00:10:52.800
+bidirectional channels, like a network socket. So for instance, when you have a communication
+
+126
+00:10:52.800 --> 00:10:58.320
+channel where you can both read and write and you are kind of creating a channel where two parts
+
+127
+00:10:58.320 --> 00:11:03.680
+can basically exchange information in both directions. So again, this is important just
+
+128
+00:11:03.680 --> 00:11:09.520
+because these are all classes that you can use in Node.js core and they will be used to implement
+
+129
+00:11:09.520 --> 00:11:14.800
+all the more advanced streams capability like file system, HTTP, compression, encryption, standard
+
+130
+00:11:14.800 --> 00:11:19.280
+inputs, standard output, standard error. So once you get familiar with those primitives, you can
+
+131
+00:11:19.280 --> 00:11:25.120
+even build your own custom streams, custom transformations. And if you, for instance, have to
+
+132
+00:11:25.120 --> 00:11:28.560
+interact with a new database that you're starting to use for the first time and it's not in the
+
+133
+00:11:28.560 --> 00:11:33.920
+standard library, you can use stream to also read and write data from that database if you want to
+
+134
+00:11:33.920 --> 00:11:38.160
+in a streaming function. Now again, I don't want to go too much into detail, but we will have a link
+
+135
+00:11:38.160 --> 00:11:43.840
+in the show notes with a workshop that I created some time ago that basically guides you through
+
+136
+00:11:43.840 --> 00:11:48.480
+the whole experience of understanding how stream works, there are exercises up to get into more
+
+137
+00:11:48.480 --> 00:11:52.080
+advanced topics where you can create your own custom streams. So if that's something you are
+
+138
+00:11:52.080 --> 00:11:55.680
+curious about, feel free to check the link and let me know if you like it or not.
+
+139
+00:11:56.480 --> 00:12:01.360
+Okay, sounds good. Do you also want to shamelessly plug this book, which also covers Node.js streams?
+
+140
+00:12:01.360 --> 00:12:05.280
+Oh, that's a good one. Yes, we will also have the link to that one in the show notes. Thank you.
+
+141
+00:12:05.280 --> 00:12:12.240
+Thank you. Yeah, there is an entire chapter about streams and I think most of the material is also
+
+142
+00:12:12.240 --> 00:12:16.800
+covered in the workshop, but I think the book probably goes a little bit more in depth.
+
+143
+00:12:18.960 --> 00:12:23.680
+Okay, great. Well, maybe we can talk a little bit then about how the world of Node.js streams meets
+
+144
+00:12:23.680 --> 00:12:29.360
+Lambda functions with this new feature. There's a new API that you can use in your Lambda functions
+
+145
+00:12:29.360 --> 00:12:34.880
+for Node.js. So you end up with a global object called 'awslambda', and then you call the 'streamifyResponse'
+
+146
+00:12:34.880 --> 00:12:41.120
+function on it. So it's not a case of just returning your existing payload. You have
+
+147
+00:12:41.120 --> 00:12:44.480
+to write your functions a little bit differently if you want them to work with response streaming.
+
+148
+00:12:45.200 --> 00:12:51.280
+So instead of your typical Lambda function signature with event and context parameters,
+
+149
+00:12:51.280 --> 00:12:55.520
+you do this streamifyResponse and then you use a function with three parameters. So you get an
+
+150
+00:12:55.520 --> 00:12:59.920
+event, a response stream and a context, and then you can start writing to this response stream
+
+151
+00:13:00.480 --> 00:13:04.720
+in the way that you just described. So it's just a writable stream and it forwards bytes
+
+152
+00:13:04.720 --> 00:13:08.960
+incrementally. So you can write to it or use any of the libraries out there that support Node.js
+
+153
+00:13:08.960 --> 00:13:13.360
+streams to write to it. Once it's finished, then you call.end to close the stream.
+
+154
+00:13:14.720 --> 00:13:19.920
+So you mentioned that there's lots of different cool things you can do with Node.js stream. So you
+
+155
+00:13:19.920 --> 00:13:25.280
+could use pipeline if you've got multiple steps in the pipeline to create those streams. Like we
+
+156
+00:13:25.280 --> 00:13:31.600
+talked about gzipping and base64 encoding, that would be one example you can do with it. Now,
+
+157
+00:13:31.600 --> 00:13:36.560
+it is a bit of a weird thing, this global object, awslambda. We haven't had this before.
+
+158
+00:13:39.440 --> 00:13:45.120
+I'm slightly surprised by this because globals are generally frowned upon. This is weird for
+
+159
+00:13:45.120 --> 00:13:50.240
+a few different reasons. Your linter or TypeScript will complain about this object because it's just
+
+160
+00:13:50.240 --> 00:13:54.720
+not the done thing these days to have globals. So you'll have to configure your linter to ignore
+
+161
+00:13:54.720 --> 00:14:01.520
+this global. You won't be able to run your Lambda function code globally. So you'll have to fix
+
+162
+00:14:01.520 --> 00:14:08.800
+something for your unit tests. It does seem to work with local invoke, which is good news. But
+
+163
+00:14:08.800 --> 00:14:16.480
+I did try the latest serverless framework version and the one from the PR that has this function
+
+164
+00:14:16.480 --> 00:14:21.760
+streaming URL support. It didn't work with local invoke. It didn't know what the AWS Lambda global
+
+165
+00:14:21.760 --> 00:14:28.480
+was at all. So it's a little bit of a strange kind of black box that you have to work with. The code
+
+166
+00:14:28.480 --> 00:14:35.120
+doesn't seem to be publicly available on GitHub. Although I think Luciana, you found that there
+
+167
+00:14:35.120 --> 00:14:41.360
+is something you can find from the Lambda emulator container, the container image for Lambda. You can
+
+168
+00:14:41.360 --> 00:14:47.120
+actually reverse engineer that a little bit and find out how it works. If you don't want to deal
+
+169
+00:14:47.120 --> 00:14:51.520
+with all of these problems, MIDI has actually been very quick and added support for response streams
+
+170
+00:14:51.520 --> 00:14:56.000
+and added a nice interface that hides a lot of the complexity. There's a link to the documentation
+
+171
+00:14:56.000 --> 00:15:04.160
+in the show notes. Now, Luciano, is there anything you'd like to add to that? And maybe you can talk
+
+172
+00:15:04.160 --> 00:15:09.040
+about how do you actually read the response of a Lambda using response streaming?
+
+173
+00:15:09.040 --> 00:15:14.400
+I think that's a good segue from what you just mentioned. Yeah, basically the idea is once you have a Lambda that
+
+174
+00:15:14.400 --> 00:15:19.600
+uses this feature, sending responses in a streaming fashion, how do you consume that information?
+
+175
+00:15:19.600 --> 00:15:23.840
+Right. Also from the client perspective, you need to be ready to consume information in a streaming
+
+176
+00:15:23.840 --> 00:15:29.200
+way. So you will receive chunks of bytes rather than just the whole response straight away.
+
+177
+00:15:29.200 --> 00:15:34.320
+So the way they implemented this in AWS is we already mentioned the diffuse Lambda function URLs.
+
+178
+00:15:35.040 --> 00:15:40.880
+You basically can just use HTTP and you will see the HTTP response coming up in a streaming way. So
+
+179
+00:15:40.880 --> 00:15:45.520
+for instance, if you get a chunk every second, you should see, maybe you do a call or you open
+
+180
+00:15:45.520 --> 00:15:52.000
+the browser in a specific function URL, you should see the response being rendered basically over
+
+181
+00:15:52.000 --> 00:15:57.120
+time as the new chunks are available. That's one way, but if you want to use a more programmatic
+
+182
+00:15:57.120 --> 00:16:04.080
+way, you can also use the SDK. There is a new functionality called Invoked with Response Stream.
+
+183
+00:16:04.080 --> 00:16:09.600
+So basically that I haven't checked exactly the specification in JavaScript, but my expectation
+
+184
+00:16:09.600 --> 00:16:14.400
+is that you will get a readable stream so you can then keep using streams in Node.js if you're using
+
+185
+00:16:14.400 --> 00:16:24.080
+the Node.js SDK, the JavaScript SDK. Now, what about Node.js runtimes? It's probably the follow-up
+
+186
+00:16:24.080 --> 00:16:30.080
+question there. And the answer is still a little bit, let's figure it out. I think that there is
+
+187
+00:16:30.080 --> 00:16:35.280
+still new documentation that will come up in the next few weeks. It seems that there is some support
+
+188
+00:16:35.280 --> 00:16:41.600
+coming up. For instance, we were able to dig into the Rust runtime, which is fully open source,
+
+189
+00:16:41.600 --> 00:16:46.400
+and we found instances in the code where it looks like this feature is fully supported there,
+
+190
+00:16:46.400 --> 00:16:50.160
+even though we couldn't really find an official piece of documentation for that.
+
+191
+00:16:50.720 --> 00:16:56.320
+And we will have links in the show notes for all of that. Very similarly for Golang, we were able
+
+192
+00:16:56.320 --> 00:17:03.360
+to find something for it. But again, we expect we will have news in the coming week about more
+
+193
+00:17:03.360 --> 00:17:09.280
+official support for other runtimes because of course all these concepts, yeah, custom runtimes,
+
+194
+00:17:09.280 --> 00:17:15.120
+all these concepts are not special for Node.js. It's just Node.js has a better support because
+
+195
+00:17:15.120 --> 00:17:19.680
+it's a primitive that existed in Node.js for a long time, and people are more used to use these
+
+196
+00:17:19.680 --> 00:17:24.480
+kind of concepts in Node.js. But of course, this concept, you can use them in any language. You
+
+197
+00:17:24.480 --> 00:17:29.200
+just need to have an interface to work with that. Okay.
+
+198
+00:17:29.200 --> 00:17:34.000
+So the official line there is that we have supported Node.js and custom runtimes, but not in any of the other provided runtimes. So you won't
+
+199
+00:17:34.000 --> 00:17:41.440
+be able to use this in the Python provided runtime or the Java one or.NET yet. You'll have to wait
+
+200
+00:17:41.440 --> 00:17:46.480
+for new features to come out in those actual runtimes. Yeah, that's a good clarification.
+
+201
+00:17:48.560 --> 00:17:52.880
+Okay. Maybe then given that we can talk a little bit about some of the other limits and pricing,
+
+202
+00:17:52.880 --> 00:17:58.160
+anything else that might stop you from plowing ahead with this feature. We talked about the
+
+203
+00:17:58.160 --> 00:18:03.440
+ability to do infinite streaming with streaming. Now that's practically of course not the case
+
+204
+00:18:03.440 --> 00:18:08.320
+with Lambda because you still have a 15 minute timeout limit. One of the advantages of using
+
+205
+00:18:08.320 --> 00:18:12.720
+Lambda response streaming though is that you can go over the traditional limit of a six megabyte
+
+206
+00:18:12.720 --> 00:18:17.760
+response payload. And now you can stream up to 20 megabytes of data, but that's only a soft limit.
+
+207
+00:18:17.760 --> 00:18:23.920
+So you can ask for more if you needed to. And that will then allow you to go beyond six megabytes and
+
+208
+00:18:23.920 --> 00:18:30.320
+well beyond that with function URLs or with the direct invocation method. If you're using an API
+
+209
+00:18:30.320 --> 00:18:34.800
+gateway, you still have a 10 megabyte limit. So it allows you to get up to 10 megabytes with
+
+210
+00:18:34.800 --> 00:18:39.440
+API gateway, but it's not a massive increase. And if you do go over six megabytes, then you
+
+211
+00:18:39.440 --> 00:18:44.720
+start to incur an extra cost. So this is another pricing dimension for Lambda. So it used to be
+
+212
+00:18:44.720 --> 00:18:51.440
+that you only had requests and memory per second to worry about when you were thinking about Lambda.
+
+213
+00:18:51.440 --> 00:18:56.320
+Now there's a few more pricing dimensions. So this is a new one and it's just less than a cent
+
+214
+00:18:56.320 --> 00:19:01.840
+per gigabyte roughly for anything above the normal six megabyte limit.
+
+215
+00:19:03.440 --> 00:19:08.320
+It's also important to realize that there is a maximum bandwidth throughput limit of 16 megabits
+
+216
+00:19:08.320 --> 00:19:15.280
+per second, otherwise known as two megabytes a second for streaming functions. So if that
+
+217
+00:19:15.280 --> 00:19:19.360
+doesn't sound like it really works for your use case, we should probably remind everybody that
+
+218
+00:19:19.360 --> 00:19:26.320
+there's a couple of other ways to do streaming with Lambda. And if you cast your memory back, you might
+
+219
+00:19:26.320 --> 00:19:31.840
+remember that there was an S3 object Lambda feature released a couple of years back. I
+
+220
+00:19:31.840 --> 00:19:36.160
+wrote an article about it at the time and did some example repos, which we can link in the show notes.
+
+221
+00:19:36.160 --> 00:19:41.760
+But this is one way to get a streaming response back to user. And this is where you basically
+
+222
+00:19:42.400 --> 00:19:49.120
+intercept something like a get object request to the S3 service. And it will invoke a Lambda
+
+223
+00:19:49.120 --> 00:19:53.920
+function that allow you to intercept the object and pass back some different response. So you can
+
+224
+00:19:53.920 --> 00:19:58.560
+either generate a completely new response or you can mutate the response in some way like convert
+
+225
+00:19:58.560 --> 00:20:04.800
+the file format, do some filtering. And this allows you to stream back as well using a different
+
+226
+00:20:06.160 --> 00:20:10.240
+stream interface. So this is something that might also work for you if you need to do streaming,
+
+227
+00:20:10.240 --> 00:20:16.240
+but it's only based on objects that exist in an S3 bucket. So an object still has to exist.
+
+228
+00:20:16.240 --> 00:20:22.240
+You could probably hack this a little bit and just have some dummy objects that you use and then use
+
+229
+00:20:22.240 --> 00:20:33.520
+the S3 interface to essentially give you a way to get a much longer stream back and then control
+
+230
+00:20:33.520 --> 00:20:38.480
+that stream using Lambda function code. And you can even do S3 presigned URLs on top of it as
+
+231
+00:20:38.480 --> 00:20:44.160
+well. So there's probably all sorts of cool hacks you could build on top of it. Also worth mentioning
+
+232
+00:20:44.160 --> 00:20:47.920
+that you can do WebSockets. So you don't necessarily have to do it in the streaming way.
+
+233
+00:20:47.920 --> 00:20:54.160
+You can use HTTP, WebSockets, and API Gateway has support for that. The disadvantage being that you
+
+234
+00:20:54.160 --> 00:20:59.360
+have to maintain the state yourself. So you generally need a DynamoDB table or something
+
+235
+00:20:59.360 --> 00:21:04.720
+to keep track of all the connections you need to send messages back to. And the other option
+
+236
+00:21:04.720 --> 00:21:12.240
+for WebSockets is to use AWS IoT, which is the original way to do a serverless WebSockets on AWS.
+
+237
+00:21:12.240 --> 00:21:17.120
+And that way it does the state management for you, but there's a little bit of other complexity
+
+238
+00:21:17.120 --> 00:21:23.760
+around authorization, but it's not too bad. So I think those are all the response streaming topics
+
+239
+00:21:23.760 --> 00:21:28.800
+we have. Maybe we could speculate a bit about the future. Do you think we'll get request streaming
+
+240
+00:21:28.800 --> 00:21:32.640
+support at some point? And why would we want it? What would it be good for?
+
+241
+00:21:33.920 --> 00:21:38.960
+That's a good question.
+
+242
+00:21:38.960 --> 00:21:44.640
+And I think one of the reasons why this conversation comes up is because if you were dealing with kind of a more classic standalone web server in Node.js,
+
+243
+00:21:44.640 --> 00:21:50.240
+like Express or Fastify or Happy or something like that, almost all of them, they will give
+
+244
+00:21:50.240 --> 00:21:54.880
+you this abstraction where the request that is coming in into your handler, it's a stream.
+
+245
+00:21:55.520 --> 00:21:59.920
+It's a readable stream. So for instance, if you are implementing a piece of functionality
+
+246
+00:21:59.920 --> 00:22:05.440
+that receives an upload, you can actually start to consume that information and process it and
+
+247
+00:22:05.440 --> 00:22:10.880
+save it somewhere else without having to buffer that entire upload up front and then later on
+
+248
+00:22:10.880 --> 00:22:14.400
+push it somewhere else. And this is one of the common limitations when you implement
+
+249
+00:22:14.400 --> 00:22:20.720
+APIs in Lambda that is not a great idea to do that with, for instance, for uploading files.
+
+250
+00:22:20.720 --> 00:22:24.720
+You probably will end up using something like a strict resigned URLs, which by the way,
+
+251
+00:22:24.720 --> 00:22:28.640
+something else we talked about before, we will have the link in the show notes as well if you're
+
+252
+00:22:28.640 --> 00:22:36.240
+curious. So I think once we get now, since we got now the response streaming functionality, it's
+
+253
+00:22:36.240 --> 00:22:41.120
+legit to ask ourselves, are we going to get also requests streaming? So maybe we can support
+
+254
+00:22:41.120 --> 00:22:46.080
+uploads or other use cases where even the request is streaming, or maybe when you need to send a lot
+
+255
+00:22:46.080 --> 00:22:50.160
+of information to the Lambda and you want the Lambda to start to process that information as
+
+256
+00:22:50.160 --> 00:22:56.320
+soon as possible. Now, I don't really have an answer, of course, we are just speculating here,
+
+257
+00:22:56.320 --> 00:23:00.960
+but I think this was a couple of years ago, I was curious about the same question. We didn't even
+
+258
+00:23:00.960 --> 00:23:05.440
+have response streaming at the time. And I was just trying to understand how the Lambda runtime
+
+259
+00:23:05.440 --> 00:23:10.480
+was working behind the scenes. And the way I did the research was basically, okay, let me try to
+
+260
+00:23:10.480 --> 00:23:16.720
+build a custom runtime myself for Node.js and see if I can make that custom runtime closer to an
+
+261
+00:23:16.720 --> 00:23:21.600
+actual web framework in Node.js. So rather than receiving an event and the context, I actually
+
+262
+00:23:21.600 --> 00:23:26.560
+wanted to be able in my handler to receive a request object and a response object where the
+
+263
+00:23:26.560 --> 00:23:30.720
+request object was a readable stream and the response object was a writable stream, which is
+
+264
+00:23:31.600 --> 00:23:36.080
+basically the lower level interface that you get in any web framework, even the
+
+265
+00:23:36.080 --> 00:23:41.760
+HTTP library that is built in with Node.js. So I was actually able to achieve that in a bit of
+
+266
+00:23:41.760 --> 00:23:48.160
+a hacky way. And the reason why that worked is because the Lambda runtime, when you want to
+
+267
+00:23:48.160 --> 00:23:54.480
+build a custom runtime, AWS gives you two HTTP endpoints to work with. The first HTTP endpoint
+
+268
+00:23:54.480 --> 00:23:59.200
+is like a polling endpoint where you have to constantly poll from your runtime to see,
+
+269
+00:23:59.200 --> 00:24:02.320
+is there a new message there? Is there a new event that I need to handle?
+
+270
+00:24:03.360 --> 00:24:08.080
+And of course, it's an HTTP request. So you can take that as a readable stream and that's
+
+271
+00:24:08.080 --> 00:24:14.240
+basically your input. And then also you get another endpoint, which is basically when you
+
+272
+00:24:14.240 --> 00:24:20.320
+finish and you have a response, send the response to this HTTP endpoint. So effectively you have
+
+273
+00:24:20.320 --> 00:24:24.720
+an HTTP endpoint to read from and an HTTP endpoint where you send the response to,
+
+274
+00:24:24.720 --> 00:24:30.000
+and what you have to run in between is your actual handler code. So you could build your own custom
+
+275
+00:24:30.000 --> 00:24:34.480
+handler in any way. You could even call something written in COBOL at that point in between, right?
+
+276
+00:24:34.480 --> 00:24:38.960
+And this is basically the way you build custom runtimes. So at that point, what I did is basically
+
+277
+00:24:38.960 --> 00:24:47.200
+a very thin layer that just call a handler passing the request from the first endpoint and a response
+
+278
+00:24:47.200 --> 00:24:51.680
+that is already starting to the second endpoint. And then the handler can basically fill the gap
+
+279
+00:24:51.680 --> 00:24:56.320
+by reading from the first endpoint and writing in the second endpoint. Now this is very sketchy and
+
+280
+00:24:56.320 --> 00:25:00.720
+barebone and it's probably exposing more that it should need to be exposing because it's actually
+
+281
+00:25:00.720 --> 00:25:06.400
+giving the handler full access to requests and responses that are actually part of the runtime.
+
+282
+00:25:06.400 --> 00:25:11.280
+So I'm not too sure it's the best way of doing this, but it kind of works and it demonstrates
+
+283
+00:25:11.280 --> 00:25:16.000
+that the idea makes sense in the context of Node.js, even though there is a big caveat.
+
+284
+00:25:16.000 --> 00:25:21.520
+This is assuming that you are streaming end to end, that basically you are not buffering anywhere
+
+285
+00:25:21.520 --> 00:25:26.320
+else outside the runtime, which we know is not the case when, for instance, you integrate
+
+286
+00:25:26.320 --> 00:25:33.040
+this solution with API Gateway. So we saw that for response streaming, AWS needed to kind of come up
+
+287
+00:25:33.040 --> 00:25:37.920
+with different ways and add support for different features to actually make this possible. So even
+
+288
+00:25:37.920 --> 00:25:42.800
+though we expect this is possible also for request streaming, I think AWS will also need to kind of
+
+289
+00:25:42.800 --> 00:25:49.680
+come up with some new feature that enables that end to end. So we still, yeah, big speculation
+
+290
+00:25:49.680 --> 00:25:53.760
+here. We cannot just say for sure that this is going to happen and when it's going to happen
+
+291
+00:25:53.760 --> 00:25:58.800
+or how it's going to happen, but we just feel that it's technically possible and it could enable
+
+292
+00:25:58.800 --> 00:26:03.440
+some interesting use cases. So hopefully it's something that we will get in the future.
+
+293
+00:26:08.320 --> 00:26:12.320
+I think we've covered all of the features and benefits and everything with function response streaming so far. So I'd just like to say thanks for joining us for
+
+294
+00:26:12.320 --> 00:26:16.320
+this episode of AWS Bites. Again, we hope you enjoyed learning about response streaming and
+
+295
+00:26:16.320 --> 00:26:21.440
+how it can benefit your JavaScript, TypeScript, and custom Lambda functions. If you want to learn
+
+296
+00:26:21.440 --> 00:26:24.560
+more, check out the links in the show notes and don't forget to subscribe to the podcast if you
+
+297
+00:26:24.560 --> 00:26:31.280
+haven't already. Hit like, hit the bell and stay tuned for more AWS news and updates.
+
+298
+00:26:31.280 --> 00:26:55.840
+Thanks for listening and we'll see you next time on AWS Bites.

@@ -1,0 +1,941 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:03.520
+Zero trust is the major security trend of the last five years.
+
+2
+00:00:03.520 --> 00:00:06.080
+These days, it feels like everything is public and more open,
+
+3
+00:00:06.080 --> 00:00:08.320
+but you have to authenticate every connection.
+
+4
+00:00:08.320 --> 00:00:12.480
+In this episode, we're going to delve into the topic of virtual private cloud or VPCs
+
+5
+00:00:12.480 --> 00:00:16.720
+and whether they should be avoided or not as we evolve to this zero trust future.
+
+6
+00:00:16.720 --> 00:00:21.120
+If you stick until the end, we'll share our strategy for when to use and when not to use them.
+
+7
+00:00:21.120 --> 00:00:32.880
+I'm Eoin and I'm here with Luciano and this is AWS Bites.
+
+8
+00:00:32.880 --> 00:00:37.760
+AWS Bites is sponsored by fourTheorem, an advanced AWS consulting partner that works together with
+
+9
+00:00:37.760 --> 00:00:43.200
+you on architecture, migration and cost optimization. Find out more at fourTheorem.com.
+
+10
+00:00:43.200 --> 00:00:49.440
+You'll find the link in the show notes. Zero trust is a concept that moves away from relying on
+
+11
+00:00:49.440 --> 00:00:53.280
+strong network controls alone to strong authorization,
+
+12
+00:00:53.280 --> 00:00:56.800
+fine grained access control and generally fewer network restrictions.
+
+13
+00:00:57.920 --> 00:01:02.240
+AWS credentials and IAM are a good example of this since you can access these resources
+
+14
+00:01:02.240 --> 00:01:06.960
+over the internet even though they might be very powerful, very private and require strong security.
+
+15
+00:01:06.960 --> 00:01:12.800
+But instead of enforcing network controls, AWS provides AWS v4 signatures for every API call
+
+16
+00:01:12.800 --> 00:01:18.080
+and very fine grained policies with IAM and continuous monitoring and detection on top of that.
+
+17
+00:01:18.080 --> 00:01:23.600
+Even if you've ever built an API with JWT or JWT tokens for authorization of a publicly
+
+18
+00:01:23.600 --> 00:01:26.720
+accessible API, this can also be part of a zero trust approach.
+
+19
+00:01:27.600 --> 00:01:31.840
+So this is all very practical in the context when an ever increasing number of corporate
+
+20
+00:01:31.840 --> 00:01:36.880
+environments would be comprised of cloud deployments and on-premises systems and third
+
+21
+00:01:36.880 --> 00:01:40.800
+party SaaS applications. There's just too much corporate footprint now living outside the
+
+22
+00:01:40.800 --> 00:01:45.360
+boundaries of the private corporate network. So you might be wondering what does this mean
+
+23
+00:01:45.360 --> 00:01:52.960
+for architecting systems on AWS? Do we still need VPCs? What's the story? Where are they relevant?
+
+24
+00:01:52.960 --> 00:01:57.600
+Are they overly complex? Luciano, do you want to start off talking about what is a VPC first of
+
+25
+00:01:57.600 --> 00:02:02.560
+all? What does it mean for architects or developers working on AWS?
+
+26
+00:02:02.560 --> 00:02:08.560
+Yeah, I think it's a good idea to start by defining what is a VPC. And in the context of Amazon, VPC means virtual private
+
+27
+00:02:08.560 --> 00:02:13.680
+cloud and the idea is that you are defining a network but in software. So you're not just
+
+28
+00:02:13.680 --> 00:02:20.800
+connecting cables around, I don't know, somewhere in your storage place but no, you are actually
+
+29
+00:02:20.800 --> 00:02:26.560
+doing all of that remotely and you are configuring a virtual network. But it's not too different from
+
+30
+00:02:26.560 --> 00:02:31.440
+like a real network that you might have seen in a data center or somewhere else. The idea is that
+
+31
+00:02:31.440 --> 00:02:36.800
+it's something that is logically isolated even if it lives in the cloud together with all the other
+
+32
+00:02:36.800 --> 00:02:42.880
+accounts that live in AWS, it is isolated from all the others. So you need to define that and
+
+33
+00:02:42.880 --> 00:02:47.600
+configure it so that you can start launching AWS resources in that particular virtual network.
+
+34
+00:02:48.560 --> 00:02:56.640
+And we can imagine that, again, it's like you build your own network so that you can start
+
+35
+00:02:57.200 --> 00:03:01.200
+connecting things and provide services to whoever needs to be able to access those services,
+
+36
+00:03:01.200 --> 00:03:06.640
+except you're doing all of that in the cloud. And when you start creating your own VPC,
+
+37
+00:03:06.640 --> 00:03:10.880
+what you can do is you can manage a range of different IP addresses and these are private
+
+38
+00:03:10.880 --> 00:03:16.000
+IP addresses. You can define subnets and place them in different availability zones.
+
+39
+00:03:16.640 --> 00:03:22.480
+You can define your own internal routing rules, inbound and outbound traffic. You can use internet
+
+40
+00:03:22.480 --> 00:03:30.000
+gateways and NAT distances to basically define whether that network needs to have public internet
+
+41
+00:03:30.000 --> 00:03:34.880
+access or it needs to be able to reach out to public IPs that live somewhere else in other
+
+42
+00:03:34.880 --> 00:03:39.920
+networks in the public internet. And you can also do things that are a little bit more advanced.
+
+43
+00:03:39.920 --> 00:03:44.800
+For instance, you could be connecting different VPCs together using a feature called VPC peering
+
+44
+00:03:44.800 --> 00:03:49.840
+or using something like Transit Gateway. And finally, other things that you could be doing,
+
+45
+00:03:49.840 --> 00:03:56.240
+for instance, you could be provisioning VPN access so that you could be able to join that VPC,
+
+46
+00:03:56.240 --> 00:04:01.040
+for instance, from your own laptop, development laptop, and access resources that way.
+
+47
+00:04:01.040 --> 00:04:06.080
+Or alternative things that you could be doing is you could be provisioning Bastion host.
+
+48
+00:04:06.080 --> 00:04:09.520
+So there are different things that as soon as you start to think in terms of creating
+
+49
+00:04:09.520 --> 00:04:14.640
+a virtual private network, you need to think about, define, architect, and then start to
+
+50
+00:04:14.640 --> 00:04:21.040
+actually provision in AWS. So I suppose with that introduction, which I hope was good enough,
+
+51
+00:04:21.040 --> 00:04:25.840
+when do we want to use VPCs?
+
+52
+00:04:25.840 --> 00:04:31.120
+Well, historically creating a VPC was like the starting point for pretty much every new cloud project on AWS. You needed to configure the place where you put all
+
+53
+00:04:31.120 --> 00:04:35.600
+this cloud infrastructure before you can start provisioning anything. And the rise of service
+
+54
+00:04:35.600 --> 00:04:41.120
+and to manage serverless has changed this in a lot of different ways, effectively kind of making it
+
+55
+00:04:41.120 --> 00:04:46.480
+easier for developers and architects to adopt cloud services without needing to think about
+
+56
+00:04:46.480 --> 00:04:50.560
+networking, because it's all just part of AWS's managed network and you don't have to worry too
+
+57
+00:04:50.560 --> 00:04:56.000
+much about IP addresses or routing or security groups. You're just relying on those kind of
+
+58
+00:04:56.000 --> 00:05:00.880
+zero trust pieces like the IAM policies and roles and service linked roles and all that kind of
+
+59
+00:05:00.880 --> 00:05:06.560
+stuff. So why do we still need VPCs then? Well, VPCs can still be incredibly useful when dealing
+
+60
+00:05:06.560 --> 00:05:11.840
+with sensitive data or when you have the need to have fine grained control over the network
+
+61
+00:05:11.840 --> 00:05:15.840
+environment. They can also be used to provide a secure connection between your on-premises
+
+62
+00:05:15.840 --> 00:05:22.720
+infrastructure or another cloud and AWS resources. So they're not only useful for non-serverless
+
+63
+00:05:22.720 --> 00:05:26.720
+applications, I would say, but they can be used in serverless applications as well. So
+
+64
+00:05:26.720 --> 00:05:33.040
+an example is if you're using AWS Lambda, you can deploy your Lambda functions inside of VPC.
+
+65
+00:05:33.040 --> 00:05:37.760
+That's an optional configuration, which will give them access to resources inside that VPC,
+
+66
+00:05:37.760 --> 00:05:43.520
+such as a database or some other services. So in general, VPCs and serverless applications
+
+67
+00:05:43.520 --> 00:05:48.480
+can be used for a few different use cases. So we mentioned accessing resources in a VPC
+
+68
+00:05:48.480 --> 00:05:54.080
+or in an on-premises network. Another one is preventing outbound internet access to prevent
+
+69
+00:05:54.080 --> 00:05:58.960
+data exfiltration in the event of a vulnerability. So you can imagine if there's a supply chain attack
+
+70
+00:05:58.960 --> 00:06:04.000
+and one of your modules is kind of rogue or has a vulnerability and an attacker gets access to that
+
+71
+00:06:04.000 --> 00:06:09.200
+environment, they might need to exfiltrate some keys or some data. If they don't have internet
+
+72
+00:06:09.200 --> 00:06:13.520
+access, you're making it very difficult for them to do that. So having a network boundary on top
+
+73
+00:06:13.520 --> 00:06:19.520
+of your zero trust mechanism makes it, it just gives you more defense in depth there. Of course,
+
+74
+00:06:19.520 --> 00:06:25.520
+from a compliance point of view, or just like a really strict, well thought through network
+
+75
+00:06:25.520 --> 00:06:29.120
+architecture, you might want to do traffic analysis. And if it's all on AWS's managed network,
+
+76
+00:06:29.120 --> 00:06:34.080
+you can't do that. But if everything is in a VPC, you can use things like VPC flow logs to monitor
+
+77
+00:06:34.080 --> 00:06:39.040
+your traffic. And then you can also get fine-grained access control over access to AWS services with
+
+78
+00:06:39.040 --> 00:06:42.960
+routing, security groups, and VPC endpoints as well, which can have their own policies.
+
+79
+00:06:44.080 --> 00:06:48.320
+Finally, I'd say service discovery through private DNS is another thing you can get if you have
+
+80
+00:06:48.320 --> 00:06:54.320
+VPCs. So if you've got a hybrid of instances, containers, and things like Lambda functions,
+
+81
+00:06:54.320 --> 00:07:00.000
+it might make sense to think about service discovery and DNS as well. So there's still
+
+82
+00:07:00.000 --> 00:07:05.440
+some valid cases for thinking about VPCs. I wouldn't dismiss them just yet, but it's not
+
+83
+00:07:05.440 --> 00:07:09.440
+necessarily, you would have to think through the trade-offs and think if you could have avoided
+
+84
+00:07:09.440 --> 00:07:14.560
+VPCs until now, you might think, okay, should I go and start creating network resources just because
+
+85
+00:07:14.560 --> 00:07:19.760
+I need a database? Or should I continue to try and use serverless options where I don't have to think
+
+86
+00:07:19.760 --> 00:07:26.960
+about networking? So why would you avoid VPCs, Luciano?
+
+87
+00:07:26.960 --> 00:07:31.200
+Yeah, my main reason is that VPCs can be quite complicated, even though they're useful for all the reasons that you described,
+
+88
+00:07:31.200 --> 00:07:35.760
+they are not really that easy to get right. And even when you are just starting, there are so many
+
+89
+00:07:35.760 --> 00:07:41.120
+concepts that you need to learn. I remember the first time that I started to work with AWS and I
+
+90
+00:07:41.120 --> 00:07:46.400
+was just trying to deploy a simple application. I did this one day course just to learn, I think,
+
+91
+00:07:46.400 --> 00:07:51.600
+11 different concepts that are the ones that you just described. And I was overwhelmed and it felt
+
+92
+00:07:51.600 --> 00:07:55.920
+a bit unnecessary to having to go through all this pain just to deploy an application in the cloud.
+
+93
+00:07:55.920 --> 00:08:00.000
+Of course, in retrospective, I think it was very valuable to learn all these things. And I feel
+
+94
+00:08:00.000 --> 00:08:04.080
+like now I understand the cloud much better and I can use it better. But I think the point still
+
+95
+00:08:04.080 --> 00:08:08.640
+stands. When is it really worth it? Where should you go through all these layers and learning
+
+96
+00:08:08.640 --> 00:08:13.600
+property properly while maybe other times you can just avoid all this complexity and focus on your
+
+97
+00:08:13.600 --> 00:08:21.600
+application? So the complexity bit is probably the main reason. And kind of a consequence to that is
+
+98
+00:08:21.600 --> 00:08:27.920
+that because it can be complex to understand setup correctly, sometimes you can do silly mistakes.
+
+99
+00:08:27.920 --> 00:08:35.440
+I remember one time I created a subnet, I allocated a Lambda in that subnet, and then I didn't realize
+
+100
+00:08:35.440 --> 00:08:40.160
+that that subnet had very few IP addresses. So when that Lambda was running at scale,
+
+101
+00:08:40.160 --> 00:08:45.680
+it was basically starving to get more IP addresses. The Lambda runtime wasn't able anymore to provision
+
+102
+00:08:45.680 --> 00:08:51.040
+more Lambdas. And therefore, at some point, we hit a ceiling and we couldn't really serve the
+
+103
+00:08:51.040 --> 00:08:56.240
+users that we were trying to serve anymore. And that was just a very silly mistake at the VPC
+
+104
+00:08:56.240 --> 00:09:01.120
+level, configured in the subnets. And it was actually a bit complex to fix because then we
+
+105
+00:09:01.120 --> 00:09:06.320
+needed to redefine all the VPC and it was a bit messy to fix that kind of issue. This is just to
+
+106
+00:09:06.320 --> 00:09:10.800
+give you an example of stuff that can happen. If you want to do it, you need to learn it properly
+
+107
+00:09:10.800 --> 00:09:15.920
+and you need to spend some time making sure you understand all the implications. And similarly,
+
+108
+00:09:15.920 --> 00:09:20.080
+you can think about routing firewall security groups, so many things that can go wrong there.
+
+109
+00:09:21.280 --> 00:09:26.960
+The other thing is that you might be wanting to provision bastion hosts or VPNs. Again,
+
+110
+00:09:26.960 --> 00:09:32.960
+because if you start to have things behind, basically in a private network, in a way that
+
+111
+00:09:32.960 --> 00:09:36.720
+they are not very easy to access. Sometimes if you want to access from your own laptop,
+
+112
+00:09:36.720 --> 00:09:40.720
+because you are trying to debug something, maybe access another base, for instance, or Redis,
+
+113
+00:09:41.360 --> 00:09:45.920
+you need to figure out how do I do that? How do I enable that? And again, that requires provisioning
+
+114
+00:09:45.920 --> 00:09:50.480
+more infrastructure and thinking more about security. And you are potentially creating
+
+115
+00:09:50.480 --> 00:09:54.960
+a backdoor that is useful to yourself. But if you don't make it secure enough, you are actually
+
+116
+00:09:54.960 --> 00:09:59.280
+creating a security risk there. We actually have been speaking about some of these topics,
+
+117
+00:09:59.280 --> 00:10:03.360
+specifically around the concept of bastion hosts in another episode. So we'll have the link in the
+
+118
+00:10:03.360 --> 00:10:08.640
+show notes if you're curious to explore that topic as well. And again, monitoring and intrusion
+
+119
+00:10:08.640 --> 00:10:13.680
+detection. It's something you probably want to do. You want to have ways to understand what's
+
+120
+00:10:13.680 --> 00:10:19.600
+happening in that VPC. And if somebody is having access and that somebody is not supposed to do
+
+121
+00:10:19.600 --> 00:10:24.320
+that, how do you spot that and how do you react to that? You need to put all these kinds of things in
+
+122
+00:10:24.320 --> 00:10:31.120
+place somehow. So again, I think that just to boil it down is not an easy feat. It's something you
+
+123
+00:10:31.120 --> 00:10:35.120
+need to spend a significant amount of time learning, trying things before you can feel
+
+124
+00:10:35.120 --> 00:10:40.080
+confident that you are doing it correctly and you can go to production without any big surprise.
+
+125
+00:10:41.600 --> 00:10:49.440
+So I suppose if all of that sounds scary enough, how realistic it is that you just go VPC-less and
+
+126
+00:10:49.440 --> 00:10:54.880
+be able to deploy even significantly complicated application without having to think about VPCs.
+
+127
+00:10:54.880 --> 00:10:59.760
+Is that actually possible today or not? Yeah, definitely possible.
+
+128
+00:10:59.760 --> 00:11:05.360
+I've been part of teams, I think you have as well, where we've built significantly complex applications that
+
+129
+00:11:05.360 --> 00:11:10.000
+are completely VPC-less. And I think there's plenty of public examples out there of companies
+
+130
+00:11:10.000 --> 00:11:14.720
+who are able to do it. There's a lot of people advocating for this VPC-less kind of architecture.
+
+131
+00:11:14.720 --> 00:11:19.760
+And I think a lot of people believe that it's kind of a core tenant of serverless applications,
+
+132
+00:11:19.760 --> 00:11:24.240
+that you should try and avoid VPCs. And I don't necessarily agree that you have to avoid them.
+
+133
+00:11:24.240 --> 00:11:27.440
+Let's just think about some of the services that don't require VPCs and we might be able
+
+134
+00:11:27.440 --> 00:11:32.000
+to extrapolate what you could do with them. So DynamoDB, for example, I think that's one of its
+
+135
+00:11:32.000 --> 00:11:36.560
+advantages and appeals is that you don't have to set up any networking in advance. API Gateway,
+
+136
+00:11:37.280 --> 00:11:43.120
+you don't need it. Kinesis. Also, most of the event services, SQS, SNS, EventBridge,
+
+137
+00:11:43.120 --> 00:11:47.120
+Step Functions as well, you don't need to associate it with any of the tasks within your
+
+138
+00:11:47.120 --> 00:11:52.320
+Step Function. Can connect with VPC, of course, if you want to. CloudFront even doesn't use VPCs.
+
+139
+00:11:52.320 --> 00:12:00.160
+Cognito. And then you have the compute services like Lambda, AppRunner, and Glue. So these are
+
+140
+00:12:00.160 --> 00:12:04.240
+all capable of running without a VPC. And you also have lots of third-party services that can
+
+141
+00:12:04.240 --> 00:12:11.280
+integrate with AWS without needing private link. So you can think about, I suppose, any service
+
+142
+00:12:11.280 --> 00:12:17.920
+that uses IAM or even services that are integrated with EventBridge. So all of these services,
+
+143
+00:12:17.920 --> 00:12:23.440
+they use the AWS network and don't require you to set up a VPC. And Glue, AppRunner, and Lambda,
+
+144
+00:12:23.440 --> 00:12:27.760
+those compute services we mentioned, while they don't require a VPC, they allow you to specify
+
+145
+00:12:27.760 --> 00:12:32.480
+VPC subnets so you can connect them to network-connected resources. So you have that
+
+146
+00:12:32.480 --> 00:12:36.480
+option there. I think it's very possible then to build large, complex applications without using
+
+147
+00:12:36.480 --> 00:12:42.960
+VPCs. But it begs the question, is this a utopian vision we should all strive for?
+
+148
+00:12:42.960 --> 00:12:50.560
+Is it a good practice? Is it a well-architected thing in 2023 to be trying to avoid VPCs?
+
+149
+00:12:50.560 --> 00:12:54.880
+Are they some sort of anti-pattern?
+
+150
+00:12:54.880 --> 00:13:01.680
+I wouldn't say, at least in the context of serverless, that VPCs are an anti-pattern. As you said, it's something that you can avoid in many situations.
+
+151
+00:13:01.680 --> 00:13:08.240
+But I think there are situations where if you weight the benefits and the complexity,
+
+152
+00:13:09.200 --> 00:13:15.120
+there might be a trade-off there where it could be worth it doing serverless and also do VPCs.
+
+153
+00:13:15.760 --> 00:13:21.360
+And just to give you some examples, very simply, probably a use case we've been talking about
+
+154
+00:13:21.360 --> 00:13:27.920
+before is if you start to use RDS, that's kind of a service that forces you to go down the path of
+
+155
+00:13:27.920 --> 00:13:32.560
+creating your own VPCs. And then if you want to connect a Lambda, for instance, to your own RDS
+
+156
+00:13:32.560 --> 00:13:38.640
+database, the easiest way is probably to just put the Lambda in the same VPC where you have your own
+
+157
+00:13:38.640 --> 00:13:44.640
+database and make sure that the whole routing and subnets is configured correctly so that you can
+
+158
+00:13:44.640 --> 00:13:49.440
+have access from the Lambda directory to the database. And very similarly, if you use ECS or
+
+159
+00:13:49.440 --> 00:13:56.000
+EKS or Elasticash or Kafka or OpenSearch, all these services are built around the concept you
+
+160
+00:13:56.000 --> 00:14:01.360
+need to effectively provision instances behind the scenes in a specific VPC.
+
+161
+00:14:01.360 --> 00:14:06.560
+So you need to think about how am I going to structure this VPC and how I'm going to connect things together. So this is
+
+162
+00:14:06.560 --> 00:14:12.240
+definitely a very good case where if you use some of these services, you are a bit forced down the
+
+163
+00:14:12.240 --> 00:14:18.720
+path of thinking about VPCs. But again, as you said before, it's not necessarily a bad thing
+
+164
+00:14:18.720 --> 00:14:24.880
+because you gain additional control in the sense of being able to add more in-depth security.
+
+165
+00:14:24.880 --> 00:14:29.520
+So you can add more things around your application that makes it a little bit more secure.
+
+166
+00:14:30.080 --> 00:14:34.960
+So it might not be just extra work for you. It gives you some advantages as well. In summary,
+
+167
+00:14:34.960 --> 00:14:39.920
+I will say that VPCs are not necessarily an anti-pattern, but it's just something that you
+
+168
+00:14:39.920 --> 00:14:44.480
+might or might not need to use. And if you need to use, of course, you need to be careful in terms of
+
+169
+00:14:44.480 --> 00:14:48.000
+just not discount the amount of work and the amount of complexity that there is and make sure
+
+170
+00:14:48.000 --> 00:14:53.200
+you take enough time to absorb all the concept and to try different things and to test that you're
+
+171
+00:14:53.200 --> 00:15:00.160
+set up is actually doing what you think it needs to be doing. So again, anything that you would
+
+172
+00:15:00.160 --> 00:15:05.920
+add in terms of how to think about VPCs in the context of Lambda?
+
+173
+00:15:11.280 --> 00:15:14.800
+Well, if you want to access resources in VPC or in an on-premises network, you need to define VPC subnets and security groups for the Lambda function. It's actually interesting with security groups and Lambda function, it can
+
+174
+00:15:14.800 --> 00:15:19.120
+be a little bit misleading because normally with security groups, you can say what ports are
+
+175
+00:15:19.120 --> 00:15:23.360
+allowed in, what ports are allowed out, but Lambda doesn't really work like that because it doesn't
+
+176
+00:15:23.360 --> 00:15:28.320
+have that stateful socket connection. So the only reason you define security groups really with
+
+177
+00:15:28.320 --> 00:15:32.560
+Lambda is that so you can use those security groups in the rules of other security groups
+
+178
+00:15:32.560 --> 00:15:38.640
+and allow that Lambda function to access network resources. The VPC with Lambda used to make a
+
+179
+00:15:38.640 --> 00:15:43.280
+massive difference for cold start times. So Lambda used to create and attach an elastic network
+
+180
+00:15:43.280 --> 00:15:47.520
+interface or an ENI for the cold start of each container. I think that was what led to the
+
+181
+00:15:47.520 --> 00:15:54.800
+problem you mentioned having experienced when your IP CIDR block was too small. But this is no
+
+182
+00:15:54.800 --> 00:16:00.960
+longer the case. So in the end of 2019, AWS changed this. So an ENI is now provisioned for the
+
+183
+00:16:00.960 --> 00:16:05.600
+function when you deploy it and each Lambda container routes through this interface using a
+
+184
+00:16:05.600 --> 00:16:11.120
+VPC to VPC NAT instead. So it's much more efficient. It doesn't impact cold start times like
+
+185
+00:16:11.120 --> 00:16:16.720
+it used to and just makes VPCs with Lambda way more useful than they used to be. So that's
+
+186
+00:16:16.720 --> 00:16:21.120
+what it used to be. So there are some advantages then of using VPCs for Lambda that are really
+
+187
+00:16:21.120 --> 00:16:25.760
+worthwhile to state. And I think one really interesting one is something we alluded to
+
+188
+00:16:25.760 --> 00:16:31.120
+earlier. You can prevent outbound internet access. There's no other way to do this.
+
+189
+00:16:31.120 --> 00:16:36.400
+There used to be this product called Function Shield, which doesn't really exist anymore, which was
+
+190
+00:16:36.400 --> 00:16:41.840
+like a low level interface that would try and prevent outbound internet access to prevent
+
+191
+00:16:41.840 --> 00:16:47.200
+exfiltration. But the only way to do this really now effectively is with a VPC and ensuring that
+
+192
+00:16:47.200 --> 00:16:52.320
+there's no route to the internet from that VPC. So it's a useful security perimeter then. And if
+
+193
+00:16:52.320 --> 00:16:56.720
+you've got that supply chain attack problem, you don't have to worry as much. You can also then
+
+194
+00:16:56.720 --> 00:17:02.160
+analyze traffic with VPC flow logs and you've got fine grain network control, right? So in a
+
+195
+00:17:02.160 --> 00:17:06.960
+corporate environment or if you've got other network resources, it can make a lot of sense
+
+196
+00:17:06.960 --> 00:17:11.520
+to use Lambda with VPC. Now I would still in a lot of cases, even when you've got a corporate
+
+197
+00:17:11.520 --> 00:17:15.680
+environment end up with a hybrid approach where you've got lots of Lambda functions that don't
+
+198
+00:17:15.680 --> 00:17:20.480
+need to access those network resources. So those ones don't get assigned a subnet.
+
+199
+00:17:20.480 --> 00:17:26.640
+And then the ones that do, do get to assign a subnet. So you can mix it like that. So I would definitely think,
+
+200
+00:17:26.640 --> 00:17:30.960
+okay, don't worry so much about VPCs for Lambda. If you've got VPCs and private networks,
+
+201
+00:17:31.600 --> 00:17:36.400
+it makes sense to just start using it. And we've got plenty of very serverless applications out
+
+202
+00:17:36.400 --> 00:17:44.400
+there now that use ElastiCache and RDS and other VPC connected resources. And it's just becomes part
+
+203
+00:17:44.400 --> 00:17:48.960
+of the architecture that you have to use VPCs at least until we get into a situation where maybe
+
+204
+00:17:48.960 --> 00:17:54.560
+AWS will start to think about more of a zero trust model for all services. Like with RDS,
+
+205
+00:17:54.560 --> 00:17:59.760
+you've got the data API now, maybe in the future, we'll have other examples where you're just using
+
+206
+00:17:59.760 --> 00:18:06.320
+more like HTTP based interaction for all of these services using IAM instead of network controls.
+
+207
+00:18:06.320 --> 00:18:12.400
+I'm going to try to do a summary of everything we just said today.
+
+208
+00:18:12.400 --> 00:18:16.800
+And I suppose that the first point is that applications without VPCs are possible, that that's a given, and they can
+
+209
+00:18:16.800 --> 00:18:22.400
+be simpler if you are able to build something like that, you don't have the extra overhead
+
+210
+00:18:22.400 --> 00:18:28.400
+of thinking about VPCs. But VPCs are not going away, at least not in the short term. And they
+
+211
+00:18:28.400 --> 00:18:34.000
+are an important feature that I think is good, especially if you are an architect, if you learn
+
+212
+00:18:34.000 --> 00:18:37.200
+the principles and if you're able to use them, and if you're able to understand, especially the
+
+213
+00:18:37.200 --> 00:18:41.680
+trade off, like when it makes sense to use them, when you can just keep things simple and not
+
+214
+00:18:41.680 --> 00:18:49.280
+having to bother with VPCs. And if you're using VPCs, again, very important to do them, like take
+
+215
+00:18:49.280 --> 00:18:55.600
+your own time to do them correctly. There are a lot of templates that you can find online that
+
+216
+00:18:55.600 --> 00:19:02.240
+just create VPCs magically for you. They can be useful, but at least make sure you check out what
+
+217
+00:19:02.240 --> 00:19:06.400
+they are actually doing and you understand what's happening, you are okay with that particular setup.
+
+218
+00:19:06.400 --> 00:19:11.040
+Don't just give it for granted that there is a matching default that would work in every case.
+
+219
+00:19:11.040 --> 00:19:15.520
+I think you need to, again, spend the time, understand it, and then make the right choices
+
+220
+00:19:15.520 --> 00:19:22.400
+for the specific context. It can be complex, but I feel that things are going in a direction where
+
+221
+00:19:22.400 --> 00:19:28.000
+providers are giving simpler abstractions. So I think over time we'll be able to use things that
+
+222
+00:19:28.000 --> 00:19:31.600
+are a little bit simpler, even though I think if you know the theory, if you know what's going on
+
+223
+00:19:31.600 --> 00:19:36.160
+behind the scene, that's always something powerful to have, because I think you can understand those
+
+224
+00:19:36.160 --> 00:19:40.240
+interfaces a little bit better and you can avoid some of the pitfalls that might still happen,
+
+225
+00:19:40.240 --> 00:19:45.360
+even though you might have a simpler interface to deal with. There is an interesting tool called
+
+226
+00:19:45.360 --> 00:19:51.680
+VPC lattice, I think it's pronounced, and we'll be doing probably another episode where we talk
+
+227
+00:19:51.680 --> 00:19:56.960
+a little bit more in depth, but the promise of this particular service is that it makes it easier
+
+228
+00:19:56.960 --> 00:20:03.440
+to define networks that are a little bit more advanced and where you can connect things in a
+
+229
+00:20:03.440 --> 00:20:10.320
+very dynamic way. So it could be a very interesting topic to explore a bit more, so we'll probably
+
+230
+00:20:10.320 --> 00:20:14.480
+leave that for another episode in the future. I'm looking forward to that one, actually.
+
+231
+00:20:14.480 --> 00:20:18.400
+We're getting lots of great feedback on AWS Bites online, and when we meet listeners and viewers in
+
+232
+00:20:18.400 --> 00:20:22.480
+person, which is always great as well. If you do get something from these episodes, please do leave
+
+233
+00:20:22.480 --> 00:20:26.880
+a review and rating wherever you listen. It helps other people to discover to the show. And if you
+
+234
+00:20:26.880 --> 00:20:30.880
+watch on YouTube, like our episodes, subscribe and share with all your friends and colleagues.
+
+235
+00:20:30.880 --> 00:20:51.360
+We really appreciate that, so thanks for listening again, and we'll see you next week.

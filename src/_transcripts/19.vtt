@@ -1,0 +1,661 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:06.400
+Hello, today we're going to answer the question, is serverless developer experience still immature?
+
+2
+00:00:07.120 --> 00:00:12.000
+And with that question, we are going to cover topics like what the local development looks
+
+3
+00:00:12.000 --> 00:00:16.800
+like, what are the best tools that you can use for developing serverless applications,
+
+4
+00:00:16.800 --> 00:00:20.560
+what is the serverless ecosystem, and how it can be improved.
+
+5
+00:00:20.560 --> 00:00:29.840
+My name is Luciano and today I'm joined by Eoin and this is AWS Bites podcast.
+
+6
+00:00:34.080 --> 00:00:38.400
+So before we get started, I want to thank you, Project O'Brien, for suggesting us this topic
+
+7
+00:00:38.400 --> 00:00:44.000
+today and we remind you that we are very open to accept suggestions, so feel free to send us your
+
+8
+00:00:44.000 --> 00:00:50.000
+questions. But let's start by clarifying what is the context for today. We are talking about when
+
+9
+00:00:50.000 --> 00:00:54.960
+we mention serverless, we're talking about building applications not just with Lambda,
+
+10
+00:00:54.960 --> 00:01:01.440
+but the entire ecosystem like DynamoDB, SQS, Cognito, Kinesis, EventBridge. So in general,
+
+11
+00:01:02.000 --> 00:01:09.920
+that large variety that you get of managed services in AWS. So maybe we can start by
+
+12
+00:01:09.920 --> 00:01:16.720
+discussing how does the serverless experience compares with more traditional ways of building
+
+13
+00:01:16.720 --> 00:01:19.520
+applications in the cloud. What do you think, Eoin?
+
+14
+00:01:21.920 --> 00:01:26.400
+Yeah, I guess it depends where you're coming from.
+
+15
+00:01:26.400 --> 00:01:31.440
+I remember when we were building monolithic applications and you essentially had one process that would run all of the various different
+
+16
+00:01:31.440 --> 00:01:36.880
+capabilities of your application, maybe talking to a database. Sometimes you could run all of
+
+17
+00:01:36.880 --> 00:01:41.680
+the code for the application in an IDE with a click of one button. Then I guess a lot of
+
+18
+00:01:41.680 --> 00:01:46.240
+people moved into microservices development where things were a little bit more fragmented
+
+19
+00:01:46.240 --> 00:01:53.360
+and you had containers for different pieces of functionality. And from a development perspective,
+
+20
+00:01:53.360 --> 00:01:57.840
+things started to change around that time because you needed to run multiple containers,
+
+21
+00:01:57.840 --> 00:02:02.720
+but it was still doable. And I guess one of the things you're talking about when you're looking
+
+22
+00:02:02.720 --> 00:02:07.600
+at developer experience for serverless, a lot of people will compare it to containers and Docker
+
+23
+00:02:07.600 --> 00:02:13.200
+and Kubernetes and what it's like to run containers locally. One of the things containers do really,
+
+24
+00:02:13.200 --> 00:02:20.400
+really well, I think, is making sure that you've got a developer environment that performs very
+
+25
+00:02:20.400 --> 00:02:25.040
+closely to what your production environment is going to do. Like you've got an immutable
+
+26
+00:02:25.760 --> 00:02:30.960
+container that's going to run in the same way pretty much locally and in production.
+
+27
+00:02:30.960 --> 00:02:34.240
+With serverless, it's a lot more complex, right? It's not as simple.
+
+28
+00:02:35.360 --> 00:02:42.400
+Yeah.
+
+29
+00:02:42.400 --> 00:02:48.000
+And I know for instance, even with things like Kubernetes, which it is a very complex piece of machinery when you run it in the cloud, you still have very good tooling to simulate all
+
+30
+00:02:48.000 --> 00:02:53.120
+that ecosystem in one machine as you are developing. So that's an interesting thing to
+
+31
+00:02:53.120 --> 00:02:59.280
+start with. So yeah, we're trying to compare the serverless experience with monoliths,
+
+32
+00:02:59.280 --> 00:03:05.760
+more traditional way and microservices using containers. I think that the first thing that
+
+33
+00:03:05.760 --> 00:03:11.680
+comes to mind when thinking about what is the main difference between serverless and this kind of
+
+34
+00:03:11.680 --> 00:03:18.800
+architecture is that the unit, that the level of granularity is much smaller with serverless
+
+35
+00:03:18.800 --> 00:03:25.600
+because you are generally thinking in terms of functions rather than services. Even though,
+
+36
+00:03:25.600 --> 00:03:30.480
+yeah, you might argue that a set of function logically create a service, but when you are
+
+37
+00:03:30.480 --> 00:03:34.960
+developing a specific capability, you are writing one particular function at the time.
+
+38
+00:03:34.960 --> 00:03:40.160
+So the level of granularity is like it's immediately smaller and it's forcing you to think
+
+39
+00:03:40.160 --> 00:03:46.320
+differently about how to build that particular capability. And it's something you can see,
+
+40
+00:03:46.320 --> 00:03:50.400
+for instance, even in terms of security, right? You are going to be able to write
+
+41
+00:03:50.400 --> 00:03:56.960
+one particular policy for a particular function that is extremely locked down only to the things
+
+42
+00:03:56.960 --> 00:04:02.000
+that that function is supposed to do, which is very hard to achieve in a bigger, more
+
+43
+00:04:02.000 --> 00:04:08.720
+monolithic application or even a microservice. Absolutely.
+
+44
+00:04:08.720 --> 00:04:13.360
+It's a huge benefit and we might talk about that in more detail in a while, but it also brings a set of challenges then because
+
+45
+00:04:14.000 --> 00:04:19.040
+suddenly you have the kind of responsibility now to make sure that you've got minimal privilege
+
+46
+00:04:19.040 --> 00:04:25.200
+with every IAM policy you write. Yeah.
+
+47
+00:04:25.200 --> 00:04:31.120
+And that's tricky because of course, we know the pain of writing IAM policies and it's very hard to get them right at the first try. So you generally go
+
+48
+00:04:31.120 --> 00:04:38.720
+by trial and error until it does what you want it to do. Exactly. Yeah. Unfortunately that is the case.
+
+49
+00:04:38.720 --> 00:04:44.480
+Yeah. So I like the fact that you've got this much more fragmentation really.
+
+50
+00:04:44.480 --> 00:04:49.040
+So you move to microservices, you had lots of small pieces with serverless. Generally, you have
+
+51
+00:04:49.040 --> 00:04:55.040
+many, many more pieces. They might be grouped together into services, but you're deploying lots
+
+52
+00:04:55.040 --> 00:04:59.520
+of individual pieces of code, but you're also deploying resources very freely.
+
+53
+00:04:59.520 --> 00:05:04.160
+So I suppose before serverless, you deployed infrastructure and then you wrote code and
+
+54
+00:05:04.160 --> 00:05:10.560
+deployed your code onto the infrastructure. But with serverless, that separation doesn't really
+
+55
+00:05:10.560 --> 00:05:16.560
+clearly exist anymore. You're deploying infrastructure and code together in many cases.
+
+56
+00:05:16.560 --> 00:05:22.800
+You might have some base foundational resources that are more long-lived and you don't deploy
+
+57
+00:05:22.800 --> 00:05:29.520
+them every time, but you can deploy an SQS queue very easily, very dynamically. You can even create
+
+58
+00:05:29.520 --> 00:05:35.120
+them at runtime. So it's not just about how you get your code running. It's about how you get all
+
+59
+00:05:35.120 --> 00:05:42.160
+of those other little pieces that build up your architecture and how you get those, how you develop
+
+60
+00:05:42.160 --> 00:05:48.880
+with that mindset then. So I suppose one of the big things, the big elephant in the room sometimes
+
+61
+00:05:48.880 --> 00:05:55.600
+when it comes to serverless is local development. And when you've got a mix of code and AWS resources,
+
+62
+00:05:56.880 --> 00:06:02.160
+each AWS resource is very complex in its own right. Can you simulate that locally? And is it
+
+63
+00:06:02.160 --> 00:06:07.360
+worthwhile simulating that locally? It's the million dollar question. What's your opinion on it?
+
+64
+00:06:12.080 --> 00:06:17.760
+Yeah, I don't know if I have a fully formed opinion yet, meaning that I've been working in some projects where somehow we managed to have a good enough local environment and everyone has
+
+65
+00:06:17.760 --> 00:06:24.480
+been happy with it. But in other cases it has been much more tricky and we ended up relying a lot more
+
+66
+00:06:24.480 --> 00:06:30.800
+on the real AWS environment running in the cloud, even for development. So while we change things
+
+67
+00:06:30.800 --> 00:06:36.560
+just to test our changes, we end up deploying and checking things in the real AWS environment.
+
+68
+00:06:37.200 --> 00:06:42.800
+So I'm still a little bit conflicted on whether one way is better than the other. And I think it
+
+69
+00:06:42.800 --> 00:06:49.040
+depends probably on the complexity of the application, meaning are you using just few
+
+70
+00:06:49.040 --> 00:06:55.280
+simple AWS services or maybe you're using more advanced services and a mixture with many, many
+
+71
+00:06:55.280 --> 00:07:01.520
+different services. And I think also that depends on the tooling that is currently available.
+
+72
+00:07:01.520 --> 00:07:08.000
+For instance, I used local stack, which is actually a very good tool that allows you to
+
+73
+00:07:08.000 --> 00:07:15.200
+simulate many different AWS services locally. It runs in Docker, so you can easily run one or more
+
+74
+00:07:15.200 --> 00:07:22.800
+containers and use them to simulate, I don't know, S3, SQS are probably the most common ones,
+
+75
+00:07:22.800 --> 00:07:28.560
+but you can simulate a range of different services. But it gets tricky, of course, when you are doing
+
+76
+00:07:28.560 --> 00:07:34.720
+more advanced things like EventBridge comes to mind, Step Functions comes to mind. And in those
+
+77
+00:07:34.720 --> 00:07:43.280
+cases, you get something very basic, but you don't get the level of accuracy that you might need,
+
+78
+00:07:43.280 --> 00:07:47.600
+or that it might make you feel confident that what you're doing is actually going to work
+
+79
+00:07:47.600 --> 00:07:54.240
+in production. Yeah, I think that's really good point.
+
+80
+00:07:54.240 --> 00:07:59.280
+I think local stack is great, as long as you know where the limits are and where you need to actually rely on the cloud. So
+
+81
+00:07:59.280 --> 00:08:05.120
+don't over rely on it and assume that it's a drop in replacement for AWS. Of course it isn't,
+
+82
+00:08:05.120 --> 00:08:10.880
+and it never will be, but it can help you in certain cases if you want to have really fast
+
+83
+00:08:10.880 --> 00:08:15.920
+feedback in a local developer environment. There are some places where it does really well.
+
+84
+00:08:16.880 --> 00:08:24.640
+If you need a local S3, then yeah, it'll work with the limitations. So it can help to optimize
+
+85
+00:08:24.640 --> 00:08:28.720
+your developer workflow, but it's not going to replace ultimately the cloud. You need to
+
+86
+00:08:28.720 --> 00:08:34.560
+test your code in the cloud as quickly as possible. Question is, how satisfied are you
+
+87
+00:08:34.560 --> 00:08:41.680
+with deploying to the cloud every time you make a code change? So what is your developer flow?
+
+88
+00:08:42.240 --> 00:08:48.240
+How fast do you want your developer feedback loop to be? And when do you go from working
+
+89
+00:08:48.240 --> 00:08:54.240
+in local mode to working in cloud mode? And there's a lot of different factors at play there.
+
+90
+00:08:54.240 --> 00:08:59.600
+It depends on a lot of things, including your internet connection. I've had that experience
+
+91
+00:08:59.600 --> 00:09:04.000
+where developing on a slow internet connection and deploying a cloud formation stack and even
+
+92
+00:09:04.000 --> 00:09:09.680
+uploading it was a bottleneck. So if you're working with a gigabit connection all the time
+
+93
+00:09:09.680 --> 00:09:13.360
+and that's not a problem, then that's good for you, but it's not like that for everybody. So
+
+94
+00:09:14.240 --> 00:09:17.360
+the tooling has to be broadly applicable if it's going to really be successful.
+
+95
+00:09:18.000 --> 00:09:23.360
+Absolutely. That's a great point.
+
+96
+00:09:23.360 --> 00:09:30.080
+Is there any other tool that you know, aside from local stack for trying to get something locally or maybe to simplify the developer experience in
+
+97
+00:09:30.080 --> 00:09:37.680
+general? Yeah, there are a lot of options and there's a growing set of options.
+
+98
+00:09:37.680 --> 00:09:41.760
+So for a long time I've been using serverless offline when using the serverless framework successfully.
+
+99
+00:09:42.320 --> 00:09:49.440
+And if you've got like a traditional API stack with Lambda behind it, maybe DynamoDB behind it,
+
+100
+00:09:49.440 --> 00:09:56.880
+you can run all of that locally with reasonable results, pretty good results. It can start to
+
+101
+00:09:56.880 --> 00:09:59.840
+break down a little bit when you've got other triggers. If you're triggering from the event
+
+102
+00:09:59.840 --> 00:10:05.520
+bridge or SQS or SNS, then you need, this is where it gets a little bit more complicated.
+
+103
+00:10:05.520 --> 00:10:13.520
+You've also got SAM local, which is also pretty good. Probably even more robust than serverless
+
+104
+00:10:13.520 --> 00:10:22.160
+offline because it's, I guess, built in support by AWS and also uses Docker by default to give
+
+105
+00:10:22.160 --> 00:10:28.080
+you more of an isolated runtime. So that's good. And then you've got some of these new tools that
+
+106
+00:10:28.080 --> 00:10:34.960
+are coming out like SST, we were discussing earlier, right? There are some third parties
+
+107
+00:10:34.960 --> 00:10:40.480
+which are really kind of pushing the boundaries and trying to make local development and the
+
+108
+00:10:40.480 --> 00:10:44.560
+bridge between local and cloud development a little bit more seamless, letting you do
+
+109
+00:10:44.560 --> 00:10:47.680
+kind of local troubleshooting. So what do you think?
+
+110
+00:10:47.680 --> 00:10:54.160
+Yeah.
+
+111
+00:10:54.160 --> 00:11:00.880
+And it's interesting that I haven't tried SST yet, but it seems that they are promoting more this idea that if you could get your code faster to the cloud, then maybe the
+
+112
+00:11:00.880 --> 00:11:06.400
+cloud becomes your development environment. And I think this is maybe the big question.
+
+113
+00:11:06.400 --> 00:11:13.440
+The big question, is this going to become a reality or it's just because we cannot
+
+114
+00:11:13.440 --> 00:11:18.960
+simulate everything locally, this is the only approach we could reasonably take. So I don't
+
+115
+00:11:18.960 --> 00:11:23.520
+know, again, what is the real answer, but it's interesting to see that there is a push even from
+
+116
+00:11:23.520 --> 00:11:30.480
+AWS itself to say, yeah, you can do things locally, but the real environment is the cloud. So try to
+
+117
+00:11:30.480 --> 00:11:38.400
+do as much as possible in the cloud straight away. And that hybrid approach, I think is still a
+
+118
+00:11:38.400 --> 00:11:43.920
+reality for most of the cases where maybe you are still running your code locally, but your code
+
+119
+00:11:44.560 --> 00:11:49.600
+reaches out to services that are already available in AWS, like, I don't know, read a table in Dynamo
+
+120
+00:11:49.600 --> 00:11:55.040
+DB or write a message in IQ or send an SNS notification. You can definitely do all these
+
+121
+00:11:55.040 --> 00:12:02.720
+things from the code running locally. So you get more or less something that is trustable enough
+
+122
+00:12:02.720 --> 00:12:11.040
+at the end of the day as you change your code. So, yeah, I don't know. Do we want to do some
+
+123
+00:12:11.040 --> 00:12:16.400
+final remarks of what do we think is good and what do we think is bad right now?
+
+124
+00:12:18.560 --> 00:12:22.640
+Yeah, that's a good idea. Maybe it sounds like we've taken a kind of a negative view.
+
+125
+00:12:22.640 --> 00:12:29.600
+I mean, it is, I think, let's face facts, we're serverless advocates, but the tooling is immature compared
+
+126
+00:12:29.600 --> 00:12:36.000
+to container-based development. That's my view on it. And I think that's fine as long as you
+
+127
+00:12:36.000 --> 00:12:39.840
+understand that and understand the limitations and the workarounds and keep an eye out for
+
+128
+00:12:39.840 --> 00:12:45.280
+improvements there because there's the number of benefits outweigh these disadvantages in my view.
+
+129
+00:12:46.720 --> 00:12:50.560
+If you've got a good approach to constantly improving your development environment,
+
+130
+00:12:50.560 --> 00:12:55.440
+you can live with these limitations. But I think there's a lot of scope for good improvement as
+
+131
+00:12:55.440 --> 00:13:03.200
+well. So what do you think could be better?
+
+132
+00:13:03.200 --> 00:13:10.960
+Yeah, I think what can be better, as we said, is the ability to be able to push code faster. And we have seen before and during re-invent
+
+133
+00:13:10.960 --> 00:13:17.520
+a number of promising initiatives from AWS. For instance, I remember we discussed some accelerate
+
+134
+00:13:17.520 --> 00:13:23.280
+or also some sync, sometimes it's referred to, which should allow you to be able to
+
+135
+00:13:24.400 --> 00:13:29.920
+synchronize the code in your Lambda if you're using some, like straight away. As you do a change,
+
+136
+00:13:29.920 --> 00:13:34.880
+there is probably like a watching mechanism that will automatically publish your code without you
+
+137
+00:13:34.880 --> 00:13:40.400
+having to invoke a separate command which triggers cloud formation and so on. So that should give you
+
+138
+00:13:41.440 --> 00:13:45.680
+a better way of just changing your code and seeing the changes straight away.
+
+139
+00:13:45.680 --> 00:13:51.120
+And similarly, I think there is something called CDK-Otswap. If I understand correctly,
+
+140
+00:13:51.120 --> 00:13:57.840
+it will work with CDK and it will allow you to update Lambdas, but also ECS, code inside
+
+141
+00:13:57.840 --> 00:14:06.000
+ECS containers, and also step functions, state machines, definition. And as far as I understand,
+
+142
+00:14:06.000 --> 00:14:11.920
+that doesn't use cloud formation. So that's probably why you get a much faster feedback.
+
+143
+00:14:11.920 --> 00:14:16.880
+Probably you don't get rollbacks and all the other things that cloud formation gives you,
+
+144
+00:14:16.880 --> 00:14:21.520
+but for development is probably fine. Yeah. I mean, that's what it's about.
+
+145
+00:14:21.520 --> 00:14:26.400
+It's not about making your production deployment faster because that needs to be safe and predictable using cloud
+
+146
+00:14:26.400 --> 00:14:33.280
+formation, but it's about just getting code up to AWS faster and running it faster. Of course,
+
+147
+00:14:34.000 --> 00:14:38.400
+we said at the start that serverless applications aren't just about the code. They're about all
+
+148
+00:14:38.400 --> 00:14:42.880
+those other resources that comprise your architecture. So that's one of the things
+
+149
+00:14:42.880 --> 00:14:50.640
+that can slow you down and could be improved. If you want to deploy a new queue, we create
+
+150
+00:14:50.640 --> 00:14:57.680
+and destroy AWS resources all the time when we're in development mode on AWS with serverless
+
+151
+00:14:57.680 --> 00:15:02.560
+applications. So how can you make that faster? If cloud formation was orders of magnitude faster,
+
+152
+00:15:02.560 --> 00:15:09.840
+that would make the developer experience instantly way, way better. And it can be a bottleneck.
+
+153
+00:15:10.400 --> 00:15:15.200
+You also mentioned security, Luciano, getting your permissions right. When you're in that
+
+154
+00:15:15.200 --> 00:15:21.040
+phase of development where you're constantly tweaking IAM policies, what's the best way
+
+155
+00:15:21.040 --> 00:15:24.960
+to do that? Are you updating the policy programmatically? Are you using the console
+
+156
+00:15:24.960 --> 00:15:29.120
+to update your policy? If you're using cloud formation every time, you have to wait for
+
+157
+00:15:29.120 --> 00:15:33.600
+the stack to update before you can test every version of the policy. So improve tooling around
+
+158
+00:15:33.600 --> 00:15:39.120
+that and maybe better predictive generation of policies and validation of policies.
+
+159
+00:15:39.120 --> 00:15:44.000
+Some intelligence in there would go a long way to improving the developer experience. I really
+
+160
+00:15:44.000 --> 00:15:52.320
+think so. I absolutely agree. I think that this is all we have for this episode.
+
+161
+00:15:52.320 --> 00:15:57.280
+And I'm really curious to know what you all think about this and what are you doing today to build your
+
+162
+00:15:57.280 --> 00:16:02.800
+serverless applications. If you found any sweet spot that works well for you, we are really
+
+163
+00:16:02.800 --> 00:16:08.320
+curious to know about that. So definitely share your experience with us. And please
+
+164
+00:16:08.320 --> 00:16:12.880
+remember to follow us and subscribe so you can be notified the next time we publish an
+
+165
+00:16:12.880 --> 00:16:27.760
+episode, which is generally every Friday. So we'll see you next time. Bye.

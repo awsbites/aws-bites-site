@@ -1,0 +1,1321 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:05.280
+There is a growing number of tools for building and deploying serverless applications in the cloud.
+
+2
+00:00:05.840 --> 00:00:11.040
+We are going to focus on two of the main alternatives, AWS SAM and the Serverless Framework.
+
+3
+00:00:11.040 --> 00:00:15.120
+We are going to compare the features, the usability, and also make some speculation about
+
+4
+00:00:15.120 --> 00:00:19.760
+the future of these two different products. If we do a good job by the end of today's episode,
+
+5
+00:00:19.760 --> 00:00:22.960
+you should know which one you are going to choose for your next project.
+
+6
+00:00:22.960 --> 00:00:30.880
+My name is Luciano and I'm here with Eoin and this is AWS Bites podcast.
+
+7
+00:00:34.480 --> 00:00:40.320
+AWS Bites is sponsored by fourTheorem. fourTheorem is an AWS consulting partner offering training,
+
+8
+00:00:40.320 --> 00:00:45.280
+cloud migration, and modern application architecture. Find out more at fourtheorem.com.
+
+9
+00:00:45.280 --> 00:00:47.040
+You will find this link in the show notes.
+
+10
+00:00:48.080 --> 00:00:52.640
+So, we are ready to get started and let's talk about Serverless Framework and SAM,
+
+11
+00:00:52.640 --> 00:00:54.080
+what are these tools for?
+
+12
+00:00:54.080 --> 00:00:57.600
+Serverless Framework and SAM, they are both infrastructure as code tools.
+
+13
+00:00:57.600 --> 00:01:02.400
+I suppose that's the first thing we can say then. They are geared towards serverless applications, but the
+
+14
+00:01:02.400 --> 00:01:07.440
+applications you build and deploy with them, they don't have to be serverless. They are useful for
+
+15
+00:01:07.440 --> 00:01:12.240
+deploying AWS infrastructure in general and just providing kind of a layer of convenience over CloudFormation.
+
+16
+00:01:12.240 --> 00:01:17.200
+So, CloudFormation, we have covered this in previous episodes, especially
+
+17
+00:01:17.200 --> 00:01:21.680
+in our very popular CloudFormation versus Terraform episode.
+
+18
+00:01:21.680 --> 00:01:26.080
+CloudFormation is very explicit and it can be very verbose. So, with Serverless Framework and SAM, you're providing
+
+19
+00:01:26.080 --> 00:01:31.520
+a more concise user-friendly interface that's just a little bit more implicit and provides a lot of
+
+20
+00:01:31.520 --> 00:01:37.360
+shortcuts and defaults for you. They are designed, I would say, to make the process of writing
+
+21
+00:01:38.560 --> 00:01:44.640
+FaaS functions, so Lambda functions easier, but they also provide some convenient wrappers for
+
+22
+00:01:44.640 --> 00:01:50.240
+APIs and step functions and things like that. And they also not just allow you to write the
+
+23
+00:01:50.240 --> 00:01:54.960
+infrastructure as code template in an easier way, but they provide certain tools for building,
+
+24
+00:01:54.960 --> 00:02:00.320
+packaging, deployment and local invocation as well. Doing all that stuff manually is a lot of
+
+25
+00:02:00.320 --> 00:02:05.520
+work. So, maybe at this point, we can just give a quick run through what are the highlights of
+
+26
+00:02:05.520 --> 00:02:08.240
+Serverless Framework, what are the highlights of SAM, and then we can dive into some of the,
+
+27
+00:02:09.040 --> 00:02:13.360
+I suppose, the more detailed differences between the two. So, let's talk about Serverless Framework
+
+28
+00:02:13.360 --> 00:02:19.760
+and for many, this is still the original and best. It was very popular when it first came out and it
+
+29
+00:02:19.760 --> 00:02:24.480
+was probably, I would say, very instrumental in helping many people get excited and start adopting
+
+30
+00:02:24.480 --> 00:02:30.480
+serverless in the first place. I would say the community, all of us serverless developers owe
+
+31
+00:02:30.480 --> 00:02:36.080
+quite a lot to it and to the maintainers. It supports multiple cloud providers, which sometimes
+
+32
+00:02:36.080 --> 00:02:40.800
+we forget about, especially if you're working in AWS all the time, but it has backends for Azure
+
+33
+00:02:40.800 --> 00:02:50.240
+and Alibaba cloud and Cloudflare as well. So, you can deploy to multiple cloud providers with it.
+
+34
+00:02:50.240 --> 00:02:54.080
+What that means really is that the tooling remains the same, but of course, your code and your
+
+35
+00:02:54.080 --> 00:02:58.480
+configuration syntax will be significantly different depending on the provider you choose.
+
+36
+00:02:59.280 --> 00:03:03.680
+And a big thing about Serverless Framework is its plugin ecosystem. And we'll talk a little bit more
+
+37
+00:03:03.680 --> 00:03:09.520
+about that. So, that's the Serverless Framework. And then a couple of years ago, SAM came along.
+
+38
+00:03:09.520 --> 00:03:14.640
+So, SAM has only been generally available since 2020. And it's an open source project as well,
+
+39
+00:03:14.640 --> 00:03:20.240
+but it's developed and managed by AWS and it targets AWS as a cloud provider alone.
+
+40
+00:03:20.880 --> 00:03:25.200
+So, the way they implement it is as an extension to CloudFormation using something called cloud
+
+41
+00:03:25.200 --> 00:03:31.440
+formation macros. What that means is that more of the deployment with SAM is happening cloud side.
+
+42
+00:03:31.440 --> 00:03:35.600
+So, it's managed by the CloudFormation service for you. Whereas with Serverless Framework,
+
+43
+00:03:35.600 --> 00:03:40.080
+the template is compiled wherever you're doing your build and deployment on your laptop or on
+
+44
+00:03:40.080 --> 00:03:46.640
+your CI CD server. So, you could say that the SAM approach is purer in that it's one that pushes
+
+45
+00:03:46.640 --> 00:03:53.760
+more of the deployment responsibility to AWS to manage. An interesting point to know, we've talked
+
+46
+00:03:53.760 --> 00:03:57.920
+a lot about CloudFormation here. Recently, they announced SAM Terraform support. Now,
+
+47
+00:03:58.560 --> 00:04:03.040
+that might excite a lot of people. It's in preview at the moment, but it isn't trying to allow you to
+
+48
+00:04:03.040 --> 00:04:09.200
+do everything you can do with SAM with Terraform. It just allows you to run a limited subset of
+
+49
+00:04:09.200 --> 00:04:13.520
+features. So, if you've got Lambda functions in a Terraform project, you can use the SAM
+
+50
+00:04:14.240 --> 00:04:19.040
+CLI tooling to build and invoke them locally. That's all it's doing for you.
+
+51
+00:04:20.560 --> 00:04:24.800
+That's the headline features for SAM and Serverless Framework. Luciano, do you want
+
+52
+00:04:24.800 --> 00:04:28.880
+to dive into some of the ways we can compare and contrast SAM and Serverless Framework?
+
+53
+00:04:28.880 --> 00:04:35.920
+Of course. I will say that the first main difference is a little bit conceptual.
+
+54
+00:04:36.480 --> 00:04:41.760
+I think it's kind of that difference between opinionated versus less opinionated and more flexible.
+
+55
+00:04:41.760 --> 00:04:46.960
+I would probably put SAM into the more opinionated bucket while serverless tries to be a lot more
+
+56
+00:04:46.960 --> 00:04:53.360
+generic and flexible. And just to give you an example, SAM doesn't allow you to modify a
+
+57
+00:04:53.360 --> 00:04:59.200
+resource if it's not effectively declared in your stack. So, you need to be a lot more explicit.
+
+58
+00:04:59.200 --> 00:05:03.680
+And this is not something you can work around. It's just the way that the framework is designed.
+
+59
+00:05:03.680 --> 00:05:12.000
+While SLS will give you ways to do that if you need to. And there are other differences that go
+
+60
+00:05:12.000 --> 00:05:17.360
+in this direction. For instance, a lot of things in serverless are done through plugins. So, there
+
+61
+00:05:17.360 --> 00:05:22.560
+is a natural approach to just build a plugin and you can extend with additional functionality if
+
+62
+00:05:22.560 --> 00:05:27.280
+you want to. It's not as easy to write plugins in SAM. And we will talk a little bit more about that
+
+63
+00:05:27.280 --> 00:05:34.400
+as well. Another big difference is the template syntax. Even though they both use mainly YAML,
+
+64
+00:05:34.400 --> 00:05:40.240
+or at least by default YAML is the main thing you would use to write the SAM templates or the
+
+65
+00:05:40.240 --> 00:05:46.000
+Serverless Framework templates, I would say the Serverless Framework is, again, way more flexible
+
+66
+00:05:46.000 --> 00:05:51.680
+than SAM. In Serverless Framework templates, you have a very expressive sublanguage. Like,
+
+67
+00:05:51.680 --> 00:05:56.720
+you can nest expressions into the YAML. And these expressions can basically allow you to
+
+68
+00:05:56.720 --> 00:06:01.840
+interpret data from different sources. And one of the most impressive ones, and you can just say,
+
+69
+00:06:01.840 --> 00:06:05.840
+get data from this JavaScript file. And what happens behind the scenes is that it's going
+
+70
+00:06:05.840 --> 00:06:10.560
+to literally invoke the JavaScript file so you can build your own custom logic. And then whatever
+
+71
+00:06:10.560 --> 00:06:17.360
+the JavaScript file is exporting is the data that gets interpolated in your own template. So, that's
+
+72
+00:06:17.360 --> 00:06:22.160
+one of the easiest ways that I've seen in any system to basically, in any configuration-based
+
+73
+00:06:22.160 --> 00:06:26.160
+system to allow you to write your own dynamic code whenever you need something a little bit more
+
+74
+00:06:26.160 --> 00:06:31.360
+bespoke. And what's even more interesting is that in recent versions of Serverless Framework,
+
+75
+00:06:31.360 --> 00:06:37.280
+you can even avoid YAML entirely. And you can write the configuration template in JavaScript
+
+76
+00:06:37.280 --> 00:06:42.560
+itself or even in TypeScript if you want to. And that opens up for even more dynamic scenarios,
+
+77
+00:06:42.560 --> 00:06:48.720
+because of course that's JavaScript code that gets interpreted when the template is executed.
+
+78
+00:06:48.720 --> 00:06:53.200
+So, you can effectively run JavaScript code at that point in time if you need to do something
+
+79
+00:06:53.200 --> 00:06:57.760
+even more custom. And I've seen some interesting examples where people will use that, for instance,
+
+80
+00:06:57.760 --> 00:07:04.400
+to use to generate OpenAPI documentation using maybe schema definition that they have defined
+
+81
+00:07:04.400 --> 00:07:08.960
+already in JavaScript or TypeScript. So, this is just to give you a feeling of how powerful
+
+82
+00:07:08.960 --> 00:07:14.240
+that approach is. You might argue that it's not like it loses a lot of the declarative that's
+
+83
+00:07:14.240 --> 00:07:19.040
+typical of this kind of systems, but it's an interesting trade-off and in some cases it might
+
+84
+00:07:19.040 --> 00:07:25.840
+be worth exploring this particular approach. Now, going back to SAM, SAM, as we say, is a lot more
+
+85
+00:07:25.840 --> 00:07:32.560
+strict. It gives you a syntax that is much closer to the CloudFormation syntax. And it's basically
+
+86
+00:07:32.560 --> 00:07:36.800
+kind of a trimmed-down version of that CloudFormation syntax because it's just giving
+
+87
+00:07:36.800 --> 00:07:42.560
+you some macros that will be later on expanded in the cloud into proper CloudFormation syntax.
+
+88
+00:07:43.200 --> 00:07:49.680
+So, it's just a way to basically allow you to write more concise syntax for functions,
+
+89
+00:07:49.680 --> 00:07:56.160
+event triggers, step functions, APIs, policies. But at the end of the day, when the code is
+
+90
+00:07:56.160 --> 00:08:00.560
+getting prepared to be deployed in the cloud, it will be expanded again to a fully-fledged
+
+91
+00:08:00.560 --> 00:08:08.160
+CloudFormation. The way that you can interpolate variables is much more limited than Serverless
+
+92
+00:08:08.160 --> 00:08:12.880
+Framework because you can only use parameters and variables that are the standard ones available
+
+93
+00:08:12.880 --> 00:08:18.320
+already in CloudFormation. You could be hacking that a little bit if you create your own pre-processing
+
+94
+00:08:18.320 --> 00:08:24.960
+step. For instance, you could use any templating language that will eventually emit that SAM yaml,
+
+95
+00:08:24.960 --> 00:08:28.720
+but of course it's a bit of a hacky way and this is something that you will need to build yourself.
+
+96
+00:08:28.720 --> 00:08:34.800
+It's not built-in in the tool. Another interesting thing regarding syntax is the recently SAM
+
+97
+00:08:34.800 --> 00:08:40.000
+introduced cfn lint, which is a tool that has been available for a while but now is kind of built-in
+
+98
+00:08:40.000 --> 00:08:44.640
+into the SAM experience and it's a very nice tool that allows you to validate templates just to make
+
+99
+00:08:44.640 --> 00:08:50.240
+sure that the syntax that you are writing in that yaml is conformed to whatever syntax CloudFormation
+
+100
+00:08:50.240 --> 00:08:56.480
+is going to be able to accept. So, it's an extra validation layer that is closer to effectively the
+
+101
+00:08:56.480 --> 00:09:03.520
+target that you have there. Now, let's talk a little bit about languages that are supported
+
+102
+00:09:04.480 --> 00:09:08.800
+and the languages that are actually used to write these tools because I think that gives you some
+
+103
+00:09:08.800 --> 00:09:14.480
+ideas also why one is more flexible than the other, at least in my opinion. Serverless Framework,
+
+104
+00:09:16.400 --> 00:09:21.360
+you will probably notice using it that it's very well built for the Node.js experience.
+
+105
+00:09:21.360 --> 00:09:26.000
+Like, kind of everything works out of the box if you're writing Lambdas in Node.js
+
+106
+00:09:26.640 --> 00:09:32.560
+and I don't think this is a coincidence. I think it's probably a natural consequence of the fact
+
+107
+00:09:32.560 --> 00:09:36.800
+that Serverless Framework itself is written in JavaScript so the authors of the framework
+
+108
+00:09:36.800 --> 00:09:40.400
+probably had a lot of expertise with that particular language and they probably spend
+
+109
+00:09:40.400 --> 00:09:46.160
+a lot more time fine-tuning the experience of using Serverless Framework for writing JavaScript code.
+
+110
+00:09:46.160 --> 00:09:51.600
+But, of course, other languages are supported but generally they require plugins.
+
+111
+00:09:51.600 --> 00:09:57.120
+Again, that idea of extensibility through plugins. So, your mileage might vary depending on whoever is
+
+112
+00:09:57.120 --> 00:10:01.760
+writing these plugins, the community that is maintaining them and how much effort was already
+
+113
+00:10:01.760 --> 00:10:11.680
+put into these particular plugins. SAM is well known to work well with JavaScript and Python
+
+114
+00:10:11.680 --> 00:10:17.760
+but supports other languages natively and just if you're curious to know, if you can check out
+
+115
+00:10:17.760 --> 00:10:23.600
+the SAM repository, you will notice that SAM is written in Python. So, not surprising that it
+
+116
+00:10:23.600 --> 00:10:27.280
+doesn't allow you, for instance, to embed JavaScript files into the configuration file
+
+117
+00:10:28.240 --> 00:10:32.640
+because it would be a lot trickier to kind of execute them with something written in Python.
+
+118
+00:10:34.160 --> 00:10:38.640
+How do you get started? Let's compare the experience between SAM and Serverless Framework.
+
+119
+00:10:38.640 --> 00:10:47.840
+Serverless Framework is a JavaScript project and as such is provided as a Node.js module
+
+120
+00:10:47.840 --> 00:10:53.520
+which basically means that if you are well used to the Node.js ecosystem and all its tooling,
+
+121
+00:10:53.520 --> 00:10:58.400
+you can just do npm install serverless and basically you have Serverless Framework available.
+
+122
+00:10:59.440 --> 00:11:04.400
+And that means that you can even easily embed Serverless as a development dependency for one
+
+123
+00:11:04.400 --> 00:11:09.360
+of your projects. So that way you can have, for instance, two different projects, two different
+
+124
+00:11:09.360 --> 00:11:14.160
+serverless projects and one project could use Serverless v3 for instance, another project could
+
+125
+00:11:14.160 --> 00:11:19.840
+use Serverless v2 and all of that is managed seamlessly by npm. So you can have two different
+
+126
+00:11:19.840 --> 00:11:25.760
+deployment scripts and the two executables, Serverless v2 and Serverless v3, are totally
+
+127
+00:11:25.760 --> 00:11:32.640
+managed independently and they are logged in into their own projects.
+
+128
+00:11:32.640 --> 00:11:38.000
+With SAM, it's a little bit different because SAM provides you native binaries for the major operating systems, Windows, Mac and
+
+129
+00:11:38.000 --> 00:11:48.240
+Linux, so you'll need to download them and install them in your own system. SLS is well known to have
+
+130
+00:11:48.240 --> 00:11:53.840
+kind of templates for serverless projects so you have this command, this sub-command in the SLS
+
+131
+00:11:53.840 --> 00:12:00.080
+CLI called sls create which can be used to say, for instance, I want to start an API in TypeScript
+
+132
+00:12:00.080 --> 00:12:05.760
+and there will be a specific command that you can run that is just going to scaffold all of that
+
+133
+00:12:06.560 --> 00:12:12.640
+boilerplate code for you. There is something similar in SAM called SAM init so you might get
+
+134
+00:12:12.640 --> 00:12:17.440
+slightly different templates of course but the idea is that you don't have to start from scratch,
+
+135
+00:12:17.440 --> 00:12:22.240
+just pick a set of technologies and probably there is a template ready for you that gives you most of
+
+136
+00:12:22.240 --> 00:12:31.440
+that boilerplate. Now, SAM might be a little bit more user-flendy because when you run SAM init
+
+137
+00:12:31.440 --> 00:12:36.960
+it's interactive so it will let you pick different options in a more interactive way,
+
+138
+00:12:36.960 --> 00:12:42.560
+while SLS is just probably cloning a git repository where all the code gets provided to you.
+
+139
+00:12:42.560 --> 00:12:52.880
+Build and deployment might be another interesting topic and in this case I think SAM is probably a
+
+140
+00:12:52.880 --> 00:12:58.640
+little bit ahead than Serverless Framework because the first thing is that SAM uses
+
+141
+00:12:58.640 --> 00:13:03.360
+CloudFormation change sets and this is something that serverless didn't do for a long time,
+
+142
+00:13:03.360 --> 00:13:08.000
+only recently they added support for that but there are important differences there.
+
+143
+00:13:08.000 --> 00:13:13.040
+If you don't know, CloudFormation change set is basically a feature of CloudFormation that allows
+
+144
+00:13:13.040 --> 00:13:19.920
+you to, rather than just deploying the differences in a template, it will basically do a preview for
+
+145
+00:13:19.920 --> 00:13:25.040
+you, it's basically going to assess what is going to change and then it's something that you can
+
+146
+00:13:25.040 --> 00:13:29.520
+effectively decide I want to go ahead and deploy this or maybe you realize it's not really doing
+
+147
+00:13:29.520 --> 00:13:35.520
+what you expected so you can just stop that particular deployment. So with SAM, basically in
+
+148
+00:13:35.520 --> 00:13:41.840
+your deployment process through SAM it will very obviously show exactly the effect of this change
+
+149
+00:13:41.840 --> 00:13:47.680
+set so it's very easy for you to visualize that something has changed which is actually going to
+
+150
+00:13:47.680 --> 00:13:54.480
+be deployed and decide whether you want to proceed or not. With SLS that kind of happens as well but
+
+151
+00:13:54.480 --> 00:13:59.520
+a little bit more behind the scenes so you'll need to go into the AWS console to actually see
+
+152
+00:13:59.520 --> 00:14:04.720
+what's going to be the effect of the change set so it's a little bit more involved while I think
+
+153
+00:14:04.720 --> 00:14:12.320
+the experience with SAM is much smoother and user-friendly. Another interesting thing in terms
+
+154
+00:14:12.320 --> 00:14:18.960
+of building is that SAM uses Docker out of the box which can be very convenient when in your project
+
+155
+00:14:18.960 --> 00:14:25.040
+you have native dependencies for instance in Python or Node.js. If you are working on a Mac
+
+156
+00:14:25.040 --> 00:14:30.320
+machine or a Windows machine probably the local files that you have for these native dependencies
+
+157
+00:14:30.320 --> 00:14:35.200
+are not going to work out of the box in a Lambda environment which is a Linux-based environment
+
+158
+00:14:35.200 --> 00:14:38.720
+and maybe with a very specific architecture that might be different from the one in your
+
+159
+00:14:38.720 --> 00:14:45.040
+particular development machine. So when you use Docker the build process is actually done in an
+
+160
+00:14:45.040 --> 00:14:50.400
+environment that is going to be much closer to the environment of Lambda so the risk of packaging
+
+161
+00:14:50.400 --> 00:14:55.440
+something that is not going to work in the target architecture is much more reduced. So this is very
+
+162
+00:14:55.440 --> 00:15:01.120
+convenient. You could do the same thing with serverless but it's not really a well-known feature
+
+163
+00:15:01.120 --> 00:15:09.680
+because you'll need to explicitly pass a flag to enable that. Another final point about deployment
+
+164
+00:15:09.680 --> 00:15:16.000
+which is really interesting I think is one of the most innovative features of SAM and one of the
+
+165
+00:15:16.000 --> 00:15:21.360
+strong points of SAM is a feature called SAM Accelerate which is relatively new. We mentioned it
+
+166
+00:15:21.360 --> 00:15:28.080
+in one of our previous episodes, episode 19 where we talk about the serverless development experience.
+
+167
+00:15:28.080 --> 00:15:33.600
+So basically SAM Accelerate is something that is meant to reduce the feedback loop that you have
+
+168
+00:15:33.600 --> 00:15:38.400
+when you are developing a new feature. You do some changes and in order to see if these changes in
+
+169
+00:15:38.400 --> 00:15:42.960
+your code actually do what you are expecting them to do you probably need to do a deployment and
+
+170
+00:15:42.960 --> 00:15:47.120
+test it in the cloud and this is generally something that takes minutes so it's kind of
+
+171
+00:15:47.120 --> 00:15:52.400
+interrupting your development loop. It's distracting and it might be frustrating if you have to do it over and over.
+
+172
+00:15:52.400 --> 00:15:58.160
+What SAM Accelerate does is basically automatically syncing your code as you do changes.
+
+173
+00:15:58.160 --> 00:16:03.280
+You lose some of the guarantees like you are not for instance able to do rollbacks
+
+174
+00:16:03.920 --> 00:16:08.480
+as easily as you would do with a full deployment but it gives you a very quick feedback loop to
+
+175
+00:16:08.480 --> 00:16:13.920
+see these changes almost in real time so it might be really a big accelerator in that development life cycle.
+
+176
+00:16:13.920 --> 00:16:17.440
+So definitely a really interesting feature that if you haven't tried yet I really
+
+177
+00:16:17.440 --> 00:16:22.400
+recommend you to try because you can have that feeling that you are developing locally while
+
+178
+00:16:22.400 --> 00:16:27.040
+almost immediately being able to see the changes reflected in a real cloud environment.
+
+179
+00:16:27.040 --> 00:16:33.200
+What do you think? Is there anything else worth mentioning in the difference between SLS and SAM?
+
+180
+00:16:34.000 --> 00:16:39.760
+Yeah that was really a comprehensive set of differences.
+
+181
+00:16:39.760 --> 00:16:44.640
+Maybe a few small things I could add on. One that really bugs me is that with service framework it still doesn't work with
+
+182
+00:16:44.640 --> 00:16:49.120
+SSO credentials which is like I think a lot more people are using SSO for sign-on now
+
+183
+00:16:49.840 --> 00:16:54.320
+or IAM identity center as it's now called. There's been a GitHub issue open on the serverless
+
+184
+00:16:54.320 --> 00:17:00.400
+framework for a couple of years and recently they've commented on that issue that they just
+
+185
+00:17:00.400 --> 00:17:05.440
+don't have time to add the support. It's been unfortunate SAM supports SSO credentials already.
+
+186
+00:17:05.440 --> 00:17:10.720
+Maybe as well for people who are thinking about how they structure their project and dividing
+
+187
+00:17:10.720 --> 00:17:18.320
+their project in a repo into multiple services or stacks. SAM supports nested stacks. That's a
+
+188
+00:17:18.320 --> 00:17:23.280
+reasonably recent addition I believe. It's a nice way of organizing your project and you can deploy
+
+189
+00:17:23.280 --> 00:17:27.360
+the top level stack and it will deploy whatever changes are necessary within all the stacks
+
+190
+00:17:27.360 --> 00:17:32.000
+underneath. Serverless Framework did have a plugin to support that but it's not really not maintained
+
+191
+00:17:32.000 --> 00:17:36.880
+like a lot of the less used plugins. But it does have a really good new feature called serverless
+
+192
+00:17:36.880 --> 00:17:41.920
+compose that allows you to manage and deploy multiple stacks together. So that was a really
+
+193
+00:17:41.920 --> 00:17:48.400
+nice one. Might also be worthwhile talking about how good these two tools are at supporting new
+
+194
+00:17:48.400 --> 00:17:53.600
+AWS features as AWS changes and I think for both it's pretty good actually. SAM support is
+
+195
+00:17:53.600 --> 00:17:59.200
+generally pretty good now. CloudFormation support is usually a lot faster than it used to be when it
+
+196
+00:17:59.200 --> 00:18:03.920
+comes to supporting new features in AWS services. But the serverless maintainers when it comes to
+
+197
+00:18:03.920 --> 00:18:08.720
+new features like when container image support came out or ARM graviton processor support came
+
+198
+00:18:08.720 --> 00:18:13.200
+out for Lambda, those are significant chunks of work for those teams but they really seem to
+
+199
+00:18:14.000 --> 00:18:18.720
+pull those out really quickly and get them released out to the community which is pretty fantastic.
+
+200
+00:18:21.440 --> 00:18:25.680
+When it comes to permissions, getting permissions right is always a tricky thing about building
+
+201
+00:18:25.680 --> 00:18:30.800
+AWS applications and serverless applications. Now SAM has a few things that are attempts at making
+
+202
+00:18:30.800 --> 00:18:35.680
+this easier. One is they have some pre-baked policy templates. So these are just ways of
+
+203
+00:18:35.680 --> 00:18:40.400
+kind of reducing the amount of boilerplate you have to write for IAM. And the other one is a new
+
+204
+00:18:40.400 --> 00:18:45.760
+feature called SAM connectors and this is when you've got this kind of pseudo resource called
+
+205
+00:18:45.760 --> 00:18:52.160
+our connector that you create and it allows you to say for this DynamoDB table give access to this
+
+206
+00:18:52.160 --> 00:18:58.240
+function and make it give it write access or read access. So the idea is to make it a little bit
+
+207
+00:18:58.240 --> 00:19:03.200
+more understandable I suppose for people who don't understand IAM. I'm kind of in two minds about it
+
+208
+00:19:03.200 --> 00:19:08.080
+really I'm not sure I like any of these things. I think when it comes to IAM it's much better to be
+
+209
+00:19:08.080 --> 00:19:13.120
+explicit even if it means more verbose syntax and just understand what you're doing and be very
+
+210
+00:19:13.120 --> 00:19:18.480
+fine-grained. With the Serverless Framework you've got a nice way to specify IAM statements for
+
+211
+00:19:18.480 --> 00:19:25.360
+functions especially if you add in the very common IAM roles per function plugin. So I would much
+
+212
+00:19:25.360 --> 00:19:30.560
+favor that approach to it and not to try and dumb it down and provide this kind of half solution to
+
+213
+00:19:30.560 --> 00:19:38.640
+simplifying IAM. Let's talk you mentioned JavaScript so I might just talk about
+
+214
+00:19:38.640 --> 00:19:45.280
+transpilation. If we've got esbuild that's supported in SAM already for TypeScript and JavaScript
+
+215
+00:19:45.280 --> 00:19:51.520
+new versions of the language so the Serverless Framework you can add the serverless esbuild
+
+216
+00:19:51.520 --> 00:19:56.400
+plugin and it works too. So you're generally set for both of them and then both of them provide
+
+217
+00:19:56.400 --> 00:20:03.600
+local development experience so you can do local invoke on both of them and you can use a local API
+
+218
+00:20:03.600 --> 00:20:07.920
+gateway simulation. The only difference with Serverless Framework is that the API simulation
+
+219
+00:20:07.920 --> 00:20:14.320
+is provided with a plugin serverless offline where SAM runs it locally for you automatically
+
+220
+00:20:14.320 --> 00:20:20.320
+and then I suppose there's a big standout one with CI-CD for SAM and I really like this one
+
+221
+00:20:20.320 --> 00:20:25.280
+now because it allows you to basically bootstrap a complete continuous integration pipeline and
+
+222
+00:20:25.280 --> 00:20:32.240
+deployment pipeline using any of a large set of providers so CodeBuild and CodePipeline within AWS
+
+223
+00:20:32.240 --> 00:20:38.640
+but it can also support Jenkins or GitLab CI-CD, Bitbucket and GitHub Actions. So this will create
+
+224
+00:20:38.640 --> 00:20:43.440
+a pipeline which will deploy to multiple environments and also supports feature branch
+
+225
+00:20:43.440 --> 00:20:49.600
+deployments. We had an episode a while back about OIDC providers and why you should use that method
+
+226
+00:20:49.600 --> 00:20:54.640
+for getting your GitHub Actions to authenticate with AWS. SAM will create that for you so all of
+
+227
+00:20:54.640 --> 00:20:58.640
+the complexity of creating that and creating the associated role is managed when you bootstrap your
+
+228
+00:20:58.640 --> 00:21:06.960
+SAM pipeline so that's really nice one. And maybe just lastly before we start wrapping up and giving
+
+229
+00:21:06.960 --> 00:21:12.880
+our more opinionated view on which you should choose when it comes to just extensibility you
+
+230
+00:21:12.880 --> 00:21:19.120
+mentioned the plugin ecosystem in Serverless piano and we can give an example because you and I and a
+
+231
+00:21:19.120 --> 00:21:24.400
+few other the fourTheorem team are working on a really significant plugin for Serverless Framework which
+
+232
+00:21:24.400 --> 00:21:28.720
+now supports SAM as well it's called SLIC Watch and it's for adding alarms and dashboards into
+
+233
+00:21:28.720 --> 00:21:34.720
+these projects automatically. It has to basically look at your whole template find out what functions
+
+234
+00:21:34.720 --> 00:21:39.360
+API step functions DynamoDB tables you have and creates alarms and dashboards for you.
+
+235
+00:21:39.360 --> 00:21:44.080
+When it comes to Serverless Framework it's pretty easy to write a plugin. The documentation is a
+
+236
+00:21:44.080 --> 00:21:47.200
+bit hairy but there's enough examples out there where you can figure out how to use it.
+
+237
+00:21:47.760 --> 00:21:51.520
+When it comes to SAM your only option really is to create another CloudFormation macro
+
+238
+00:21:52.160 --> 00:21:59.200
+and then I suppose that's in it's nice in some ways because it's similar syntax to
+
+239
+00:21:59.200 --> 00:22:04.240
+SAM itself you just add another macro and CloudFormation service is going to do that
+
+240
+00:22:04.240 --> 00:22:10.560
+transformation for you but the thing is deploying macros into people's accounts it takes a bit of
+
+241
+00:22:10.560 --> 00:22:14.400
+work a little bit more work than just adding a serverless plugin because you have to deploy them
+
+242
+00:22:14.400 --> 00:22:18.560
+we can't just publish a macro to the public registry in CloudFormation you can't do that
+
+243
+00:22:18.560 --> 00:22:23.840
+only AWS can do that so it's a pity we can't do that and it just makes it a little bit more of a
+
+244
+00:22:23.840 --> 00:22:30.320
+step but once you do that it works the same you know we can use 90 of the same code to deliver
+
+245
+00:22:30.320 --> 00:22:34.720
+to deliver a slick watch whether you're using Serverless Framework or SAM because the
+
+246
+00:22:34.720 --> 00:22:39.280
+macros are just implemented as Lambda functions and we can run them as JavaScript, same JavaScript
+
+247
+00:22:39.280 --> 00:22:44.320
+code, so I think we've covered fairly exhaustively all the differences between these two tools
+
+248
+00:22:44.320 --> 00:22:49.120
+so maybe this is the part that people really want to know which should they use which direct which
+
+249
+00:22:49.120 --> 00:22:53.680
+which one is the one that people should choose for the project today and what's the future look like, where are they going?
+
+250
+00:22:58.560 --> 00:23:04.800
+Yeah that's that's definitely I know opinionated piece but we're going to try to bring some evidence into the answer like we're not going to say pick one or the other but we are
+
+251
+00:23:04.800 --> 00:23:09.680
+just going to give you some indications like if you favor a specific thing maybe one tool is
+
+252
+00:23:09.680 --> 00:23:15.520
+better than the other so definitely I like the sum generation of pipelines that you mentioned this
+
+253
+00:23:15.520 --> 00:23:21.200
+is a really amazing feature it is always quite painful to generate pipeline codes and then
+
+254
+00:23:21.200 --> 00:23:26.800
+testing it you probably end up doing millions of deployments just trying to figure out is my syntax
+
+255
+00:23:26.800 --> 00:23:30.640
+correct does it really do what it wants it to do so the opportunity to just bootstrap something
+
+256
+00:23:30.640 --> 00:23:36.560
+that it's reasonably doing most of that work and for different kind of cicds it's an amazing feature
+
+257
+00:23:36.560 --> 00:23:40.480
+so if that's something that you really care about and something that you have been spending a lot of
+
+258
+00:23:40.480 --> 00:23:45.200
+time in the past probably going with some and leveraging this feature can be a big enabler
+
+259
+00:23:45.200 --> 00:23:54.080
+for you and your team if you are targeting other cloud providers not just AWS that's an argument
+
+260
+00:23:54.080 --> 00:23:57.920
+for for Serverless Framework because of course some doesn't even try to support other cloud
+
+261
+00:23:57.920 --> 00:24:02.400
+providers so your only option really is to use Serverless Framework there between the two
+
+262
+00:24:02.960 --> 00:24:07.920
+so again worth remarking that your code and your configuration are going to be significantly
+
+263
+00:24:07.920 --> 00:24:12.720
+different there is no magic cloud abstraction cloud provider abstraction but the tooling
+
+264
+00:24:12.720 --> 00:24:17.120
+remains most of the same so you could be using the same tool for both let's say AWS and Azure
+
+265
+00:24:17.120 --> 00:24:24.560
+if you go with Serverless Framework then if you really want flexibility of configuration again
+
+266
+00:24:24.560 --> 00:24:29.520
+this is another point in favor of Serverless Framework like if you really have requirements
+
+267
+00:24:29.520 --> 00:24:34.320
+that force you to have very dynamic data that gets interpolated into your templates you're going to
+
+268
+00:24:34.320 --> 00:24:38.560
+have an easier time just going with Serverless Framework because with some you'll need to figure
+
+269
+00:24:38.560 --> 00:24:43.200
+out your own pre-processing logic if you want to do something like that and this is also similar
+
+270
+00:24:43.200 --> 00:24:47.840
+if you need to write custom extensions maybe you want to do something special at build time
+
+271
+00:24:47.840 --> 00:24:52.240
+you have I don't know very specific build requirements or maybe you need to generate
+
+272
+00:24:52.240 --> 00:24:57.840
+pieces of CloudFormation dynamically depending on different parameters it would be much easier
+
+273
+00:24:57.840 --> 00:25:03.040
+to write your own custom plugin for Serverless Framework rather than having to create your own
+
+274
+00:25:03.040 --> 00:25:09.120
+CloudFormation macro get it that deployed and then integrate it with some so another point in
+
+275
+00:25:09.120 --> 00:25:15.280
+favor of Serverless Framework if you care about that kind of degree of extensibility so I would
+
+276
+00:25:15.280 --> 00:25:21.120
+say that all in all Serverless Framework used to be a lot more mature than some so there might be
+
+277
+00:25:21.120 --> 00:25:27.280
+a little bit of an opinion if you search around that some still new and not mature enough but i
+
+278
+00:25:27.280 --> 00:25:32.400
+think this is kind of slowly changing because these days some really has caught up with all
+
+279
+00:25:32.400 --> 00:25:37.440
+the features of well at least most of the features or the main features of Serverless Framework and
+
+280
+00:25:37.440 --> 00:25:42.480
+it has even some new features like the pipelines that we mentioned or the ability to synchronize
+
+281
+00:25:42.480 --> 00:25:50.720
+your code with the cloud in real time that makes it really a well-worthy choice I personally used
+
+282
+00:25:50.720 --> 00:25:55.600
+to choose a lot Serverless Framework as a default in the past these days i'm kind of always thinking
+
+283
+00:25:55.600 --> 00:26:00.400
+a little bit more about it like if I don't really need that level of extensibility i'm probably
+
+284
+00:26:00.400 --> 00:26:07.200
+going to default to some because it feels like a safer choice going forward and this is probably
+
+285
+00:26:07.200 --> 00:26:11.760
+a good pivot point where we try to speculate a little bit more about what is going to be the
+
+286
+00:26:11.760 --> 00:26:17.440
+future of these two projects because this might inform your decision on whether you want to pick
+
+287
+00:26:17.440 --> 00:26:24.080
+one or the other for a given project so again this is probably the most opinionated piece of
+
+288
+00:26:24.720 --> 00:26:31.520
+this episode so take it with a pinch of salt but our opinion is that it feels that AWS is investing
+
+289
+00:26:31.520 --> 00:26:39.520
+a lot on some so we expected that it's only going to get better and better and they are both open
+
+290
+00:26:39.520 --> 00:26:47.200
+source projects but it's important to see that ownership piece like while some is clearly owned
+
+291
+00:26:47.200 --> 00:26:52.560
+by AWS and it's in the best interest of AWS to keep it up to date and add more feature and make
+
+292
+00:26:52.560 --> 00:26:58.160
+that development experience as nicer as possible because it brings more business to AWS itself
+
+293
+00:26:58.160 --> 00:27:04.720
+the Serverless Framework is a lot more open and as a community but at the same time the project
+
+294
+00:27:04.720 --> 00:27:10.080
+itself is backed by a company so it's a little bit difficult to understand how is this company
+
+295
+00:27:10.080 --> 00:27:16.720
+going to get a return there are investors of course they need to pay back on that investment
+
+296
+00:27:16.720 --> 00:27:20.320
+and even if they care about the community and the user experience there might be decisions there
+
+297
+00:27:20.320 --> 00:27:26.800
+that we cannot predict that will affect negatively or positively the experience of the user in the
+
+298
+00:27:26.800 --> 00:27:31.920
+end so I think there is a bigger question mark there on what's going to be the future of
+
+299
+00:27:31.920 --> 00:27:38.080
+Serverless Framework when we compare it with some and I have a slightly related note to that point
+
+300
+00:27:38.080 --> 00:27:44.400
+which again is just my own bugbear with Serverless Framework I used to think that the serverless
+
+301
+00:27:44.400 --> 00:27:49.920
+documentation was quite good like the documentation itself on the website but also a lot of related
+
+302
+00:27:49.920 --> 00:27:55.120
+blog posts and it was very easy when I was doing serverless in the very early days and using
+
+303
+00:27:55.120 --> 00:27:59.680
+Serverless Framework to just search for anything and you will easily find either a documentation
+
+304
+00:27:59.680 --> 00:28:04.880
+or a blog post and find the answers you were looking for these days for some reason and quite
+
+305
+00:28:04.880 --> 00:28:10.320
+unexpectedly it is not as easy anymore I find myself myself ending up more and more on the
+
+306
+00:28:10.320 --> 00:28:15.200
+commercial side of the offering that Serverless Framework has to give to users rather than
+
+307
+00:28:15.200 --> 00:28:19.360
+actually finding the documentation for the open source tool that I'm looking for I don't know if
+
+308
+00:28:19.360 --> 00:28:24.400
+that's intentional just to drive more business to the the commercial offering or it's just a
+
+309
+00:28:24.400 --> 00:28:29.680
+side effect of trying to combine a commercial offer together with an open source project so
+
+310
+00:28:29.680 --> 00:28:35.120
+that the website itself becomes a little bit more convoluted and even organizing the content gets
+
+311
+00:28:35.120 --> 00:28:41.600
+of course more difficult so I don't want to blame necessarily the serverless company for trying to
+
+312
+00:28:41.600 --> 00:28:47.040
+make revenue out of this project but the net effect on the users is that it gets more confusing
+
+313
+00:28:47.040 --> 00:28:53.200
+to figure out how to use the open source part of the project so just to conclude I will say that
+
+314
+00:28:53.200 --> 00:28:59.120
+it is also fair to say that SAM doesn't really have a great documentation either it's probably okay
+
+315
+00:28:59.120 --> 00:29:03.600
+but sometimes when you want to do something that is slightly off the standard it's not very easy
+
+316
+00:29:03.600 --> 00:29:08.560
+to understand how to do that so maybe this is just a suggestion for AWS to try to invest a little bit
+
+317
+00:29:08.560 --> 00:29:13.920
+more time in trying to document different kinds of setups different more advanced features that
+
+318
+00:29:13.920 --> 00:29:18.160
+you might have with SAM and maybe provide a lot more examples because those will will
+
+319
+00:29:18.160 --> 00:29:23.120
+definitely help people to get started with all the different features that you might have
+
+320
+00:29:23.120 --> 00:29:25.840
+issues and all the different kinds of permutations of projects.
+
+321
+00:29:28.080 --> 00:29:34.560
+Okay I think that that's probably more than enough that we want to cover for this episode and we gave
+
+322
+00:29:34.560 --> 00:29:39.600
+you a lot of opinions but of course we will be curious to know what is your opinion do you prefer
+
+323
+00:29:39.600 --> 00:29:43.760
+some do you prefer serverless what are you using for your current projects and are you going to be
+
+324
+00:29:43.760 --> 00:29:49.360
+using something different in your next project and of course this is only a portion of this
+
+325
+00:29:49.360 --> 00:29:53.440
+conversation because of course there are other tools there is CDK there is Pulumi there is
+
+326
+00:29:53.440 --> 00:29:58.720
+Terraform so if you don't use either SAM or Serverless and you end up using other tools,
+
+327
+00:29:58.720 --> 00:30:02.800
+we would love to know why what are your requirements why did you make this choice.
+
+328
+00:30:02.800 --> 00:30:06.960
+And maybe we can do another episode in the future where we try to explore some other of these tools
+
+329
+00:30:06.960 --> 00:30:11.040
+and compare the differences. So thank you very much for being with us today
+
+330
+00:30:11.040 --> 00:30:20.240
+and we look forward to seeing you in the next episode.

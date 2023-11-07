@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+
+FILES_CHANGED=$(git diff --cached --name-only | grep -e 'transcripts/.*\.*.json')
+
+if [ ! -z "$FILES_CHANGED" ]; then
+  for transcript in $FILES_CHANGED; do
+    echo Updating VTT for updated transcript ${transcript}...
+    vttpath=$(./bin/transcript-to-vtt.js ${transcript})
+    git add $vttpath
+  done
+fi

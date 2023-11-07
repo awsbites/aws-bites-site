@@ -1,0 +1,477 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:10.380
+Hello and welcome to another episode of AWS Bites, the weekly show where we answer questions
+
+2
+00:00:10.380 --> 00:00:13.080
+about AWS in about five minutes.
+
+3
+00:00:13.080 --> 00:00:16.480
+My name is Eoin and I am joined by Luciano.
+
+4
+00:00:16.480 --> 00:00:21.920
+Today's question is how do you deploy a static website on AWS?
+
+5
+00:00:21.920 --> 00:00:23.640
+So Luciano, what do you think?
+
+6
+00:00:23.640 --> 00:00:28.160
+First of all, when you want to deploy a static website, what are your requirements or must-haves?
+
+7
+00:00:28.160 --> 00:00:34.000
+Yeah, that's actually a very good first point to try to answer to.
+
+8
+00:00:34.000 --> 00:00:38.040
+To me, when you deploy a static website, the first thing that you need is definitely the
+
+9
+00:00:38.040 --> 00:00:39.040
+storage.
+
+10
+00:00:39.040 --> 00:00:42.040
+Like where do you store the static assets?
+
+11
+00:00:42.040 --> 00:00:47.420
+Then of course there is an element you need to make them available through HTTP and HTTPS.
+
+12
+00:00:47.420 --> 00:00:53.120
+So all the certificates and domains, and even better if you have something like a CDN, which
+
+13
+00:00:53.120 --> 00:00:59.440
+will do global distribution so you have very quick access for users all around the world.
+
+14
+00:00:59.440 --> 00:01:04.840
+So those for me are the main requirements that you should have for a static website.
+
+15
+00:01:04.840 --> 00:01:11.360
+I guess this is an interesting topic because it's not very common in my opinion to do this
+
+16
+00:01:11.360 --> 00:01:12.360
+in AWS.
+
+17
+00:01:12.360 --> 00:01:15.440
+Like I've seen a lot of people use a bunch of other services.
+
+18
+00:01:15.440 --> 00:01:16.440
+What do you think?
+
+19
+00:01:16.440 --> 00:01:17.440
+Would you use AWS?
+
+20
+00:01:17.440 --> 00:01:19.480
+Would you use other services?
+
+21
+00:01:19.480 --> 00:01:22.800
+Yeah, it definitely depends.
+
+22
+00:01:22.800 --> 00:01:29.440
+I've done it in AWS quite a lot, but to be honest, if I just wanted to deploy a static
+
+23
+00:01:29.440 --> 00:01:35.120
+website and it didn't really matter what cloud service I had to use, I'd probably just for
+
+24
+00:01:35.120 --> 00:01:39.360
+the sake of speed and efficiency, go with something that is more specialized in that
+
+25
+00:01:39.360 --> 00:01:48.560
+area like Netlify, Frisell, Cloudflare, some of these options because the developer experience
+
+26
+00:01:48.560 --> 00:01:51.440
+and the time to deployment is generally a lot faster.
+
+27
+00:01:51.440 --> 00:01:54.100
+There's a lot less detail you have to think about.
+
+28
+00:01:54.100 --> 00:01:58.760
+But on the other hand, if you've already got AWS infrastructure, you've got deployment
+
+29
+00:01:58.760 --> 00:02:05.840
+pipelines and you're already set up to use identity and access management and cloud formation,
+
+30
+00:02:05.840 --> 00:02:09.140
+all of that great stuff you get with AWS, then it probably makes sense to think, okay,
+
+31
+00:02:09.140 --> 00:02:13.180
+I can manage all of this static website infrastructure in the same way.
+
+32
+00:02:13.180 --> 00:02:14.180
+What do you think?
+
+33
+00:02:14.180 --> 00:02:15.440
+Yeah, no, fair enough.
+
+34
+00:02:15.440 --> 00:02:18.240
+I wouldn't use it for instance, for open source projects.
+
+35
+00:02:18.240 --> 00:02:19.240
+I wouldn't use AWS.
+
+36
+00:02:19.240 --> 00:02:25.280
+I generally use a combination of GitHub pages, maybe with Cloudflare on front of it.
+
+37
+00:02:25.280 --> 00:02:30.140
+But yeah, when it's more corporate environment, I get it that it makes a lot more sense to
+
+38
+00:02:30.140 --> 00:02:35.120
+stick to AWS because you have everything more managed and you can give access to everyone
+
+39
+00:02:35.120 --> 00:02:37.480
+working in the team more easily.
+
+40
+00:02:37.480 --> 00:02:40.040
+So definitely I agree with you on that.
+
+41
+00:02:40.040 --> 00:02:44.000
+So let's try to see what are the options in AWS.
+
+42
+00:02:44.000 --> 00:02:49.800
+Like what would you do if you have to set up a website, would you use S3, would you
+
+43
+00:02:49.800 --> 00:02:51.800
+use something else?
+
+44
+00:02:51.800 --> 00:02:58.080
+
+
+45
+00:02:58.080 --> 00:03:02.340
+Yeah, we've got a reference project called SlickStarter where we actually have a static website as part of that serverless application suite.
+
+46
+00:03:02.340 --> 00:03:07.040
+The way that we do that typically is with you put your assets into an S3 bucket.
+
+47
+00:03:07.040 --> 00:03:10.120
+So you create a bucket for your website.
+
+48
+00:03:10.120 --> 00:03:15.280
+All of the HTML, JavaScript, CSS, your images get synchronized to that bucket.
+
+49
+00:03:15.280 --> 00:03:20.160
+In front of that, you've got a CloudFront distribution so that it's globally distributed.
+
+50
+00:03:20.160 --> 00:03:22.860
+The access times around the world should be fast.
+
+51
+00:03:22.860 --> 00:03:30.800
+And then we'd integrate it with the AWS certificate manager for HTTPS certificates and also route
+
+52
+00:03:30.800 --> 00:03:35.160
+53 for your DNS.
+
+53
+00:03:35.160 --> 00:03:41.440
+And that's generally the basic recipe for a kind of modern website infrastructure on
+
+54
+00:03:41.440 --> 00:03:42.440
+AWS.
+
+55
+00:03:42.440 --> 00:03:44.120
+Am I missing anything there?
+
+56
+00:03:44.120 --> 00:03:49.080
+I don't think so, but there is quite a bit of setup, right?
+
+57
+00:03:49.080 --> 00:03:53.360
+So I don't know if there is any common gotcha that you can share.
+
+58
+00:03:53.360 --> 00:03:58.820
+Like to me, I've been beaten in the past by caching invalidation because it's just tricky
+
+59
+00:03:58.820 --> 00:04:01.040
+to get it right.
+
+60
+00:04:01.040 --> 00:04:02.960
+Especially the first time, doesn't really matter.
+
+61
+00:04:02.960 --> 00:04:05.040
+You just publish and it works.
+
+62
+00:04:05.040 --> 00:04:09.060
+When you want to do an upgrade, change a few things on the website and they don't really
+
+63
+00:04:09.060 --> 00:04:10.840
+show up immediately on the website.
+
+64
+00:04:10.840 --> 00:04:14.440
+So that's when it gets tricky and you realize you did something wrong.
+
+65
+00:04:14.440 --> 00:04:17.240
+Did it happen to you?
+
+66
+00:04:17.240 --> 00:04:18.240
+Yeah, it's true.
+
+67
+00:04:18.240 --> 00:04:22.320
+CloudFront has a bit of a bad reputation for the time it takes to synchronize to all
+
+68
+00:04:22.320 --> 00:04:24.420
+the edge locations as well.
+
+69
+00:04:24.420 --> 00:04:26.600
+So you really have to understand that it will take time.
+
+70
+00:04:26.600 --> 00:04:28.600
+It could be five to 10 minutes.
+
+71
+00:04:28.600 --> 00:04:32.900
+I think these days typically to synchronize out your edges and then you have to understand
+
+72
+00:04:32.900 --> 00:04:35.800
+how invalidation works.
+
+73
+00:04:35.800 --> 00:04:38.340
+So that's definitely true.
+
+74
+00:04:38.340 --> 00:04:43.320
+As with all AWS services, you're given a toolkit of resources that you can assemble to build
+
+75
+00:04:43.320 --> 00:04:47.700
+something really great, but you still have to have a reasonable amount of knowledge.
+
+76
+00:04:47.700 --> 00:04:50.640
+So you just have to be prepared to invest a bit of time.
+
+77
+00:04:50.640 --> 00:04:56.420
+I know that AWS Amplify is there to kind of make this easier as well.
+
+78
+00:04:56.420 --> 00:04:58.880
+It's not something I use very frequently.
+
+79
+00:04:58.880 --> 00:05:02.840
+I typically use the Amplify SDK rather than the CLI.
+
+80
+00:05:02.840 --> 00:05:09.080
+Have you heard good things, Luciano, about what the Amplify CLI can do for users starting
+
+81
+00:05:09.080 --> 00:05:10.800
+with this kind of thing for the first time?
+
+82
+00:05:10.800 --> 00:05:16.760
+
+
+83
+00:05:16.760 --> 00:05:22.160
+Yeah, I haven't had the chance to use it myself yet, but few people have recommended it as a much simpler and faster way to deploy static websites to AWS.
+
+84
+00:05:22.160 --> 00:05:25.120
+And especially there are a bunch of additional bits and pieces.
+
+85
+00:05:25.120 --> 00:05:30.840
+Like if you are building a single page application type of website, they make your life easier.
+
+86
+00:05:30.840 --> 00:05:34.520
+For instance, if you want to call Lambdas on the backend because you want to build something
+
+87
+00:05:34.520 --> 00:05:35.520
+more dynamic.
+
+88
+00:05:35.520 --> 00:05:40.320
+So I think you also have an additional layer on top of just plain static websites when
+
+89
+00:05:40.320 --> 00:05:41.880
+you use Amplify.
+
+90
+00:05:41.880 --> 00:05:45.960
+But again, I still have to try it, so I'm not going to spend more time talking about
+
+91
+00:05:45.960 --> 00:05:49.960
+it because I might say something stupid.
+
+92
+00:05:49.960 --> 00:05:50.960
+Fair enough.
+
+93
+00:05:50.960 --> 00:05:52.320
+I mean, there's lots of...
+
+94
+00:05:52.320 --> 00:05:57.200
+As with AWS and everything, there's always many, many ways to do any given task and to
+
+95
+00:05:57.200 --> 00:05:58.200
+achieve a goal.
+
+96
+00:05:58.200 --> 00:06:03.120
+So I know you've got alternatives that have been there for a while, like Elastic Beanstalk,
+
+97
+00:06:03.120 --> 00:06:07.200
+I think is quite popular with agencies deploying websites.
+
+98
+00:06:07.200 --> 00:06:12.400
+You've got LightSail, which is designed for, I suppose, users who just want a simple developer
+
+99
+00:06:12.400 --> 00:06:13.400
+experience.
+
+100
+00:06:13.400 --> 00:06:15.600
+And then you can also deploy your own, right?
+
+101
+00:06:15.600 --> 00:06:19.440
+You can deploy containers with a load balancer.
+
+102
+00:06:19.440 --> 00:06:22.640
+I'm sure you've done that in the past one or two times Luciano.
+
+103
+00:06:22.640 --> 00:06:24.000
+Oh yeah, for sure.
+
+104
+00:06:24.000 --> 00:06:28.800
+I even did it once in a Lambda, which is I think a little bit extreme because of course
+
+105
+00:06:28.800 --> 00:06:33.400
+we have all sorts of limitations that come with the Lambda runtime.
+
+106
+00:06:33.400 --> 00:06:39.040
+But I think for small websites, like maybe you are building a form where we are collecting
+
+107
+00:06:39.040 --> 00:06:42.340
+just few information, that can work quite well.
+
+108
+00:06:42.340 --> 00:06:48.340
+In the Lambda, you can have serving the HTML and the few assets you need and also the backend
+
+109
+00:06:48.340 --> 00:06:51.560
+logic to collect the information for the form.
+
+110
+00:06:51.560 --> 00:06:56.680
+So yeah, maybe it's not by the book how you should do that, but if you're working on a
+
+111
+00:06:56.680 --> 00:07:00.480
+small enough project, that can also be an option.
+
+112
+00:07:00.480 --> 00:07:01.480
+Great.
+
+113
+00:07:01.480 --> 00:07:06.280
+Well, I think what we can do is certainly put some links to everything we've talked
+
+114
+00:07:06.280 --> 00:07:13.100
+about today, some of the services, resources in the description and the show notes.
+
+115
+00:07:13.100 --> 00:07:14.840
+And otherwise that's all for today.
+
+116
+00:07:14.840 --> 00:07:16.660
+So thank you for listening.
+
+117
+00:07:16.660 --> 00:07:17.980
+Let us know what you think in the comments.
+
+118
+00:07:17.980 --> 00:07:22.040
+If you have any further questions, let us know what you'd like us to talk about too.
+
+119
+00:07:22.040 --> 00:07:51.000
+Follow us and subscribe and otherwise we'll see you in the next episode.

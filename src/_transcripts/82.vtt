@@ -1,0 +1,1801 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:02.280
+For a long time, if you asked a lot of architects,
+
+2
+00:00:02.440 --> 00:00:04.840
+"How do I make my system faster?", the answer was "Redis"!
+
+3
+00:00:05.520 --> 00:00:07.280
+It's still one of the most important instruments
+
+4
+00:00:07.440 --> 00:00:09.000
+there in the architect's toolbox.
+
+5
+00:00:09.160 --> 00:00:12.440
+On AWS, the recommended way to run Redis has been ElastiCache,
+
+6
+00:00:12.600 --> 00:00:14.120
+but that's not without its problems.
+
+7
+00:00:14.280 --> 00:00:17.360
+We're going to talk about the joys and woes of Redis on AWS
+
+8
+00:00:17.520 --> 00:00:19.800
+and share with you some exciting alternatives.
+
+9
+00:00:19.800 --> 00:00:30.680
+I'm Eoin, I'm here with Luciano and this is the AWS Bites podcast.
+
+10
+00:00:30.840 --> 00:00:33.520
+Our sponsor is fourTheorem, an AWS consulting partner
+
+11
+00:00:33.680 --> 00:00:37.400
+that helps your organization get excited about building software again.
+
+12
+00:00:37.560 --> 00:00:41.120
+Find out more at fourtheorem.com. You'll find that link in the show notes.
+
+13
+00:00:41.880 --> 00:00:44.640
+Luciano, what is Redis and how does it work?
+
+14
+00:00:44.800 --> 00:00:45.960
+Let's start with the name.
+
+15
+00:00:46.120 --> 00:00:48.240
+Also, because before we prepare for this episode,
+
+16
+00:00:48.240 --> 00:00:51.520
+I actually didn't even know what the name of Redis stands for.
+
+17
+00:00:52.480 --> 00:00:54.040
+We figured it out by looking on Wikipedia
+
+18
+00:00:54.200 --> 00:00:58.080
+that stands for remote dictionary server, which I don't know.
+
+19
+00:00:58.240 --> 00:01:01.600
+Didn't expect that meaning. Let's move on.
+
+20
+00:01:01.760 --> 00:01:03.760
+Let's talk a little bit about the story of Redis
+
+21
+00:01:03.920 --> 00:01:05.880
+and then try to understand how it works.
+
+22
+00:01:06.040 --> 00:01:07.920
+Redis was born from an Italian startup
+
+23
+00:01:08.080 --> 00:01:12.520
+that was building effectively a real-time web log analyzer type of application.
+
+24
+00:01:12.680 --> 00:01:15.560
+I imagine that like some kind of Google Analytics alternative.
+
+25
+00:01:15.720 --> 00:01:17.120
+I don't know if it's too accurate,
+
+26
+00:01:17.120 --> 00:01:19.840
+but you can imagine the kind of data problems,
+
+27
+00:01:20.000 --> 00:01:21.680
+number crunching that you have to do
+
+28
+00:01:21.840 --> 00:01:25.680
+to keep aggregating all the type of information coming through very quickly.
+
+29
+00:01:25.840 --> 00:01:30.520
+I believe initially this company was using MySQL for all the persistence,
+
+30
+00:01:30.680 --> 00:01:33.760
+but they, of course, if at the point of scale
+
+31
+00:01:33.920 --> 00:01:38.400
+where they needed to do all these operations fast for large volumes of data,
+
+32
+00:01:38.560 --> 00:01:40.560
+MySQL wasn't really enough.
+
+33
+00:01:40.720 --> 00:01:43.840
+Antirez, Salvatore Sanfilippo is the real name,
+
+34
+00:01:43.840 --> 00:01:48.520
+was the developer of Redis, which was initially written in Tcl
+
+35
+00:01:48.680 --> 00:01:50.120
+to try to address this problem.
+
+36
+00:01:50.280 --> 00:01:53.680
+So how do we figure out a different kind of storage
+
+37
+00:01:53.840 --> 00:01:56.400
+and data persistent layer that allows us to aggregate
+
+38
+00:01:56.560 --> 00:01:59.600
+all this information fast enough for this specific problem?
+
+39
+00:01:59.760 --> 00:02:01.960
+Now, after the first prototype in Tcl,
+
+40
+00:02:02.120 --> 00:02:05.600
+they realized that this solution could work
+
+41
+00:02:05.760 --> 00:02:08.560
+and they rewrote that in C and open-sourced.
+
+42
+00:02:08.720 --> 00:02:12.360
+And it was actually quite successful, especially in the Ruby space.
+
+43
+00:02:12.360 --> 00:02:15.920
+And it was quite quickly adopted by GitHub, later on by Instagram.
+
+44
+00:02:16.080 --> 00:02:20.320
+I believe also Twitter was a heavy user of Redis as well,
+
+45
+00:02:20.480 --> 00:02:23.080
+at least for the very initial period.
+
+46
+00:02:23.240 --> 00:02:26.040
+Now, how does it work and why it is faster than MySQL?
+
+47
+00:02:26.200 --> 00:02:29.880
+And the main difference is that while MySQL is a database
+
+48
+00:02:30.040 --> 00:02:33.400
+that tries to give you the best guarantees
+
+49
+00:02:33.560 --> 00:02:37.360
+that when your writes are acknowledged, they are actually persisted on disk,
+
+50
+00:02:37.520 --> 00:02:40.400
+and you can trust that you're not going to lose your data,
+
+51
+00:02:40.560 --> 00:02:42.000
+Redis works in a totally different way
+
+52
+00:02:42.000 --> 00:02:44.360
+because performance is the main concern.
+
+53
+00:02:44.520 --> 00:02:46.440
+So what they do, they just store everything in memory.
+
+54
+00:02:46.600 --> 00:02:48.960
+And of course, it's a little bit less reliable
+
+55
+00:02:49.120 --> 00:02:51.040
+when it comes to making sure that the data is there,
+
+56
+00:02:51.200 --> 00:02:53.080
+but it will give you very fast times
+
+57
+00:02:53.240 --> 00:02:55.640
+and it will be doing very, very fast operations.
+
+58
+00:02:55.800 --> 00:02:57.080
+So we'll talk more about the trade-off
+
+59
+00:02:57.240 --> 00:03:00.320
+and what can you do to mitigate the risk of losing data.
+
+60
+00:03:00.480 --> 00:03:02.320
+So the idea is that you store everything in memory,
+
+61
+00:03:02.480 --> 00:03:04.640
+but it's also a distributed data store
+
+62
+00:03:04.800 --> 00:03:07.640
+and it works with that key value kind of mindset.
+
+63
+00:03:07.800 --> 00:03:09.960
+So the main primitive is that you just say,
+
+64
+00:03:09.960 --> 00:03:12.440
+in this key, I want to store this information,
+
+65
+00:03:12.600 --> 00:03:15.040
+and you don't really have a lot of flexibility
+
+66
+00:03:15.200 --> 00:03:17.200
+like you would have with a relational database.
+
+67
+00:03:17.360 --> 00:03:20.480
+So you really need to think about your key value pairs there.
+
+68
+00:03:20.640 --> 00:03:24.520
+You get very fast sub-millisecond latency.
+
+69
+00:03:24.680 --> 00:03:27.080
+Very commonly, of course, it might depend on networking,
+
+70
+00:03:27.240 --> 00:03:31.400
+but if you have a good networking connection with the client,
+
+71
+00:03:31.560 --> 00:03:33.560
+you get very, very fast times.
+
+72
+00:03:33.720 --> 00:03:35.200
+It is mostly used for caching.
+
+73
+00:03:35.360 --> 00:03:38.680
+So that's a case where if you lose some of the data,
+
+74
+00:03:38.680 --> 00:03:40.320
+it's not a big deal,
+
+75
+00:03:40.480 --> 00:03:43.360
+but you're going to get very, very fast round trips,
+
+76
+00:03:43.520 --> 00:03:45.560
+reading the data and writing data.
+
+77
+00:03:45.720 --> 00:03:47.720
+It can also be used as a message broker.
+
+78
+00:03:47.880 --> 00:03:51.360
+It does support natively kind of a pub-sub mechanism.
+
+79
+00:03:51.520 --> 00:03:53.440
+And then coming to the durability piece,
+
+80
+00:03:53.600 --> 00:03:55.400
+there are some options there that you can enable
+
+81
+00:03:55.560 --> 00:03:58.560
+to try to mitigate the risk of losing data.
+
+82
+00:03:58.720 --> 00:04:01.400
+Like you can create snapshots and do different things.
+
+83
+00:04:01.560 --> 00:04:04.560
+We'll spend a little bit more time later on that.
+
+84
+00:04:04.720 --> 00:04:07.680
+Now, another cool thing is that every time you write something on a key,
+
+85
+00:04:07.680 --> 00:04:10.960
+you can decide which data type you want to use for that particular key.
+
+86
+00:04:11.120 --> 00:04:14.320
+And then based on that data type, you can do different operations.
+
+87
+00:04:14.480 --> 00:04:17.720
+So in a way, this could be like your own introduction
+
+88
+00:04:17.880 --> 00:04:19.920
+to algorithms and data structures.
+
+89
+00:04:20.080 --> 00:04:23.280
+If you read the documentation where you see all the data types supported
+
+90
+00:04:23.440 --> 00:04:25.440
+and all the operations for every different data type,
+
+91
+00:04:25.600 --> 00:04:27.800
+you also get what is the time and space complexity
+
+92
+00:04:27.960 --> 00:04:29.200
+of each and every one of them,
+
+93
+00:04:29.360 --> 00:04:32.880
+which is really cool if you come from a computer science background
+
+94
+00:04:33.040 --> 00:04:36.000
+to see in real life how all these different algorithms
+
+95
+00:04:36.000 --> 00:04:39.520
+and data structure affect things that you can actually use
+
+96
+00:04:39.680 --> 00:04:41.400
+in production to build products.
+
+97
+00:04:41.560 --> 00:04:44.760
+And just to give you some examples, you can write, of course, strings,
+
+98
+00:04:44.920 --> 00:04:46.680
+but you can also write lists, maps,
+
+99
+00:04:46.840 --> 00:04:49.000
+which are effectively ash maps or dictionaries.
+
+100
+00:04:49.160 --> 00:04:51.600
+You can also write sets, sorted set.
+
+101
+00:04:51.760 --> 00:04:54.520
+You can even have more advanced data types, for instance, streams,
+
+102
+00:04:54.680 --> 00:04:57.320
+or you can even use the special indexes
+
+103
+00:04:57.480 --> 00:05:00.520
+if you are trying to index points in space
+
+104
+00:05:00.680 --> 00:05:04.480
+and do queries on geographical problems.
+
+105
+00:05:04.480 --> 00:05:07.920
+And other data structures like that.
+
+106
+00:05:08.080 --> 00:05:12.680
+It is also extensible because it supports out-of-the-box Lua scripting.
+
+107
+00:05:12.840 --> 00:05:16.360
+So if you want to build, let's say, your own kind of operation
+
+108
+00:05:16.520 --> 00:05:18.040
+by using the basic APIs,
+
+109
+00:05:18.200 --> 00:05:21.640
+you could provision into a Redis instance your own Lua script
+
+110
+00:05:21.800 --> 00:05:25.360
+and then you can invoke it later to do more complicated stuff.
+
+111
+00:05:25.520 --> 00:05:29.800
+In a way, it kind of reminds me of when you start functions in a database
+
+112
+00:05:29.960 --> 00:05:31.280
+and then you call this function.
+
+113
+00:05:31.440 --> 00:05:33.200
+It's probably kind of a very similar idea.
+
+114
+00:05:33.200 --> 00:05:35.680
+So stored procedure, that kind of thing.
+
+115
+00:05:35.840 --> 00:05:38.080
+And you can also create pipelines.
+
+116
+00:05:38.240 --> 00:05:40.440
+So if you want to do a series of commands,
+
+117
+00:05:40.600 --> 00:05:43.440
+you can just send this kind of pipeline of commands to Redis
+
+118
+00:05:43.600 --> 00:05:45.360
+and Redis will execute them in order.
+
+119
+00:05:45.520 --> 00:05:47.640
+And there is kind of a structure in place
+
+120
+00:05:47.800 --> 00:05:49.840
+that allows you to define this kind of pipelines.
+
+121
+00:05:50.000 --> 00:05:52.600
+And finally, one really cool thing, this is more recent.
+
+122
+00:05:52.760 --> 00:05:55.640
+In recent years, the developers of Redis
+
+123
+00:05:55.800 --> 00:05:58.200
+spend a lot of time trying to make it extensible.
+
+124
+00:05:58.360 --> 00:06:01.400
+And now there is a quite large ecosystem of modules
+
+125
+00:06:01.400 --> 00:06:05.640
+that you can add on top of Redis to just extend its functionality.
+
+126
+00:06:05.800 --> 00:06:10.440
+And some interesting use cases are there are modules for full-text search,
+
+127
+00:06:10.600 --> 00:06:14.240
+for converting Redis into kind of a graph database.
+
+128
+00:06:14.400 --> 00:06:17.400
+So for all the kind of graph problems, you can store the information Redis
+
+129
+00:06:17.560 --> 00:06:20.440
+and the module will give you query functionality
+
+130
+00:06:20.600 --> 00:06:22.360
+to use Redis as a graph database.
+
+131
+00:06:22.520 --> 00:06:27.040
+And there are also some modules that will give you some ML capabilities.
+
+132
+00:06:27.200 --> 00:06:28.840
+So given all this introduction,
+
+133
+00:06:28.840 --> 00:06:32.560
+and now you should be understanding all the capability of Redis,
+
+134
+00:06:32.720 --> 00:06:34.760
+what is it good for? What are some use cases?
+
+135
+00:06:34.920 --> 00:06:37.200
+Session storage is probably the number one use case.
+
+136
+00:06:37.360 --> 00:06:42.080
+So if you go back to the early days of web applications,
+
+137
+00:06:42.240 --> 00:06:45.880
+it was more common in the beginning to not have any high availability
+
+138
+00:06:46.040 --> 00:06:48.400
+and to have single servers with state in them.
+
+139
+00:06:48.560 --> 00:06:51.160
+And eventually people realised that we needed to be able to scale
+
+140
+00:06:51.320 --> 00:06:55.200
+for high availability and also for performance, horizontally scale.
+
+141
+00:06:55.360 --> 00:06:58.120
+Then the question became, how would you store distributed state
+
+142
+00:06:58.120 --> 00:06:59.600
+like session storage?
+
+143
+00:06:59.760 --> 00:07:03.240
+And Redis is, I think it's probably the number one use case there.
+
+144
+00:07:03.400 --> 00:07:05.800
+Also with the web applications, web page caching,
+
+145
+00:07:05.960 --> 00:07:09.120
+like pre-rendering, pre-rendered server-side content
+
+146
+00:07:09.280 --> 00:07:11.200
+is something you can also store in Redis.
+
+147
+00:07:11.360 --> 00:07:13.240
+And then you can just use it as a database cache.
+
+148
+00:07:13.400 --> 00:07:15.040
+And I think this is probably one of the areas
+
+149
+00:07:15.200 --> 00:07:17.320
+where it became popular in the Rails community,
+
+150
+00:07:17.480 --> 00:07:20.040
+where you've got a relational database in the back end,
+
+151
+00:07:20.200 --> 00:07:22.960
+but you don't want to hit the database for every single query,
+
+152
+00:07:23.120 --> 00:07:24.120
+especially for reads.
+
+153
+00:07:24.280 --> 00:07:25.800
+So you could use it as a database cache
+
+154
+00:07:25.960 --> 00:07:27.640
+because it's only coming from memory.
+
+155
+00:07:27.640 --> 00:07:29.680
+You could save a lot of latency.
+
+156
+00:07:29.840 --> 00:07:31.960
+You can reduce the query load on your database
+
+157
+00:07:32.120 --> 00:07:34.520
+and that can internally save you a lot of money.
+
+158
+00:07:34.680 --> 00:07:37.880
+So Redis is also a cost optimisation tool in that sense.
+
+159
+00:07:38.040 --> 00:07:40.120
+It's not just a cache as well.
+
+160
+00:07:40.280 --> 00:07:42.680
+So it does have support for pub-sub messaging,
+
+161
+00:07:42.840 --> 00:07:45.000
+which means that it has become quite common
+
+162
+00:07:45.160 --> 00:07:47.680
+for low latency microservice communication as well.
+
+163
+00:07:47.840 --> 00:07:50.200
+I've also been using ElastiCache and Redis
+
+164
+00:07:50.360 --> 00:07:52.240
+for things like application stage.
+
+165
+00:07:52.400 --> 00:07:55.720
+So if you've got, especially in a serverless environment
+
+166
+00:07:55.720 --> 00:07:57.640
+where you've got lots of Lambda functions
+
+167
+00:07:57.800 --> 00:07:59.960
+that need some sort of shared state,
+
+168
+00:08:00.120 --> 00:08:02.480
+but you want really low latency for that state,
+
+169
+00:08:02.640 --> 00:08:05.520
+you realise you can't just have point-to-point communication
+
+170
+00:08:05.680 --> 00:08:08.400
+or networking between functions because that doesn't exist.
+
+171
+00:08:08.560 --> 00:08:11.320
+Instead, you use Redis as your state store.
+
+172
+00:08:11.480 --> 00:08:14.280
+Another example, which is kind of similar and related,
+
+173
+00:08:14.440 --> 00:08:19.880
+is when you need to be able to query lots of keys in S3.
+
+174
+00:08:20.040 --> 00:08:23.520
+S3 isn't a file system. It's an object store, as we know.
+
+175
+00:08:23.520 --> 00:08:27.640
+So one of the disadvantages there is that doing file lookup operations
+
+176
+00:08:27.800 --> 00:08:29.320
+can be very expensive on S3,
+
+177
+00:08:29.480 --> 00:08:32.880
+especially if you want to do a list of all your keys in S3.
+
+178
+00:08:33.040 --> 00:08:36.040
+So what I've done in the past in a number of different cases
+
+179
+00:08:36.200 --> 00:08:38.880
+is every time an object is put into S3,
+
+180
+00:08:39.040 --> 00:08:41.160
+you can capture that event with event bridge,
+
+181
+00:08:41.320 --> 00:08:43.800
+and then you can have a function or some downstream process
+
+182
+00:08:43.960 --> 00:08:48.560
+that takes that event and registers the presence of the object in Redis.
+
+183
+00:08:48.720 --> 00:08:52.320
+And then if you want to do a lookup of all objects with a certain prefix,
+
+184
+00:08:52.320 --> 00:08:56.640
+you could just do a list operation in Redis or whatever.
+
+185
+00:08:56.800 --> 00:08:58.960
+So that makes it incredibly fast.
+
+186
+00:08:59.120 --> 00:09:01.440
+If you were to do this with the S3 API
+
+187
+00:09:01.600 --> 00:09:03.280
+and do pagination with list objects,
+
+188
+00:09:03.440 --> 00:09:06.600
+you could be there for days reading a large bucket with lots of objects.
+
+189
+00:09:09.280 --> 00:09:11.640
+Yeah, I do remember that use case, and it was pretty cool to be able to solve it with Redis.
+
+190
+00:09:11.800 --> 00:09:14.600
+And yeah, the performance difference was impressed.
+
+191
+00:09:18.000 --> 00:09:19.840
+I think the trade-off there is always that when it comes to Redis, you just need to make sure you have the right memory.
+
+192
+00:09:19.840 --> 00:09:22.640
+And also if you've got lots of objects arriving at a fast period,
+
+193
+00:09:22.800 --> 00:09:24.640
+you need to be able to scale it correctly.
+
+194
+00:09:24.800 --> 00:09:26.520
+So maybe a little bit later on,
+
+195
+00:09:26.680 --> 00:09:29.880
+we'll talk a little bit more about the non-serverless nature
+
+196
+00:09:30.040 --> 00:09:31.480
+and how we might overcome that.
+
+197
+00:09:31.640 --> 00:09:34.400
+But maybe first let's talk about the persistence.
+
+198
+00:09:34.560 --> 00:09:36.880
+Some people like to use Redis as a database.
+
+199
+00:09:37.040 --> 00:09:41.160
+It's something I would be very fearful of using as a database myself.
+
+200
+00:09:41.320 --> 00:09:43.880
+There are things that will give you ACID compliance.
+
+201
+00:09:44.040 --> 00:09:45.360
+Redis will not.
+
+202
+00:09:45.520 --> 00:09:47.240
+What persistence options do we have?
+
+203
+00:09:50.680 --> 00:09:52.080
+Yeah, so if we just take a vanilla installation of Redis, not necessarily in AWS,
+
+204
+00:09:52.240 --> 00:09:55.360
+there are some interesting options worth exploring.
+
+205
+00:09:55.520 --> 00:09:59.000
+And the main one is that you have point-in-time snapshots.
+
+206
+00:09:59.160 --> 00:10:02.000
+So you can imagine those as a backup
+
+207
+00:10:02.160 --> 00:10:03.920
+that you can do every once in a while,
+
+208
+00:10:04.080 --> 00:10:06.440
+and that will give you a full snapshot of all the data
+
+209
+00:10:06.600 --> 00:10:08.360
+that is currently stored in memory.
+
+210
+00:10:08.520 --> 00:10:09.920
+That's one thing that you can do
+
+211
+00:10:10.080 --> 00:10:12.920
+and is definitely something recommended to do anyway,
+
+212
+00:10:13.080 --> 00:10:15.040
+unless you really don't care about losing the data.
+
+213
+00:10:15.040 --> 00:10:18.160
+Maybe it's very cheap for you to rebuild all that information in memory
+
+214
+00:10:18.320 --> 00:10:20.040
+if you happen to lose all of it.
+
+215
+00:10:20.200 --> 00:10:23.680
+The other option is you can use Redis as an append-only file.
+
+216
+00:10:23.840 --> 00:10:26.120
+You can enable this append-only file log,
+
+217
+00:10:26.280 --> 00:10:30.080
+which basically is going to write a transaction log in the background
+
+218
+00:10:30.240 --> 00:10:32.160
+and you can configure the frequency.
+
+219
+00:10:32.320 --> 00:10:36.360
+And I think the recommended setup that I saw somewhere was one second.
+
+220
+00:10:36.520 --> 00:10:41.880
+So it's going to flash that transaction log into disk every one second.
+
+221
+00:10:41.880 --> 00:10:45.920
+And that way you have a little bit more guarantee
+
+222
+00:10:46.080 --> 00:10:47.560
+that if you lose data,
+
+223
+00:10:47.720 --> 00:10:50.360
+it's not going to be more than one second worth of data.
+
+224
+00:10:50.520 --> 00:10:54.040
+Now, this is still maybe something that could not be acceptable for you.
+
+225
+00:10:54.200 --> 00:10:56.640
+Maybe you want really not to lose any record.
+
+226
+00:10:56.800 --> 00:11:01.200
+You can actually even configure the system to flash into disk
+
+227
+00:11:01.360 --> 00:11:02.640
+for every single record.
+
+228
+00:11:02.800 --> 00:11:05.520
+But I think that kind of defeats the point of Redis a little bit
+
+229
+00:11:05.680 --> 00:11:09.240
+because then you are converting what is effectively an in-memory database
+
+230
+00:11:09.240 --> 00:11:12.560
+into something that needs to write to disk for every single write operation.
+
+231
+00:11:12.720 --> 00:11:15.640
+So you're probably going to lose most of the benefits
+
+232
+00:11:15.800 --> 00:11:18.080
+in terms of performance that Redis can give you.
+
+233
+00:11:18.240 --> 00:11:19.480
+So this is definitely an option.
+
+234
+00:11:19.640 --> 00:11:21.600
+It could be interesting for you to explore that option,
+
+235
+00:11:21.760 --> 00:11:23.280
+but just keep in mind that at that point,
+
+236
+00:11:23.440 --> 00:11:25.360
+you are almost having the same constraints
+
+237
+00:11:25.520 --> 00:11:27.640
+that you have with a regular relational database
+
+238
+00:11:27.800 --> 00:11:30.640
+minus all the features that a relational database would give you.
+
+239
+00:11:30.800 --> 00:11:32.880
+So worth considering the kind of trade-off
+
+240
+00:11:33.040 --> 00:11:34.920
+if you want to go down that path.
+
+241
+00:11:35.080 --> 00:11:38.400
+So in general, it's probably worth enabling both of these options.
+
+242
+00:11:38.400 --> 00:11:42.280
+You can have the snapshots just in case, I don't know,
+
+243
+00:11:42.440 --> 00:11:44.800
+something fails or you are restarting your machine.
+
+244
+00:11:44.960 --> 00:11:46.760
+Maybe you are doing, I don't know, an upgrade.
+
+245
+00:11:46.920 --> 00:11:50.880
+It's going to be very easy for you to rehydrate all that memory
+
+246
+00:11:51.040 --> 00:11:53.000
+with the information coming from the backup.
+
+247
+00:11:53.160 --> 00:11:56.080
+And then you can use this append-only file
+
+248
+00:11:56.240 --> 00:12:00.160
+just to kind of protect you from data loss.
+
+249
+00:12:00.320 --> 00:12:01.800
+It's not going to be a perfect protection,
+
+250
+00:12:01.960 --> 00:12:04.800
+but it can be quite good for most use cases.
+
+251
+00:12:04.960 --> 00:12:07.760
+Now, all of this makes sense in the sense
+
+252
+00:12:07.760 --> 00:12:09.520
+of a kind of generic context
+
+253
+00:12:09.680 --> 00:12:12.320
+where we are not specifically talking about AWS.
+
+254
+00:12:12.480 --> 00:12:14.800
+So maybe it's worth spending a little bit of time
+
+255
+00:12:14.960 --> 00:12:18.440
+trying to figure out what is AWS giving us out of the box,
+
+256
+00:12:18.600 --> 00:12:21.960
+what kind of services can we use to provision Redis in AWS,
+
+257
+00:12:22.120 --> 00:12:24.160
+and what are the features available if we do that.
+
+258
+00:12:28.800 --> 00:12:31.400
+I mean, you can always run Redis on EC2 or in ECS or EKS, manage it yourself and get full control and flexibility,
+
+259
+00:12:31.560 --> 00:12:35.560
+but we tend to always look for ways of saving ourselves, heavy lifting,
+
+260
+00:12:35.560 --> 00:12:39.000
+and all sorts of upgrades and patching.
+
+261
+00:12:39.160 --> 00:12:42.520
+So we turn to the managed version, which is ElastiCache.
+
+262
+00:12:42.680 --> 00:12:45.080
+ElastiCache is managed cache,
+
+263
+00:12:45.240 --> 00:12:46.920
+and it's based on either Redis or Memcache.
+
+264
+00:12:47.080 --> 00:12:48.400
+So you can kind of choose your flavor
+
+265
+00:12:48.560 --> 00:12:51.280
+when you set up an ElastiCache cluster.
+
+266
+00:12:51.440 --> 00:12:54.480
+Now, despite the fact that it's called ElastiCache,
+
+267
+00:12:54.640 --> 00:12:57.680
+it's not just a cache, you get all the features pretty much of Redis
+
+268
+00:12:57.840 --> 00:13:00.480
+when you have an ElastiCache Redis instance.
+
+269
+00:13:00.640 --> 00:13:03.680
+So you get PubSub, you get streams.
+
+270
+00:13:03.680 --> 00:13:08.600
+Of course, those aren't necessarily natively integrated with AWS services.
+
+271
+00:13:08.760 --> 00:13:10.320
+It's not possible yet, but it would be interesting
+
+272
+00:13:10.480 --> 00:13:14.160
+if you could trigger like EventBridge or Lambda from a Redis PubSub.
+
+273
+00:13:14.320 --> 00:13:17.320
+It's in memory only, really, so no persistence.
+
+274
+00:13:17.480 --> 00:13:19.920
+The append only file mode, the AOF,
+
+275
+00:13:20.080 --> 00:13:22.240
+it's not supported anymore on ElastiCache.
+
+276
+00:13:22.400 --> 00:13:26.160
+So you can just use the snapshots,
+
+277
+00:13:26.320 --> 00:13:28.160
+and you can also do backups to S3.
+
+278
+00:13:28.320 --> 00:13:30.040
+You can also do replication groups.
+
+279
+00:13:30.200 --> 00:13:32.800
+So there's two different ways you can set up
+
+280
+00:13:32.800 --> 00:13:34.120
+a high availability.
+
+281
+00:13:34.280 --> 00:13:36.080
+You can have vertical scaling,
+
+282
+00:13:36.240 --> 00:13:40.480
+where you just have read replicas in your cluster,
+
+283
+00:13:40.640 --> 00:13:43.200
+but you can also set up what's called cluster mode,
+
+284
+00:13:43.360 --> 00:13:47.640
+which is where you start sharding your data over multiple nodes,
+
+285
+00:13:47.800 --> 00:13:49.320
+and you can scale horizontally as well.
+
+286
+00:13:49.480 --> 00:13:51.840
+I mentioned that you can do backups to S3,
+
+287
+00:13:52.000 --> 00:13:53.440
+so minimum of one an hour.
+
+288
+00:13:53.600 --> 00:13:55.320
+If you want to do more granular backups,
+
+289
+00:13:55.480 --> 00:13:57.640
+you'll have to rely on snapshots or some other mechanism.
+
+290
+00:13:57.800 --> 00:13:59.600
+I think the most important message to take away
+
+291
+00:13:59.760 --> 00:14:01.840
+from using ElastiCache on Redis
+
+292
+00:14:01.840 --> 00:14:04.640
+is it's not a serverless service.
+
+293
+00:14:04.800 --> 00:14:06.400
+You need to right-size it.
+
+294
+00:14:06.560 --> 00:14:11.320
+So that means you have to monitor things like your latency,
+
+295
+00:14:11.480 --> 00:14:13.880
+the performance, CPU, and memory in particular.
+
+296
+00:14:14.040 --> 00:14:16.160
+Everything is stored in memory, so you need to keep an eye on that.
+
+297
+00:14:16.320 --> 00:14:17.920
+There's CloudWatch metrics for all of that.
+
+298
+00:14:18.080 --> 00:14:19.160
+You should have alarms on them,
+
+299
+00:14:19.320 --> 00:14:22.120
+and you should be constantly revisiting that.
+
+300
+00:14:22.280 --> 00:14:25.360
+Redis as well is single-threaded and uses an event loop.
+
+301
+00:14:25.520 --> 00:14:27.400
+So if you've got expensive commands,
+
+302
+00:14:27.560 --> 00:14:28.800
+like you mentioned Lua scripts,
+
+303
+00:14:28.960 --> 00:14:31.320
+you could have Lua scripts in your event loop.
+
+304
+00:14:31.320 --> 00:14:33.800
+That can tie up your cluster for a long time.
+
+305
+00:14:33.960 --> 00:14:36.480
+So you should look at the latency metric to help you spot that
+
+306
+00:14:36.640 --> 00:14:39.680
+and see if you need to spread your workload in some other way
+
+307
+00:14:39.840 --> 00:14:42.160
+or just increase the size of the instance
+
+308
+00:14:42.320 --> 00:14:44.320
+that's underpinning your ElastiCache.
+
+309
+00:14:44.480 --> 00:14:47.560
+Should we talk about ElastiCache in a serverless context?
+
+310
+00:14:47.720 --> 00:14:50.200
+Because you mentioned that, and I think it's really interesting
+
+311
+00:14:50.360 --> 00:14:56.120
+to double down on that and see how serverless it is, ElastiCache.
+
+312
+00:14:56.280 --> 00:15:00.600
+And you already spoiled it a bit that it is not really that serverless.
+
+313
+00:15:00.600 --> 00:15:04.280
+We need to do cluster management, high availability.
+
+314
+00:15:04.440 --> 00:15:06.240
+We need to figure out what's the right size,
+
+315
+00:15:06.400 --> 00:15:08.400
+what kind of...
+
+316
+00:15:08.560 --> 00:15:10.960
+How much memory do we need effectively for the given workload
+
+317
+00:15:11.120 --> 00:15:12.520
+that we want to use Redis for?
+
+318
+00:15:12.680 --> 00:15:16.400
+So in a way, it reminds me of RDS in terms of experience.
+
+319
+00:15:16.560 --> 00:15:20.160
+You need... Yeah, you don't necessarily need to host
+
+320
+00:15:20.320 --> 00:15:22.240
+and make sure everything is running all the time,
+
+321
+00:15:22.400 --> 00:15:24.840
+but you need to know a lot about how Redis works
+
+322
+00:15:25.000 --> 00:15:27.240
+and how to configure your workload upfront
+
+323
+00:15:27.240 --> 00:15:30.520
+if you want to make sure everything is going to work well in production.
+
+324
+00:15:30.680 --> 00:15:33.480
+And that's, of course, also in terms of networking,
+
+325
+00:15:33.640 --> 00:15:35.000
+it requires a VPC.
+
+326
+00:15:35.160 --> 00:15:39.360
+You need to make sure that any instance that wants to connect to Redis
+
+327
+00:15:39.520 --> 00:15:41.240
+has network access to that VPC.
+
+328
+00:15:41.400 --> 00:15:42.840
+For instance, if you use Lambda,
+
+329
+00:15:43.000 --> 00:15:44.800
+that Lambda needs to be provisioned in a subnet
+
+330
+00:15:44.960 --> 00:15:48.440
+that has access to that ElastiCache VPC.
+
+331
+00:15:48.600 --> 00:15:53.400
+So you might argue there's no necessarily great fit for serverless,
+
+332
+00:15:53.560 --> 00:15:55.160
+even though we have been using it
+
+333
+00:15:55.160 --> 00:15:57.120
+and the performance is still pretty good.
+
+334
+00:15:57.280 --> 00:15:59.720
+It's just that the amount of effort in managing it
+
+335
+00:15:59.880 --> 00:16:02.680
+is probably way more than what we wanted it to be.
+
+336
+00:16:02.840 --> 00:16:08.360
+So if we can have an additional wishlist item for reInvent 2023,
+
+337
+00:16:08.520 --> 00:16:12.360
+that would be to have a real serverless Redis available in AWS
+
+338
+00:16:12.520 --> 00:16:16.360
+that we can just click and it's available and it auto scales,
+
+339
+00:16:16.520 --> 00:16:18.520
+even scales to zero if you're not using it
+
+340
+00:16:18.680 --> 00:16:23.480
+and pricing should be kind of, of course, proportional to that.
+
+341
+00:16:23.480 --> 00:16:27.800
+Now, AWS actually announced MemoryDB quite recently,
+
+342
+00:16:27.960 --> 00:16:29.160
+and we were excited,
+
+343
+00:16:29.320 --> 00:16:31.440
+but that excitement didn't last too long
+
+344
+00:16:31.600 --> 00:16:33.800
+because by just reading the announcement,
+
+345
+00:16:33.960 --> 00:16:37.640
+we realized, okay, Redis is compatible, is durable, is in memory.
+
+346
+00:16:37.800 --> 00:16:41.680
+All of that were very good tick boxes and made us very happy.
+
+347
+00:16:41.840 --> 00:16:44.280
+But then we saw, okay, still requires a VPC,
+
+348
+00:16:44.440 --> 00:16:47.640
+still requires us to specify an instance size.
+
+349
+00:16:47.800 --> 00:16:49.480
+Also, it's not open source.
+
+350
+00:16:49.640 --> 00:16:50.920
+While Redis, it is open source,
+
+351
+00:16:50.920 --> 00:16:53.720
+so we don't really know exactly what's going on there.
+
+352
+00:16:53.880 --> 00:16:57.160
+And it was also in terms of pricing quite expensive,
+
+353
+00:16:57.320 --> 00:16:58.720
+or at least that's what it seemed
+
+354
+00:16:58.880 --> 00:17:01.160
+from just looking at the table of prices.
+
+355
+00:17:01.320 --> 00:17:04.320
+So the next question will be,
+
+356
+00:17:04.480 --> 00:17:08.920
+are there alternatives that maybe are a bit more easier to use
+
+357
+00:17:09.080 --> 00:17:10.760
+when you have a serverless setup?
+
+358
+00:17:10.920 --> 00:17:13.960
+Well, if we think about the distributed state example
+
+359
+00:17:14.120 --> 00:17:15.480
+we mentioned earlier,
+
+360
+00:17:15.640 --> 00:17:18.840
+it would actually probably try and go for DynamoDB first before last catch
+
+361
+00:17:18.840 --> 00:17:20.760
+because of the amount of extra management
+
+362
+00:17:20.920 --> 00:17:23.960
+and the whole non-serverless nature of ElastiCache.
+
+363
+00:17:24.120 --> 00:17:26.640
+And it might work for you, but DynamoDB,
+
+364
+00:17:26.800 --> 00:17:31.880
+we know that you get single millisecond reads for records on DynamoDB,
+
+365
+00:17:32.040 --> 00:17:34.160
+but your writes can be slower and queries,
+
+366
+00:17:34.320 --> 00:17:36.920
+like if you're trying to do a query like in Redis,
+
+367
+00:17:37.080 --> 00:17:41.280
+you can do a wildcard lookup of a bunch of keys with a specific prefix
+
+368
+00:17:41.440 --> 00:17:43.960
+and its nanosecond responses.
+
+369
+00:17:44.120 --> 00:17:48.040
+With DynamoDB, that's going to be multiple tens,
+
+370
+00:17:48.040 --> 00:17:49.720
+hundreds of milliseconds potentially,
+
+371
+00:17:49.880 --> 00:17:52.080
+and you have pagination and all that kind of stuff.
+
+372
+00:17:52.240 --> 00:17:53.840
+Now you can use DynamoDB DAX,
+
+373
+00:17:54.000 --> 00:17:58.040
+which is their cache layer that is on top of DynamoDB,
+
+374
+00:17:58.200 --> 00:18:01.120
+but that's only going to help if you have a read-heavy workload.
+
+375
+00:18:01.280 --> 00:18:04.240
+If you've got lots of writes happening, as many writes as you have reads,
+
+376
+00:18:04.400 --> 00:18:06.880
+then that read cache isn't really going to help you
+
+377
+00:18:07.040 --> 00:18:09.120
+because you still have to write it to DynamoDB,
+
+378
+00:18:09.280 --> 00:18:12.480
+it's still going to make sure that it's committed to at least part two nodes
+
+379
+00:18:12.640 --> 00:18:14.760
+before you get a response.
+
+380
+00:18:14.920 --> 00:18:17.040
+So if you really need that low latency,
+
+381
+00:18:17.040 --> 00:18:19.600
+then you might look at some of the hosted Redis solutions.
+
+382
+00:18:19.760 --> 00:18:22.920
+I think we've mentioned Upstash on the podcast quite a few times.
+
+383
+00:18:23.080 --> 00:18:26.960
+They're not sponsors, but we like to point people
+
+384
+00:18:27.120 --> 00:18:28.400
+in the right direction from time to time.
+
+385
+00:18:28.560 --> 00:18:33.160
+That's a much more serverless option, at least at the pricing level.
+
+386
+00:18:33.320 --> 00:18:34.880
+So you've got Upstash Redis,
+
+387
+00:18:35.040 --> 00:18:37.120
+and you also have Redis Enterprise Cloud
+
+388
+00:18:37.280 --> 00:18:39.880
+from the company that's managing Redis as well.
+
+389
+00:18:40.040 --> 00:18:42.880
+Now there's been a fairly new player on the block as well,
+
+390
+00:18:43.040 --> 00:18:44.560
+which I think is a very interesting one to watch,
+
+391
+00:18:44.560 --> 00:18:47.280
+and I've been watching it fairly closely, which is Momento.
+
+392
+00:18:47.440 --> 00:18:51.720
+And this is not hosted Redis or even a Redis compatible cache,
+
+393
+00:18:51.880 --> 00:18:54.880
+but it's a completely new SaaS offering.
+
+394
+00:18:55.040 --> 00:18:57.240
+And it's aimed at a similar space, at least for caching,
+
+395
+00:18:57.400 --> 00:19:01.680
+and they do actually have a new PubSub offering as well.
+
+396
+00:19:01.840 --> 00:19:05.400
+So this is built on Pelikan, which is an open source caching engine
+
+397
+00:19:05.560 --> 00:19:08.960
+that came from a lot of the ideas in Twitter.
+
+398
+00:19:09.120 --> 00:19:11.200
+And this Pelikan open source caching engine
+
+399
+00:19:11.360 --> 00:19:13.720
+has recently been rewritten in Rust,
+
+400
+00:19:13.720 --> 00:19:18.520
+so we can expect very low latency and good performance and security there.
+
+401
+00:19:18.680 --> 00:19:21.720
+And they have their own SDKs, so they have like Java, Node,.NET,
+
+402
+00:19:21.880 --> 00:19:23.760
+Python, PHP, Go, Rust.
+
+403
+00:19:23.920 --> 00:19:27.400
+And they do actually have a Redis compatible kind of drop-in library
+
+404
+00:19:27.560 --> 00:19:29.880
+for Node.js, which will work for some of the Redis commands,
+
+405
+00:19:30.040 --> 00:19:31.600
+not all of them, I believe.
+
+406
+00:19:31.760 --> 00:19:34.520
+And the idea of it is it runs in AWS or GCP,
+
+407
+00:19:34.680 --> 00:19:39.080
+so you can pick your cloud host and your region
+
+408
+00:19:39.240 --> 00:19:41.040
+to make sure that you get low latency
+
+409
+00:19:41.040 --> 00:19:44.000
+and you avoid data transfer costs as well.
+
+410
+00:19:44.160 --> 00:19:45.920
+And then the pricing on that, at the moment,
+
+411
+00:19:46.080 --> 00:19:47.880
+it's like 50 cents per gigabyte.
+
+412
+00:19:48.040 --> 00:19:50.120
+So this is the kind of thing where you could,
+
+413
+00:19:50.280 --> 00:19:52.320
+some pricing models will work well for your workload,
+
+414
+00:19:52.480 --> 00:19:55.280
+depending on your patterns, your read and write patterns.
+
+415
+00:19:55.440 --> 00:19:57.240
+It could be expensive for data-heavy operations,
+
+416
+00:19:57.400 --> 00:19:59.680
+could be very cheap for lower volume operations,
+
+417
+00:19:59.840 --> 00:20:01.520
+but you get a pretty good free tier actually,
+
+418
+00:20:01.680 --> 00:20:04.000
+so 50 gigabytes every month is free.
+
+419
+00:20:04.160 --> 00:20:07.560
+So I think that sounds like a pretty nice incentive
+
+420
+00:20:07.720 --> 00:20:09.120
+to start using Momento.
+
+421
+00:20:09.120 --> 00:20:12.760
+It's pretty new, but we suddenly see them everywhere.
+
+422
+00:20:12.920 --> 00:20:14.920
+And I certainly like the idea of having
+
+423
+00:20:15.080 --> 00:20:20.240
+a completely serverless, lightweight, simple caching
+
+424
+00:20:20.400 --> 00:20:22.480
+that can work with your AWS deployment.
+
+425
+00:20:22.640 --> 00:20:24.160
+I think that they've got funding as well,
+
+426
+00:20:24.320 --> 00:20:26.760
+and I think part of that significant funding they got
+
+427
+00:20:26.920 --> 00:20:29.160
+is towards supporting other clouds as well.
+
+428
+00:20:29.320 --> 00:20:32.720
+So we can probably expect Azure support down the line.
+
+429
+00:20:32.880 --> 00:20:34.320
+I was actually impressed to find
+
+430
+00:20:34.480 --> 00:20:36.440
+that they got a cloud formation provider
+
+431
+00:20:36.600 --> 00:20:38.880
+for their caches as well on GitHub.
+
+432
+00:20:38.880 --> 00:20:41.920
+So that you can put that provider in your account,
+
+433
+00:20:42.080 --> 00:20:45.640
+and then you can create a cache just like you can
+
+434
+00:20:45.800 --> 00:20:46.800
+with a Redis cluster.
+
+435
+00:20:46.960 --> 00:20:49.320
+And you can expect the management overhead
+
+436
+00:20:49.480 --> 00:20:50.960
+will be significantly less.
+
+437
+00:20:51.120 --> 00:20:52.680
+If you're looking to find them, by the way,
+
+438
+00:20:52.840 --> 00:20:55.120
+their website is at gomomento.com,
+
+439
+00:20:55.280 --> 00:20:56.320
+and that link is in the show notes.
+
+440
+00:20:56.480 --> 00:20:58.880
+I mention this because they seem to have a bit of an SEO problem,
+
+441
+00:20:59.040 --> 00:21:03.520
+since there's also a Memento database with an E.
+
+442
+00:21:03.680 --> 00:21:05.960
+Momento, the one we were talking about, is with an O.
+
+443
+00:21:06.120 --> 00:21:07.720
+But definitely check them out.
+
+444
+00:21:07.720 --> 00:21:10.200
+So if you have any other alternatives, please let us know.
+
+445
+00:21:10.360 --> 00:21:12.200
+That's it for today's episode of AWS Bites.
+
+446
+00:21:12.360 --> 00:21:14.920
+Whether you watch on YouTube or you listen on your podcast player,
+
+447
+00:21:15.080 --> 00:21:17.400
+if you like it, please subscribe, leave a review,
+
+448
+00:21:17.560 --> 00:21:20.120
+and share AWS Bites with your friends and colleagues.
+
+449
+00:21:20.280 --> 00:21:21.480
+And we really appreciate that.
+
+450
+00:21:21.640 --> 00:21:22.840
+We'll see you in the next episode.

@@ -1,0 +1,977 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:05.200
+Hello, today we're going to answer the question, what accounts do you need for your team?
+
+2
+00:00:06.000 --> 00:00:11.200
+And we will try to explore some of the common ways to organize AWS accounts and environments,
+
+3
+00:00:11.200 --> 00:00:16.800
+of course with the idea of a company running production workloads, so how many accounts
+
+4
+00:00:16.800 --> 00:00:22.160
+do they need and how many environments. We will discuss how to become more productive with AWS
+
+5
+00:00:22.160 --> 00:00:27.120
+accounts and finally we'll discuss some of the common security and cost-related trade-offs.
+
+6
+00:00:27.120 --> 00:00:32.080
+My name is Luciano and today I'm joined by Eoin and this is AWS Bites podcast.
+
+7
+00:00:40.080 --> 00:00:45.760
+So first of all I'd like to start by saying a big thank you to David Lynam because he
+
+8
+00:00:45.760 --> 00:00:51.120
+suggested this awesome topic on Twitter, so please keep sending us your suggestion,
+
+9
+00:00:51.120 --> 00:00:55.040
+we are more than happy to try to address common questions that you might have.
+
+10
+00:00:55.040 --> 00:01:01.760
+I would suggest we maybe start with a quick definition of what do we mean by an AWS account,
+
+11
+00:01:01.760 --> 00:01:06.640
+what do we mean by an environment, just to make sure we are all in the same line.
+
+12
+00:01:13.760 --> 00:01:20.160
+Okay, so an account, let's try to define that as the fundamental unit that you get started with on AWS. Most people will start off with one account, put in a credit card and grow from there, but you
+
+13
+00:01:20.160 --> 00:01:25.120
+can add as many accounts as you need across your organization and some companies have hundreds of
+
+14
+00:01:25.120 --> 00:01:31.280
+accounts. But an account is really a logical concept but it's a very strict security boundary
+
+15
+00:01:31.280 --> 00:01:38.080
+as well because once you try to access resources in another account that's a cross-account access
+
+16
+00:01:39.200 --> 00:01:47.200
+concern. So it's very much a walled garden for everything you're doing in AWS and it's very
+
+17
+00:01:47.200 --> 00:01:54.320
+useful for isolating workloads. So I think one of the things that you need to think about
+
+18
+00:01:54.320 --> 00:02:02.400
+when you're thinking about an account is what do you want to share with other people
+
+19
+00:02:02.400 --> 00:02:06.960
+and what do you want to isolate, right? So that's a concern. Is there anything else we need to say
+
+20
+00:02:06.960 --> 00:02:13.040
+about what an account is?
+
+21
+00:02:13.040 --> 00:02:18.560
+Maybe I will only add that you can have this kind of tree structure for accounts so you can group them logically in a way that you will have like a master account and
+
+22
+00:02:18.560 --> 00:02:25.760
+all the sub-accounts there, which is not always obvious. Organizational units as well are like
+
+23
+00:02:25.760 --> 00:02:31.680
+these folders really for accounts. So yeah, that's important to know. Yeah, that's true.
+
+24
+00:02:31.680 --> 00:02:35.920
+So what's an environment then? Because we talk about accounts and environments. Are they the same thing?
+
+25
+00:02:40.800 --> 00:02:45.760
+So I would consider an environment, this is more of a loose concept I suppose, so I would consider an environment, this is more of a loose concept I suppose from the perspective of AWS.
+
+26
+00:02:45.760 --> 00:02:54.320
+So it's more for the way that you decide to build and ship applications throughout your pipeline.
+
+27
+00:02:54.320 --> 00:03:00.080
+So probably you're going to have a development environment where you are going to use that
+
+28
+00:03:00.080 --> 00:03:05.520
+only for building new features and as you build maybe you might want to test a few things manually.
+
+29
+00:03:05.520 --> 00:03:10.880
+You might have other environments for instance for QA or for all sorts of automated testing.
+
+30
+00:03:11.680 --> 00:03:16.000
+Then finally you will have your production environment which is literally where the
+
+31
+00:03:16.000 --> 00:03:21.200
+software you are running is going to be accessed by your users and that's the main source of
+
+32
+00:03:22.000 --> 00:03:28.960
+I suppose delivering the product to your customers. So yeah, it tends to be a little
+
+33
+00:03:28.960 --> 00:03:35.200
+bit more loose because you don't really have that concept as a structured way in AWS and
+
+34
+00:03:35.200 --> 00:03:40.880
+you'll need to decide how to apply that concept using accounts.
+
+35
+00:03:40.880 --> 00:03:45.360
+So I guess the one environment that everybody would probably have is the production environment and after that it's going to vary?
+
+36
+00:03:47.040 --> 00:03:55.280
+Exactly, yeah. So what do we think is like the most common way at least to try to structure
+
+37
+00:03:55.920 --> 00:04:01.920
+accounts and environments for? I suppose a big enough company doesn't have to be extremely big
+
+38
+00:04:01.920 --> 00:04:07.120
+but maybe not just like one person company. Maybe you start to have a few products and a few
+
+39
+00:04:07.120 --> 00:04:12.800
+employees in the team. So what can we recommend?
+
+40
+00:04:12.800 --> 00:04:20.160
+It used to be a lot more common to mix lots of different environments in one account. These days, 2022, it's more common to have one account per
+
+41
+00:04:20.720 --> 00:04:28.400
+environment but also per application or domain or a team. It would vary from company to company
+
+42
+00:04:28.400 --> 00:04:33.040
+how you split that up based on what the relationship is between the number of products
+
+43
+00:04:33.040 --> 00:04:38.080
+you have and the number of teams. Really you want to think about what is the security boundary
+
+44
+00:04:38.080 --> 00:04:42.640
+you're trying to enforce? What are the resources you want to share and not share?
+
+45
+00:04:43.200 --> 00:04:48.320
+And to avoid people getting on each other's toes, you know, stamping on each other's toes by sharing
+
+46
+00:04:48.320 --> 00:04:54.160
+an account. You might find that you have to put in place constraints so that people don't delete
+
+47
+00:04:54.160 --> 00:04:58.080
+other people's resources. If you're doing that, that's a sign that you need to split into
+
+48
+00:04:58.080 --> 00:05:03.200
+multiple accounts, I think. But I think the AWS best practice is more or less one account
+
+49
+00:05:04.080 --> 00:05:07.920
+per application per environment. Yeah.
+
+50
+00:05:07.920 --> 00:05:14.000
+So if we want to do an example, that basically means, again, let's take our e-commerce example. If you have, I don't know,
+
+51
+00:05:15.280 --> 00:05:23.520
+kind of product application and then you might have a fulfillment application, you might have
+
+52
+00:05:23.520 --> 00:05:28.400
+already a few different accounts because let's just say you have a dev and a production account,
+
+53
+00:05:28.400 --> 00:05:34.240
+you will have two different accounts for the first application and two other different accounts for
+
+54
+00:05:34.240 --> 00:05:42.480
+the other application. So you can see how it's kind of a matrix of all the environments you have
+
+55
+00:05:42.480 --> 00:05:48.480
+and all the applications you have. If you want to do very granular kind of control in terms of
+
+56
+00:05:48.480 --> 00:05:53.280
+boundaries.
+
+57
+00:05:53.280 --> 00:05:59.120
+It's probably worth mentioning as well that if those are like microservices and if you've got a team of five people and they're producing the fulfillment application as well as the product
+
+58
+00:05:59.120 --> 00:06:04.400
+application and the billing application, if they're really just microservices and the
+
+59
+00:06:04.400 --> 00:06:10.480
+deployment can all live quite easily together in one account, you don't need to have an account per
+
+60
+00:06:10.480 --> 00:06:16.800
+microservice per environment. Because in that case, there's also a bit of overhead in managing
+
+61
+00:06:16.800 --> 00:06:22.000
+multiple accounts because you need to, those are more things you have to monitor and take care of.
+
+62
+00:06:22.000 --> 00:06:28.160
+So just because you have multiple separately deployable units in your application, it doesn't
+
+63
+00:06:28.160 --> 00:06:33.680
+mean they always need to have a separate account. It's perfectly okay to start with one account if
+
+64
+00:06:33.680 --> 00:06:38.320
+you've got just one team on that because with a small team especially, you're probably going to
+
+65
+00:06:38.320 --> 00:06:43.680
+be able to make sure that you don't have any conflicts there.
+
+66
+00:06:43.680 --> 00:06:49.120
+Do we agree that I suppose the rule of thumb is how you structure your organization should be somewhat reflected in
+
+67
+00:06:49.120 --> 00:06:55.040
+how do you structure accounts, right? Yeah, I think so. This is Conway's law, isn't it?
+
+68
+00:06:55.040 --> 00:07:00.560
+Exactly. Your architecture is going to follow your team structure anyway. So maybe your
+
+69
+00:07:00.560 --> 00:07:07.040
+account structure also fits into that.
+
+70
+00:07:07.040 --> 00:07:13.680
+And I suppose to summarize this concept, the benefits of doing that is that when you create accounts, you are trying to enforce autonomy on one side,
+
+71
+00:07:13.680 --> 00:07:18.640
+but also security boundaries as we mentioned. But there is another interesting topic that
+
+72
+00:07:18.640 --> 00:07:25.840
+is every account comes with quotas. So AWS will allow you to do a certain number of things
+
+73
+00:07:25.840 --> 00:07:31.520
+depending on the services you use. And of course, the more teams are trying to use the same account,
+
+74
+00:07:31.520 --> 00:07:36.080
+the more likely it's going to be that you hit those limits and that can become a little bit of
+
+75
+00:07:36.080 --> 00:07:41.840
+a complication. It can slow you down. So also keeping more granular accounts will make it
+
+76
+00:07:41.840 --> 00:07:49.520
+easier to use responsibly every account without having to ask for increased quotas or do other
+
+77
+00:07:49.520 --> 00:07:57.360
+things like that. Absolutely. Yeah.
+
+78
+00:07:57.360 --> 00:08:01.360
+When we talk about the application per account per environment as well, sorry, account per application for an environment, we should also mention it's pretty
+
+79
+00:08:01.360 --> 00:08:08.160
+common as well to have shared tooling accounts like for CI CD where you might put your pipelines
+
+80
+00:08:08.160 --> 00:08:13.520
+and other things that aren't specific to the runtime environment of your application. Because
+
+81
+00:08:13.520 --> 00:08:18.960
+there you have a different set of access criteria and concerns to your runtime environment. And it's
+
+82
+00:08:18.960 --> 00:08:25.280
+good to keep those two things separate.
+
+83
+00:08:25.280 --> 00:08:31.840
+It's kind of like a control plane that then can act on behalf of the other accounts, right? Yeah, that's it. Yeah. And it works pretty well.
+
+84
+00:08:31.840 --> 00:08:37.040
+And you get very familiar then with providing cross-account access, which is a good skill and a discipline to have when
+
+85
+00:08:37.040 --> 00:08:43.840
+you've got multiple accounts.
+
+86
+00:08:43.840 --> 00:08:49.680
+So I suppose the next question is, do we think that every developer in a team should have their own account? Is that too much or are there benefits in that?
+
+87
+00:08:50.480 --> 00:08:55.360
+It's a good goal to consider, but it's not necessarily required for people to be productive.
+
+88
+00:08:55.360 --> 00:09:00.720
+And it kind of depends on what your account requirements are. Some applications might need
+
+89
+00:09:00.720 --> 00:09:05.600
+to have a certain level of setup when you create an account. Like you might need to go to AWS and
+
+90
+00:09:05.600 --> 00:09:12.080
+get limit increases. Some of that might take support to get a lead time. So you don't necessarily
+
+91
+00:09:12.080 --> 00:09:17.120
+need to make it one account per developer and make sure that if a new developer joins a team,
+
+92
+00:09:17.120 --> 00:09:23.360
+you stand up a new account. You can certainly do that. And it provides a good level of autonomy.
+
+93
+00:09:23.360 --> 00:09:27.920
+But if you've got a team that's collaborating with each other anyway, you might have pairing sessions.
+
+94
+00:09:28.640 --> 00:09:34.720
+You don't necessarily need one per developer. What we see quite often is that you have a pool
+
+95
+00:09:34.720 --> 00:09:38.960
+of accounts and you just allocate them to people working on different features
+
+96
+00:09:40.160 --> 00:09:44.480
+in a given sprint, say in your team. And that tends to work pretty well.
+
+97
+00:09:44.480 --> 00:09:50.880
+Yeah, I agree with that. I actually prefer that approach because encourages people to talk more
+
+98
+00:09:50.880 --> 00:09:55.360
+between each other and try to figure out, okay, what are you working on? Maybe because you're
+
+99
+00:09:55.360 --> 00:10:00.720
+working in this environment, let's finish this feature together. Instead with the single account
+
+100
+00:10:00.720 --> 00:10:05.520
+per developer is a lot more, this is my account, let me do my thing. And you can keep doing your
+
+101
+00:10:05.520 --> 00:10:11.760
+own thing in your own account, which I don't know, I guess encourages a non-collaborative
+
+102
+00:10:11.760 --> 00:10:16.000
+environment at that point.
+
+103
+00:10:16.560 --> 00:10:20.880
+I guess the main goal with having developer accounts is that people on the team have an environment where they can experiment freely and don't really have to
+
+104
+00:10:20.880 --> 00:10:27.040
+worry about breaking things that matter to other people. I think there's a lot of people doing
+
+105
+00:10:27.040 --> 00:10:33.040
+interesting things like in their continuous deployment pipelines then having automated
+
+106
+00:10:33.040 --> 00:10:36.800
+processes. So when you create a pull request or when you create a branch, it'll automatically
+
+107
+00:10:37.440 --> 00:10:43.680
+deploy a stack from that branch into an account. And then when you merge the PR and delete the
+
+108
+00:10:43.680 --> 00:10:48.240
+branch, it will tear down that stack. So you can automate a lot of that stuff as well, and it can
+
+109
+00:10:48.240 --> 00:10:52.880
+make it very productive for people so that if you've got lots of microservices they need to
+
+110
+00:10:52.880 --> 00:10:57.680
+deploy, they don't have to go to the manual effort of doing that every time they open a new PR.
+
+111
+00:11:02.160 --> 00:11:06.800
+Yeah, that's a good practice because I suppose that will also help to keep those environment as clean as possible so that when people transition across these accounts,
+
+112
+00:11:08.960 --> 00:11:12.480
+they have some expectations on where they are starting from.
+
+113
+00:11:13.440 --> 00:11:19.680
+So I suppose the next topic is because we are talking a lot about freedom and having different
+
+114
+00:11:19.680 --> 00:11:25.280
+accounts where you can experiment freely. We should probably also discuss if there is something
+
+115
+00:11:25.280 --> 00:11:32.480
+that you should restrict, right? And how, and I suppose there are two ways of seeing this. You
+
+116
+00:11:32.480 --> 00:11:39.920
+could either be very defensive. You could say, okay, I'm going to allow you in this account only
+
+117
+00:11:39.920 --> 00:11:45.360
+specific actions so you can provision only specific resources. And that's it. You cannot do anything
+
+118
+00:11:45.360 --> 00:11:53.440
+else. Or the opposite mindset could be like trust but verify. You have more freedom, but you also
+
+119
+00:11:53.440 --> 00:11:59.680
+have a way to detect what's going on and maybe realize if something dangerous is happening. So
+
+120
+00:11:59.680 --> 00:12:04.800
+you can have monitoring or configuration tools that allows you to see, okay, somebody is
+
+121
+00:12:04.800 --> 00:12:10.880
+provisioning a very big issue instance and that's going to affect cost or something like that.
+
+122
+00:12:10.880 --> 00:12:14.160
+Do you have any preference like in one or the other?
+
+123
+00:12:19.760 --> 00:12:26.160
+Yeah, I think the preference is to try and err on the side of putting in place just guardrails for people. And you have the concept of detective guardrails, which are freer for your teams,
+
+124
+00:12:26.160 --> 00:12:29.520
+because it's basically you're just keeping an eye on things. And then if something does something
+
+125
+00:12:29.520 --> 00:12:35.920
+that you don't particularly like, you work with them and you try to remediate the situation.
+
+126
+00:12:35.920 --> 00:12:39.920
+Then the more strict approaches you have preventive guardrails where you're putting
+
+127
+00:12:39.920 --> 00:12:45.360
+in like service control policies, enforcing permissions boundaries and saying you can't do that.
+
+128
+00:12:46.640 --> 00:12:52.800
+If you want to do something new, you have to open a ticket. And ultimately it will come down to what
+
+129
+00:12:52.800 --> 00:13:00.080
+are the real levels of compliance that you need in your business and trying to be as trustful as
+
+130
+00:13:00.080 --> 00:13:05.600
+possible of teams, because that's the most productive way to do it. It's just to let people
+
+131
+00:13:05.600 --> 00:13:11.120
+move forward. And there's lots of things you can use like CloudTrail and AWS Config,
+
+132
+00:13:11.760 --> 00:13:16.720
+which allow you to observe what's going on and then get alerts. So if you say, OK,
+
+133
+00:13:16.720 --> 00:13:22.400
+we don't want people to create buckets that are not encrypted. So one of the things you
+
+134
+00:13:22.400 --> 00:13:26.480
+could do there is put in place a config rule. And if you get alerted then when people create
+
+135
+00:13:26.480 --> 00:13:33.040
+an unencrypted bucket. Right. So a much more strict approach is don't allow people to create
+
+136
+00:13:33.040 --> 00:13:39.840
+buckets because only we know how to create buckets properly. But that's something that
+
+137
+00:13:39.840 --> 00:13:44.640
+will guarantee your compliance at all times. But it is going to slow down your teams because
+
+138
+00:13:44.640 --> 00:13:50.000
+creating buckets is something developers need to do to try things quite frequently. So understand
+
+139
+00:13:50.000 --> 00:13:54.880
+the tradeoffs there. And I think you can approach this also from a cost perspective.
+
+140
+00:13:54.880 --> 00:14:00.400
+For instance, you could have other rules that will prevent people from spinning up very expensive, easy to
+
+141
+00:14:00.400 --> 00:14:06.320
+instances or maybe even at the regional level because we know there are certain regions that
+
+142
+00:14:06.320 --> 00:14:10.720
+are more expensive than others. And most likely you are not going to need to use all the possible
+
+143
+00:14:10.720 --> 00:14:16.960
+regions. So that's another rule that can help you to limit the surface without restricting too much
+
+144
+00:14:17.520 --> 00:14:21.760
+the kind of activities that developers might want to do. Yeah, that's a really good one.
+
+145
+00:14:22.800 --> 00:14:26.960
+People might say actually maybe it's worth calling it out. Doesn't that violate the principle of
+
+146
+00:14:26.960 --> 00:14:31.760
+least privilege if you're being so permissive with accounts? Because on cloud security,
+
+147
+00:14:31.760 --> 00:14:36.160
+the important thing is the principle of least privilege, not trying to be over permissive on
+
+148
+00:14:36.160 --> 00:14:41.920
+permissions. I think there's maybe talking about two different things. Certainly in production and
+
+149
+00:14:41.920 --> 00:14:48.080
+your test accounts, you need to be enforcing least privilege. In development accounts,
+
+150
+00:14:48.080 --> 00:14:54.160
+you want people to be able to be productive. So you can encourage least privilege there by
+
+151
+00:14:54.160 --> 00:15:00.160
+analyzing cloud trial, by retrospectively looking at things using IAM access analyzer
+
+152
+00:15:00.160 --> 00:15:05.120
+and trying to continually refine the IAM policies that people use. Doesn't necessarily mean locking
+
+153
+00:15:05.120 --> 00:15:10.640
+down everything by default. No, that's a very good clarification.
+
+154
+00:15:10.640 --> 00:15:15.200
+For instance, I totally like the approach that you can experiment as much as you want in the development account. But as you
+
+155
+00:15:15.200 --> 00:15:21.280
+do that, one principle that I really like to follow and encourage other team to do the same is
+
+156
+00:15:21.280 --> 00:15:28.240
+when you are building an app, don't give it any IAM permission as a starting point. And then every
+
+157
+00:15:28.240 --> 00:15:32.400
+time you get a failure, because of course you cannot do a specific action, I don't know,
+
+158
+00:15:32.400 --> 00:15:38.480
+read or write from an strip bucket, then enable permissions gradually. And at that point,
+
+159
+00:15:38.480 --> 00:15:44.480
+it's easier that you end up with a very locked down IAM policy for that particular service.
+
+160
+00:15:44.480 --> 00:15:50.400
+And you can totally do that in a testing account. So yeah, it's a good point to try to separate
+
+161
+00:15:50.400 --> 00:15:56.880
+how do you define as a developer IAM policies for your services compared to as a developer,
+
+162
+00:15:56.880 --> 00:16:02.000
+what can you actually do in an AWS account? So what about non-developer accounts then?
+
+163
+00:16:02.000 --> 00:16:06.080
+What else do you need? Because we focused on, we mentioned production accounts and developer
+
+164
+00:16:06.080 --> 00:16:14.000
+accounts. What about testing? Yeah, that's a good point.
+
+165
+00:16:14.000 --> 00:16:20.640
+I think we have at least, I've seen two different ways of working and I think they are equally good. One is probably a little bit more
+
+166
+00:16:20.640 --> 00:16:25.280
+traditional. So you basically have, you start from a development account, you build a feature,
+
+167
+00:16:25.280 --> 00:16:29.840
+eventually you want to ship this feature to production. There is an intermediate step,
+
+168
+00:16:29.840 --> 00:16:34.880
+which is this feature is going to end up to another account, which is the QA account or
+
+169
+00:16:35.600 --> 00:16:40.560
+acceptance test account, whatever you want to call it. But it's basically an account that is dedicated
+
+170
+00:16:40.560 --> 00:16:47.280
+for testing. So before you actually ship it to production, you can observe and use that feature
+
+171
+00:16:47.280 --> 00:16:52.160
+in that environment. You can run manual and automated tests to make sure it's actually
+
+172
+00:16:52.160 --> 00:16:58.160
+doing what you want. And then from that environment and account, you can transition to the production
+
+173
+00:16:58.160 --> 00:17:05.920
+account. Another approach could be you skip that QA step entirely and you just go from development
+
+174
+00:17:05.920 --> 00:17:11.520
+to production. This is a little bit of a more modern approach. And of course, when you do that,
+
+175
+00:17:12.240 --> 00:17:16.720
+you need to put some boundaries in places to make sure you are not breaking production.
+
+176
+00:17:16.720 --> 00:17:22.640
+And that's generally done through the usage of phisher flags and it follows the principle of
+
+177
+00:17:22.640 --> 00:17:27.200
+testing in production. So basically what you will do is from development to production,
+
+178
+00:17:27.200 --> 00:17:33.680
+you ship something that is technically disabled by default, and then individual users can enable
+
+179
+00:17:33.680 --> 00:17:38.320
+that. And then they can start to play around with the phisher and see if it's actually doing what
+
+180
+00:17:38.320 --> 00:17:45.120
+it does. And that's a good practice because it removes some of the concern we'll probably discuss
+
+181
+00:17:45.120 --> 00:17:52.000
+a little bit more later around how is the data going to look like in my QA account versus the
+
+182
+00:17:52.000 --> 00:17:57.440
+production account. Because you are already in the production account, you don't have that concern.
+
+183
+00:17:57.440 --> 00:18:02.400
+So you are matching your production account straight away without trying to replicate
+
+184
+00:18:02.400 --> 00:18:04.800
+a similar account in the QA environment.
+
+185
+00:18:08.000 --> 00:18:12.880
+And I suppose I said if you were to use the QA environment, you would have the concern of,
+
+186
+00:18:13.520 --> 00:18:18.880
+okay, I can use CloudFormation or any other infrastructure as code to try to have exactly
+
+187
+00:18:18.880 --> 00:18:24.560
+the same infrastructure and configuration. But when it comes to data, it might not be possible
+
+188
+00:18:24.560 --> 00:18:30.880
+to get all the production data to a QA environment because of volumes, because of
+
+189
+00:18:30.880 --> 00:18:38.160
+compliance and security and privacy reasons. So probably you'll need a process that copies some
+
+190
+00:18:38.160 --> 00:18:43.920
+of this data and as it's being copied, you might also need to anonymize the data. So that adds
+
+191
+00:18:43.920 --> 00:18:49.520
+more complexity, of course.
+
+192
+00:18:49.520 --> 00:18:55.920
+Yeah, trying to keep it as close as possible is important because if you have the environments matched one for one, you should match the volume of data and
+
+193
+00:18:55.920 --> 00:19:01.200
+try and simulate the number of transactions and the transaction frequency as well.
+
+194
+00:19:01.200 --> 00:19:06.400
+So I suppose the next topic is how do you set up? Where do you start?
+
+195
+00:19:06.400 --> 00:19:11.760
+Because we know it's not easy to provision multiple accounts for different environments. Is there any tool or any best
+
+196
+00:19:11.760 --> 00:19:15.920
+practice to get started? You could just start with a console and use that for organizations
+
+197
+00:19:15.920 --> 00:19:21.600
+and accounts as a lot of people do.
+
+198
+00:19:21.600 --> 00:19:27.600
+But I find it's really worthwhile putting some effort into using infrastructure as code for your organizations and accounts. And this is probably the most
+
+199
+00:19:27.600 --> 00:19:33.920
+pragmatic approach that gives you a lot of stability and control and visibility into what
+
+200
+00:19:33.920 --> 00:19:39.200
+changes you're making. So there's two options there. You could use Terraform because Terraform
+
+201
+00:19:39.200 --> 00:19:44.560
+will allow you to create organization accounts. And there's another product which we use, an open
+
+202
+00:19:44.560 --> 00:19:52.240
+source project called Org Formation. And Org Formation is essentially like a cloud formation
+
+203
+00:19:52.240 --> 00:19:58.240
+additional layer that allows you to manage organizations and accounts and do things across
+
+204
+00:19:58.240 --> 00:20:03.040
+lots of different accounts in your organization. So if you need to have every time you spin up an
+
+205
+00:20:03.040 --> 00:20:07.680
+account, you need to put a certain set of resources in place like your config rules or your cloud
+
+206
+00:20:07.680 --> 00:20:12.320
+trail. And it allows you to do that really easy and it doesn't take a lot of code to do that.
+
+207
+00:20:12.320 --> 00:20:16.800
+The project also comes with a lot of great example templates for that. So I'd really recommend either
+
+208
+00:20:16.800 --> 00:20:24.000
+of those. I think it's also really good to use single sign-on on AWS because if you're using
+
+209
+00:20:24.000 --> 00:20:31.360
+IAM users, not only is it kind of almost a deprecated way of logging onto AWS, you end up
+
+210
+00:20:31.360 --> 00:20:37.120
+with long-term credentials per account, which can be very difficult to manage. So SSO allows you to
+
+211
+00:20:37.120 --> 00:20:44.480
+sign on and have assignments between your users in your identity provider, the accounts and the
+
+212
+00:20:44.480 --> 00:20:49.600
+permissions. And so there's this triangle and you can configure all those things with infrastructure
+
+213
+00:20:49.600 --> 00:20:55.600
+as code. There's some rough edges there because a lot of the AWS APIs don't allow you to control
+
+214
+00:20:55.600 --> 00:20:59.840
+all of these things as you wish. And like there's, for example, there's still no API to delete an
+
+215
+00:20:59.840 --> 00:21:05.040
+account. So you can create accounts very easily programmatically, but the last thing you need to
+
+216
+00:21:05.040 --> 00:21:10.160
+do is delete them. So you can't do that very easily programmatically, but deleting them becomes a pain.
+
+217
+00:21:10.160 --> 00:21:16.160
+Yeah. The other thing I really like from SSO is that you get, when you go to the web console and
+
+218
+00:21:16.160 --> 00:21:21.840
+you do your logging, your SSO login, you end up in a page where it's very clear what are all the
+
+219
+00:21:21.840 --> 00:21:27.920
+accounts that exists and all the roles that you as a user have in every account. So I think just that
+
+220
+00:21:27.920 --> 00:21:32.560
+is extremely valuable because you have like literally a dashboard where you can see what you
+
+221
+00:21:32.560 --> 00:21:35.760
+have in your application using the different AWS accounts.
+
+222
+00:21:35.760 --> 00:21:42.000
+Yeah, I agree. It's a game changer when you're coming from IAM users. There's also this thing
+
+223
+00:21:42.000 --> 00:21:47.760
+of account vending machines. And I think if you've got a really large organization and you're doing
+
+224
+00:21:47.760 --> 00:21:52.720
+this frequently and you need a lot of automation, it's something you can look at. And there's a
+
+225
+00:21:52.720 --> 00:22:00.320
+landing zone that AWS provide, which is a solution to kind of automate this. And you can use
+
+226
+00:22:00.320 --> 00:22:05.920
+catalog and a lot of AWS resources to automate the process of creating an account and provisioning it
+
+227
+00:22:05.920 --> 00:22:11.600
+with all these things. You could imagine it could be a massive project for your company. That's the
+
+228
+00:22:11.600 --> 00:22:17.040
+only thing I'd say. So I wouldn't go all in on automating that approach unless you want to really
+
+229
+00:22:17.040 --> 00:22:21.280
+dedicate a lot of engineering hours to it. There's nothing that will just work really well out of the
+
+230
+00:22:21.280 --> 00:22:28.480
+box for you. So I think you'll get 90% of what you need with just like org formation or Terraform
+
+231
+00:22:28.480 --> 00:22:32.960
+and a process to manage that. And then you can have pull requests against your organization
+
+232
+00:22:32.960 --> 00:22:39.760
+for new accounts and it just works like everything else. So yeah, that's the approach I'd recommend
+
+233
+00:22:39.760 --> 00:22:44.320
+for provisioning new accounts for developers, staging. And then it's something you can have
+
+234
+00:22:44.320 --> 00:22:49.520
+templates for every new application. You have like a set of dev accounts and a staging account and a
+
+235
+00:22:49.520 --> 00:22:54.160
+production account and your CI CD. Yeah, I like that approach.
+
+236
+00:22:54.160 --> 00:23:00.960
+I think infrastructure as code applies very well also to this particular topic. Okay, so I think that covers everything we had
+
+237
+00:23:00.960 --> 00:23:07.840
+for this episode. I am personally really, really curious to see what kind of way you found to
+
+238
+00:23:07.840 --> 00:23:12.960
+organize your accounts and environments. We have seen many, many different configurations with
+
+239
+00:23:12.960 --> 00:23:18.480
+our customers and our projects. And I think there are many, many different ways and they are equally
+
+240
+00:23:18.480 --> 00:23:23.120
+valid. So if you do something that is different from what we suggested, please let us know because
+
+241
+00:23:23.120 --> 00:23:27.520
+we are really curious to find out what are your trade-offs and why you decided to do something
+
+242
+00:23:27.520 --> 00:23:34.000
+different. Also, this is a topic that is always evolving. Even AWS is constantly pushing new tools
+
+243
+00:23:34.000 --> 00:23:40.800
+and new recommendations. So again, if you know any other way that it's equally valid for you,
+
+244
+00:23:40.800 --> 00:23:56.080
+please let us know and let's have a chat. And with that, we'll see you at the next episode. Bye.

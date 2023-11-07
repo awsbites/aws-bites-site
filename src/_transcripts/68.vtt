@@ -1,0 +1,873 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:04.080
+If you have been using AWS for a while, chances are that you have already heard the term
+
+2
+00:00:04.080 --> 00:00:08.640
+well-architected. It might seem like something obvious at first, but do you really know what
+
+3
+00:00:08.640 --> 00:00:13.440
+this term actually means? Would you be able to provide your own definition if somebody asks you
+
+4
+00:00:13.440 --> 00:00:18.400
+what well-architected actually means? Now, if you're hesitant to try to give an answer to this
+
+5
+00:00:18.400 --> 00:00:22.320
+question, this episode is for you. Today, we are going to cover what does it mean to be well-architected
+
+6
+00:00:22.320 --> 00:00:27.760
+in general and in the context of AWS. We will discuss the Well-Architected Framework
+
+7
+00:00:27.760 --> 00:00:32.800
+and all the different tools and facets that revolve around this particular framework. Finally, and
+
+8
+00:00:32.800 --> 00:00:36.480
+that's probably the most important part of this episode, we will try to answer some very practical
+
+9
+00:00:36.480 --> 00:00:41.280
+questions such as should you care about building well-architected workloads? And if you care, how
+
+10
+00:00:41.280 --> 00:00:44.960
+do you even know if your workloads are well-architected? What if you find out that your
+
+11
+00:00:44.960 --> 00:00:49.120
+workloads are not well-architected? What do you even do? Where do you even start? How can you make them better?
+
+12
+00:00:49.120 --> 00:00:53.600
+So let's dive in. My name is Luciiano. Today I'm joined by Eoin and we are happy to present you
+
+13
+00:00:53.600 --> 00:01:08.400
+another episode of AWS Bites podcast. AWS Bytes is sponsored by fourTheorem. fourTheorem is an AWS
+
+14
+00:01:08.400 --> 00:01:12.800
+consulting partner offering training, cloud migration, and modern application architecture.
+
+15
+00:01:12.800 --> 00:01:16.720
+Find out more at fourtheorem.com and you will find this link in the show notes.
+
+16
+00:01:17.920 --> 00:01:23.360
+So we said well-architected is a very loaded term. Let's start by trying to give a generic
+
+17
+00:01:23.360 --> 00:01:29.920
+definition of what we mean with that particular term. I think in general when we say well-architected
+
+18
+00:01:29.920 --> 00:01:34.720
+we refer to the quality of a system of being well designed in regards to certain things like security, reliability, performance, costs, etc.
+
+19
+00:01:34.720 --> 00:01:41.120
+A well-architected system should follow modern best
+
+20
+00:01:41.120 --> 00:01:46.400
+practices and we should make sure that it can deliver the value that is supposed to be delivered
+
+21
+00:01:46.400 --> 00:01:52.880
+to the users in the more consistent way. And at the same time it should be easy to operate for
+
+22
+00:01:52.880 --> 00:01:58.480
+the company, should be cost effective, and so on. So saying that something is well-architected can
+
+23
+00:01:58.480 --> 00:02:02.640
+also be a little bit subjective because if you ask different people they can give you very different
+
+24
+00:02:02.640 --> 00:02:07.280
+definitions of what it means to be well-architected. Probably something based on their own experiences,
+
+25
+00:02:07.280 --> 00:02:11.040
+something based on what they've done in the past, the solutions that they know,
+
+26
+00:02:11.040 --> 00:02:15.280
+the cloud providers, all the tools that they've been using the most. And if you get people with
+
+27
+00:02:15.280 --> 00:02:19.680
+very different backgrounds chances are that their answer will be very very different.
+
+28
+00:02:19.680 --> 00:02:25.760
+So there might be a little bit of source of confusion when we talk about this terminology
+
+29
+00:02:25.760 --> 00:02:30.560
+in general sense but even more when we talk about this particular term in the context of AWS.
+
+30
+00:02:30.560 --> 00:02:33.600
+So where does that confusion come from, Eoin, Do you have an opinion?
+
+31
+00:02:39.760 --> 00:02:45.840
+Yeah, well it's definitely subjective but at least I would say in the context of AWS they have used the term well-architected for a whole umbrella of tooling and documentation
+
+32
+00:02:45.840 --> 00:02:50.640
+to try and enforce a little bit more of an opinionated view on what well-architected means
+
+33
+00:02:50.640 --> 00:02:55.280
+to people building on AWS. And I think we welcome that because we always want AWS to be a little bit
+
+34
+00:02:55.280 --> 00:03:02.000
+more opinionated. So it identifies a set of concepts that fall under this umbrella and the
+
+35
+00:03:02.000 --> 00:03:05.680
+framework presents a number of these concepts in different categories so that you can kind of
+
+36
+00:03:05.680 --> 00:03:12.720
+evaluate your approach to building and architecting AWS applications. So the parts to this are, well
+
+37
+00:03:12.720 --> 00:03:16.880
+the original one is the paper. So about seven or eight years ago they published a well-architected
+
+38
+00:03:16.880 --> 00:03:21.360
+white paper and this was the first document that tried to define what it means for a cloud workload
+
+39
+00:03:21.360 --> 00:03:26.720
+to be well-architected. And they've kept that up to date. So I think the last update was last October
+
+40
+00:03:26.720 --> 00:03:32.320
+and this is the general set of principles and the principles are divided into what are known as the
+
+41
+00:03:32.320 --> 00:03:36.880
+Well-Architected Pillars. So if you're going to be looking at well-architected on AWS you'll probably
+
+42
+00:03:36.880 --> 00:03:42.160
+become familiar with the six pillars. There used to be five and there are operational pillars.
+
+43
+00:03:42.160 --> 00:03:48.800
+Operational excellence which is like using infrastructure as code, deployment practices,
+
+44
+00:03:49.600 --> 00:03:54.720
+predicting and handling failures, etc. Then you have security. You also have reliability which
+
+45
+00:03:54.720 --> 00:03:59.360
+includes high availability and scalability. And then you have performance and efficiency. So
+
+46
+00:03:59.360 --> 00:04:04.640
+ensuring that you're using the optimal resources and adopting newer technologies and not wasting
+
+47
+00:04:05.360 --> 00:04:09.920
+resources. Related to that then you have cost optimization which is a pillar of its own.
+
+48
+00:04:09.920 --> 00:04:14.800
+And related to that again is sustainability which is the latest newly introduced pillar of the
+
+49
+00:04:14.800 --> 00:04:19.120
+Well-Architected Framework. So those are the six pillars. So there are basically six categories
+
+50
+00:04:19.120 --> 00:04:25.360
+within well-architected when you're evaluating a workload. Then you also hear about this term called the Well-Architected Lenses.
+
+51
+00:04:25.360 --> 00:04:29.360
+So with Well-Architected Lenses you still have your
+
+52
+00:04:29.360 --> 00:04:33.440
+six pillars but it's basically like looking at it from the perspective of different types of
+
+53
+00:04:33.440 --> 00:04:38.320
+applications or applications in different industries. So you have a lens for machine
+
+54
+00:04:38.320 --> 00:04:42.880
+learning, a lens for data analytics, there's a serverless lens which we've mentioned a couple
+
+55
+00:04:42.880 --> 00:04:48.720
+of times before in previous episodes, high performance computing, IoT, games and you can
+
+56
+00:04:48.720 --> 00:04:54.080
+actually create your own lenses. So there's an ability for you to define your own I suppose
+
+57
+00:04:54.080 --> 00:04:59.760
+rules and apply those pillars to a specific type of application. So you've got your pillars and
+
+58
+00:04:59.760 --> 00:05:05.040
+the lenses and then there's the actual process of evaluating workloads on AWS. So that's the
+
+59
+00:05:05.040 --> 00:05:10.240
+well-architected review and it's essentially a formal process that allows you to go through
+
+60
+00:05:10.240 --> 00:05:15.920
+these lenses, ask specific questions that really you kind of have to honestly answer and figure out
+
+61
+00:05:15.920 --> 00:05:20.800
+how well you are meeting this idea of a well-architected workload according to AWS's principles.
+
+62
+00:05:20.800 --> 00:05:25.440
+And to help with that they give you a tool. So that's the well-architected tool which
+
+63
+00:05:25.440 --> 00:05:30.240
+you can find in the AWS console and that's a service that you can use to conduct these
+
+64
+00:05:30.240 --> 00:05:36.800
+well-architected reviews and score yourself and monitor any risks that have been identified and
+
+65
+00:05:36.800 --> 00:05:41.600
+track your remediation of those risks. You might also come across the well-architected labs which
+
+66
+00:05:41.600 --> 00:05:46.160
+are essentially training resources, an online workshop split into several labs that allows you
+
+67
+00:05:46.160 --> 00:05:50.640
+to learn the methodology required to conduct these well-architected reviews. So all of these
+
+68
+00:05:50.640 --> 00:05:55.680
+things would provide links for in the show notes. So that's the rundown of all the different
+
+69
+00:05:55.680 --> 00:06:00.640
+products if you like in the well-architected ecosystem on AWS. In general, Luciano, would you
+
+70
+00:06:00.640 --> 00:06:04.560
+say who should care, should you care at all about building well-architected workloads?
+
+71
+00:06:11.120 --> 00:06:16.560
+Yeah, my first aesthetic answer would be of course you should care because nobody wants to build systems that are suboptimal and maintainable, insecure, expensive and so on. At least not
+
+72
+00:06:16.560 --> 00:06:21.280
+intentionally. Maybe you don't know any better but of course you always want to do the best work you
+
+73
+00:06:21.280 --> 00:06:24.560
+can possibly do in any field, right? I think that this is just a general statement.
+
+74
+00:06:24.560 --> 00:06:29.600
+But at the same time, we always need to be pragmatic because if you are a startup, probably
+
+75
+00:06:29.600 --> 00:06:34.400
+your first concern, your main priority is to just ship something in the hands of your customer so
+
+76
+00:06:34.400 --> 00:06:38.160
+that you can actually validate if you are providing value to them and if your business
+
+77
+00:06:38.160 --> 00:06:42.240
+makes sense or if you need to pivot into something else. So in that particular case, of course I
+
+78
+00:06:42.240 --> 00:06:47.040
+wouldn't suggest startups to be extremely methodical and focused on trying to deliver the
+
+79
+00:06:47.040 --> 00:06:51.760
+best possible architecture because your focus should be somewhere else and maybe more on the
+
+80
+00:06:51.760 --> 00:06:57.760
+product side, maybe more on the validation side. Of course if your idea makes sense and your business
+
+81
+00:06:57.760 --> 00:07:02.000
+starts to get positive feedback, you want to start growing that business, you want to start to
+
+82
+00:07:02.000 --> 00:07:07.280
+deliver to more customers and at a certain point this architectural concern becomes more and more
+
+83
+00:07:07.280 --> 00:07:12.320
+relevant because of course if you have a good architecture you are increasing your chances of
+
+84
+00:07:12.320 --> 00:07:18.080
+providing value consistently to your customers. So I think as a general statement you should care.
+
+85
+00:07:18.080 --> 00:07:22.880
+There might be a point in the history of your organization where this becomes more and more
+
+86
+00:07:22.880 --> 00:07:28.160
+important so it makes also a lot of sense to try to identify at which phase of your company
+
+87
+00:07:28.160 --> 00:07:32.800
+are you in and whether it starts to make sense for you to explore this particular topic or not.
+
+88
+00:07:35.680 --> 00:07:41.200
+So I suppose if you are at that phase where you say okay I actually have a business, I'm making
+
+89
+00:07:41.200 --> 00:07:46.240
+money, I have paying customers and I want this customer to be served as best as possible
+
+90
+00:07:46.240 --> 00:07:51.200
+continuously and of course I want to operate all of that service in the best possible way for my
+
+91
+00:07:51.200 --> 00:07:56.720
+own sake, like cost effective, easy to change and so on. Where do I even start? How do I even know
+
+92
+00:07:56.720 --> 00:08:03.120
+if my workloads are well architected? And another question that I generally hear is like should they
+
+93
+00:08:03.120 --> 00:08:07.680
+do that before or after I go to production? Because maybe you just did a private beta
+
+94
+00:08:07.680 --> 00:08:11.440
+or you have some prototypes that you have been using, you are not really considering your product
+
+95
+00:08:11.440 --> 00:08:16.960
+production yet so should you do a review anyway or maybe should you wait before you are already
+
+96
+00:08:16.960 --> 00:08:22.560
+in production and maybe reconsider your architecture later?
+
+97
+00:08:22.560 --> 00:08:26.800
+Yeah well I guess the framework is there to help you answer all of those questions so maybe it's important to mention first the
+
+98
+00:08:26.800 --> 00:08:33.040
+framework isn't meant to be used to evaluate a whole organization, it's actually meant
+
+99
+00:08:33.040 --> 00:08:37.840
+to evaluate a specific workload. So you can have multiple workloads with your business and they
+
+100
+00:08:37.840 --> 00:08:43.040
+can all be at different levels of well architected and you can conduct well architected reviews for
+
+101
+00:08:43.040 --> 00:08:48.800
+one or multiple workloads and they don't have to be synchronized in any way.
+
+102
+00:08:48.800 --> 00:08:51.680
+So I guess the first thing you would need to do then is just identify which workloads are the most business critical
+
+103
+00:08:51.680 --> 00:08:57.840
+and focus on those first and is it probably a good idea to do one and get into the groove of
+
+104
+00:08:57.840 --> 00:09:03.920
+using the well architected review process and then apply it more broadly.
+
+105
+00:09:03.920 --> 00:09:09.920
+So you can use the framework and the tool to convert to conduct that review and that review is a guided process that
+
+106
+00:09:09.920 --> 00:09:13.120
+helps you to explore all of the topics that are important to the framework and make sure that you
+
+107
+00:09:13.120 --> 00:09:17.600
+don't miss anything and there's a set of questions there that are kind of designed to make sure that
+
+108
+00:09:17.600 --> 00:09:22.240
+you have to kind of really think about it and answer it and in some cases you can say okay well
+
+109
+00:09:22.240 --> 00:09:26.800
+this question or this particular topic does not apply to my workload but in general you have to
+
+110
+00:09:26.800 --> 00:09:33.120
+really bear all when you're conducting that review. And when it comes to the question about whether
+
+111
+00:09:33.120 --> 00:09:37.920
+you can use this for development workloads or production you can actually use it for both.
+
+112
+00:09:37.920 --> 00:09:43.520
+You can flag your workload as pre-production and conduct a review. It's a pretty good way to get a
+
+113
+00:09:43.520 --> 00:09:47.600
+sense of where you're at before you launch into production and maybe you can evaluate which of
+
+114
+00:09:47.600 --> 00:09:55.520
+the risks you need to identify and remediate before you go live in production.
+
+115
+00:09:55.520 --> 00:10:00.080
+And it's also important to note that you can repeat it multiple times so you can take multiple passes through it
+
+116
+00:10:00.080 --> 00:10:05.520
+and you can schedule that you do it every three months or six months or whatever makes sense to
+
+117
+00:10:05.520 --> 00:10:10.320
+you as you keep improving the architecture of your workloads and stay on par with the new best
+
+118
+00:10:10.320 --> 00:10:16.320
+practices and cloud capabilities. So once you've done that review it will highlight any weaknesses
+
+119
+00:10:16.320 --> 00:10:20.720
+in your architectures and give you pointers that you need and can start to take action on.
+
+120
+00:10:21.280 --> 00:10:25.120
+So if you've done this, Luciano, and you've been through the process where do you even start when
+
+121
+00:10:25.120 --> 00:10:28.880
+you've got something that you identify and unfortunately you've got a set of risks you
+
+122
+00:10:28.880 --> 00:10:32.480
+realize that you're not as well architected as maybe you hoped you were, what do you even do
+
+123
+00:10:32.480 --> 00:10:38.640
+or where do you start to make them better?
+
+124
+00:10:38.640 --> 00:10:43.520
+Yeah, so as you said you get some kind of feedback out of this process and that basically means that when you do the process using the tool at the end
+
+125
+00:10:43.520 --> 00:10:48.400
+of this process you will end up with a report and that report contains a number of items and
+
+126
+00:10:48.400 --> 00:10:54.800
+these items are classified by high risk and medium risk which of course is just an indication that
+
+127
+00:10:54.800 --> 00:11:00.320
+AWS, the tool specifically, is trying to give you but it doesn't really know anything about your
+
+128
+00:11:00.320 --> 00:11:04.240
+business it just uses whatever information you provided through the process so it's still up to
+
+129
+00:11:04.240 --> 00:11:09.760
+you to then take this kind of feedback from the report analyze it and decide what really is a
+
+130
+00:11:09.760 --> 00:11:14.160
+priority for you and what maybe something that can wait. So I suppose the next step will be
+
+131
+00:11:14.160 --> 00:11:18.720
+understand the report, understand every single item in that report, prioritize what's more
+
+132
+00:11:18.720 --> 00:11:23.280
+important to you and maybe start to create some actions in your backlog to try to address some
+
+133
+00:11:23.280 --> 00:11:28.000
+of these points. You definitely don't need to address them all as Eoin said it's something
+
+134
+00:11:28.000 --> 00:11:33.920
+that you can repeat over time and get it better at it and of course every time you repeat it maybe
+
+135
+00:11:33.920 --> 00:11:38.480
+there are new recommendations maybe your business has changed maybe you have implemented certain
+
+136
+00:11:38.480 --> 00:11:42.960
+improvements in your architecture so your posture will always be a little bit different.
+
+137
+00:11:42.960 --> 00:11:48.480
+By repeating this over time you will always get new feedback and new opportunities to improve
+
+138
+00:11:48.480 --> 00:11:54.080
+your architecture and just to make a practical example just by looking at the latest pillar that
+
+139
+00:11:54.080 --> 00:11:58.880
+was introduced only recently that particular pillar is something that if you did a review
+
+140
+00:11:58.880 --> 00:12:03.520
+a couple of years ago you didn't even have so if you redo the review today probably there would be
+
+141
+00:12:03.520 --> 00:12:08.880
+a number of very good pieces of advice that you can apply on that specific sustainability pillar
+
+142
+00:12:08.880 --> 00:12:12.240
+that maybe you haven't explored before and it's something you might want to start to address.
+
+143
+00:12:12.240 --> 00:12:18.960
+So since we I think it's useful to do maybe some more practical examples just to
+
+144
+00:12:19.520 --> 00:12:23.920
+to give a real feeling of what kind of questions do you get when you when you do the review
+
+145
+00:12:24.800 --> 00:12:28.800
+should we maybe try to list some of the most interesting questions do you think?
+
+146
+00:12:34.080 --> 00:12:39.360
+Yeah sure so if you look into the well-architected tool in the console I suppose maybe it's important to clarify the tool isn't doing any kind of analysis of your workload it's not reaching
+
+147
+00:12:39.360 --> 00:12:45.680
+out into your resources on AWS and identifying weak spots it's essentially a questionnaire type
+
+148
+00:12:45.680 --> 00:12:51.040
+tool a guided process that you go through with you know experts on well-architected we can go
+
+149
+00:12:51.040 --> 00:12:55.600
+through it yourself and it asks it asks questions in a way that you kind of have to honestly answer.
+
+150
+00:12:55.600 --> 00:13:00.720
+So let's take an example so when you do that use this tool you can select like the you will always
+
+151
+00:13:00.720 --> 00:13:04.720
+answer questions about the foundational white paper and then you can also select lenses that
+
+152
+00:13:04.720 --> 00:13:08.560
+you want to apply on top of it as well the tool only supports two at the moment the serverless
+
+153
+00:13:08.560 --> 00:13:14.240
+lens and the SaaS lens but you can also add your own custom lenses as I've already mentioned so
+
+154
+00:13:14.240 --> 00:13:18.640
+you can add your own questions that are specific to your industry or workload so one question that
+
+155
+00:13:18.640 --> 00:13:23.600
+pops up when it comes to operational excellence is just to give an example that it's not all about
+
+156
+00:13:23.600 --> 00:13:27.520
+the technology one question is how does your organizational culture support your business outcomes.
+
+157
+00:13:27.520 --> 00:13:32.400
+And there's a selection of things that you kind of have to take here really so you have
+
+158
+00:13:32.400 --> 00:13:38.880
+to make sure that you've got like executive sponsorship for your cloud workload that team
+
+159
+00:13:38.880 --> 00:13:45.120
+members are empowered to take action when outcomes are at risk and all of the questions have this format, right.
+
+160
+00:13:45.120 --> 00:13:49.200
+A set of check boxes, you can just check them you can add notes and details to it if you
+
+161
+00:13:49.200 --> 00:13:54.080
+want but you can also say if one of these doesn't apply to you for whatever reason so if you need
+
+162
+00:13:54.080 --> 00:13:57.760
+if and that will happen it will happen from time to time the questions just don't apply to you.
+
+163
+00:13:57.760 --> 00:14:03.680
+Then on a more technical sense in the performance efficiency pillar it will ask how do you monitor
+
+164
+00:14:03.680 --> 00:14:08.640
+your resources to ensure that they're performing so you will have to confirm that you're collecting
+
+165
+00:14:08.640 --> 00:14:13.760
+performance related metrics and that you're analyzing those when incidents occur and that
+
+166
+00:14:13.760 --> 00:14:19.440
+you're generating alarms and monitoring those alarms proactively.
+
+167
+00:14:19.440 --> 00:14:23.280
+So that all that all makes sense and then if take an example from the serverless lens, it doesn't
+
+168
+00:14:23.280 --> 00:14:26.800
+have a lot of questions in it but it'll ask you how do you evaluate your serverless applications health.
+
+169
+00:14:26.800 --> 00:14:32.640
+The serverless lens is actually a lot more opinionated in having its
+
+170
+00:14:32.640 --> 00:14:37.920
+recommendations than the base, foundational white paper so it will want to make sure that
+
+171
+00:14:37.920 --> 00:14:43.040
+you've got distributed tracing involved in your application and that you've got structured
+
+172
+00:14:43.040 --> 00:14:48.240
+centralized logging as well. So there's specific things you'll need in there so there's a whole set
+
+173
+00:14:48.240 --> 00:14:52.080
+of questions there and when you go through a review you can skip over questions you can go
+
+174
+00:14:52.080 --> 00:14:58.400
+back and fill them in later. So it's quite flexible in that sense. What do you think,
+
+175
+00:14:58.400 --> 00:15:01.840
+Luciano, would you recommend that people do this alone that they just go in and try it out
+
+176
+00:15:01.840 --> 00:15:06.080
+themselves? Should they get AWS or a partner to come along and help them with the process?
+
+177
+00:15:11.760 --> 00:15:17.120
+Yeah, I think you can definitely do it by yourself because as you said you can just open the well architecture tool from the AWS console and it's pretty much a guided process you just need to
+
+178
+00:15:17.120 --> 00:15:24.000
+make sure you keep an open mindset and try to give the most honest answers to every single question.
+
+179
+00:15:24.560 --> 00:15:28.560
+Even when there are things that of course you wanted them to be different there is no point in
+
+180
+00:15:28.560 --> 00:15:33.760
+trying to hide and maybe give an answer that is not really describing the reality of things
+
+181
+00:15:33.760 --> 00:15:36.800
+because if you do that and you pretend things are better than they are then you are going to be
+
+182
+00:15:36.800 --> 00:15:42.240
+missing out on opportunities for making your architecture better and improving the company
+
+183
+00:15:42.240 --> 00:15:47.760
+the company on its own. And I think it's important to remember that this is not an audit this is
+
+184
+00:15:47.760 --> 00:15:51.520
+something that you do to try to get better it's not something that you do because you're going
+
+185
+00:15:51.520 --> 00:15:55.200
+to get some kind of certification or you're going to get, I don't know, the ability to trade in a specific market.
+
+186
+00:15:55.200 --> 00:15:58.960
+It's just something that you do because you generally want to be better as an
+
+187
+00:15:58.960 --> 00:16:03.840
+organization at delivering the produce that you are delivering and of course there are also other
+
+188
+00:16:03.840 --> 00:16:07.680
+nice side effects to the business. Because, if you do this process you're probably gonna be able to
+
+189
+00:16:07.680 --> 00:16:12.960
+save money in terms of your cloud expenditure, you might be able to make your organization a little
+
+190
+00:16:12.960 --> 00:16:17.280
+bit more flexible in introducing new features, recovering from incidents and all these kind of
+
+191
+00:16:17.280 --> 00:16:22.400
+things that definitely will give you more leverage in the market to be more effective with your product.
+
+192
+00:16:22.400 --> 00:16:28.880
+And that's another segue that I think it's important to do this process with different
+
+193
+00:16:28.880 --> 00:16:34.320
+stakeholders in your business so you shouldn't just get your own architect in the company
+
+194
+00:16:34.320 --> 00:16:39.520
+and tell them, "okay, go off and do this exercise". It's something that you should actually do by
+
+195
+00:16:39.520 --> 00:16:43.440
+involving a bunch of different people in your organization because definitely there are questions
+
+196
+00:16:43.440 --> 00:16:48.080
+that require the perspective of people that are not technical, like people that are maybe more
+
+197
+00:16:48.080 --> 00:16:53.280
+in finance or product or people that, if they are technical, they are in specific areas like security.
+
+198
+00:16:53.280 --> 00:16:58.000
+Maybe your architect doesn't have all these answers so it's really important that you bring
+
+199
+00:16:58.000 --> 00:17:03.120
+the right people for the right questions and they also need to try to give the most honest answer
+
+200
+00:17:03.120 --> 00:17:07.760
+that they could give for the particular question now with that being said you can do all of this alone.
+
+201
+00:17:07.760 --> 00:17:12.800
+But if you if you want another opportunity to try to keep the entire process as honest
+
+202
+00:17:12.800 --> 00:17:17.920
+as possible and maybe have even more guidance, I think it's useful to bring in a partner or to ask
+
+203
+00:17:17.920 --> 00:17:24.640
+AWS itself if they would be able to provide a guided review. A partner or AWS itself
+
+204
+00:17:24.640 --> 00:17:29.200
+of course they have less of an interest in the inner workings of your organization and they can
+
+205
+00:17:29.200 --> 00:17:32.960
+try to keep the process more honest, they can also bring their own expertise, they probably have
+
+206
+00:17:32.960 --> 00:17:37.920
+seen different companies in different industries going through the process and that probably helps
+
+207
+00:17:37.920 --> 00:17:42.240
+to avoid some of the common mistakes that you might be end up doing by yourself.
+
+208
+00:17:42.240 --> 00:17:47.680
+If this is something that interests you, keep in mind that we at fourTheorem do this kind of activity.
+
+209
+00:17:47.680 --> 00:17:52.640
+If it's something that you are considering to do, give us a shout we, can probably help you to start and do
+
+210
+00:17:52.640 --> 00:17:58.640
+your first well-architected review. So with that being said I think this is all we have for today.
+
+211
+00:17:58.640 --> 00:18:03.040
+Thank you very much for being with us. We are really curious as always to get your feedback on
+
+212
+00:18:03.040 --> 00:18:06.960
+any of these episodes. If the well-architected review is something that you have done already,
+
+213
+00:18:06.960 --> 00:18:11.280
+we'd love to hear your feedback on it. Was it useful? Did you discover something important?
+
+214
+00:18:11.280 --> 00:18:15.520
+Did it actually make your company and your operations better or if it's something you did and you were
+
+215
+00:18:15.520 --> 00:18:19.440
+not satisfied with it, we are even more curious to know what did go wrong and if we can learn
+
+216
+00:18:19.440 --> 00:18:24.160
+something from it. I think it's amazing that we will be sharing this learning with everyone
+
+217
+00:18:24.160 --> 00:18:28.880
+interested so definitely give us a comment here or reach out on Twitter and we'd love to talk with
+
+218
+00:18:28.880 --> 00:18:55.360
+you more. Until then, thanks again and we'll see you in the next episode.

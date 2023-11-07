@@ -1,0 +1,469 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:10.400
+Hello and welcome to a special Halloween episode of AWS Bites, the weekly show where we answer
+
+2
+00:00:10.400 --> 00:00:13.320
+questions about AWS in about five minutes.
+
+3
+00:00:13.320 --> 00:00:16.700
+My name is Eoin and today I'm joined by Luciano.
+
+4
+00:00:16.700 --> 00:00:20.340
+Before we get started, be sure to give us a follow and subscribe so you can get notified
+
+5
+00:00:20.340 --> 00:00:22.880
+when the next episode goes live.
+
+6
+00:00:22.880 --> 00:00:29.040
+But today our Halloween themed question is, what are your AWS horror stories?
+
+7
+00:00:29.040 --> 00:00:32.840
+I guess the scariest thing about AWS has to be billing.
+
+8
+00:00:32.840 --> 00:00:37.120
+Luciano, do you have any billing nightmares that you can tell us about?
+
+9
+00:00:37.120 --> 00:00:43.040
+Of course, that was actually the first thing that came to my mind about AWS horror stories.
+
+10
+00:00:43.040 --> 00:00:47.440
+Specifically one time where I was working on a very new project, it was a startup, we
+
+11
+00:00:47.440 --> 00:00:50.000
+didn't have big funding.
+
+12
+00:00:50.000 --> 00:00:55.080
+And then suddenly we had a bill of like $7,000 I think.
+
+13
+00:00:55.080 --> 00:00:59.660
+And then I realized that it was actually my fault because by mistake in Terraform, I ended
+
+14
+00:00:59.660 --> 00:01:06.680
+up provisioning a number of IOPs in an EBS volume that was way over what we needed.
+
+15
+00:01:06.680 --> 00:01:11.600
+And yeah, we just did realize when we got the bill and thankfully we did have some credit
+
+16
+00:01:11.600 --> 00:01:12.940
+with AWS at the time.
+
+17
+00:01:12.940 --> 00:01:16.040
+So we didn't just bankrupt the company straight away.
+
+18
+00:01:16.040 --> 00:01:19.840
+So there is a little bit of a silver lining in that story.
+
+19
+00:01:19.840 --> 00:01:20.840
+Yeah.
+
+20
+00:01:20.840 --> 00:01:24.200
+Do you have any things like that related to billing?
+
+21
+00:01:24.200 --> 00:01:25.200
+Yeah, I have.
+
+22
+00:01:25.200 --> 00:01:27.400
+I've had a few scary stories.
+
+23
+00:01:27.400 --> 00:01:32.200
+I think in general, if that kind of thing happens, you can try and reach out and clear
+
+24
+00:01:32.200 --> 00:01:35.560
+your case and get some mercy from AWS.
+
+25
+00:01:35.560 --> 00:01:38.160
+Yeah, I've had a few of them.
+
+26
+00:01:38.160 --> 00:01:46.200
+I have to say I've left EC2 instances, not one or two, but thousands running over the
+
+27
+00:01:46.200 --> 00:01:52.080
+weekend and realized on a Monday morning when I saw the billing alerts.
+
+28
+00:01:52.080 --> 00:01:56.080
+But yeah, look, you got to put billing alerts in place and try and react to them as quickly
+
+29
+00:01:56.080 --> 00:01:57.080
+as possible.
+
+30
+00:01:57.080 --> 00:01:59.640
+I also had a really interesting one.
+
+31
+00:01:59.640 --> 00:02:06.120
+I mean, one of the really, I suppose, standout billing nightmares with AWS is the data transfer
+
+32
+00:02:06.120 --> 00:02:07.340
+cost.
+
+33
+00:02:07.340 --> 00:02:11.140
+And another particular one is NAT gateway cost.
+
+34
+00:02:11.140 --> 00:02:14.580
+So managing that gateway cost is pretty expensive.
+
+35
+00:02:14.580 --> 00:02:21.640
+And I did have a case where it was working in an enterprise that had, you know, a direct
+
+36
+00:02:21.640 --> 00:02:24.940
+connect link into their corporate data center.
+
+37
+00:02:24.940 --> 00:02:31.660
+But I was using CDK actually to use one of the ECS patterns for CDK.
+
+38
+00:02:31.660 --> 00:02:34.720
+So it's a really nice construct that will create all of the infrastructure you need
+
+39
+00:02:34.720 --> 00:02:35.720
+automatically.
+
+40
+00:02:35.720 --> 00:02:39.920
+So you don't have to worry about what's under the hood.
+
+41
+00:02:39.920 --> 00:02:43.640
+Except I didn't realize, I didn't pay enough attention to realize that what it was creating
+
+42
+00:02:43.640 --> 00:02:51.520
+under the hood included its own NAT gateway and its own VPC and its own network constructs
+
+43
+00:02:51.520 --> 00:02:56.440
+as well as the ECS infrastructure and the cluster and SQSQs and all the great stuff
+
+44
+00:02:56.440 --> 00:03:04.100
+just from having one line of code that creates this nice AWS queue processing service.
+
+45
+00:03:04.100 --> 00:03:09.140
+And yeah, because we were doing a lot of S3 traffic, we ended up getting charged quite
+
+46
+00:03:09.140 --> 00:03:10.140
+a significant amount of money.
+
+47
+00:03:10.140 --> 00:03:16.920
+I can't remember exactly what it was, but that was completely not obvious to me at the
+
+48
+00:03:16.920 --> 00:03:17.920
+time.
+
+49
+00:03:17.920 --> 00:03:22.480
+But I've definitely learned my lesson and checked these things and double check each
+
+50
+00:03:22.480 --> 00:03:23.960
+time.
+
+51
+00:03:23.960 --> 00:03:26.720
+What else have we got in terms of AWS horror stories?
+
+52
+00:03:26.720 --> 00:03:28.360
+Is there anything not building related?
+
+53
+00:03:28.360 --> 00:03:34.880
+Yeah, I think in general there could be a lot of other stories regarding developer experience.
+
+54
+00:03:34.880 --> 00:03:39.240
+And we all know, for instance, the web console is not great.
+
+55
+00:03:39.240 --> 00:03:44.440
+Sometimes you struggle to do even things that you expect to be like basic features.
+
+56
+00:03:44.440 --> 00:03:50.920
+But recently I struggled a lot with EventBridge, for instance, which is even a new service.
+
+57
+00:03:50.920 --> 00:03:54.600
+I was expecting this problem not to be there.
+
+58
+00:03:54.600 --> 00:03:59.520
+And it's kind of a funny one because in EventBridge, the way it works is you can trigger events,
+
+59
+00:03:59.520 --> 00:04:02.880
+you have AWS events, you have custom events.
+
+60
+00:04:02.880 --> 00:04:07.240
+And then the way you hook into those events and react to them is that you have to create
+
+61
+00:04:07.240 --> 00:04:08.560
+rules.
+
+62
+00:04:08.560 --> 00:04:13.640
+But the problem is that when you are publishing an event, if you are not the one publishing
+
+63
+00:04:13.640 --> 00:04:15.600
+it, maybe it's an integration.
+
+64
+00:04:15.600 --> 00:04:18.240
+In order to visualize that event, you need to write a rule.
+
+65
+00:04:18.240 --> 00:04:22.840
+But if you don't know the shape of that message, it's very hard to write a matching rule.
+
+66
+00:04:22.840 --> 00:04:26.800
+So I did find myself spending a lot of time in this kind of chicken and egg problem trying
+
+67
+00:04:26.800 --> 00:04:31.200
+to figure out, OK, how am I supposed to write a rule for a message that I don't really know
+
+68
+00:04:31.200 --> 00:04:32.680
+about?
+
+69
+00:04:32.680 --> 00:04:37.800
+And I know that there are solutions, but I did end up spending a lot of time trying to
+
+70
+00:04:37.800 --> 00:04:41.580
+solve that particular problem the first time I was using EventBridge.
+
+71
+00:04:41.580 --> 00:04:45.560
+So maybe something to be improved there in terms of user experience.
+
+72
+00:04:45.560 --> 00:04:49.880
+Yeah, for developer experience, there's so many horror stories we could probably talk
+
+73
+00:04:49.880 --> 00:04:53.200
+about and so inconsistent as well across services.
+
+74
+00:04:53.200 --> 00:04:58.320
+One of the things I find is that if you decide to go with a third party service versus AWS
+
+75
+00:04:58.320 --> 00:05:02.720
+and you're trying to weigh up the pros and cons, a lot of people will lean towards AWS
+
+76
+00:05:02.720 --> 00:05:07.800
+because they've already got everything set up in AWS and you've got the IAM permissions
+
+77
+00:05:07.800 --> 00:05:08.800
+all in place.
+
+78
+00:05:08.800 --> 00:05:11.760
+But that can bite you when it comes to developer experience.
+
+79
+00:05:11.760 --> 00:05:15.880
+And one of the nightmares I've been through a few times is setting up build pipelines.
+
+80
+00:05:15.880 --> 00:05:20.240
+And people can assume that code pipeline and code builder are something analogous to using
+
+81
+00:05:20.240 --> 00:05:23.960
+GitHub actions or GitLab CI or Jenkins.
+
+82
+00:05:23.960 --> 00:05:26.280
+But in fact, it's a very different beast.
+
+83
+00:05:26.280 --> 00:05:29.680
+You really have to invest a lot in understanding what the constructs are.
+
+84
+00:05:29.680 --> 00:05:33.600
+You can't just create a YAML file with declarative workflow and get it working.
+
+85
+00:05:33.600 --> 00:05:39.160
+You have to create and configure individual resources and every step in your pipeline
+
+86
+00:05:39.160 --> 00:05:41.120
+is an AWS resource.
+
+87
+00:05:41.120 --> 00:05:46.400
+And it's powerful in a lot of ways that it's well integrated into AWS.
+
+88
+00:05:46.400 --> 00:05:50.400
+But it doesn't have the flexibility of all those other options, unfortunately.
+
+89
+00:05:50.400 --> 00:05:53.500
+You can't dynamically control the workflow.
+
+90
+00:05:53.500 --> 00:05:57.500
+You can't just skip actions in a code pipeline stage very easily.
+
+91
+00:05:57.500 --> 00:06:02.280
+And you don't get that nice kind of visualization that you get in GitHub or other services where
+
+92
+00:06:02.280 --> 00:06:06.200
+you can see your code pipeline really easily and link it through to your pull request and
+
+93
+00:06:06.200 --> 00:06:07.200
+everything.
+
+94
+00:06:07.200 --> 00:06:12.080
+So I've definitely had a case where I thought, okay, this is going to be easy to set up a
+
+95
+00:06:12.080 --> 00:06:13.080
+code pipeline.
+
+96
+00:06:13.080 --> 00:06:17.040
+But it ended up really being a horror story and something that burned me badly.
+
+97
+00:06:17.040 --> 00:06:21.440
+So I'm very cautious about recommending code pipeline as a result.
+
+98
+00:06:21.440 --> 00:06:22.440
+So one last one.
+
+99
+00:06:22.440 --> 00:06:23.440
+Yeah, go ahead.
+
+100
+00:06:23.440 --> 00:06:26.340
+I was thinking about deployments and well, pipelines.
+
+101
+00:06:26.340 --> 00:06:27.800
+You make me think about deployment.
+
+102
+00:06:27.800 --> 00:06:32.040
+And one thing that I'm sure that many people have been through is when you have to fix
+
+103
+00:06:32.040 --> 00:06:36.920
+a very urgent bug in production and you are working really hard, you have the changes,
+
+104
+00:06:36.920 --> 00:06:38.480
+you are ready to ship them.
+
+105
+00:06:38.480 --> 00:06:43.600
+And suddenly, CloudFormation is throwing at you that was the actual name update rollback
+
+106
+00:06:43.600 --> 00:06:46.560
+failed which takes whatever to settle.
+
+107
+00:06:46.560 --> 00:06:50.480
+And then you are there just waiting like, AWS, please do something for me.
+
+108
+00:06:50.480 --> 00:06:52.880
+I really need to ship these changes.
+
+109
+00:06:52.880 --> 00:06:56.600
+So I don't know if that ever happened to you, but it happened to me a bunch of times and
+
+110
+00:06:56.600 --> 00:06:59.520
+has been an horror story every single time.
+
+111
+00:06:59.520 --> 00:07:03.720
+
+
+112
+00:07:03.720 --> 00:07:09.040
+Yeah, I think everybody who uses CloudFormation probably has a nightmare where they wake up in a cold sweat dreaming about update rollback failed.
+
+113
+00:07:09.040 --> 00:07:13.760
+It's really so difficult to recover from.
+
+114
+00:07:13.760 --> 00:07:19.160
+Yeah, that's definitely a true horror story.
+
+115
+00:07:19.160 --> 00:07:24.440
+Maybe with that, we scared people enough and we should let people go have a lie down.
+
+116
+00:07:24.440 --> 00:07:28.440
+But thanks very much for joining us and do make sure to like and subscribe so that you
+
+117
+00:07:28.440 --> 00:07:33.600
+can find out about the next episode and we'll see you next week.

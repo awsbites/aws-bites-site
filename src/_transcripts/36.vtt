@@ -1,0 +1,2229 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:02.960
+There are lots of options for programming languages on AWS these days,
+
+2
+00:00:02.960 --> 00:00:05.400
+but one of the most popular ones remains JavaScript.
+
+3
+00:00:05.400 --> 00:00:08.240
+Today, we're going to discuss what it's like to develop with JavaScript
+
+4
+00:00:08.240 --> 00:00:11.600
+and Node.js on AWS and what's new in this field.
+
+5
+00:00:11.600 --> 00:00:13.720
+So we're going to talk about why you'd use JavaScript
+
+6
+00:00:13.720 --> 00:00:15.120
+and what are the trade-offs,
+
+7
+00:00:15.120 --> 00:00:18.840
+what are the features of the all-new AWS SDK version 3.
+
+8
+00:00:18.840 --> 00:00:21.920
+We'll talk about runtime support and tooling for Lambda,
+
+9
+00:00:21.920 --> 00:00:24.880
+and we'll talk about all the new developments in the ecosystem.
+
+10
+00:00:24.880 --> 00:00:26.920
+My name is Eoin, and I'm joined by Luciano,
+
+11
+00:00:26.920 --> 00:00:30.200
+and this is AWS Bites.
+
+12
+00:00:36.360 --> 00:00:40.280
+Luciano, I think you're well-placed to talk about this as a Node.js expert.
+
+13
+00:00:40.280 --> 00:00:42.920
+You have your book, the Node.js Design Patterns book,
+
+14
+00:00:42.920 --> 00:00:45.000
+which is really popular.
+
+15
+00:00:45.000 --> 00:00:47.800
+It's also very up-to-date on all the latest things you can do with Node.
+
+16
+00:00:47.800 --> 00:00:51.040
+And not only that, you're also the author of the MIDI framework
+
+17
+00:00:51.040 --> 00:00:53.600
+for Node.js on Lambda.
+
+18
+00:00:53.600 --> 00:00:57.640
+Yeah, but I think... Thank you for doing all that advertisement for me.
+
+19
+00:00:57.640 --> 00:00:58.640
+Always appreciated.
+
+20
+00:00:58.640 --> 00:01:01.640
+But I think you also deserve a little bit of advertisement
+
+21
+00:01:01.640 --> 00:01:05.760
+because you are the co-author of this book, AI as a Service,
+
+22
+00:01:05.760 --> 00:01:10.400
+which is effectively a book that talks about serverless on AWS.
+
+23
+00:01:10.400 --> 00:01:13.320
+But I was particularly impressed by the choice of using JavaScript
+
+24
+00:01:13.320 --> 00:01:15.920
+as basically the main language for all the code examples.
+
+25
+00:01:15.920 --> 00:01:19.800
+So I think you are also heavily invested in the JavaScript ecosystem
+
+26
+00:01:19.800 --> 00:01:22.200
+when it comes to AWS.
+
+27
+00:01:22.200 --> 00:01:25.640
+So maybe I would like to start by getting your opinion
+
+28
+00:01:25.640 --> 00:01:29.080
+on why do you think that, yeah, it's actually a good choice,
+
+29
+00:01:29.080 --> 00:01:32.760
+or not maybe, to use JavaScript on AWS.
+
+30
+00:01:32.760 --> 00:01:35.640
+Yeah, well, I mean, both of us use JavaScript pretty heavily on AWS,
+
+31
+00:01:35.640 --> 00:01:39.160
+but we're also fairly well used to using Python and other languages.
+
+32
+00:01:39.160 --> 00:01:41.720
+I guess the thing about JavaScript is that it's well supported
+
+33
+00:01:41.720 --> 00:01:43.840
+and widely used in all the tools and tutorials,
+
+34
+00:01:43.840 --> 00:01:45.520
+so it's a pretty safe choice,
+
+35
+00:01:45.520 --> 00:01:48.920
+especially for the serverless type of development.
+
+36
+00:01:48.920 --> 00:01:52.120
+It's also, of course, the fact that full-stack JavaScript
+
+37
+00:01:52.120 --> 00:01:54.320
+if you're doing front-end work as well,
+
+38
+00:01:54.320 --> 00:01:56.280
+it means you have a more reasonable skills requirement
+
+39
+00:01:56.280 --> 00:01:58.160
+and you can do JavaScript all the way down.
+
+40
+00:01:58.160 --> 00:01:59.800
+But of course, there are trade-offs.
+
+41
+00:01:59.800 --> 00:02:02.320
+Generally, I think JavaScript gives you a pretty good balance
+
+42
+00:02:02.320 --> 00:02:05.840
+between performance and speed of iteration as a developer.
+
+43
+00:02:05.840 --> 00:02:08.680
+And it's also just a really good fit for AWS Lambda.
+
+44
+00:02:08.680 --> 00:02:12.040
+Maybe we could talk about that a little bit later.
+
+45
+00:02:12.040 --> 00:02:14.800
+But given that we're trying to focus on a lot of the new developments
+
+46
+00:02:14.800 --> 00:02:17.400
+in the ecosystem and on AWS,
+
+47
+00:02:17.400 --> 00:02:20.520
+I know that you've done a lot of work recently with the new AWS SDK,
+
+48
+00:02:20.520 --> 00:02:22.920
+which is version 3, and it's a complete rewrite.
+
+49
+00:02:22.920 --> 00:02:26.240
+So what's all of that about and what's new for everybody?
+
+50
+00:02:28.560 --> 00:02:31.600
+Maybe a lot of work is an overstatement, but I did give it a spin and I quite like it.
+
+51
+00:02:31.600 --> 00:02:35.960
+So I'd like to share a few things that I was positively impressed by.
+
+52
+00:02:35.960 --> 00:02:38.280
+Well, first of all is that you get very good support
+
+53
+00:02:38.280 --> 00:02:40.000
+for both JavaScript and TypeScript,
+
+54
+00:02:40.000 --> 00:02:45.520
+meaning that all the functions and methods that you use have good types.
+
+55
+00:02:45.520 --> 00:02:48.320
+So if you use TypeScript, you get that advantage,
+
+56
+00:02:48.320 --> 00:02:50.400
+auto-completion, type checking and so on.
+
+57
+00:02:50.400 --> 00:02:52.440
+But of course, you can use it also in plain JavaScript
+
+58
+00:02:52.440 --> 00:02:55.440
+and everything works as expected.
+
+59
+00:02:55.440 --> 00:02:57.880
+One interesting change, and this is pretty big,
+
+60
+00:02:57.880 --> 00:02:59.840
+I think people will see the difference
+
+61
+00:02:59.840 --> 00:03:02.880
+in just writing even the simplest integration, I don't know,
+
+62
+00:03:02.880 --> 00:03:06.120
+writing a file to S3 or sending a message to a queue,
+
+63
+00:03:06.120 --> 00:03:11.720
+is that now the entire API is using a pattern called the command pattern.
+
+64
+00:03:11.720 --> 00:03:15.440
+So you don't... you instantiate a client, let's say an S3 client,
+
+65
+00:03:15.440 --> 00:03:19.120
+and then rather than saying client.putObject, for instance,
+
+66
+00:03:19.120 --> 00:03:20.640
+if you want to write to S3,
+
+67
+00:03:20.640 --> 00:03:23.400
+now you have to create a put object command
+
+68
+00:03:23.400 --> 00:03:26.920
+and then you can send that command through the client.
+
+69
+00:03:26.920 --> 00:03:30.640
+And this is, I guess, a little bit unusual at first
+
+70
+00:03:30.640 --> 00:03:32.920
+when you come from the version of the API,
+
+71
+00:03:32.920 --> 00:03:34.240
+but there are some advantages.
+
+72
+00:03:34.240 --> 00:03:36.680
+First of all, that you can import only the commands
+
+73
+00:03:36.680 --> 00:03:38.320
+that you actually need to use.
+
+74
+00:03:38.320 --> 00:03:40.360
+And we'll talk a little bit more about tree-shaking,
+
+75
+00:03:40.360 --> 00:03:41.840
+but that's something advantageous
+
+76
+00:03:41.840 --> 00:03:44.800
+if you want to bundle your code and do tree-shaking.
+
+77
+00:03:44.800 --> 00:03:47.680
+And also you get good typing for every single command.
+
+78
+00:03:47.680 --> 00:03:50.960
+So it's basically an easier way to just define the kind of action
+
+79
+00:03:50.960 --> 00:03:53.600
+that you want to use and understand how to use them.
+
+80
+00:03:53.600 --> 00:03:55.800
+And we'll put links in the show notes
+
+81
+00:03:55.800 --> 00:03:57.200
+if you want to find the documentation
+
+82
+00:03:57.200 --> 00:04:01.400
+and understand more how that changes the way you write your code.
+
+83
+00:04:01.400 --> 00:04:03.880
+Other interesting things, and these, to be fair,
+
+84
+00:04:03.880 --> 00:04:05.920
+to some extent were available also in V2,
+
+85
+00:04:05.920 --> 00:04:09.640
+but I think that they have improved the level of support in V3,
+
+86
+00:04:09.640 --> 00:04:14.000
+is that the JavaScript SDK in general tends to be very idiomatic,
+
+87
+00:04:14.000 --> 00:04:16.000
+like rather than just being... I don't know,
+
+88
+00:04:16.000 --> 00:04:20.080
+you don't get the feeling that you are using a pound-for-pine conversion
+
+89
+00:04:20.080 --> 00:04:22.120
+of a Java client or something like that.
+
+90
+00:04:22.120 --> 00:04:23.840
+You really get the feeling that that library
+
+91
+00:04:23.840 --> 00:04:26.320
+was natively written for JavaScript,
+
+92
+00:04:26.320 --> 00:04:29.520
+even though if you look closely into the code,
+
+93
+00:04:29.520 --> 00:04:31.360
+most of the code is automatically generated
+
+94
+00:04:31.360 --> 00:04:35.000
+by more high-level definition of the AWS APIs.
+
+95
+00:04:35.000 --> 00:04:37.040
+But still, I think the developers put a lot of effort
+
+96
+00:04:37.040 --> 00:04:40.160
+to make sure that the code generated is actually as idiomatic
+
+97
+00:04:40.160 --> 00:04:42.600
+as it could be for JavaScript developers.
+
+98
+00:04:42.600 --> 00:04:44.520
+And two things that I really like in that sense
+
+99
+00:04:44.520 --> 00:04:48.120
+are support for Node.js streams in a bunch of places.
+
+100
+00:04:48.120 --> 00:04:50.080
+The best example to me is S3,
+
+101
+00:04:50.080 --> 00:04:53.200
+because very often you need to read or write files
+
+102
+00:04:53.200 --> 00:04:56.480
+that could be big enough in the order of gigabytes.
+
+103
+00:04:56.480 --> 00:05:00.120
+And if you've done any Node.js, you know that you have an odd limit
+
+104
+00:05:00.120 --> 00:05:01.800
+when it comes to two gigabytes.
+
+105
+00:05:01.800 --> 00:05:05.160
+You cannot put all the stuff in memory in one go.
+
+106
+00:05:05.160 --> 00:05:08.560
+So you need to find other ways to deal with a lot of data.
+
+107
+00:05:08.560 --> 00:05:11.320
+And the canonical way is to use Node.js streams.
+
+108
+00:05:11.320 --> 00:05:13.560
+So when you do a strip put object,
+
+109
+00:05:13.560 --> 00:05:15.920
+the body of that request could be a stream.
+
+110
+00:05:15.920 --> 00:05:18.640
+So you could be generating data at runtime,
+
+111
+00:05:18.640 --> 00:05:20.600
+or you could even process data at runtime.
+
+112
+00:05:20.600 --> 00:05:23.720
+A very good example is you're trying to write something to S3
+
+113
+00:05:23.720 --> 00:05:28.000
+and you maybe want to compress it and maybe even encrypt it as well.
+
+114
+00:05:28.000 --> 00:05:30.040
+You could do all of that in a streaming fashion
+
+115
+00:05:30.040 --> 00:05:35.160
+and as you write, do all the processing to compress and encrypt.
+
+116
+00:05:35.160 --> 00:05:37.800
+And similarly, when you read from S3, you can read as a stream.
+
+117
+00:05:37.800 --> 00:05:39.960
+So that allows you to, as soon as you consume
+
+118
+00:05:39.960 --> 00:05:41.960
+the first few bytes of the file,
+
+119
+00:05:41.960 --> 00:05:44.960
+you can already start to process them, send them somewhere else,
+
+120
+00:05:44.960 --> 00:05:47.120
+build pipelines based on the data you're fetching.
+
+121
+00:05:47.120 --> 00:05:50.640
+So that can also give you a good boost in performance
+
+122
+00:05:50.640 --> 00:05:52.960
+because you're not waiting to load the entire file
+
+123
+00:05:52.960 --> 00:05:55.280
+before starting the processing.
+
+124
+00:05:55.280 --> 00:05:58.120
+Another interesting one is support for async iterators,
+
+125
+00:05:58.120 --> 00:06:02.160
+which comes very handy, especially when it comes to pagination.
+
+126
+00:06:02.160 --> 00:06:06.480
+And there is an entire API for pagination.
+
+127
+00:06:06.480 --> 00:06:09.960
+And I don't know, the classic example could be DynamoDB, right?
+
+128
+00:06:09.960 --> 00:06:15.080
+You want to scan a table, you're going to be doing that in pages, I suppose.
+
+129
+00:06:15.080 --> 00:06:18.400
+You build a paginator and it gets the first few records.
+
+130
+00:06:18.400 --> 00:06:22.880
+Then if you want more, you go to the next page and you keep going that way.
+
+131
+00:06:22.880 --> 00:06:25.440
+There is one construct when you use async iterators,
+
+132
+00:06:25.440 --> 00:06:27.600
+which is the for-await loop.
+
+133
+00:06:27.600 --> 00:06:31.560
+So if you've never seen it, it looks like for-await const page
+
+134
+00:06:31.560 --> 00:06:34.280
+of an object, maybe a paginator.
+
+135
+00:06:34.280 --> 00:06:36.040
+And that basically creates a loop for you,
+
+136
+00:06:36.040 --> 00:06:38.720
+where inside the loop you have this concept of a page.
+
+137
+00:06:45.480 --> 00:06:48.080
+But the loop, even though it's an asynchronous loop, it's kind of blocking in the sense that it's not going to continue the iteration until the next page is available.
+
+138
+00:06:48.080 --> 00:06:50.880
+So it's managing all that asynchronicity for you.
+
+139
+00:06:50.880 --> 00:06:54.040
+And your code looks synchronous, even though you are still
+
+140
+00:06:54.040 --> 00:06:57.120
+taking advantage of the asynchronous model of JavaScript.
+
+141
+00:06:57.120 --> 00:07:00.400
+So that's something that I really like and also allows you to handle
+
+142
+00:07:00.400 --> 00:07:02.680
+asynchronous error with try-catch blocks,
+
+143
+00:07:02.680 --> 00:07:06.600
+so makes also error handling much easier.
+
+144
+00:07:06.600 --> 00:07:10.600
+And one last note that I have about the SDK v3
+
+145
+00:07:10.600 --> 00:07:13.520
+is that there is built-in support for mocking,
+
+146
+00:07:13.520 --> 00:07:16.640
+which comes very convenient when you want to do unit tests.
+
+147
+00:07:16.640 --> 00:07:19.120
+Now, built-in is a little bit of an overstatement.
+
+148
+00:07:19.120 --> 00:07:21.240
+It's an additional library that you need to install,
+
+149
+00:07:21.240 --> 00:07:23.320
+but that library is maintained by AWS,
+
+150
+00:07:23.320 --> 00:07:25.360
+and I'm quite sure they tried to keep it in sync
+
+151
+00:07:25.360 --> 00:07:28.240
+with the evolution of the SDK.
+
+152
+00:07:28.240 --> 00:07:30.800
+But the cool thing is that once you import this library,
+
+153
+00:07:30.800 --> 00:07:34.640
+you basically get a set of mock objects
+
+154
+00:07:34.640 --> 00:07:36.800
+that you can import for every single client,
+
+155
+00:07:36.800 --> 00:07:40.320
+and then you can easily specify in your test.
+
+156
+00:07:40.320 --> 00:07:42.560
+If your test, for instance, if your code depends on,
+
+157
+00:07:42.560 --> 00:07:45.640
+let's say, I don't know, SQS, you can say, OK,
+
+158
+00:07:45.640 --> 00:07:48.040
+create a mock SQS client and simulate
+
+159
+00:07:48.040 --> 00:07:49.120
+this particular behavior.
+
+160
+00:07:49.120 --> 00:07:52.760
+Maybe it fails to write, maybe returns a specific response.
+
+161
+00:07:52.760 --> 00:07:54.480
+So all this stuff is very useful,
+
+162
+00:07:54.480 --> 00:07:56.920
+and before, with the previous version of the client,
+
+163
+00:07:56.920 --> 00:07:58.200
+you were a little bit on your own
+
+164
+00:07:58.200 --> 00:08:01.000
+to recreate all these types in your test
+
+165
+00:08:01.000 --> 00:08:05.400
+and simulate those behavior.
+
+166
+00:08:05.400 --> 00:08:08.520
+Oh, yeah, there is one more thing that I almost forgot.
+
+167
+00:08:08.520 --> 00:08:10.000
+There is another additional feature,
+
+168
+00:08:10.000 --> 00:08:13.160
+which is something we saw in Python before,
+
+169
+00:08:13.160 --> 00:08:15.720
+but in Python, it's not well-documented,
+
+170
+00:08:15.720 --> 00:08:17.360
+I have to say.
+
+171
+00:08:17.360 --> 00:08:21.560
+But it's basically the ability to create custom logic that
+
+172
+00:08:21.560 --> 00:08:25.640
+can run before or after the client actually sends
+
+173
+00:08:25.640 --> 00:08:28.560
+the HTTP request to AWS.
+
+174
+00:08:28.560 --> 00:08:31.720
+So in the SDK v3, they actually formalized a little bit
+
+175
+00:08:31.720 --> 00:08:33.920
+this thing into the middleware pattern.
+
+176
+00:08:33.920 --> 00:08:37.680
+So basically, you can write code that wraps around,
+
+177
+00:08:37.680 --> 00:08:40.720
+let's say, the HTTP request going to AWS,
+
+178
+00:08:40.720 --> 00:08:43.760
+and you can use that to either enhance the request going
+
+179
+00:08:43.760 --> 00:08:47.200
+to AWS or manipulate the response coming back to AWS.
+
+180
+00:08:47.200 --> 00:08:49.960
+So you can add behaviors like, I don't know,
+
+181
+00:08:49.960 --> 00:08:53.560
+add compression to a message that is going to AWS,
+
+182
+00:08:53.560 --> 00:08:55.560
+and that can be convenient, for instance.
+
+183
+00:08:55.560 --> 00:08:57.400
+Something we mentioned in a previous episode,
+
+184
+00:08:57.400 --> 00:08:59.440
+when you call CloudWatch put metric data,
+
+185
+00:08:59.440 --> 00:09:03.600
+you have very restrictive payload size limits.
+
+186
+00:09:03.600 --> 00:09:05.720
+So in that case, you can leverage compression
+
+187
+00:09:05.720 --> 00:09:07.520
+to go a little bit over those limits
+
+188
+00:09:07.520 --> 00:09:10.560
+to be able to push more data while staying
+
+189
+00:09:10.560 --> 00:09:12.440
+between the boundaries.
+
+190
+00:09:12.440 --> 00:09:13.840
+So that's something really cool.
+
+191
+00:09:13.840 --> 00:09:16.640
+I haven't used it yet, but I had a look at the documentation,
+
+192
+00:09:16.640 --> 00:09:18.920
+and it could be useful in cases like this.
+
+193
+00:09:21.600 --> 00:09:26.200
+Yeah, that's a big spiel about the SDK v3.
+
+194
+00:09:26.200 --> 00:09:29.720
+Maybe we should talk about serverless and Lambda in general.
+
+195
+00:09:29.720 --> 00:09:31.200
+For Lambda, yeah, I think we mentioned
+
+196
+00:09:31.200 --> 00:09:34.080
+that Node.js is a good choice for runtime on Lambda.
+
+197
+00:09:34.080 --> 00:09:35.880
+It's been around for a very long time.
+
+198
+00:09:35.880 --> 00:09:37.840
+It's been supported from the very beginning with Node.js.
+
+199
+00:09:37.840 --> 00:09:41.240
+So it's, I would say, a first-class citizen,
+
+200
+00:09:41.240 --> 00:09:42.800
+although you have lots of options these days,
+
+201
+00:09:42.800 --> 00:09:44.560
+as well as custom runtimes.
+
+202
+00:09:44.560 --> 00:09:46.680
+It's also one of the most performant runtimes,
+
+203
+00:09:46.680 --> 00:09:48.120
+especially for scripting languages.
+
+204
+00:09:48.120 --> 00:09:50.800
+So you'll get good cold start times.
+
+205
+00:09:50.800 --> 00:09:52.480
+And there's lots of useful benchmarks out there
+
+206
+00:09:52.480 --> 00:09:55.320
+on Lambda cold start times in general
+
+207
+00:09:55.320 --> 00:09:56.960
+for lots of different languages.
+
+208
+00:09:56.960 --> 00:09:59.720
+I think, you know, languages like Go and Rust
+
+209
+00:09:59.720 --> 00:10:04.200
+are almost leading the way in terms of compiled languages,
+
+210
+00:10:04.200 --> 00:10:05.720
+but you get very good performance,
+
+211
+00:10:05.720 --> 00:10:08.120
+and I have to say I'm pretty pleased with it in general.
+
+212
+00:10:08.120 --> 00:10:09.960
+And there's lots of ways you can optimize it as well
+
+213
+00:10:09.960 --> 00:10:12.600
+when it comes to squeezing those last few tens
+
+214
+00:10:12.600 --> 00:10:14.720
+of milliseconds out of your cold start times.
+
+215
+00:10:14.720 --> 00:10:16.120
+So we can link, actually, in the show notes
+
+216
+00:10:16.120 --> 00:10:19.840
+to some really good benchmarks that you can take a look at.
+
+217
+00:10:19.840 --> 00:10:22.120
+Some of the things that you've mentioned there,
+
+218
+00:10:22.120 --> 00:10:23.440
+there's some new language features.
+
+219
+00:10:23.440 --> 00:10:26.320
+Like we have ESM modules now.
+
+220
+00:10:26.320 --> 00:10:28.360
+So we've moved away from common JS modules
+
+221
+00:10:28.360 --> 00:10:30.240
+to ESM modules with Node.js,
+
+222
+00:10:30.240 --> 00:10:33.320
+and they've been supported since Node 14.
+
+223
+00:10:33.320 --> 00:10:35.760
+I think there was a little bit of a bumpy road
+
+224
+00:10:35.760 --> 00:10:39.040
+in terms of supporting them when Node.js 14 support
+
+225
+00:10:39.040 --> 00:10:42.080
+was added to Lambda, but it is possible now.
+
+226
+00:10:42.080 --> 00:10:44.800
+And you can also do things like top level await.
+
+227
+00:10:44.800 --> 00:10:48.640
+So I think async await is very widely adopted
+
+228
+00:10:48.640 --> 00:10:50.640
+and almost de facto at this stage
+
+229
+00:10:50.640 --> 00:10:53.160
+for asynchronous programming in Node.js,
+
+230
+00:10:53.160 --> 00:10:57.440
+but one of the things in Lambda handler
+
+231
+00:10:57.440 --> 00:11:00.720
+you'd like to do often is fetch some
+
+232
+00:11:00.720 --> 00:11:03.640
+maybe configuration parameters from SSM parameter store
+
+233
+00:11:03.640 --> 00:11:04.800
+outside of your handler logic
+
+234
+00:11:04.800 --> 00:11:06.720
+so that it's done in the cold start phase
+
+235
+00:11:06.720 --> 00:11:09.960
+and you don't incur the penalty for each event.
+
+236
+00:11:09.960 --> 00:11:13.000
+And that's something you can now do with async await
+
+237
+00:11:13.000 --> 00:11:16.120
+with, you know, if you're using the AWS SDK
+
+238
+00:11:16.120 --> 00:11:19.600
+outside of your handler functions, that's pretty nice.
+
+239
+00:11:19.600 --> 00:11:21.440
+I also believe that support for Node.js
+
+240
+00:11:21.440 --> 00:11:23.480
+is this is just like hot off the press.
+
+241
+00:11:23.480 --> 00:11:25.760
+It's either on its way.
+
+242
+00:11:25.760 --> 00:11:28.040
+I don't think it's been officially announced by Node.js,
+
+243
+00:11:28.040 --> 00:11:29.680
+but I can see that, you know,
+
+244
+00:11:29.680 --> 00:11:33.600
+Vercel have added their functions built on Lambda
+
+245
+00:11:33.600 --> 00:11:36.760
+and it's serverless framework has added a support
+
+246
+00:11:36.760 --> 00:11:38.560
+and that's in mainline now as well.
+
+247
+00:11:38.560 --> 00:11:42.200
+So you can actually deploy server Node.js 16 functions
+
+248
+00:11:44.160 --> 00:11:45.520
+as of today.
+
+249
+00:11:45.520 --> 00:11:49.080
+We've also got lots of, I suppose,
+
+250
+00:11:49.080 --> 00:11:51.800
+ecosystem support within Lambda as well.
+
+251
+00:11:51.800 --> 00:11:53.840
+So we mentioned that one of the things you did
+
+252
+00:11:53.840 --> 00:11:56.800
+a number of years ago and has been really growing
+
+253
+00:11:56.800 --> 00:11:59.040
+at pace since is create the MIDI framework,
+
+254
+00:11:59.040 --> 00:12:02.600
+which is a middleware engine for AWS Lambda written in Node.js.
+
+255
+00:12:02.600 --> 00:12:04.080
+Do you want to give us a brief update,
+
+256
+00:12:04.080 --> 00:12:07.080
+a brief explainer for people who haven't encountered MIDI?
+
+257
+00:12:07.080 --> 00:12:08.520
+What kind of problems does it solve?
+
+258
+00:12:08.520 --> 00:12:10.560
+Why is it useful in Lambda?
+
+259
+00:12:10.560 --> 00:12:11.400
+Yeah, absolutely.
+
+260
+00:12:11.400 --> 00:12:15.360
+So when I started to write my very first few Lambdas,
+
+261
+00:12:15.360 --> 00:12:18.680
+I realized that because you have this such small unit
+
+262
+00:12:18.680 --> 00:12:20.960
+of code, like you think more in functions
+
+263
+00:12:20.960 --> 00:12:22.520
+rather than services, most of that,
+
+264
+00:12:22.520 --> 00:12:24.280
+when you're actually writing the code,
+
+265
+00:12:24.280 --> 00:12:27.400
+what tends to happen is that you have a little bit
+
+266
+00:12:27.400 --> 00:12:30.080
+of boilerplate always before and after
+
+267
+00:12:30.080 --> 00:12:33.000
+your main business logic for that Lambda function.
+
+268
+00:12:33.000 --> 00:12:35.240
+So that boilerplate could be for instance,
+
+269
+00:12:35.240 --> 00:12:38.520
+doing authentication, doing validation of the input,
+
+270
+00:12:38.520 --> 00:12:41.280
+maybe fetching configuration from SSM
+
+271
+00:12:41.280 --> 00:12:43.680
+and then eventually you get to run your actual
+
+272
+00:12:43.680 --> 00:12:46.640
+business logic and then you might be ready
+
+273
+00:12:46.640 --> 00:12:47.640
+to produce a response,
+
+274
+00:12:47.640 --> 00:12:49.600
+but you might want to do a few additional things
+
+275
+00:12:49.600 --> 00:12:51.760
+before the response is sent back to the user,
+
+276
+00:12:51.760 --> 00:12:53.560
+maybe normalize that response.
+
+277
+00:12:53.560 --> 00:12:56.200
+Can make sense if you're using the HTTP integration
+
+278
+00:12:56.200 --> 00:13:00.140
+with API gateway or you want to have error handling
+
+279
+00:13:00.140 --> 00:13:02.460
+in a more generalized way.
+
+280
+00:13:02.460 --> 00:13:05.640
+So what I realized after probably the first year
+
+281
+00:13:05.640 --> 00:13:08.200
+that I was writing Lambdas for a project is,
+
+282
+00:13:08.200 --> 00:13:11.320
+okay, I have all the Lambdas where it's very hard to tell
+
+283
+00:13:11.320 --> 00:13:13.280
+what's the actual business logic
+
+284
+00:13:13.280 --> 00:13:15.480
+and what's the boilerplate around it.
+
+285
+00:13:15.480 --> 00:13:18.280
+And I was told that the whole promise around Lambdas
+
+286
+00:13:18.280 --> 00:13:20.360
+was to focus more on the business logic.
+
+287
+00:13:20.360 --> 00:13:22.820
+So I was a little bit disappointed in that sense.
+
+288
+00:13:22.820 --> 00:13:24.720
+And with the team I was working with at the time,
+
+289
+00:13:24.720 --> 00:13:27.960
+we figured out that we would use the middleware pattern
+
+290
+00:13:27.960 --> 00:13:31.160
+to try to isolate a little bit more all this boilerplate
+
+291
+00:13:31.160 --> 00:13:35.680
+code into their own function and then keep your handler
+
+292
+00:13:35.680 --> 00:13:38.440
+as pure as possible, so just the business logic,
+
+293
+00:13:38.440 --> 00:13:41.120
+and then use the handler as a function where you could
+
+294
+00:13:41.120 --> 00:13:44.060
+attach the boilerplate behavior that you wanted.
+
+295
+00:13:44.060 --> 00:13:47.360
+But basically the function will read as everything is clean,
+
+296
+00:13:47.360 --> 00:13:48.880
+everything has been already done for you,
+
+297
+00:13:48.880 --> 00:13:50.560
+just do the business logic,
+
+298
+00:13:50.560 --> 00:13:54.200
+and then you attach everything else in another place.
+
+299
+00:13:54.200 --> 00:13:57.220
+And that also makes these behaviors,
+
+300
+00:13:57.220 --> 00:13:59.400
+these additional behaviors or boilerplate if you want,
+
+301
+00:13:59.400 --> 00:14:03.140
+more isolated and therefore testable, reusable, and so on.
+
+302
+00:14:03.140 --> 00:14:06.180
+So that's kind of the use case for MIDI,
+
+303
+00:14:06.180 --> 00:14:08.160
+and MIDI is basically a framework that allows you
+
+304
+00:14:08.160 --> 00:14:10.280
+to do this thing in an easy way,
+
+305
+00:14:10.280 --> 00:14:11.640
+just focus on the business logic
+
+306
+00:14:11.640 --> 00:14:14.140
+and attach the additional behavior afterwards.
+
+307
+00:14:15.280 --> 00:14:17.560
+Yeah, I remember being in that situation
+
+308
+00:14:17.560 --> 00:14:22.020
+where you had all this boilerplate to parse your HTTP body
+
+309
+00:14:22.020 --> 00:14:23.360
+and then create the status code
+
+310
+00:14:23.360 --> 00:14:24.760
+and the headers on the way out.
+
+311
+00:14:24.760 --> 00:14:26.400
+It was really nice to be able to just add in MIDI
+
+312
+00:14:26.400 --> 00:14:29.480
+and solve a lot of those problems with the middlewares
+
+313
+00:14:29.480 --> 00:14:31.440
+that you can add in from the community.
+
+314
+00:14:32.380 --> 00:14:35.080
+I also know that this is part of something new,
+
+315
+00:14:35.080 --> 00:14:37.660
+which is the Lambda Power Tools for TypeScript.
+
+316
+00:14:37.660 --> 00:14:40.600
+And we might've mentioned the Lambda Power Tools for Python
+
+317
+00:14:40.600 --> 00:14:42.480
+a few times on previous episodes.
+
+318
+00:14:42.480 --> 00:14:45.880
+I believe the TypeScript version is due to come out
+
+319
+00:14:45.880 --> 00:14:49.160
+in its stable version very soon, version 1.0.
+
+320
+00:14:49.160 --> 00:14:53.440
+It has been available as a preview beta for some time.
+
+321
+00:14:53.440 --> 00:14:56.320
+That builds on MIDI and also allows you to do lots of stuff
+
+322
+00:14:56.320 --> 00:14:59.000
+like logging metrics and traces as well
+
+323
+00:14:59.000 --> 00:15:00.500
+for your Node.js Lambdas.
+
+324
+00:15:00.500 --> 00:15:03.640
+So we might put a link to that in the show notes as well
+
+325
+00:15:03.640 --> 00:15:05.840
+and people can check it out.
+
+326
+00:15:05.840 --> 00:15:06.680
+Yeah, absolutely.
+
+327
+00:15:06.680 --> 00:15:09.280
+And I think it's another very useful utility
+
+328
+00:15:09.280 --> 00:15:12.800
+when you care about making sure that your Lambdas
+
+329
+00:15:12.800 --> 00:15:14.640
+are basically production ready.
+
+330
+00:15:14.640 --> 00:15:18.600
+Libraries like Power Tools can make that process much easier
+
+331
+00:15:18.600 --> 00:15:21.000
+because they have baked in a lot of defaults
+
+332
+00:15:21.000 --> 00:15:23.840
+that you don't have to rebuild on your own basically.
+
+333
+00:15:23.840 --> 00:15:24.660
+Yeah.
+
+334
+00:15:25.500 --> 00:15:27.280
+And speaking of TypeScript,
+
+335
+00:15:27.280 --> 00:15:29.000
+because that's called Lambda Power Tools for TypeScript,
+
+336
+00:15:29.000 --> 00:15:31.660
+even though it works with JavaScript as well,
+
+337
+00:15:31.660 --> 00:15:34.760
+there may be a question people will have is,
+
+338
+00:15:34.760 --> 00:15:36.900
+should I use JavaScript or TypeScript
+
+339
+00:15:36.900 --> 00:15:39.840
+when I'm building Node.js functions on Lambda?
+
+340
+00:15:39.840 --> 00:15:43.120
+And even within JavaScript,
+
+341
+00:15:43.120 --> 00:15:45.840
+do we just deploy vanilla raw JavaScript
+
+342
+00:15:45.840 --> 00:15:46.680
+to our Lambda functions
+
+343
+00:15:46.680 --> 00:15:48.340
+or should we be using some sort of bundling
+
+344
+00:15:48.340 --> 00:15:51.360
+like esbuild or webpack to optimize the functions
+
+345
+00:15:51.360 --> 00:15:52.240
+in the deployment package?
+
+346
+00:15:52.240 --> 00:15:53.080
+What do you think?
+
+347
+00:15:54.020 --> 00:15:56.040
+Yeah, this is very opinionated,
+
+348
+00:15:56.040 --> 00:15:59.920
+because I think there are three types of people
+
+349
+00:15:59.920 --> 00:16:01.600
+when it comes to TypeScript,
+
+350
+00:16:01.600 --> 00:16:04.040
+three types of JavaScript developer, I would like to say.
+
+351
+00:16:04.040 --> 00:16:06.160
+One that is like always use TypeScript.
+
+352
+00:16:06.160 --> 00:16:08.460
+The other one is like, no, no, TypeScript is a bad idea.
+
+353
+00:16:08.460 --> 00:16:09.880
+Always use poor JavaScript.
+
+354
+00:16:09.880 --> 00:16:12.760
+And then there is the camp in between like, yes,
+
+355
+00:16:12.760 --> 00:16:14.880
+use TypeScript, but not always.
+
+356
+00:16:14.880 --> 00:16:17.520
+I am a little bit in that kind of moderate ground
+
+357
+00:16:17.520 --> 00:16:21.480
+where I like TypeScript, but with moderation.
+
+358
+00:16:21.480 --> 00:16:23.440
+I think the really good use case for TypeScript
+
+359
+00:16:23.440 --> 00:16:26.800
+is when you do a lot of complex data manipulation.
+
+360
+00:16:26.800 --> 00:16:30.080
+So if you put the effort in defining all the types,
+
+361
+00:16:30.080 --> 00:16:32.420
+then you definitely get the advantage
+
+362
+00:16:32.420 --> 00:16:34.280
+that every time you are manipulating the data,
+
+363
+00:16:34.280 --> 00:16:37.240
+the type checker can prevent you from doing mistakes.
+
+364
+00:16:37.240 --> 00:16:39.520
+And this is something that happens all the time,
+
+365
+00:16:39.520 --> 00:16:42.160
+like a type of undefined,
+
+366
+00:16:42.160 --> 00:16:43.480
+and you need to do all these checks.
+
+367
+00:16:43.480 --> 00:16:46.520
+You cannot call undefined functions.
+
+368
+00:16:46.520 --> 00:16:48.720
+All this kind of problems will go away
+
+369
+00:16:48.720 --> 00:16:50.480
+in the sense that the TypeScript compiler,
+
+370
+00:16:50.480 --> 00:16:52.140
+if you did a good job with your typings,
+
+371
+00:16:52.140 --> 00:16:54.800
+will tell you before you actually run your code
+
+372
+00:16:54.800 --> 00:16:56.480
+that there might be something wrong.
+
+373
+00:16:56.480 --> 00:16:57.840
+So definitely use TypeScript
+
+374
+00:16:57.840 --> 00:16:59.400
+when you are in this kind of situation
+
+375
+00:16:59.400 --> 00:17:02.280
+doing a lot of heavy data transformation
+
+376
+00:17:02.280 --> 00:17:04.440
+where you have complex types,
+
+377
+00:17:04.440 --> 00:17:06.400
+which I think in Lambda happens a lot
+
+378
+00:17:06.400 --> 00:17:08.440
+because most of the time you are writing glue code.
+
+379
+00:17:08.440 --> 00:17:12.440
+So often you need to kind of map types from one system
+
+380
+00:17:12.440 --> 00:17:14.680
+into type for another system.
+
+381
+00:17:14.680 --> 00:17:15.640
+Yeah, I've seen that.
+
+382
+00:17:15.640 --> 00:17:17.080
+And sometimes it's useful to have,
+
+383
+00:17:17.080 --> 00:17:18.800
+if you're doing HTTP proxy integration,
+
+384
+00:17:18.800 --> 00:17:21.680
+having the types for the event that you know you'll receive,
+
+385
+00:17:21.680 --> 00:17:22.520
+that can be very useful,
+
+386
+00:17:22.520 --> 00:17:24.280
+but I guess you can take advantage of those
+
+387
+00:17:24.280 --> 00:17:26.580
+even if you're using JavaScript.
+
+388
+00:17:26.580 --> 00:17:29.520
+I'm somewhat conflicted when it comes to
+
+389
+00:17:29.520 --> 00:17:31.560
+using TypeScript in Lambda
+
+390
+00:17:31.560 --> 00:17:33.120
+because I often think Lambda functions
+
+391
+00:17:33.120 --> 00:17:35.120
+should be small and simple as possible.
+
+392
+00:17:35.120 --> 00:17:37.960
+And if you need to have that level of typing support,
+
+393
+00:17:37.960 --> 00:17:39.920
+maybe you have too much complexity,
+
+394
+00:17:39.920 --> 00:17:42.280
+but that can't be a hard and fast rule
+
+395
+00:17:42.280 --> 00:17:44.240
+because it's not always that simple
+
+396
+00:17:44.240 --> 00:17:47.040
+and you can benefit from those typings in some cases.
+
+397
+00:17:47.040 --> 00:17:49.400
+But even with bundling, I often think
+
+398
+00:17:49.400 --> 00:17:52.720
+bundling adds an extra bit of development tooling complexity.
+
+399
+00:17:52.720 --> 00:17:55.880
+So if you want to reduce your package size,
+
+400
+00:17:55.880 --> 00:17:57.720
+you can definitely benefit from bundling,
+
+401
+00:17:57.720 --> 00:18:00.040
+but that means now you've got a minified JavaScript running
+
+402
+00:18:00.040 --> 00:18:02.440
+and you need to make sure that your stack traces
+
+403
+00:18:03.480 --> 00:18:06.640
+are readable from a developer when you're troubleshooting.
+
+404
+00:18:06.640 --> 00:18:08.880
+So you need to ensure that you've got source map support
+
+405
+00:18:08.880 --> 00:18:10.320
+in there and all of that stuff,
+
+406
+00:18:10.320 --> 00:18:12.240
+as well as the fact that bundling adds
+
+407
+00:18:12.240 --> 00:18:14.120
+a little bit of a latency to your build.
+
+408
+00:18:14.120 --> 00:18:16.560
+So it's a trade-off, right?
+
+409
+00:18:16.560 --> 00:18:19.020
+There was a really good benchmark exercise
+
+410
+00:18:19.020 --> 00:18:23.000
+that Yan Shui did about AWS Lambda performance
+
+411
+00:18:23.000 --> 00:18:25.880
+and the trade-offs with adding bundling support
+
+412
+00:18:25.880 --> 00:18:27.760
+and how that benefits your cold start time.
+
+413
+00:18:27.760 --> 00:18:30.360
+So there is a benefit there.
+
+414
+00:18:30.360 --> 00:18:32.760
+It's just a question of what's the penalty
+
+415
+00:18:32.760 --> 00:18:34.880
+you incur at build time as a developer.
+
+416
+00:18:34.880 --> 00:18:37.120
+How does that matter to you?
+
+417
+00:18:37.120 --> 00:18:38.240
+Often it depends on how fast
+
+418
+00:18:38.240 --> 00:18:40.440
+your developer machine is even.
+
+419
+00:18:40.440 --> 00:18:44.180
+So there's lots of different factors to weigh up there.
+
+420
+00:18:46.000 --> 00:18:47.960
+At this point, should we talk about
+
+421
+00:18:47.960 --> 00:18:49.820
+some of the other things, parts of the ecosystem
+
+422
+00:18:49.820 --> 00:18:52.560
+that are relevant for JavaScript and Node.js developers?
+
+423
+00:18:53.720 --> 00:18:57.400
+I think we mentioned one of the statistics recently
+
+424
+00:18:57.400 --> 00:19:00.120
+about 70% of CloudFormation being deployed
+
+425
+00:19:00.120 --> 00:19:00.960
+by the serverless framework.
+
+426
+00:19:00.960 --> 00:19:03.500
+So serverless framework is pretty ubiquitous
+
+427
+00:19:03.500 --> 00:19:06.320
+when it comes to building and deploying Lambdas.
+
+428
+00:19:06.320 --> 00:19:08.420
+It's written in Node.js itself.
+
+429
+00:19:08.420 --> 00:19:12.480
+Have you found as well that writing Node.js functions
+
+430
+00:19:12.480 --> 00:19:13.440
+in serverless framework is always
+
+431
+00:19:13.440 --> 00:19:14.740
+a little bit better supported
+
+432
+00:19:14.740 --> 00:19:16.280
+or feels more like a first class citizen
+
+433
+00:19:16.280 --> 00:19:17.800
+compared to writing other languages
+
+434
+00:19:17.800 --> 00:19:19.840
+and deploying them with the serverless framework?
+
+435
+00:19:19.840 --> 00:19:20.660
+I think so.
+
+436
+00:19:20.660 --> 00:19:22.120
+And I mean, the first reason is because
+
+437
+00:19:22.120 --> 00:19:24.120
+I think the documentation is probably
+
+438
+00:19:24.120 --> 00:19:26.160
+the first one to come out every day.
+
+439
+00:19:26.160 --> 00:19:27.560
+There's a new feature, I think,
+
+440
+00:19:27.560 --> 00:19:28.920
+that the first thing that they publish
+
+441
+00:19:28.920 --> 00:19:30.840
+is the JavaScript version.
+
+442
+00:19:30.840 --> 00:19:34.240
+So maybe that's one reason, but I suppose because
+
+443
+00:19:34.240 --> 00:19:36.400
+the tool itself is written in JavaScript.
+
+444
+00:19:36.400 --> 00:19:38.760
+Probably the majority of developers in the team
+
+445
+00:19:38.760 --> 00:19:41.520
+know JavaScript better than other languages.
+
+446
+00:19:43.720 --> 00:19:45.560
+Yeah, and from a packaging perspective, it kind of integrates seamlessly with NPM
+
+447
+00:19:45.560 --> 00:19:47.160
+and your Node modules directory
+
+448
+00:19:47.160 --> 00:19:48.480
+and you don't need additional tooling
+
+449
+00:19:48.480 --> 00:19:50.180
+to package up your zip.
+
+450
+00:19:50.180 --> 00:19:51.020
+Exactly.
+
+451
+00:19:51.020 --> 00:19:52.640
+I guess that makes sense.
+
+452
+00:19:52.640 --> 00:19:53.760
+One of the other tools, of course,
+
+453
+00:19:53.760 --> 00:19:55.800
+that's well supported with JavaScript and TypeScript
+
+454
+00:19:55.800 --> 00:19:57.400
+is CDK.
+
+455
+00:19:57.400 --> 00:20:00.400
+So we've covered that CDK in a previous episode
+
+456
+00:20:00.400 --> 00:20:01.760
+in reasonable detail.
+
+457
+00:20:01.760 --> 00:20:03.320
+And although it supports a lot of languages,
+
+458
+00:20:03.320 --> 00:20:06.060
+I think it's a little bit more user friendly
+
+459
+00:20:06.060 --> 00:20:07.840
+or developer friendly when you're using JavaScript
+
+460
+00:20:07.840 --> 00:20:08.960
+and TypeScript.
+
+461
+00:20:08.960 --> 00:20:10.780
+Because I believe the way it's written
+
+462
+00:20:10.780 --> 00:20:14.980
+with the JSII library is that it's essentially
+
+463
+00:20:14.980 --> 00:20:17.540
+a TypeScript implementation with bindings
+
+464
+00:20:17.540 --> 00:20:18.540
+for other languages.
+
+465
+00:20:20.360 --> 00:20:23.040
+So I think it's, yeah, it's a good option.
+
+466
+00:20:23.040 --> 00:20:25.200
+I really actually like one of the areas
+
+467
+00:20:25.200 --> 00:20:26.840
+where I really enjoy using TypeScript
+
+468
+00:20:26.840 --> 00:20:27.840
+is when I'm using CDK
+
+469
+00:20:27.840 --> 00:20:30.320
+because the tooling integration is so seamless.
+
+470
+00:20:31.320 --> 00:20:32.640
+Yeah, there is another tool
+
+471
+00:20:32.640 --> 00:20:34.320
+that I would like to give it a shout out
+
+472
+00:20:34.320 --> 00:20:36.000
+even though it's not exclusively something
+
+473
+00:20:36.000 --> 00:20:37.680
+that you will use in AWS.
+
+474
+00:20:37.680 --> 00:20:39.560
+It's kind of an interesting project from Google.
+
+475
+00:20:39.560 --> 00:20:41.080
+It's called ZX.
+
+476
+00:20:41.080 --> 00:20:44.880
+And the idea is that sometimes writing bash scripts
+
+477
+00:20:44.880 --> 00:20:47.760
+is tedious or at least I would agree with that statement.
+
+478
+00:20:47.760 --> 00:20:50.260
+Maybe not everybody agrees with it.
+
+479
+00:20:50.260 --> 00:20:51.400
+So the idea is like, okay,
+
+480
+00:20:51.400 --> 00:20:53.000
+because JavaScript and Node.js
+
+481
+00:20:53.000 --> 00:20:54.480
+are becoming more and more ubiquitous
+
+482
+00:20:54.480 --> 00:20:55.640
+and you probably use them
+
+483
+00:20:55.640 --> 00:20:57.200
+in different parts of your application.
+
+484
+00:20:57.200 --> 00:21:00.680
+What if you could write scripts that are JavaScript
+
+485
+00:21:00.680 --> 00:21:03.440
+whereas in the past you would have been using bash?
+
+486
+00:21:03.440 --> 00:21:05.840
+So the idea is how do we make that easier for people?
+
+487
+00:21:05.840 --> 00:21:09.040
+Because of course you could have done that all the time,
+
+488
+00:21:09.040 --> 00:21:11.320
+because at the end of the day, those are just scripts
+
+489
+00:21:11.320 --> 00:21:12.960
+and you could do whatever you want with those scripts.
+
+490
+00:21:12.960 --> 00:21:14.520
+But I suppose the advantage of bash
+
+491
+00:21:14.520 --> 00:21:17.080
+is that it's very easy to run all their commands,
+
+492
+00:21:17.080 --> 00:21:19.620
+all their processes with what we have in the system
+
+493
+00:21:19.620 --> 00:21:21.460
+calling all their executables.
+
+494
+00:21:21.460 --> 00:21:23.180
+So what ZX did,
+
+495
+00:21:23.180 --> 00:21:24.600
+and this is probably the primary features,
+
+496
+00:21:24.600 --> 00:21:26.800
+they made very easy for you to do that
+
+497
+00:21:26.800 --> 00:21:29.200
+in a JavaScript language effectively.
+
+498
+00:21:29.200 --> 00:21:32.120
+So you can use dollar and backticks.
+
+499
+00:21:32.120 --> 00:21:34.200
+So they are basically exploiting the feature
+
+500
+00:21:34.200 --> 00:21:37.060
+of template literal strings.
+
+501
+00:21:37.060 --> 00:21:39.200
+And what they say is, okay,
+
+502
+00:21:39.200 --> 00:21:42.060
+if you tag a literal string with the dollar,
+
+503
+00:21:42.060 --> 00:21:44.080
+then we are gonna execute the string for you
+
+504
+00:21:44.080 --> 00:21:47.360
+as a command in the system and give you back a promise
+
+505
+00:21:47.360 --> 00:21:49.960
+that tracks the execution of that command.
+
+506
+00:21:49.960 --> 00:21:53.240
+So that way you can easily write a script in Node.js
+
+507
+00:21:53.240 --> 00:21:56.360
+effectively, but also call other processes
+
+508
+00:21:56.360 --> 00:21:57.680
+with like one liner.
+
+509
+00:21:57.680 --> 00:22:01.320
+So that seems to be kind of a decent replacement for bash.
+
+510
+00:22:01.320 --> 00:22:03.600
+And I suppose in the context of doing automation
+
+511
+00:22:03.600 --> 00:22:06.280
+and deploying projects to the cloud,
+
+512
+00:22:06.280 --> 00:22:07.800
+that could be something convenient
+
+513
+00:22:07.800 --> 00:22:11.820
+if you really want to be like 100% JavaScript end to end.
+
+514
+00:22:11.820 --> 00:22:12.720
+And that's pretty nice.
+
+515
+00:22:12.720 --> 00:22:14.000
+How does that work then with,
+
+516
+00:22:14.000 --> 00:22:16.960
+because one of the primary features of Node.js
+
+517
+00:22:16.960 --> 00:22:18.180
+is it's asynchronous nature
+
+518
+00:22:18.180 --> 00:22:20.760
+and you have either callbacks or promises and await.
+
+519
+00:22:20.760 --> 00:22:23.200
+How does that fit into ZX?
+
+520
+00:22:23.200 --> 00:22:25.040
+So basically you,
+
+521
+00:22:25.040 --> 00:22:27.440
+it's like you have top level await out of the box.
+
+522
+00:22:27.440 --> 00:22:29.460
+Actually you effectively have top level await
+
+523
+00:22:29.460 --> 00:22:30.680
+out of the box.
+
+524
+00:22:30.680 --> 00:22:32.760
+So you, every time you call a command
+
+525
+00:22:32.760 --> 00:22:35.460
+with this kind of dollar backtick syntax,
+
+526
+00:22:35.460 --> 00:22:37.520
+you need to of course await that command.
+
+527
+00:22:37.520 --> 00:22:39.680
+If you care about our result
+
+528
+00:22:39.680 --> 00:22:41.160
+before you continue your execution,
+
+529
+00:22:41.160 --> 00:22:43.640
+you could also use that for instance with promise all,
+
+530
+00:22:43.640 --> 00:22:47.560
+if you want to kind of do a bunch of things concurrently.
+
+531
+00:22:47.560 --> 00:22:49.360
+So it just makes it very nice to,
+
+532
+00:22:49.360 --> 00:22:51.360
+if you are used to of course the JavaScript patterns,
+
+533
+00:22:51.360 --> 00:22:53.760
+because if you are more used to bash than to JavaScript,
+
+534
+00:22:53.760 --> 00:22:55.760
+I would probably recommend stick to bash.
+
+535
+00:22:56.760 --> 00:22:59.040
+But if you're, exactly.
+
+536
+00:22:59.040 --> 00:23:00.600
+But if you're more used to JavaScript,
+
+537
+00:23:00.600 --> 00:23:03.400
+you get something that is as close as possible
+
+538
+00:23:03.400 --> 00:23:05.680
+to the experience of writing bash
+
+539
+00:23:05.680 --> 00:23:08.000
+while keeping the JavaScript syntax.
+
+540
+00:23:08.900 --> 00:23:09.740
+That's really good.
+
+541
+00:23:09.740 --> 00:23:11.720
+Okay, well, maybe that's a good point to wrap up.
+
+542
+00:23:11.720 --> 00:23:14.960
+It might be useful if people have other suggestions
+
+543
+00:23:14.960 --> 00:23:18.960
+around great tips, tooling, improvements in JavaScript
+
+544
+00:23:18.960 --> 00:23:20.760
+that are relevant for AWS developers.
+
+545
+00:23:20.760 --> 00:23:22.280
+Let us know in the comments.
+
+546
+00:23:22.280 --> 00:23:24.320
+And you can also reach out to us on Twitter
+
+547
+00:23:24.320 --> 00:23:26.420
+to either Luciano or myself.
+
+548
+00:23:26.420 --> 00:23:28.200
+Our links are all in the show notes.
+
+549
+00:23:28.200 --> 00:23:29.800
+And maybe the last thing I do
+
+550
+00:23:29.800 --> 00:23:32.440
+is just point people back to episode four.
+
+551
+00:23:32.440 --> 00:23:34.960
+We discussed, I suppose the trade-offs
+
+552
+00:23:34.960 --> 00:23:38.080
+of using all the different languages for AWS Lambda,
+
+553
+00:23:38.080 --> 00:23:40.480
+including JavaScript, but all the other options as well.
+
+554
+00:23:40.480 --> 00:23:41.920
+So feel free to check that out
+
+555
+00:23:41.920 --> 00:23:44.360
+and we'll see you in the next episode.
+
+556
+00:23:44.360 --> 00:23:45.280
+be.
+
+557
+00:23:45.280 --> 00:24:00.280
+Thanks for watching!

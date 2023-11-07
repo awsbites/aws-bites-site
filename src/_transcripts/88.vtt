@@ -1,0 +1,1209 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:03.680
+VPC Lettuce is a new service in the salad bowl of AWS networking
+
+2
+00:00:03.680 --> 00:00:08.240
+that makes it easy for developers and admins teams to set up networking between workloads.
+
+3
+00:00:08.240 --> 00:00:12.080
+We have been taste testing Lettuce and are ready to leaf you with all the knowledge we learned.
+
+4
+00:00:12.640 --> 00:00:17.280
+So, Romaine calm and hear about how it can rocket your networking setup to new levels.
+
+5
+00:00:17.280 --> 00:00:20.800
+We'll share plenty of tips so you don't hit any icebergs on your journey.
+
+6
+00:00:22.160 --> 00:00:25.920
+Yeah, okay. Oh, and sorry, I have to stop you there.
+
+7
+00:00:25.920 --> 00:00:29.520
+These puns are excellent, but it's called VPC Lattice, not Lettuce. I don't know if you are aware.
+
+8
+00:00:30.960 --> 00:00:32.960
+Lattice? Really?
+
+9
+00:00:32.960 --> 00:00:38.240
+Okay. But I spent ages working on that intro. I'm not going to redo it.
+
+10
+00:00:38.240 --> 00:00:39.600
+I like it. Let's keep it.
+
+11
+00:00:40.160 --> 00:00:44.080
+Okay. Lettuce, Lattice, whatever. Right. Well, whatever.
+
+12
+00:00:44.080 --> 00:00:49.920
+We're going to talk about all the concepts, applications for VPC Lattice, apparently, and how this is a game changer for traditional
+
+13
+00:00:49.920 --> 00:01:01.280
+and serverless workloads. I'm Eoin. I'm here with Luciano and this is the AWS Bites podcast.
+
+14
+00:01:01.440 --> 00:01:05.760
+AWS Bites is made possible by the support of fourTheorem, an AWS partner that works with you
+
+15
+00:01:05.760 --> 00:01:10.720
+to make migration, architecture, and development a success. See fourtheorem.com to find out more.
+
+16
+00:01:12.480 --> 00:01:16.640
+So, let's start with this question. What is VPC Lattice?
+
+17
+00:01:22.400 --> 00:01:27.920
+Well, now that we know what it's apparently really called, Lattice is a service that's really designed to make inbound and outbound east-west connectivity between services
+
+18
+00:01:27.920 --> 00:01:34.000
+and applications possible with a zero trust approach to authorization. So, when we talk
+
+19
+00:01:34.000 --> 00:01:38.640
+about east-west connectivity, we're talking about horizontal connectivity between services
+
+20
+00:01:38.640 --> 00:01:43.920
+and applications within a workload or a set of workloads and not necessarily like public-facing
+
+21
+00:01:43.920 --> 00:01:50.960
+APIs or say API gateways down to services in the backend, which would be north-south communication.
+
+22
+00:01:51.600 --> 00:01:56.480
+And it's designed to work in single or multiple AWS accounts, and it's really focused around
+
+23
+00:01:56.480 --> 00:02:01.280
+minimizing the amount of network configuration you do. So, we talked recently about whether
+
+24
+00:02:01.280 --> 00:02:07.120
+VPCs were necessary for serverless developers. If you're somebody who's allergic to networking
+
+25
+00:02:07.120 --> 00:02:12.560
+as a developer and would rather get away from VPC routing and security groups, then you
+
+26
+00:02:12.560 --> 00:02:16.160
+have to kind of liaise with development teams and always have this back and forth to get
+
+27
+00:02:16.160 --> 00:02:20.880
+network setup right. This is another area where Lattice would really help. And there's some
+
+28
+00:02:20.880 --> 00:02:25.520
+really nice things with it. Like, you'll never have any issues with overlapping IP ranges
+
+29
+00:02:25.520 --> 00:02:30.720
+and CIDR blocks. So, that's something. And you get this nice kind of high level or fast
+
+30
+00:02:30.720 --> 00:02:35.680
+level of security. So, you get this nice kind of high level of security. So, you get this
+
+31
+00:02:35.680 --> 00:02:39.760
+nice kind of security that you can get to the point where you're kind of stuck in the
+
+32
+00:02:39.760 --> 00:02:44.400
+middle of the network. And you get this nice kind of high level or fine-grained access
+
+33
+00:02:44.400 --> 00:02:49.520
+control support as well. If you're in the field of microservice communication with service
+
+34
+00:02:49.520 --> 00:02:54.720
+meshes and sidecars and all of that stuff, VPC Lattice also aims to take all of that
+
+35
+00:02:54.720 --> 00:02:59.840
+away as well so you can focus on the actual workload and simplify that communication.
+
+36
+00:02:59.840 --> 00:03:04.880
+It also supports things like traffic control, load balancing, and path-based routing as
+
+37
+00:03:04.880 --> 00:03:05.360
+well.
+
+38
+00:03:05.360 --> 00:03:09.840
+That's pretty cool. I can definitely resonate with some of the problems you described there.
+
+39
+00:03:09.840 --> 00:03:15.440
+And it's exciting to see that this service is effectively trying to solve most of these
+
+40
+00:03:15.440 --> 00:03:19.840
+issues and giving us a new tool that we can just use to be more efficient, more effective.
+
+41
+00:03:20.400 --> 00:03:27.360
+But I'm wondering, this service needs to integrate with other services, of course. So, what does
+
+42
+00:03:27.360 --> 00:03:31.680
+that look like? Is it going to be available only for one service or it's already quite
+
+43
+00:03:31.680 --> 00:03:34.880
+widely available and we can use it for all sorts of integrations?
+
+44
+00:03:34.880 --> 00:03:39.360
+It's widely available and what you do with it is really up to you. The use cases are
+
+45
+00:03:39.360 --> 00:03:43.600
+kind of the communication between microservices, like we said. But also, if you just want to
+
+46
+00:03:43.600 --> 00:03:48.720
+have a mechanism to support private APIs within an organization, that's possible too. The
+
+47
+00:03:48.720 --> 00:03:52.960
+nice thing there actually is that you could do custom domains in a much easier way than
+
+48
+00:03:52.960 --> 00:03:59.280
+API Gateway. If you've got things like migration in your workloads and that's part of your
+
+49
+00:03:59.280 --> 00:04:03.440
+plans and you want to modernize over time and maybe switch, have an API that's backed
+
+50
+00:04:03.440 --> 00:04:08.480
+by an EC2 or a container, then switch it to containers or Lambda, it supports that as
+
+51
+00:04:08.480 --> 00:04:12.960
+well without having to go through lots of network reconfiguration. So, it integrates
+
+52
+00:04:12.960 --> 00:04:17.440
+with, if you've got existing VPCs, it will integrate with those. It integrates with EC2
+
+53
+00:04:17.440 --> 00:04:21.760
+instances. It'll integrate with anything with an IP address, actually. And it also works
+
+54
+00:04:21.760 --> 00:04:28.400
+with ECS and Kubernetes as well, including EKS. The special feature here, and I think
+
+55
+00:04:28.400 --> 00:04:32.480
+one we're particularly interested in, is that it also works well with Lambda. So, it can
+
+56
+00:04:32.480 --> 00:04:36.160
+trigger Lambda functions, even Lambda functions that aren't running in a VPC.
+
+57
+00:04:36.160 --> 00:04:40.720
+The way you're describing this makes me think about other services that have been in AWS
+
+58
+00:04:40.720 --> 00:04:45.200
+for a while, like, I don't know, VPC peering connection, Transit Gateway, PrivateLink,
+
+59
+00:04:46.160 --> 00:04:51.280
+and even just doing your own routing tables or other stuff like that. So, how does it
+
+60
+00:04:51.280 --> 00:04:55.040
+compare? Like, why should this be better than these other solutions?
+
+61
+00:04:56.720 --> 00:05:00.160
+All of those things you mentioned are pretty much the traditional way of doing this East-West
+
+62
+00:05:00.160 --> 00:05:05.680
+communication. First, we had VPC peering, and then came Transit Gateway, which enabled the
+
+63
+00:05:05.680 --> 00:05:11.280
+same sort of routing across different VPCs and different accounts in a much more scalable
+
+64
+00:05:11.280 --> 00:05:15.200
+way. The container world, you've got lots of approaches around service discovery and
+
+65
+00:05:15.200 --> 00:05:19.440
+service meshes. The whole idea there is that you end up with quite a lot of configuration,
+
+66
+00:05:19.440 --> 00:05:23.760
+and you've got this kind of split responsibility between the admin teams and the development
+
+67
+00:05:23.760 --> 00:05:28.560
+teams. So, I suppose if there's one message you take away from this session about Lattice,
+
+68
+00:05:28.560 --> 00:05:32.320
+it's really that it's trying to address that friction between admin and dev teams,
+
+69
+00:05:32.320 --> 00:05:38.160
+and allow the admin teams to focus on centralized access control monitoring and the devs just to
+
+70
+00:05:38.160 --> 00:05:45.040
+launch the service to create private VPCs that they control and be able to provide and consume services then.
+
+71
+00:05:45.040 --> 00:05:51.120
+Nice. Okay. So, what are some of the main concepts when you start using it?
+
+72
+00:05:51.120 --> 00:05:56.080
+Like, what does it look like? What do you need to... Which terms do you need to start structuring
+
+73
+00:05:56.080 --> 00:05:59.840
+the usage of this product?
+
+74
+00:05:59.840 --> 00:06:05.440
+I think the concepts are pretty simple, really, and there's two main ones. The fundamental building block is a service, a VPC Lattice service. So, this is something
+
+75
+00:06:05.440 --> 00:06:10.880
+that's going to be backed by IP addresses, EC2, Lambda, containers. And this is the thing that's
+
+76
+00:06:10.880 --> 00:06:15.360
+usually owned by the dev team. So, I mean, the ownership can be changed from organization to
+
+77
+00:06:15.360 --> 00:06:21.120
+organization, but I think the basic idea here is that the dev team owns the service, and then they
+
+78
+00:06:21.120 --> 00:06:28.160
+govern its domain, all of the APIs within it, what services are backing it, all of that is controlled
+
+79
+00:06:28.160 --> 00:06:34.400
+by that team. So, it makes it very agile from the team's perspective. And the service supports
+
+80
+00:06:34.400 --> 00:06:41.760
+custom domains. Then the service is kind of grouped within the next concept, which is the service
+
+81
+00:06:41.760 --> 00:06:46.080
+network. And the Service Network is usually the thing that's owned and controlled by the network
+
+82
+00:06:46.080 --> 00:06:52.960
+admins. And this is essentially a logical control plane that groups VPCs and the services from
+
+83
+00:06:52.960 --> 00:06:59.920
+different teams, and you can put IAM policies on it as well. And this is getting into the zero
+
+84
+00:06:59.920 --> 00:07:06.400
+trust approach, which we can dig into. So, the dev team can put an IAM policy on their service
+
+85
+00:07:06.400 --> 00:07:10.880
+if they want to, and the admin team can put a network policy on the Service Network. So,
+
+86
+00:07:10.880 --> 00:07:17.440
+it allows you to have control at two levels. And it's also possible with resource access manager,
+
+87
+00:07:17.440 --> 00:07:22.720
+or RAM, to share both the service and the Service Network with other accounts. So, you can have the
+
+88
+00:07:22.720 --> 00:07:27.040
+approach where the admin team creates a Service Network, shares it with dev teams, and then they
+
+89
+00:07:27.040 --> 00:07:33.280
+create their services within it, or vice versa. Now, within a service, then it starts to look
+
+90
+00:07:33.280 --> 00:07:37.520
+a little bit like load balancer concepts. So, within a service, then you have a listener,
+
+91
+00:07:37.520 --> 00:07:46.400
+which supports HTTPS and gRPC. So, there's no kind of TCP or UDP network possible. It's really just
+
+92
+00:07:46.400 --> 00:07:52.720
+like an application load balancer. And again, like an application load balancer, it has target groups,
+
+93
+00:07:52.720 --> 00:07:57.200
+and then in the target groups, you can have your IP addresses, instances, Lambda functions,
+
+94
+00:07:57.760 --> 00:08:03.600
+containers, load balancers as targets. And then you have your rules, just like load balancer rules,
+
+95
+00:08:03.600 --> 00:08:07.680
+where you've got prioritized path-based routing and that sort of thing. All of those things we
+
+96
+00:08:07.680 --> 00:08:14.560
+mentioned, like IP, EC2, ECS, they need a VPC anyway. But Lambda, you don't always configure
+
+97
+00:08:14.560 --> 00:08:18.960
+with a VPC. And actually, to provide a service that's backed by Lambda, you don't need to
+
+98
+00:08:18.960 --> 00:08:23.840
+associate it with a VPC at all, but it can still be triggered by Lattice. So, you only need a VPC
+
+99
+00:08:23.840 --> 00:08:28.640
+when you're actually consuming a service through VPC Lattice.
+
+100
+00:08:28.640 --> 00:08:34.000
+That's pretty cool. So, I imagine that behind the scene, AWS is taking care of routing all this traffic correctly for
+
+101
+00:08:34.000 --> 00:08:41.920
+you, pretty much. So, tell me a bit more about how it works. You described some potential models
+
+102
+00:08:41.920 --> 00:08:46.320
+to start to use this in a company, but maybe we can clarify more what are some of the potential
+
+103
+00:08:46.320 --> 00:08:50.000
+patterns.
+
+104
+00:08:50.000 --> 00:08:54.400
+So, if you're starting from scratch, you can imagine the admin team might first create the Service Network and specify an authorization policy on that. You can actually
+
+105
+00:08:54.400 --> 00:09:00.160
+specify security groups as well if you want to do network-based control as well as the zero trust
+
+106
+00:09:00.160 --> 00:09:04.560
+IAM approach. Once you have that Service Network, they would share it with RAM,
+
+107
+00:09:05.360 --> 00:09:09.200
+and they could share it with individual accounts or with the whole organization. And then dev
+
+108
+00:09:09.200 --> 00:09:15.440
+teams will see it in their AWS console and can reference it in their SDK or infrastructure's
+
+109
+00:09:15.440 --> 00:09:20.240
+code templates. So, the dev team could then create a service and then make the association
+
+110
+00:09:20.240 --> 00:09:25.520
+between the service and the Service Network. And that's what gets it to join this networking
+
+111
+00:09:25.520 --> 00:09:30.640
+conversation. They can also specify their policy if they want. And then if you're consuming a
+
+112
+00:09:30.640 --> 00:09:36.160
+service, basically you have a VPC because you have to have a VPC to consume a Lattice service,
+
+113
+00:09:36.160 --> 00:09:40.800
+and you just associate that VPC with the Service Network as well. So, once you've got the RAM share
+
+114
+00:09:40.800 --> 00:09:44.960
+through the resource access manager with your account, you can make that VPC association.
+
+115
+00:09:44.960 --> 00:09:51.760
+And then any of the consumers running in the VPC can invoke all of the services that are associated
+
+116
+00:09:51.760 --> 00:09:57.360
+with the Service Network, of course, provided that the authorization policy allows. And that
+
+117
+00:09:57.360 --> 00:10:01.120
+can be really fine-grained or coarse-grained, whatever you need. The service consumer will
+
+118
+00:10:01.120 --> 00:10:07.280
+then use a DNS to discover invoked service. So, they're using HTTPS with a domain name,
+
+119
+00:10:07.280 --> 00:10:12.160
+and you've got two options there. You can use the Lattice-generated domain names that it creates
+
+120
+00:10:12.160 --> 00:10:18.000
+for you, and they're always there, and they're global. Or you can actually specify a custom DNS,
+
+121
+00:10:18.000 --> 00:10:23.600
+and those names will resolve too within your private DNS. And you can use public DNS or private
+
+122
+00:10:23.600 --> 00:10:28.400
+DNS for that, and then invoke the service. So, I guess the two points there to remember are that
+
+123
+00:10:28.400 --> 00:10:32.640
+to consume a service, you need to be in a VPC associated with the Service Network. And to
+
+124
+00:10:32.640 --> 00:10:38.000
+provide a service, you don't necessarily need to be in a VPC, but your service does need to be
+
+125
+00:10:38.000 --> 00:10:41.680
+associated with the Service Network.
+
+126
+00:10:41.680 --> 00:10:49.520
+That makes sense. So, it seems that you have a lot of freedom in terms of defining the access control rules. And I don't know, is there anything there
+
+127
+00:10:49.520 --> 00:10:53.920
+that we want to deep dive on and just provide a bit more background?
+
+128
+00:10:53.920 --> 00:10:59.680
+Yeah, we can give a couple of examples. So, if we're saying that Lattice is really for kind of private internal APIs within
+
+129
+00:10:59.680 --> 00:11:05.280
+one or a set of AWS accounts, you're imagining that the boundary is usually within an AWS
+
+130
+00:11:05.280 --> 00:11:11.440
+organization. Now, consumers will have to be in a VPC that is associated with the network. So,
+
+131
+00:11:12.640 --> 00:11:18.160
+it doesn't have to be within your organization, but you would have to share your Service Network
+
+132
+00:11:18.160 --> 00:11:22.800
+with another AWS account. It could be a third party one, and then they can communicate. You
+
+133
+00:11:22.800 --> 00:11:28.080
+could also use the policies to restrict who can access it. You can choose no authorization,
+
+134
+00:11:28.080 --> 00:11:32.480
+and that's a valid approach. And then you could just say, okay, well, let's not share this service
+
+135
+00:11:32.480 --> 00:11:36.800
+network with anybody outside the organization. Okay. But you might want to say, okay, let's be
+
+136
+00:11:36.800 --> 00:11:41.440
+a little bit more careful about that and turn on IAM authorization on the Service Network and the
+
+137
+00:11:41.440 --> 00:11:48.240
+services and perform some stricter checks there. So, those policies are optional, but they can be
+
+138
+00:11:48.240 --> 00:11:54.240
+applied at both the Service Network and the service level. So, a couple of examples then,
+
+139
+00:11:54.240 --> 00:11:59.360
+a Service Network policy might say, only allow principles from the AWS organization. So, you
+
+140
+00:11:59.360 --> 00:12:05.520
+could say allow star resources, but the condition is that the principal org ID is my AWS organization.
+
+141
+00:12:06.160 --> 00:12:11.040
+And that would mean that if somebody accidentally shared a Service Network or a service with a
+
+142
+00:12:11.040 --> 00:12:15.760
+third-party account, that they wouldn't be able to invoke your service because they don't have
+
+143
+00:12:15.760 --> 00:12:21.040
+the organization in their principal. And then in the service policy itself, you could say,
+
+144
+00:12:21.040 --> 00:12:28.320
+only allow principles with a principal tag on their identity or restrict them to HTTP get
+
+145
+00:12:28.320 --> 00:12:32.560
+requests or even restrict them by IP address. So, you can get very fine-grained and specific.
+
+146
+00:12:34.080 --> 00:12:40.480
+Now, I think at this stage, it should sound like it's fairly simple to set up because we don't have
+
+147
+00:12:40.480 --> 00:12:45.520
+any routing tables. We don't have any VPC peering, no transit gateway. So, it's all fairly
+
+148
+00:12:45.520 --> 00:12:50.000
+straightforward. The main thing, I guess, from an IAM authorization point of view, and it might be
+
+149
+00:12:50.000 --> 00:12:57.440
+obvious, but when you try it, you'll need to enable AWS version four signatures on the requests because
+
+150
+00:12:57.440 --> 00:13:02.480
+otherwise you won't be able to pass an IAM authorization. So, the first thing you do when
+
+151
+00:13:02.480 --> 00:13:08.240
+you invoke a URL against one of these services, if you've got auth turned on, is going to do an
+
+152
+00:13:08.240 --> 00:13:13.920
+IAM check just like it would with any other AWS service. So, you need to have a signature with the
+
+153
+00:13:13.920 --> 00:13:20.320
+service, which is VPC Lattice services in the scope of your credentials. It doesn't support
+
+154
+00:13:20.320 --> 00:13:24.720
+payload signing. So, you have to explicitly call out the header that says there's no payload
+
+155
+00:13:24.720 --> 00:13:29.520
+signing. If this sounds like a little bit complicated, don't worry because we do have a
+
+156
+00:13:29.520 --> 00:13:34.720
+full code example with a complete Lattice setup and also some client code for invoking services
+
+157
+00:13:34.720 --> 00:13:40.720
+as well. So, it should be easy at that point to see how it works.
+
+158
+00:13:40.720 --> 00:13:46.080
+That's interesting. So, I imagine that one of the trade-offs is that from a development perspective, every time you are doing
+
+159
+00:13:46.080 --> 00:13:50.960
+the call, you need to add that extra bit of code, making sure that your requests are probably using
+
+160
+00:13:50.960 --> 00:13:55.600
+sync before and adding the signature correctly, which I don't know. I've done that in different
+
+161
+00:13:55.600 --> 00:14:00.480
+languages and it's always a bit of a hit and miss in some languages. It is easier than others
+
+162
+00:14:00.480 --> 00:14:04.240
+because maybe you have some libraries that can make most of the stuff easier.
+
+163
+00:14:04.240 --> 00:14:09.120
+In other cases, you end up implementing some of it and it's very easy to get something wrong and
+
+164
+00:14:09.120 --> 00:14:14.320
+then you spend hours and hours troubleshooting it. So, maybe that's an interesting trade-off to keep
+
+165
+00:14:14.320 --> 00:14:18.880
+in mind. You mentioned that this is something you can use basically in a very free way. You can
+
+166
+00:14:18.880 --> 00:14:25.200
+organize your teams in different accounts. So, how would that look like? Is that something we
+
+167
+00:14:25.200 --> 00:14:30.480
+recommend to do? Is it more complicated or it's just seamless with Lattice?
+
+168
+00:14:31.280 --> 00:14:35.680
+This is really, I guess, where it really shines actually in cross-account because of the lack of
+
+169
+00:14:35.680 --> 00:14:40.240
+routing and everything. Once you have your Service Network set up, the process of sharing it with
+
+170
+00:14:40.240 --> 00:14:46.400
+RAM is quite easy. You can do it in a single line of SDK or a single resource with CloudFormation
+
+171
+00:14:46.400 --> 00:14:52.160
+or with the console even and the Service Network then just automatically appears in all of the
+
+172
+00:14:52.160 --> 00:14:55.760
+accounts that you've shared it with and then they can quickly create the association with
+
+173
+00:14:55.760 --> 00:15:00.800
+their service. So, the order is the admin would create and share that Service Network with RAM
+
+174
+00:15:00.800 --> 00:15:07.120
+with specific accounts or users or roles or the whole organization and then the dev team just sees
+
+175
+00:15:07.120 --> 00:15:13.040
+it associated with the service and they would associate the VPCs they consume with the service
+
+176
+00:15:13.040 --> 00:15:16.880
+network and that's it. All of the things can talk to each other at that point. So, it's really,
+
+177
+00:15:16.880 --> 00:15:19.840
+really seamless and I can imagine as well, once you've got this set up for the first time,
+
+178
+00:15:20.560 --> 00:15:26.000
+you can start scaling to like hundreds of services really quickly and each of them has a DNS name
+
+179
+00:15:26.000 --> 00:15:31.680
+and the process of communication is really easy. You can have conventions around your policies and
+
+180
+00:15:31.680 --> 00:15:38.080
+what needs to be in there and it just happens a lot quicker than the typical setup when you've
+
+181
+00:15:38.080 --> 00:15:43.600
+got like all these teams trying to coordinate, make sure you don't have the right, you don't
+
+182
+00:15:43.600 --> 00:15:49.600
+have overlapping IP ranges and all that kind of stuff.
+
+183
+00:15:49.600 --> 00:15:56.560
+How does the routing work other than, I mean, you described the DNS mechanism, but do you need to explicitly configure anything or it
+
+184
+00:15:56.560 --> 00:16:01.040
+just happens out of the box?
+
+185
+00:16:01.040 --> 00:16:06.880
+This is the other piece where Lattice is completely different to everything else because it's got a very special mechanism for routing. So, like we say, it doesn't
+
+186
+00:16:06.880 --> 00:16:12.400
+have any routing tables as such. So, when you associate with your VPC with a Service Network,
+
+187
+00:16:13.200 --> 00:16:20.080
+those VPCs will automatically then resolve DNS names for Lattice services to a link local IP
+
+188
+00:16:20.080 --> 00:16:26.400
+address. So, you might have come across link local IP addresses in other places. If you've ever used
+
+189
+00:16:26.400 --> 00:16:35.040
+the EC2 metadata service, it starts with a 169.254 IP and that means those, these are special
+
+190
+00:16:35.040 --> 00:16:42.560
+IP ranges in the IP spec that are not routable. So, they're only valid on a local host.
+
+191
+00:16:44.320 --> 00:16:51.680
+But Lattice is essentially using these as kind of a door into the hyperplane infrastructure where
+
+192
+00:16:51.680 --> 00:16:57.200
+they do all of the network virtualization. You've got this VPC control plane that we've already
+
+193
+00:16:57.200 --> 00:17:01.520
+described where you create these logical constructs like services and Service Networks,
+
+194
+00:17:01.520 --> 00:17:07.520
+but in your VPC, there's now a special VPC Lattice data plane and these link local addresses
+
+195
+00:17:07.520 --> 00:17:14.960
+are the door into that data plane. So, when you do a DNS lookup on a Lattice DNS name,
+
+196
+00:17:14.960 --> 00:17:20.240
+you'll end up with one of these link local IP addresses. These DNS names are global,
+
+197
+00:17:20.240 --> 00:17:23.520
+so anyone in the world, if they know the DNS name, they can look up the address,
+
+198
+00:17:23.520 --> 00:17:28.160
+but it's completely meaningless outside of your VPC. The other beautiful thing about this is that
+
+199
+00:17:28.160 --> 00:17:33.200
+Lattice doesn't consume any of your IP ranges. You can imagine if you had a sidecar or a proxy,
+
+200
+00:17:33.200 --> 00:17:37.680
+it needs to have an IP address and needs to do some proxying and routing. That doesn't happen
+
+201
+00:17:37.680 --> 00:17:44.000
+here. It just automatically goes into this Lattice data plane. Lattice works within and across
+
+202
+00:17:44.000 --> 00:17:50.400
+accounts, but it's always within a single region. So, there's no multi-region possibility or cross
+
+203
+00:17:50.400 --> 00:17:55.440
+region propagation. Cross region routing is something that's really kind of hardcore networking
+
+204
+00:17:55.440 --> 00:18:00.000
+anyway. So, it's not really in the domain of inter-application East-West communication.
+
+205
+00:18:00.000 --> 00:18:04.640
+So, how does that work instead with Lambda?
+
+206
+00:18:05.440 --> 00:18:10.160
+Because you mentioned before that it is possible to effectively send the traffic to Lambda, but we also know that Lambda is totally event-based,
+
+207
+00:18:10.160 --> 00:18:15.920
+doesn't have a concept of listening in a port, for example. So, how did they make that integration happen?
+
+208
+00:18:15.920 --> 00:18:21.120
+VPC Lattice actually is a new trigger type for Lambda.
+
+209
+00:18:21.120 --> 00:18:26.400
+So, I think it's the fourth HTTP-based synchronous triggering mechanism for Lambda. So, you've already got Application Load
+
+210
+00:18:26.400 --> 00:18:33.360
+Balancers, API Gateway, and you've got Function URLs. Actually, fifth, because I forgot about
+
+211
+00:18:33.360 --> 00:18:38.880
+AppSync as well. So, now you've got this fifth one. So, it's a new event trigger for Lambda,
+
+212
+00:18:38.880 --> 00:18:44.720
+and if you invoke a service, the VPC Lattice data plane is going to do that synchronous
+
+213
+00:18:44.720 --> 00:18:50.480
+triggering of the function for you. Now, the payload is similar to putting a server on a
+
+214
+00:18:50.480 --> 00:18:55.600
+VPC Lattice, similar to, but actually different from API Gateway or Application Load Balancer.
+
+215
+00:18:55.600 --> 00:19:00.720
+So, it looks similar, but you'll have to parse it slightly differently. Just because it's VPC
+
+216
+00:19:00.720 --> 00:19:05.360
+Lattice doesn't mean that the Lambda functions have to be running in a VPC with subnets configured.
+
+217
+00:19:05.360 --> 00:19:10.880
+You only need Lambdas to have a VPC if they're going to consume other services from Lattice.
+
+218
+00:19:10.880 --> 00:19:17.680
+Okay, what about in terms of observability? Because if you use regular VPCs, you're probably
+
+219
+00:19:17.680 --> 00:19:20.880
+going to have to use logs, but what are the options here?
+
+220
+00:19:20.880 --> 00:19:25.040
+One of the things that network admins are going to be really happy about with VPC Lattice is the
+
+221
+00:19:25.040 --> 00:19:30.720
+fact that you can create a log group in CloudWatch on the Service Network level, and you get logs
+
+222
+00:19:30.720 --> 00:19:36.400
+for all of the traffic through Lattice that you get everything. You get your HTTP request,
+
+223
+00:19:36.400 --> 00:19:40.560
+and then you can see who is calling, what IP address are they coming from, what's their
+
+224
+00:19:40.560 --> 00:19:45.440
+principal identity ARN, what Service Network are they coming from, what service are they coming
+
+225
+00:19:45.440 --> 00:19:49.920
+from, what service is their target group. All of that information is in the logs. So it's really
+
+226
+00:19:49.920 --> 00:19:55.680
+nice that you've got one central log with all this east west traffic in it. This is like a one line
+
+227
+00:19:55.680 --> 00:20:02.160
+configuration. I'm sure a lot of network engineers have spent months configuring great observability
+
+228
+00:20:02.160 --> 00:20:06.400
+for this kind of communication in the past. So I think this is one area which will really sell it
+
+229
+00:20:06.400 --> 00:20:11.360
+to a lot of people. You also then get CloudWatch metrics, but those aren't on the Service Network
+
+230
+00:20:11.360 --> 00:20:18.080
+services, and you get them per service and per target group.
+
+231
+00:20:18.080 --> 00:20:24.800
+So I am almost sold, but before opening my wallet, I want to know what's the cost. So let's talk about pricing.
+
+232
+00:20:24.800 --> 00:20:28.160
+Before I do talk about pricing, actually, one of the things is that somebody asked us earlier on,
+
+233
+00:20:29.200 --> 00:20:34.560
+does Lattice support VPC Flow Logs then? Because if you've got this CloudWatch log, is it possible
+
+234
+00:20:34.560 --> 00:20:40.640
+to do Flow Logs? And after they asked, we went and tried it, and I was surprised to see that they
+
+235
+00:20:40.640 --> 00:20:47.040
+actually do, because I thought you'd only see a flow log between two VPC IPs and not these link
+
+236
+00:20:47.040 --> 00:20:52.240
+local IPs, but you can turn on Flow Logs for any VPC that's connected to a Service Network, and
+
+237
+00:20:52.240 --> 00:20:57.840
+you'll still get all of the flows with the link local addresses in there. Nice. So I've held off
+
+238
+00:20:57.840 --> 00:21:03.520
+on talking about pricing for long enough. Let's go for it. So the pricing dimensions are three
+
+239
+00:21:03.520 --> 00:21:09.760
+dimensions. You got per service, and it varies a bit per region, but let's look at US East One.
+
+240
+00:21:09.760 --> 00:21:14.880
+At the moment, it's two and a half cents per hour per service. So that sounds fine if you've got a
+
+241
+00:21:14.880 --> 00:21:20.160
+few services. If you've got hundreds of services, which you can do with Lattice, you can see that
+
+242
+00:21:20.160 --> 00:21:25.520
+we're shutting up pretty quickly. Then you pay 2.5 cents per gigabyte as well. And there's another
+
+243
+00:21:25.520 --> 00:21:29.680
+dimension, which is per request, and you pay 10 cents for a million requests. I think most people
+
+244
+00:21:29.680 --> 00:21:34.000
+would be focused on the first two, really. And if you compare it to Transit Gateway,
+
+245
+00:21:34.000 --> 00:21:38.720
+Transit Gateway, you pay 10 cents per attachment per hour, and then two cents per gigabyte. So
+
+246
+00:21:38.720 --> 00:21:43.600
+it's more expensive in one dimension, less expensive in the other. But comparing it to
+
+247
+00:21:43.600 --> 00:21:48.480
+VPC Peering, I mean, VPC Peering is completely free. You could also compare it to just your
+
+248
+00:21:48.480 --> 00:21:53.360
+existing service mesh set up in your applications, which you might've spent a lot of engineering
+
+249
+00:21:53.360 --> 00:21:59.760
+effort on. And for that reason, now I see AWS talking about using Lattice for microservice
+
+250
+00:21:59.760 --> 00:22:04.400
+communication, but if you're one of the companies that's got hundreds, thousands of microservices,
+
+251
+00:22:04.400 --> 00:22:07.840
+I can imagine that Lattice could be a bit expensive. Despite that pitch, I think it
+
+252
+00:22:07.840 --> 00:22:12.240
+might be a bit more palatable for service to service or application to application communication
+
+253
+00:22:12.240 --> 00:22:19.120
+than just microservices. I also think looking at how much it simplifies networking, and if you
+
+254
+00:22:19.120 --> 00:22:23.120
+compare that to the engineering cost and the opportunity cost of all the engineering effort
+
+255
+00:22:23.120 --> 00:22:28.160
+and the interaction between teams, it might actually be a very valuable trade-off to look
+
+256
+00:22:28.160 --> 00:22:32.400
+at Lattice if you can really go all in on it, especially, and get rid of a lot of that
+
+257
+00:22:32.400 --> 00:22:38.320
+engineering effort.
+
+258
+00:22:38.320 --> 00:22:42.800
+Okay. That's really cool so far. You mentioned we have a demo application that is available in our repository that we will share in the show notes. Do you want to describe
+
+259
+00:22:42.800 --> 00:22:47.360
+a little bit what's the idea for that particular demo?
+
+260
+00:22:47.360 --> 00:22:52.880
+This is what we use to explore and learn about Lattice and it's a multi-count setup. So it has everything we talked about. There's a
+
+261
+00:22:52.880 --> 00:22:56.880
+networking setup for a networking account where you create the Service Network, share it with RAM.
+
+262
+00:22:56.880 --> 00:23:01.600
+You've got your centralized logs, and then we've got a kind of assumption that you've got a
+
+263
+00:23:01.600 --> 00:23:06.400
+existing registered domain, public one, and a public hosted zone in that networking account.
+
+264
+00:23:06.400 --> 00:23:11.280
+And then we've got two other accounts, account A and account B, we call them, and that's where
+
+265
+00:23:11.280 --> 00:23:16.640
+the two different services run. And we've got Lattice services there. One of them is quite
+
+266
+00:23:16.640 --> 00:23:23.120
+simple. It's just got a Lambda function at the back. And the other one has kind of used the
+
+267
+00:23:23.120 --> 00:23:29.680
+weighted traffic routing so that half of it goes to another Lambda function and half of it goes to
+
+268
+00:23:29.680 --> 00:23:37.440
+a Fargate service. And interestingly with Fargate, the way you integrate Lattice with it at the moment
+
+269
+00:23:37.440 --> 00:23:43.920
+is by using a load balancer. So you don't route to individual tasks or containers.
+
+270
+00:23:43.920 --> 00:23:49.120
+You use a load balancer in front of it, which is, you know, it simplifies it in some ways, but the negatives
+
+271
+00:23:49.120 --> 00:23:52.320
+with that are that you still pay for the load balancer traffic as well as Lattice. It just
+
+272
+00:23:52.320 --> 00:23:57.040
+seems like an extra resource you don't need given the fact that Lattice supports all this kind of
+
+273
+00:23:57.040 --> 00:24:01.840
+stuff anyway. So maybe in the future, we'll see an improvement there, some additional ability,
+
+274
+00:24:01.840 --> 00:24:08.320
+because with Kubernetes, there is a gateway controller that AWS have provided that automatically
+
+275
+00:24:09.360 --> 00:24:16.880
+creates Service Networks and services and creates IP addresses in the target groups in Lattice
+
+276
+00:24:16.880 --> 00:24:20.800
+for you. So it's a very different approach. Anyway, back to the demo application.
+
+277
+00:24:21.440 --> 00:24:26.800
+This other service is going to route traffic between Lambda and Fargate. And the Lambda function is
+
+278
+00:24:26.800 --> 00:24:33.120
+actually going to go through Lattice and invoke the other service in the other account as well.
+
+279
+00:24:33.120 --> 00:24:38.160
+So it's kind of got the whole thing set up. And then we've got in that CDK application for the
+
+280
+00:24:38.160 --> 00:24:44.880
+demo, we've also got like an EC2 instance and a VPC in the networking account that you can manually
+
+281
+00:24:44.880 --> 00:24:51.280
+hook up to the Service Network. And then there's a client with the signature set up all in there
+
+282
+00:24:51.280 --> 00:24:55.360
+that you can use to invoke one of the services. And you can see the traffic that comes back.
+
+283
+00:24:55.360 --> 00:25:00.080
+You can see if you keep invoking it, that it'll hit sometimes the ECS container,
+
+284
+00:25:00.080 --> 00:25:05.120
+then it'll hit the Lambda target. And the Lambda target will then talk to the other service and you
+
+285
+00:25:05.120 --> 00:25:09.120
+can see the traffic coming back and you can explore the logs and you can look at the flow
+
+286
+00:25:09.120 --> 00:25:12.960
+logs and all this kind of stuff. So check it out. We'll give the link to that in the show notes.
+
+287
+00:25:12.960 --> 00:25:16.960
+Anybody who's got any interesting questions on that repo or improvements as well, we'd love to hear from you.
+
+288
+00:25:16.960 --> 00:25:22.400
+That's awesome. So I guess that's a great introduction to Lattice.
+
+289
+00:25:22.400 --> 00:25:27.280
+I'm going to try to quickly summarize the use cases that you described. So communication between microservices,
+
+290
+00:25:27.280 --> 00:25:32.560
+private APIs, east-west communication, app modernization, because you can easily switch
+
+291
+00:25:32.560 --> 00:25:38.240
+over from the old endpoint to the new endpoint in a transparent way. And in general, it seems that
+
+292
+00:25:38.240 --> 00:25:42.640
+the main selling point is that it kind of reduces all that communication friction and ownership
+
+293
+00:25:42.640 --> 00:25:48.160
+friction between admin teams and development teams. So it kind of defines very clear integration
+
+294
+00:25:48.160 --> 00:25:53.680
+points between the two teams and then there is a lot more freedom to operate. So that can be a very
+
+295
+00:25:53.680 --> 00:25:59.760
+compelling reason to use this service. I think we also have a few resources that we collected while
+
+296
+00:25:59.760 --> 00:26:05.760
+doing all of this research. There is a Serverless Office Hours session, which was really interesting
+
+297
+00:26:05.760 --> 00:26:09.360
+and we're going to have the link in the show notes. And then there are other few articles
+
+298
+00:26:09.360 --> 00:26:15.280
+that we are going to link, including the official AWS documentation. So check out the show notes for
+
+299
+00:26:15.280 --> 00:26:20.480
+more links. And with that, I think that's everything for this episode. We are really excited, as usual,
+
+300
+00:26:20.480 --> 00:26:25.280
+to know your perspective. If you've used it, what do you think? Do you actually have a real use case
+
+301
+00:26:25.280 --> 00:26:31.120
+in production? Tell us about that and that way we can compare opinions and learn something more
+
+302
+00:26:31.120 --> 00:26:46.640
+together. So thank you very much and we'll see you in the next episode.

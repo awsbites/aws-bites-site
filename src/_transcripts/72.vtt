@@ -1,0 +1,1709 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:02.560
+ECS, or Elastic Container Service,
+
+2
+00:00:02.560 --> 00:00:06.200
+lets you run containerized applications at scale on AWS.
+
+3
+00:00:06.200 --> 00:00:08.680
+It's suitable for web applications, microservices,
+
+4
+00:00:08.680 --> 00:00:10.120
+and background processing.
+
+5
+00:00:10.120 --> 00:00:13.040
+With ECS, you can use Fargate to make it simpler,
+
+6
+00:00:13.040 --> 00:00:16.200
+or the EC2 version for more advanced control.
+
+7
+00:00:16.200 --> 00:00:19.080
+You can even extend the workload to your own data center
+
+8
+00:00:19.080 --> 00:00:20.640
+if that's your thing.
+
+9
+00:00:20.640 --> 00:00:23.240
+And given all this option, how do you get a handle on cost
+
+10
+00:00:23.240 --> 00:00:25.960
+and optimize to get the biggest bang for your buck?
+
+11
+00:00:25.960 --> 00:00:27.760
+If you stay until the end of this episode,
+
+12
+00:00:27.760 --> 00:00:30.720
+we will tell you some tricks and tips that you can follow
+
+13
+00:00:30.720 --> 00:00:33.600
+to try to optimize cost for your Fargate
+
+14
+00:00:33.600 --> 00:00:36.040
+or ECS-backed EC2 deployments.
+
+15
+00:00:36.040 --> 00:00:37.720
+I am Luciano, and I'm here with Eoin,
+
+16
+00:00:37.720 --> 00:00:39.640
+and this is AWS Bites podcast.
+
+17
+00:00:39.640 --> 00:00:41.640
+The AWS Bites Podcast is sponsored by fourTheorem.
+
+18
+00:00:41.640 --> 00:00:43.640
+fourTheorem is an AWS partner for migration, architecture,
+
+19
+00:00:43.640 --> 00:00:45.640
+and training, including ECS.
+
+20
+00:00:45.640 --> 00:00:47.640
+Find out more at fourtheorem.com.
+
+21
+00:00:47.640 --> 00:00:57.460
+You'll find the link in the
+
+22
+00:00:57.460 --> 00:00:59.460
+show notes.
+
+23
+00:00:59.460 --> 00:01:02.460
+So first of all, it's probably a good idea to start to explain
+
+24
+00:01:02.460 --> 00:01:04.460
+what ECS is and what are the main concepts.
+
+25
+00:01:04.460 --> 00:01:06.460
+Eoin, do you want to try to do that?
+
+26
+00:01:06.460 --> 00:01:08.460
+I'll give that a go.
+
+27
+00:01:08.460 --> 00:01:10.460
+Yeah, so you have two primary modes.
+
+28
+00:01:10.460 --> 00:01:12.460
+You have ECS on EC2, which you mentioned.
+
+29
+00:01:12.460 --> 00:01:14.460
+That's the original flavor of it,
+
+30
+00:01:14.460 --> 00:01:16.460
+where you're running containers,
+
+31
+00:01:16.460 --> 00:01:18.460
+and you're actually running EC2 instances,
+
+32
+00:01:18.460 --> 00:01:20.460
+and you can see those instances
+
+33
+00:01:20.460 --> 00:01:22.460
+and manage those instances underneath.
+
+34
+00:01:22.460 --> 00:01:24.460
+And then you've got Fargate, which is the so-called
+
+35
+00:01:24.460 --> 00:01:26.460
+serverless flavor of ECS,
+
+36
+00:01:26.460 --> 00:01:28.460
+and that allows you to run containers without worrying
+
+37
+00:01:28.460 --> 00:01:31.460
+about EC2 or the operating system underneath too much.
+
+38
+00:01:31.460 --> 00:01:33.460
+That mode is a bit simpler.
+
+39
+00:01:33.460 --> 00:01:35.460
+I suppose the trade-off there is that you have less choice
+
+40
+00:01:35.460 --> 00:01:38.460
+on the underlying hardware, network speed, disk,
+
+41
+00:01:38.460 --> 00:01:41.460
+and the ratio between CPU and memory,
+
+42
+00:01:41.460 --> 00:01:45.460
+and you also have no GPU with Fargate, at least yet.
+
+43
+00:01:45.460 --> 00:01:48.460
+There is a third option, which is ECS Anywhere,
+
+44
+00:01:48.460 --> 00:01:51.460
+and that's where the instances are external.
+
+45
+00:01:51.460 --> 00:01:53.460
+So if you've got a data center there with lots of hardware
+
+46
+00:01:53.460 --> 00:01:57.460
+lying idle, you can run ECS tasks there as well.
+
+47
+00:01:57.460 --> 00:01:59.460
+You just have to run the ECS agent
+
+48
+00:01:59.460 --> 00:02:03.460
+and the systems manager agent on your on-premises instances.
+
+49
+00:02:03.460 --> 00:02:05.460
+There's a couple of terms and concepts
+
+50
+00:02:05.460 --> 00:02:07.460
+we probably want to describe with ECS.
+
+51
+00:02:07.460 --> 00:02:09.460
+So before we get into cost optimization,
+
+52
+00:02:09.460 --> 00:02:11.460
+we'll talk about them because we're going to mention them
+
+53
+00:02:11.460 --> 00:02:13.460
+as we go through the different ways of saving cost.
+
+54
+00:02:13.460 --> 00:02:16.460
+So the primary grouping within ECS is a Cluster,
+
+55
+00:02:16.460 --> 00:02:21.460
+and if you go back to the original EC2-backed flavor of ECS,
+
+56
+00:02:21.460 --> 00:02:22.460
+that's what the cluster was for.
+
+57
+00:02:22.460 --> 00:02:25.460
+It was for grouping your instances together
+
+58
+00:02:25.460 --> 00:02:27.460
+into a logical grouping,
+
+59
+00:02:27.460 --> 00:02:29.460
+and they would be able to run tasks for you.
+
+60
+00:02:29.460 --> 00:02:32.460
+Now, you still use clusters if you're running Fargate,
+
+61
+00:02:32.460 --> 00:02:34.460
+but you don't really have to configure very much there,
+
+62
+00:02:34.460 --> 00:02:37.460
+and a cluster can combine different workloads
+
+63
+00:02:37.460 --> 00:02:39.460
+that are running EC2 and Fargate,
+
+64
+00:02:39.460 --> 00:02:41.460
+which is kind of interesting, and we'll get into that.
+
+65
+00:02:41.460 --> 00:02:46.460
+And then the smallest, I suppose, unit on ECS is a Task,
+
+66
+00:02:46.460 --> 00:02:48.460
+and a task is one or more containers,
+
+67
+00:02:48.460 --> 00:02:49.460
+so it's a bit like a pod,
+
+68
+00:02:49.460 --> 00:02:51.460
+and you've got multiple containers running in it.
+
+69
+00:02:51.460 --> 00:02:52.460
+It could be one.
+
+70
+00:02:52.460 --> 00:02:55.460
+It could be one container with a kind of a sidecar,
+
+71
+00:02:55.460 --> 00:02:57.460
+and in order to run those tasks,
+
+72
+00:02:57.460 --> 00:02:59.460
+you need something called a Task Definition,
+
+73
+00:02:59.460 --> 00:03:02.460
+which is where you declare what's the container image,
+
+74
+00:03:02.460 --> 00:03:04.460
+is it compatible with Fargate or EC2,
+
+75
+00:03:04.460 --> 00:03:07.460
+and lots of other parameters like your networking setup,
+
+76
+00:03:07.460 --> 00:03:09.460
+memory, and CPU.
+
+77
+00:03:09.460 --> 00:03:11.460
+So that's your task and task definition,
+
+78
+00:03:11.460 --> 00:03:14.460
+and then if you're running groups of tasks
+
+79
+00:03:14.460 --> 00:03:15.460
+or pools of tasks together,
+
+80
+00:03:15.460 --> 00:03:18.460
+you can use the ECS Service concept,
+
+81
+00:03:18.460 --> 00:03:20.460
+and a service is basically where you say,
+
+82
+00:03:20.460 --> 00:03:23.460
+I want to run a desired number of tasks,
+
+83
+00:03:23.460 --> 00:03:26.460
+and I want you to scale it up and down for me.
+
+84
+00:03:26.460 --> 00:03:29.460
+So you're leveraging the ECS managed service capability
+
+85
+00:03:29.460 --> 00:03:31.460
+to scale up and down for you,
+
+86
+00:03:31.460 --> 00:03:34.460
+and it includes a feature called application auto scaling,
+
+87
+00:03:34.460 --> 00:03:36.460
+which will scale up and down tasks,
+
+88
+00:03:36.460 --> 00:03:38.460
+and if you're using EC2 under the hood,
+
+89
+00:03:38.460 --> 00:03:41.460
+you can then combine that with cluster auto scaling
+
+90
+00:03:41.460 --> 00:03:43.460
+so that your tasks are scaling up and down,
+
+91
+00:03:43.460 --> 00:03:45.460
+but also the instances are scaling up and down
+
+92
+00:03:45.460 --> 00:03:48.460
+to be able to run that number of tasks as well,
+
+93
+00:03:48.460 --> 00:03:51.460
+and a service gives you a couple of other neat features
+
+94
+00:03:51.460 --> 00:03:53.460
+like deployment configurations,
+
+95
+00:03:53.460 --> 00:03:55.460
+so what happens when you upgrade a new version
+
+96
+00:03:55.460 --> 00:03:57.460
+of that task definition,
+
+97
+00:03:57.460 --> 00:03:59.460
+and what happens when things stop working?
+
+98
+00:03:59.460 --> 00:04:01.460
+Do you want to be able to do a circuit breaker
+
+99
+00:04:01.460 --> 00:04:03.460
+and roll back from that?
+
+100
+00:04:03.460 --> 00:04:05.460
+It includes health checks,
+
+101
+00:04:05.460 --> 00:04:08.460
+and it also includes integration to load balancers as well
+
+102
+00:04:08.460 --> 00:04:09.460
+so that when you scale up,
+
+103
+00:04:09.460 --> 00:04:13.460
+you're adding tasks into that load balancer target group.
+
+104
+00:04:13.460 --> 00:04:16.460
+So that's really the set of concepts
+
+105
+00:04:16.460 --> 00:04:19.460
+you kind of need to learn if you're getting started with ECS.
+
+106
+00:04:19.460 --> 00:04:21.460
+A lot of people might be familiar with them already,
+
+107
+00:04:21.460 --> 00:04:23.460
+but pricing is sometimes a little bit more
+
+108
+00:04:23.460 --> 00:04:27.460
+of a nebulous area, Luciano,
+
+109
+00:04:27.460 --> 00:04:28.460
+which you want to try and describe.
+
+110
+00:04:28.460 --> 00:04:30.460
+How does ECS pricing work?
+
+111
+00:04:33.460 --> 00:04:36.460
+Yes, so you mentioned that there are pretty much two different ways of running containers on ECS.
+
+112
+00:04:36.460 --> 00:04:38.460
+Either you provide your own EC2 instances,
+
+113
+00:04:38.460 --> 00:04:43.460
+or you basically delegate the task of figuring out
+
+114
+00:04:43.460 --> 00:04:45.460
+where the compute is by using Fargate,
+
+115
+00:04:45.460 --> 00:04:48.460
+and AWS will try to figure out
+
+116
+00:04:48.460 --> 00:04:50.460
+how to allocate compute resources to you.
+
+117
+00:04:50.460 --> 00:04:53.460
+So when you use EC2, it's actually pretty interesting
+
+118
+00:04:53.460 --> 00:04:55.460
+how that affects the pricing model,
+
+119
+00:04:55.460 --> 00:04:58.460
+because you basically just pay for the EC2 instances
+
+120
+00:04:58.460 --> 00:05:00.460
+that you are putting into Fargate.
+
+121
+00:05:00.460 --> 00:05:03.460
+So you just pick whatever set of EC2 instances
+
+122
+00:05:03.460 --> 00:05:06.460
+suits your needs, and then you know
+
+123
+00:05:06.460 --> 00:05:08.460
+that's going to affect your cost somehow,
+
+124
+00:05:08.460 --> 00:05:12.460
+and there is no extra cost for ECS at that point.
+
+125
+00:05:12.460 --> 00:05:14.460
+If you decide to use Fargate,
+
+126
+00:05:14.460 --> 00:05:18.460
+because it's on AWS to find the compute resources,
+
+127
+00:05:18.460 --> 00:05:19.460
+there is, of course, a pricing model,
+
+128
+00:05:19.460 --> 00:05:23.460
+and that pricing model is based on two different dimensions,
+
+129
+00:05:23.460 --> 00:05:26.460
+which is how much memory are you giving
+
+130
+00:05:26.460 --> 00:05:30.460
+to the specific containers that are running,
+
+131
+00:05:30.460 --> 00:05:34.460
+and how many VCPUs you are giving to the container as well.
+
+132
+00:05:34.460 --> 00:05:37.460
+And of course, there is like a unit cost,
+
+133
+00:05:37.460 --> 00:05:41.460
+but then there are unit costs for both of these two dimensions.
+
+134
+00:05:41.460 --> 00:05:47.460
+For instance, if you use one VCPU and one gigabyte of memory,
+
+135
+00:05:47.460 --> 00:05:49.460
+you might be paying something like, I don't know,
+
+136
+00:05:49.460 --> 00:05:51.460
+four cents for the one VCPU,
+
+137
+00:05:51.460 --> 00:05:54.460
+and another something for the one gigabyte of memory
+
+138
+00:05:54.460 --> 00:05:56.460
+that you are giving to the container.
+
+139
+00:05:56.460 --> 00:05:59.460
+And this makes sense, of course, in a specific region,
+
+140
+00:05:59.460 --> 00:06:03.460
+and if you're using Linux x86,
+
+141
+00:06:03.460 --> 00:06:05.460
+because if you're using Windows,
+
+142
+00:06:05.460 --> 00:06:08.460
+the same way of calculating cost applies,
+
+143
+00:06:08.460 --> 00:06:10.460
+except that the pricing is different
+
+144
+00:06:10.460 --> 00:06:13.460
+because you are paying for a Windows instance.
+
+145
+00:06:13.460 --> 00:06:16.460
+And there is also an additional charge,
+
+146
+00:06:16.460 --> 00:06:19.460
+which is the license which gets included.
+
+147
+00:06:19.460 --> 00:06:22.460
+So on top of what you pay per VCPU and per gigabyte,
+
+148
+00:06:22.460 --> 00:06:26.460
+you also pay something around five cents per hour
+
+149
+00:06:26.460 --> 00:06:29.460
+just to cover that Windows licensing cost.
+
+150
+00:06:29.460 --> 00:06:31.460
+So keep in mind that if you use Linux,
+
+151
+00:06:31.460 --> 00:06:33.460
+you're not paying the extra licensing cost.
+
+152
+00:06:33.460 --> 00:06:36.460
+If you use Windows, you have to pay an additional charge
+
+153
+00:06:36.460 --> 00:06:38.460
+for covering the license effectively.
+
+154
+00:06:38.460 --> 00:06:41.460
+So the next question might be, given this model,
+
+155
+00:06:41.460 --> 00:06:43.460
+what are our options to save on cost?
+
+156
+00:06:43.460 --> 00:06:45.460
+And there could be different ideas
+
+157
+00:06:45.460 --> 00:06:47.460
+that we are just going to try to put on the table,
+
+158
+00:06:47.460 --> 00:06:51.460
+but the first one is that you can use a different processor,
+
+159
+00:06:51.460 --> 00:06:54.460
+because if you use ARM or Graviton,
+
+160
+00:06:54.460 --> 00:06:58.460
+it can get up to 20% cheaper when you use Fargate.
+
+161
+00:06:58.460 --> 00:07:01.460
+It can be a little bit more variable with EC2,
+
+162
+00:07:01.460 --> 00:07:03.460
+because depending on the type of instance that you pick,
+
+163
+00:07:03.460 --> 00:07:05.460
+there might be differences in cost,
+
+164
+00:07:05.460 --> 00:07:10.460
+but generally gets cheaper by using ARM or Graviton processors.
+
+165
+00:07:10.460 --> 00:07:12.460
+There is also another aspect there,
+
+166
+00:07:12.460 --> 00:07:15.460
+because you could get better performances with ARM,
+
+167
+00:07:15.460 --> 00:07:18.460
+so maybe it doesn't necessarily affect your cost per se,
+
+168
+00:07:18.460 --> 00:07:22.460
+but you might need less compute overall if you switch to ARM.
+
+169
+00:07:22.460 --> 00:07:23.460
+So maybe that can be another thing
+
+170
+00:07:23.460 --> 00:07:25.460
+that ends up affecting your cost,
+
+171
+00:07:25.460 --> 00:07:27.460
+because you can reduce the number of instances
+
+172
+00:07:27.460 --> 00:07:29.460
+or the amount of compute that you actually need
+
+173
+00:07:29.460 --> 00:07:32.460
+to perform your specific workloads.
+
+174
+00:07:32.460 --> 00:07:35.460
+Another option is to use Spot,
+
+175
+00:07:35.460 --> 00:07:39.460
+and you can use Spot either if you go with Fargate
+
+176
+00:07:39.460 --> 00:07:41.460
+or if you go with EC2.
+
+177
+00:07:41.460 --> 00:07:44.460
+And the idea of Spot in general, if you never used
+
+178
+00:07:44.460 --> 00:07:47.460
+or if you never heard of what Spot actually is,
+
+179
+00:07:47.460 --> 00:07:50.460
+it's basically an idea that AWS offers you
+
+180
+00:07:50.460 --> 00:07:52.460
+to try to sell all the spare capacity
+
+181
+00:07:52.460 --> 00:07:54.460
+that they have available in their data centers.
+
+182
+00:07:54.460 --> 00:07:57.460
+So at any given moment in time, it looks like an auction.
+
+183
+00:07:57.460 --> 00:08:02.460
+You can just try to get additional compute at a better cost
+
+184
+00:08:02.460 --> 00:08:05.460
+just because you are trying to buy the leftover from AWS,
+
+185
+00:08:05.460 --> 00:08:06.460
+which is very interesting,
+
+186
+00:08:06.460 --> 00:08:08.460
+because it makes it for a very variable market,
+
+187
+00:08:08.460 --> 00:08:11.460
+where there isn't really a fixed cost
+
+188
+00:08:11.460 --> 00:08:13.460
+that you can easily predict.
+
+189
+00:08:13.460 --> 00:08:15.460
+It's something that shifts all the time,
+
+190
+00:08:15.460 --> 00:08:18.460
+so you're saving, even if most of the time
+
+191
+00:08:18.460 --> 00:08:21.460
+you can get significant saving by going to the Spot market,
+
+192
+00:08:21.460 --> 00:08:22.460
+but it's very variable,
+
+193
+00:08:22.460 --> 00:08:24.460
+so it's not something that you can predict
+
+194
+00:08:24.460 --> 00:08:26.460
+with extreme accuracy.
+
+195
+00:08:26.460 --> 00:08:30.460
+And of course, you have different costs
+
+196
+00:08:30.460 --> 00:08:34.460
+in regards if you go with Fargate or EC2,
+
+197
+00:08:34.460 --> 00:08:36.460
+and in general, what AWS tells you
+
+198
+00:08:36.460 --> 00:08:38.460
+is that you can get up to 70% saving
+
+199
+00:08:38.460 --> 00:08:39.460
+if you go with Fargate
+
+200
+00:08:39.460 --> 00:08:42.460
+and up to 90% saving if you go with EC2.
+
+201
+00:08:42.460 --> 00:08:44.460
+But again, that really depends on the price
+
+202
+00:08:44.460 --> 00:08:46.460
+that you have available at the moment
+
+203
+00:08:46.460 --> 00:08:48.460
+when you decide to get those instances.
+
+204
+00:08:48.460 --> 00:08:50.460
+And we will talk more about other trade-offs
+
+205
+00:08:50.460 --> 00:08:52.460
+that are there when you go for Spot.
+
+206
+00:08:52.460 --> 00:08:56.460
+So it looks like such a good deal,
+
+207
+00:08:56.460 --> 00:08:57.460
+so of course there are trade-offs there
+
+208
+00:08:57.460 --> 00:08:58.460
+that we will need to keep in mind.
+
+209
+00:08:58.460 --> 00:09:00.460
+So stay tuned, because in the end,
+
+210
+00:09:00.460 --> 00:09:03.460
+we'll cover more about what are those trade-offs there.
+
+211
+00:09:03.460 --> 00:09:07.460
+Another option to save money is Compute Savings Plan,
+
+212
+00:09:07.460 --> 00:09:11.460
+which is basically a commitment that you make to AWS
+
+213
+00:09:11.460 --> 00:09:14.460
+to pay a certain amount of money upfront for Compute,
+
+214
+00:09:14.460 --> 00:09:18.460
+and basically you will be able to use
+
+215
+00:09:18.460 --> 00:09:21.460
+these computes that you are buying upfront
+
+216
+00:09:21.460 --> 00:09:22.460
+at a discount.
+
+217
+00:09:22.460 --> 00:09:25.460
+And it doesn't really lock you in
+
+218
+00:09:25.460 --> 00:09:27.460
+on the type of instances that you can use.
+
+219
+00:09:27.460 --> 00:09:30.460
+You have some flexibility to shift the compute as you go.
+
+220
+00:09:30.460 --> 00:09:32.460
+So you are making this commitment
+
+221
+00:09:32.460 --> 00:09:35.460
+for at least one year, up to three years.
+
+222
+00:09:35.460 --> 00:09:37.460
+So of course you cannot predict
+
+223
+00:09:37.460 --> 00:09:40.460
+what is your use case going forward in the future,
+
+224
+00:09:40.460 --> 00:09:42.460
+so AWS gives you some room to maneuver that,
+
+225
+00:09:42.460 --> 00:09:44.460
+to try to figure out if you want to switch
+
+226
+00:09:44.460 --> 00:09:46.460
+to different compute, you can do that.
+
+227
+00:09:46.460 --> 00:09:50.460
+And it is actually quite interesting,
+
+228
+00:09:50.460 --> 00:09:53.460
+so we will have a link to the specific page
+
+229
+00:09:53.460 --> 00:09:54.460
+with the Saving Plan Calculator,
+
+230
+00:09:54.460 --> 00:09:56.460
+if you want to play around with this idea.
+
+231
+00:09:56.460 --> 00:09:59.460
+But basically you can get from 20 to 52% saving
+
+232
+00:09:59.460 --> 00:10:03.460
+with Fargate, and up to 66% with EC2,
+
+233
+00:10:03.460 --> 00:10:07.460
+and always depending on instance type, region, and so on.
+
+234
+00:10:07.460 --> 00:10:09.460
+Now another similar concept,
+
+235
+00:10:09.460 --> 00:10:11.460
+and another way that you might be using
+
+236
+00:10:11.460 --> 00:10:15.460
+to save money with ECS, is to use Reserved Instances,
+
+237
+00:10:15.460 --> 00:10:18.460
+which is something where basically you are literally
+
+238
+00:10:18.460 --> 00:10:20.460
+buying upfront instances,
+
+239
+00:10:20.460 --> 00:10:23.460
+and you get locked into that specific type of instance,
+
+240
+00:10:23.460 --> 00:10:26.460
+and that will give you up to 72% saving
+
+241
+00:10:26.460 --> 00:10:29.460
+with fixed distance classes.
+
+242
+00:10:29.460 --> 00:10:34.460
+And finally, another idea that we have here is ECS Anywhere,
+
+243
+00:10:34.460 --> 00:10:38.460
+which is basically the option that we mentioned before
+
+244
+00:10:38.460 --> 00:10:41.460
+where you can run ECS on your own hardware.
+
+245
+00:10:41.460 --> 00:10:45.460
+So basically you are running containers on your own data center,
+
+246
+00:10:45.460 --> 00:10:46.460
+on your own spare hardware
+
+247
+00:10:46.460 --> 00:10:50.460
+that you have available somewhere else outside AWS,
+
+248
+00:10:50.460 --> 00:10:53.460
+and you don't pay, of course, for that hardware
+
+249
+00:10:53.460 --> 00:10:55.460
+because we assume you already have it,
+
+250
+00:10:55.460 --> 00:10:57.460
+so you probably send you already purchased,
+
+251
+00:10:57.460 --> 00:11:02.460
+but there is a charge that AWS adds for every single instance
+
+252
+00:11:02.460 --> 00:11:03.460
+that is connected to ECS.
+
+253
+00:11:03.460 --> 00:11:06.460
+It's very low, it's about $0.01 per hour,
+
+254
+00:11:06.460 --> 00:11:08.460
+but it's something that you need to keep in mind,
+
+255
+00:11:08.460 --> 00:11:11.460
+maybe if you have thousands of smaller instances
+
+256
+00:11:11.460 --> 00:11:15.460
+in regards instead if you have a few very big instances.
+
+257
+00:11:15.460 --> 00:11:20.460
+So the next question is, can you mix cost savings?
+
+258
+00:11:20.460 --> 00:11:24.460
+And meaning, can you mix these strategies of cost saving?
+
+259
+00:11:24.460 --> 00:11:25.460
+Of course you can.
+
+260
+00:11:25.460 --> 00:11:30.460
+For instance, you can mix using a Graviton processor with Savings Plans,
+
+261
+00:11:30.460 --> 00:11:33.460
+but you cannot use Savings Plans with Spot.
+
+262
+00:11:33.460 --> 00:11:36.460
+So something to keep in mind that there is some flexibility there
+
+263
+00:11:36.460 --> 00:11:38.460
+to use different strategies and combine them,
+
+264
+00:11:38.460 --> 00:11:42.460
+but not every single strategy can be used together with the other.
+
+265
+00:11:42.460 --> 00:11:47.460
+Another point is if you are doing cost optimization,
+
+266
+00:11:47.460 --> 00:11:48.460
+you might have this question.
+
+267
+00:11:48.460 --> 00:11:52.460
+Do you always go for EC2 or do you go for Fargate?
+
+268
+00:11:52.460 --> 00:11:58.460
+Because for what we said so far, EC2 seems to be cheaper in general,
+
+269
+00:11:58.460 --> 00:11:59.460
+so you might be thinking,
+
+270
+00:11:59.460 --> 00:12:03.460
+should I just use EC2 and not Fargate and save money that way?
+
+271
+00:12:03.460 --> 00:12:05.460
+It is actually a very interesting question.
+
+272
+00:12:05.460 --> 00:12:08.460
+It's very hard to answer in absolute,
+
+273
+00:12:08.460 --> 00:12:11.460
+but in general we feel that it's not necessarily a good idea
+
+274
+00:12:11.460 --> 00:12:15.460
+because the price difference is not that much,
+
+275
+00:12:15.460 --> 00:12:19.460
+and we need to remember that EC2, you still have to manage your instances,
+
+276
+00:12:19.460 --> 00:12:22.460
+while Fargate is doing all that work for you.
+
+277
+00:12:22.460 --> 00:12:24.460
+When you need compute capacity,
+
+278
+00:12:24.460 --> 00:12:28.460
+AWS will figure out on which EC2s to run that compute capacity,
+
+279
+00:12:28.460 --> 00:12:31.460
+and it's not up to you to provision those instances
+
+280
+00:12:31.460 --> 00:12:33.460
+and make sure that they are secure,
+
+281
+00:12:33.460 --> 00:12:35.460
+that they are connected to the network in the right way,
+
+282
+00:12:35.460 --> 00:12:38.460
+and all these kind of things that you will need to do on your own.
+
+283
+00:12:38.460 --> 00:12:41.460
+So you definitely get slightly cheaper prices
+
+284
+00:12:41.460 --> 00:12:42.460
+when you go with your own EC2
+
+285
+00:12:42.460 --> 00:12:47.460
+if you just look at the cost of literally running that particular workload,
+
+286
+00:12:47.460 --> 00:12:49.460
+but at the same time you have to take on board on you
+
+287
+00:12:49.460 --> 00:12:52.460
+all the additional cost of managing those instances.
+
+288
+00:12:52.460 --> 00:12:54.460
+So from a total cost of ownership perspective,
+
+289
+00:12:54.460 --> 00:12:58.460
+Fargate still seems a lot more convenient than EC2,
+
+290
+00:12:58.460 --> 00:13:03.460
+considering that the price difference is not that high after all.
+
+291
+00:13:03.460 --> 00:13:07.460
+So I suppose that the question that we can try to address next is
+
+292
+00:13:07.460 --> 00:13:11.460
+how do you set up ECS to use Spot instances?
+
+293
+00:13:11.460 --> 00:13:15.460
+We said that you can get up to 70% saving with Fargate Spot.
+
+294
+00:13:15.460 --> 00:13:17.460
+It's interesting that with Fargate Spot,
+
+295
+00:13:17.460 --> 00:13:22.460
+you get actually pretty close to 70% almost all the time with Fargate Spot.
+
+296
+00:13:22.460 --> 00:13:27.460
+It's generally somewhere in the region of 60, 67, 68% saving,
+
+297
+00:13:27.460 --> 00:13:30.460
+whereas with EC2 you're paying individual Spot prices
+
+298
+00:13:30.460 --> 00:13:32.460
+for individual instance types.
+
+299
+00:13:32.460 --> 00:13:34.460
+So it's actually per instance type a lot more variables
+
+300
+00:13:34.460 --> 00:13:39.460
+so it can sway between like 50% and 90%.
+
+301
+00:13:39.460 --> 00:13:41.460
+There's some tools you can use actually for EC2
+
+302
+00:13:41.460 --> 00:13:44.460
+which make it a little bit more transparent
+
+303
+00:13:44.460 --> 00:13:46.460
+what the historical Spot prices are.
+
+304
+00:13:46.460 --> 00:13:49.460
+You can actually go into the EC2 console and look at the historical pricing.
+
+305
+00:13:49.460 --> 00:13:52.460
+There's an API for it and you can use the AWS CLI
+
+306
+00:13:52.460 --> 00:13:54.460
+to look at the historical Spot prices,
+
+307
+00:13:54.460 --> 00:13:57.460
+but there's also a couple of tools that are worth mentioning.
+
+308
+00:13:57.460 --> 00:14:01.460
+One is an open source tool from Amazon called Amazon EC2 Instance Selector,
+
+309
+00:14:01.460 --> 00:14:05.460
+which is just a really nice CLI tool that will allow you to select instance types
+
+310
+00:14:05.460 --> 00:14:07.460
+and filter for the different criteria you want
+
+311
+00:14:07.460 --> 00:14:10.460
+and then give you a report back saying these are the instance types
+
+312
+00:14:10.460 --> 00:14:12.460
+that are suitable for you.
+
+313
+00:14:12.460 --> 00:14:14.460
+And then there's a website from Vantage.
+
+314
+00:14:14.460 --> 00:14:16.460
+It's ec2instances.info.
+
+315
+00:14:16.460 --> 00:14:18.460
+We'll give all those links in the show notes
+
+316
+00:14:18.460 --> 00:14:21.460
+and that tool will show you the min and max Spot prices.
+
+317
+00:14:21.460 --> 00:14:25.460
+So when it comes to actually setting up these Spot,
+
+318
+00:14:25.460 --> 00:14:30.460
+we mentioned that for a cluster you can choose Fargate or EC2 or mix them.
+
+319
+00:14:30.460 --> 00:14:33.460
+So what you basically do there is you have this concept of capacity providers.
+
+320
+00:14:33.460 --> 00:14:36.460
+So within your cluster everybody gets Fargate
+
+321
+00:14:36.460 --> 00:14:38.460
+and Fargate Spot capacity providers out of the box
+
+322
+00:14:38.460 --> 00:14:40.460
+because they're always there. You don't have to set anything up.
+
+323
+00:14:40.460 --> 00:14:43.460
+And then you can create your own capacity providers for EC2
+
+324
+00:14:43.460 --> 00:14:47.460
+by creating auto scaling groups in EC2 and referencing them.
+
+325
+00:14:47.460 --> 00:14:49.460
+So you basically say I'm creating a capacity provider
+
+326
+00:14:49.460 --> 00:14:54.460
+and it's using an auto scaling group that uses a launch template for Spot instances
+
+327
+00:14:54.460 --> 00:14:58.460
+and that launch template specifies that I'm going to use this different,
+
+328
+00:14:58.460 --> 00:15:02.460
+this set of classes of EC2 instance and that's one auto scaling group.
+
+329
+00:15:02.460 --> 00:15:04.460
+But then you can create an on demand auto scaling group as well
+
+330
+00:15:04.460 --> 00:15:06.460
+and you can add that as a capacity provider.
+
+331
+00:15:06.460 --> 00:15:09.460
+I think you can add up to like 10 capacity providers.
+
+332
+00:15:09.460 --> 00:15:13.460
+But then you need to combine them in what's called a capacity provider strategy
+
+333
+00:15:13.460 --> 00:15:17.460
+where you say okay I'm going to use some from this capacity provider
+
+334
+00:15:17.460 --> 00:15:19.460
+and some from this other capacity provider
+
+335
+00:15:19.460 --> 00:15:21.460
+and that could be a mixture of EC2 and EC2 Spot
+
+336
+00:15:21.460 --> 00:15:23.460
+and then you give a weight to each of them.
+
+337
+00:15:23.460 --> 00:15:28.460
+So you can say for every one on demand instance I want four Spot instances.
+
+338
+00:15:28.460 --> 00:15:31.460
+And but you can also specify a baseline.
+
+339
+00:15:31.460 --> 00:15:36.460
+So you could say I want a steady baseline of two on demand instances as well.
+
+340
+00:15:36.460 --> 00:15:39.460
+So you could say my first two instances will be on demand
+
+341
+00:15:39.460 --> 00:15:42.460
+and for the rest beyond that there's a ratio between on demand and Spot.
+
+342
+00:15:42.460 --> 00:15:46.460
+And you can actually mix multiple capacity providers in that.
+
+343
+00:15:46.460 --> 00:15:52.460
+It is worth stating that you, while you can mix Fargate and EC2 providers in your cluster,
+
+344
+00:15:52.460 --> 00:15:54.460
+you can't really use them at the same time.
+
+345
+00:15:54.460 --> 00:15:58.460
+So if you set up a service that scales up to a certain number of desired tasks,
+
+346
+00:15:58.460 --> 00:16:01.460
+you can't have a mix of Fargate and EC2 in that.
+
+347
+00:16:01.460 --> 00:16:06.460
+You can only use Fargate together with Fargate Spot or EC2, together with EC2 Spot.
+
+348
+00:16:06.460 --> 00:16:12.460
+You can always use run task API directly so you don't have to use a service.
+
+349
+00:16:12.460 --> 00:16:15.460
+You could just launch tasks yourself using the run task API
+
+350
+00:16:15.460 --> 00:16:19.460
+and every time you call it run task API you can launch up to 10 tasks
+
+351
+00:16:19.460 --> 00:16:21.460
+and you can pick whichever capacity provider you want.
+
+352
+00:16:21.460 --> 00:16:26.460
+So that's another way you could potentially mix and match between Fargate and EC2
+
+353
+00:16:26.460 --> 00:16:27.460
+and get a blend.
+
+354
+00:16:27.460 --> 00:16:30.460
+But obviously the more you do, the more complex it can become there.
+
+355
+00:16:30.460 --> 00:16:35.460
+So you have to trade off between the complexity of basically managing your own scheduler
+
+356
+00:16:35.460 --> 00:16:38.460
+and orchestrator and your cost saving.
+
+357
+00:16:38.460 --> 00:16:41.460
+So Spot is pretty advantageous.
+
+358
+00:16:41.460 --> 00:16:47.460
+I mean, if we just go back to our pricing example, we've run a few calculations there today.
+
+359
+00:16:47.460 --> 00:16:52.460
+You have to kind of look at how many CPUs you want and how much memory you want.
+
+360
+00:16:52.460 --> 00:16:54.460
+Look at the available EC2 instances.
+
+361
+00:16:54.460 --> 00:17:00.460
+With EC2 you always want to pick a ratio that matches your task definitions CPU to memory ratio
+
+362
+00:17:00.460 --> 00:17:03.460
+and then you can do a pricing comparison.
+
+363
+00:17:03.460 --> 00:17:08.460
+And if we look at generally the, if you look at a one vCPU configuration
+
+364
+00:17:08.460 --> 00:17:13.460
+with two or four gigabytes of memory, you're talking about the range of like four cents or five cents per hour
+
+365
+00:17:13.460 --> 00:17:15.460
+for a CPU and memory.
+
+366
+00:17:15.460 --> 00:17:20.460
+And when you compare Fargate and EC2, you get a bit of a,
+
+367
+00:17:20.460 --> 00:17:27.460
+you pay a little bit extra for Fargate, but it's not completely miles away or anything.
+
+368
+00:17:27.460 --> 00:17:31.460
+So you might say, okay, well Spot is giving me up to 70% saving in here,
+
+369
+00:17:31.460 --> 00:17:33.460
+so why can't I just use Spot all the time?
+
+370
+00:17:33.460 --> 00:17:36.460
+So what are the disadvantages of Spot?
+
+371
+00:17:36.460 --> 00:17:41.460
+Well, you mentioned that they use spare capacity, so that means that when,
+
+372
+00:17:41.460 --> 00:17:43.460
+there will come a point where the spare capacity isn't spare anymore
+
+373
+00:17:43.460 --> 00:17:47.460
+because somebody actually wants to run an on-demand instance.
+
+374
+00:17:47.460 --> 00:17:51.460
+And in that case, you'll get a notification, a 120 second warning from AWS
+
+375
+00:17:51.460 --> 00:17:54.460
+that they're going to shut your instance or your Fargate container down
+
+376
+00:17:54.460 --> 00:17:58.460
+and you have to gracefully shut down and move your work somewhere else
+
+377
+00:17:58.460 --> 00:18:03.460
+or just be satisfied that you're going to have to wait for a while.
+
+378
+00:18:03.460 --> 00:18:08.460
+The other disadvantage is that prices fluctuate, so it's not exactly deterministic.
+
+379
+00:18:08.460 --> 00:18:13.460
+And sometimes instances won't be available for your instance class or in Fargate even.
+
+380
+00:18:13.460 --> 00:18:16.460
+It depends on your region, the time and the demand,
+
+381
+00:18:16.460 --> 00:18:19.460
+and of course, there are Linux and x86 only.
+
+382
+00:18:19.460 --> 00:18:23.460
+So you don't get ARM, Spot, Fargate containers at the moment
+
+383
+00:18:23.460 --> 00:18:27.460
+and you don't get Windows, Windows Spot.
+
+384
+00:18:27.460 --> 00:18:32.460
+If you're using something that's on demand, has to be predictable.
+
+385
+00:18:32.460 --> 00:18:35.460
+It's really a good idea to look at compute savings plans instead.
+
+386
+00:18:35.460 --> 00:18:39.460
+It's really flexible, but if you know you're going to be using a certain amount of compute
+
+387
+00:18:39.460 --> 00:18:43.460
+for a year or three years, then it's a significant save that you can get there.
+
+388
+00:18:43.460 --> 00:18:46.460
+On this topic, what else do we need to bear in mind, Luciano?
+
+389
+00:18:46.460 --> 00:18:48.460
+Is there anything else we need to cover off?
+
+390
+00:18:48.460 --> 00:18:54.460
+I think in general, we focus a lot here on the compute cost itself.
+
+391
+00:18:54.460 --> 00:19:01.460
+And it's definitely the biggest chunk of the cost when you run ECS workloads.
+
+392
+00:19:01.460 --> 00:19:06.460
+Of course, when you run ECS workloads, you will have additional cost coming from your logs,
+
+393
+00:19:06.460 --> 00:19:13.460
+your metrics, data transfer, disk I/O, and we can even extend that if you're using databases,
+
+394
+00:19:13.460 --> 00:19:17.460
+probably how you interact with the database, how much data do you store and so on,
+
+395
+00:19:17.460 --> 00:19:20.460
+and the cost of, I don't know whether it's Dynamo or RDS.
+
+396
+00:19:20.460 --> 00:19:28.460
+So in general, it's very hard to make just cost optimization only looking at the compute itself.
+
+397
+00:19:28.460 --> 00:19:31.460
+So I would suggest to expand a little bit the horizon there
+
+398
+00:19:31.460 --> 00:19:34.460
+and see if there are other opportunities for cost optimization.
+
+399
+00:19:34.460 --> 00:19:39.460
+For instance, maybe you can reduce the retention of logs if you are storing logs indefinitely.
+
+400
+00:19:39.460 --> 00:19:43.460
+You can put a retention time, or if you have some retention time that is very high,
+
+401
+00:19:43.460 --> 00:19:46.460
+maybe you can reduce that and that can give you significant cost saving
+
+402
+00:19:46.460 --> 00:19:48.460
+almost immediately with a very small change.
+
+403
+00:19:48.460 --> 00:19:54.460
+So I guess the suggestion there is try to look for opportunities to do cost saving,
+
+404
+00:19:54.460 --> 00:20:01.460
+not just outside the realm of ECS itself, but just looking at what else ECS is kind of forcing you to use
+
+405
+00:20:01.460 --> 00:20:03.460
+because you need to run very specific workloads.
+
+406
+00:20:03.460 --> 00:20:07.460
+And there are some other tools that we might want to recommend there
+
+407
+00:20:07.460 --> 00:20:12.460
+just to have other ideas on where there can be opportunities to save cost.
+
+408
+00:20:12.460 --> 00:20:18.460
+One is the Fargate Right Sizing Dashboard, which basically is a tool that you can just deploy in your own account
+
+409
+00:20:18.460 --> 00:20:25.460
+and use as container insights metrics to identify if there is any waste or optimization opportunities.
+
+410
+00:20:25.460 --> 00:20:31.460
+So we will have the link in the show notes, but again, it's just something you can decide to deploy in your own account
+
+411
+00:20:31.460 --> 00:20:34.460
+and use it as an additional tool to get more visibility.
+
+412
+00:20:34.460 --> 00:20:39.460
+And similarly, there is a tool already in AWS, in AWS Cost Explorer specifically,
+
+413
+00:20:39.460 --> 00:20:43.460
+that is something that can give you a recommendation for right sizing EC2 instances.
+
+414
+00:20:43.460 --> 00:20:49.460
+So something that you can just have a look at if you're using a lot of EC2 instances to back your ECS
+
+415
+00:20:49.460 --> 00:20:53.460
+and just make sure that those instances are actually used well enough.
+
+416
+00:20:53.460 --> 00:20:58.460
+Maybe you can just get away with a smaller instance or just a different kind of instance.
+
+417
+00:20:58.460 --> 00:21:00.460
+So that's everything we have for today.
+
+418
+00:21:00.460 --> 00:21:06.460
+And because this is a very big topic and I think cost optimization, as you say, is a little bit nebulous.
+
+419
+00:21:06.460 --> 00:21:07.460
+It's a little bit of an art.
+
+420
+00:21:07.460 --> 00:21:12.460
+We would be really curious to know if you have other tricks that you learned along the way.
+
+421
+00:21:12.460 --> 00:21:19.460
+Please share them with us and we'll be sure to share them on Twitter, on YouTube or in a next future episode.
+
+422
+00:21:19.460 --> 00:21:22.460
+And this is definitely a topic where you never learn enough.
+
+423
+00:21:22.460 --> 00:21:24.460
+You always need to discover something new.
+
+424
+00:21:24.460 --> 00:21:30.460
+So I think it's very, very important that as a community, we keep sharing what we learn so we can all learn from each other.
+
+425
+00:21:30.460 --> 00:21:33.460
+So thank you very much for being with us today.
+
+426
+00:21:33.460 --> 00:21:37.460
+I hope you found this informative and we look forward to seeing you in the next episode.
+
+427
+00:21:37.460 --> 00:21:55.460
+Bye.

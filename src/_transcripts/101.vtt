@@ -1,0 +1,1509 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:03.660
+We recently had a use case for creating and publishing a public Lambda function
+
+2
+00:00:03.820 --> 00:00:06.320
+so other AWS users could make use of it.
+
+3
+00:00:06.500 --> 00:00:08.220
+This gave us an interesting challenge.
+
+4
+00:00:08.400 --> 00:00:12.060
+How do you easily publish a function or indeed any other AWS resource
+
+5
+00:00:12.220 --> 00:00:14.520
+in a way that is simple for users to adopt,
+
+6
+00:00:14.700 --> 00:00:17.620
+but also is secure, cost-friendly and maintainable?
+
+7
+00:00:18.160 --> 00:00:19.920
+Today, we are going to go through all of the options
+
+8
+00:00:20.100 --> 00:00:23.200
+and let you know what we recommend if this is something you want to do.
+
+9
+00:00:23.360 --> 00:00:26.860
+My name is Eoin, I'm joined by Luciano, and this is the AWS Bites podcast.
+
+10
+00:00:26.860 --> 00:00:30.860
+AWS Bites is brought to you by fourTheorem, an advanced AWS partner.
+
+11
+00:00:31.020 --> 00:00:34.360
+If you are moving to AWS or need a partner to help you go faster,
+
+12
+00:00:34.520 --> 00:00:36.560
+check us out at fourtheorem.com.
+
+13
+00:00:37.560 --> 00:00:39.560
+Luciano, you raised this question recently.
+
+14
+00:00:40.060 --> 00:00:42.360
+Apart from your generosity, what was the rationale
+
+15
+00:00:42.520 --> 00:00:45.660
+for thinking about making a Lambda function public in the first place?
+
+16
+00:00:45.820 --> 00:00:48.120
+Let me try to describe the specific use case.
+
+17
+00:00:48.280 --> 00:00:52.160
+I wanted to create an all-time high-level version of the Lambda function
+
+18
+00:00:55.320 --> 00:00:59.000
+and I wanted to create a specific version of the Lambda function so I wanted to create an OIDC authenticator for API Gateway.
+
+19
+00:00:59.500 --> 00:01:01.620
+And I think in order to really understand
+
+20
+00:01:01.800 --> 00:01:04.260
+why that's something that could be interesting,
+
+21
+00:01:04.420 --> 00:01:07.800
+we need to remember something that we have been talking about previously
+
+22
+00:01:07.960 --> 00:01:10.160
+in another episode and we'll have the link in the show notes
+
+23
+00:01:10.320 --> 00:01:15.060
+that API Gateway currently has effectively two competing implementations,
+
+24
+00:01:15.220 --> 00:01:16.800
+REST and HTTP.
+
+25
+00:01:16.960 --> 00:01:19.600
+And these two implementations have different feature sets.
+
+26
+00:01:20.120 --> 00:01:22.400
+And the business use case I was working on
+
+27
+00:01:22.400 --> 00:01:26.040
+was basically requiring us to have a private API Gateway
+
+28
+00:01:26.200 --> 00:01:29.400
+so something can be accessible only from a private VPC.
+
+29
+00:01:29.740 --> 00:01:32.240
+And also because we are using OIDC tokens,
+
+30
+00:01:32.400 --> 00:01:34.160
+there needs to be some kind of authorizer
+
+31
+00:01:34.340 --> 00:01:37.540
+that could verify that the OIDC token received is valid,
+
+32
+00:01:37.800 --> 00:01:40.160
+it's related to a specific user with the right permission
+
+33
+00:01:40.340 --> 00:01:43.340
+before the request is forwarded to the backend.
+
+34
+00:01:43.960 --> 00:01:47.640
+Now, the problem is that if you want to use OIDC authorizer
+
+35
+00:01:48.100 --> 00:01:51.640
+with the HTTP version of the API Gateway,
+
+36
+00:01:51.640 --> 00:01:54.100
+there is actually a very nice one already built in,
+
+37
+00:01:54.280 --> 00:01:56.600
+so you just need to configure it, you don't have any extra cost,
+
+38
+00:01:56.780 --> 00:01:58.780
+AWS will take care of everything for you.
+
+39
+00:01:59.780 --> 00:02:02.480
+But if you want to use a private API Gateway,
+
+40
+00:02:02.640 --> 00:02:05.480
+that's only available in the REST version of API Gateway.
+
+41
+00:02:05.780 --> 00:02:11.080
+So this kind of made us forced to choose the REST version,
+
+42
+00:02:11.240 --> 00:02:14.400
+so we didn't have the option to use the built-in OIDC authorizer.
+
+43
+00:02:14.580 --> 00:02:17.840
+So at that point, the only option was we need to build our own custom authorizer,
+
+44
+00:02:18.000 --> 00:02:20.000
+which thankfully is something you can do with Lambda,
+
+45
+00:02:20.000 --> 00:02:22.500
+you can create a Lambda that acts as an authorizer
+
+46
+00:02:22.660 --> 00:02:24.200
+and give it to API Gateway,
+
+47
+00:02:24.360 --> 00:02:27.660
+so API Gateway is going to call that Lambda to validate the token
+
+48
+00:02:27.820 --> 00:02:30.200
+and then decide whether to forward the request or not,
+
+49
+00:02:30.360 --> 00:02:32.000
+depending on the result of that validation.
+
+50
+00:02:32.160 --> 00:02:34.700
+Now, since we have the solution working,
+
+51
+00:02:34.860 --> 00:02:38.200
+and this is apparently a gap that exists in API Gateway,
+
+52
+00:02:38.360 --> 00:02:41.860
+if you're doing private API Gateways and you're forced to use REST,
+
+53
+00:02:42.020 --> 00:02:45.360
+you don't have an OIDC authorizer, we have the solution,
+
+54
+00:02:45.520 --> 00:02:48.020
+and I think it could make sense to make it available to other people
+
+55
+00:02:48.020 --> 00:02:51.220
+because I think it could be something relatively common in the market
+
+56
+00:02:51.380 --> 00:02:53.020
+to have this particular use case.
+
+57
+00:02:53.180 --> 00:02:56.020
+So we were trying to think, okay, if we want to open source it,
+
+58
+00:02:56.180 --> 00:02:59.440
+how do we make it easy for the users to install it?
+
+59
+00:02:59.620 --> 00:03:01.680
+Ideally, something that is like one-click install
+
+60
+00:03:01.840 --> 00:03:03.380
+with some minimal configuration,
+
+61
+00:03:03.540 --> 00:03:05.780
+and the first thing that came to mind was SAR,
+
+62
+00:03:05.940 --> 00:03:07.520
+Serverless Application Repository,
+
+63
+00:03:07.680 --> 00:03:10.520
+so probably our first option to consider.
+
+64
+00:03:10.680 --> 00:03:13.180
+SAR is Serverless Application Repository,
+
+65
+00:03:13.340 --> 00:03:17.180
+and it is basically something that allows you to create infrastructure as code,
+
+66
+00:03:17.180 --> 00:03:20.680
+and you can use CloudFormation or some or something similar,
+
+67
+00:03:20.860 --> 00:03:24.820
+and then you can publish it in this kind of publicly available repository.
+
+68
+00:03:24.980 --> 00:03:27.980
+And you have to specify a special resource,
+
+69
+00:03:28.160 --> 00:03:30.820
+which is AWS::ServerlessRepo::Application,
+
+70
+00:03:30.980 --> 00:03:35.580
+which is the way that you can attach additional metadata to your project,
+
+71
+00:03:35.740 --> 00:03:37.780
+things like description and version,
+
+72
+00:03:37.960 --> 00:03:42.160
+so when people are going to be browsing this catalog of different solutions,
+
+73
+00:03:42.320 --> 00:03:45.620
+they will see exactly what the specific solution is about.
+
+74
+00:03:45.620 --> 00:03:47.120
+You can also use parameters,
+
+75
+00:03:47.300 --> 00:03:49.120
+so every time that you need something configurable,
+
+76
+00:03:49.300 --> 00:03:53.300
+that's one way to expose effectively the option to the users
+
+77
+00:03:53.460 --> 00:03:55.220
+to provide their own configuration.
+
+78
+00:03:55.380 --> 00:03:56.720
+For example, in our use case,
+
+79
+00:03:56.880 --> 00:04:02.720
+we most likely need to make the token support different token providers.
+
+80
+00:04:02.880 --> 00:04:04.220
+I don't know if you're using Azure ID,
+
+81
+00:04:04.380 --> 00:04:06.260
+you probably want to specify your own tenant,
+
+82
+00:04:06.420 --> 00:04:08.800
+but you might be using other OIDC providers.
+
+83
+00:04:08.960 --> 00:04:11.060
+And maybe the user also wants to make sure
+
+84
+00:04:11.220 --> 00:04:13.260
+that the tokens are given for a specific audience,
+
+85
+00:04:13.420 --> 00:04:15.140
+so they will need to provide that audience,
+
+86
+00:04:15.140 --> 00:04:17.400
+or maybe they want to validate other token claims,
+
+87
+00:04:17.560 --> 00:04:20.440
+so they need to have a way to specify all these different options,
+
+88
+00:04:20.600 --> 00:04:23.360
+and parameters can allow us to make that flexible enough.
+
+89
+00:04:23.520 --> 00:04:28.080
+You can also use this approach to make private resources or private solutions,
+
+90
+00:04:28.240 --> 00:04:31.500
+so it's something you might consider to use internally in your own company.
+
+91
+00:04:31.660 --> 00:04:35.120
+If you have certain things that you think might be useful for other teams
+
+92
+00:04:35.280 --> 00:04:38.740
+or for other projects, you can just publish them as SAR applications,
+
+93
+00:04:38.920 --> 00:04:41.620
+and then they will be available inside your AWS account.
+
+94
+00:04:41.800 --> 00:04:44.720
+So it's not something that you use only for public things,
+
+95
+00:04:44.720 --> 00:04:47.100
+but you can also consider it for private solutions
+
+96
+00:04:47.260 --> 00:04:48.600
+that you want to make reusable.
+
+97
+00:04:48.760 --> 00:04:51.560
+Now, once you have published something on SAR,
+
+98
+00:04:51.720 --> 00:04:56.320
+other people can install them using the CLI or using infrastructure as code.
+
+99
+00:04:56.480 --> 00:04:58.320
+The name is Serverless Application Repository,
+
+100
+00:04:58.480 --> 00:05:00.740
+so you might think, okay, this is just for Lambdas, right?
+
+101
+00:05:00.900 --> 00:05:02.700
+This is just for serverless things.
+
+102
+00:05:02.860 --> 00:05:05.200
+But in reality, because you are effectively writing cloud formation,
+
+103
+00:05:05.360 --> 00:05:08.860
+you can use this approach to specify any cloud formation template,
+
+104
+00:05:09.040 --> 00:05:12.960
+any resource, so you might also go beyond the scope of serverless application,
+
+105
+00:05:12.960 --> 00:05:14.920
+if that's something that makes sense for you.
+
+106
+00:05:15.080 --> 00:05:18.800
+So the idea is more if you want to make bits and pieces
+
+107
+00:05:18.960 --> 00:05:21.460
+of your infrastructure usable and configurable,
+
+108
+00:05:21.640 --> 00:05:25.260
+that's one way of doing it, regardless of whether it's serverless or not.
+
+109
+00:05:25.440 --> 00:05:29.640
+I think I really like this approach because the user experience is pretty good.
+
+110
+00:05:29.800 --> 00:05:32.360
+So you basically can browse this catalog,
+
+111
+00:05:32.520 --> 00:05:33.860
+you can see all the different solutions.
+
+112
+00:05:34.020 --> 00:05:37.740
+There is some degree of documentation that describes every single solution,
+
+113
+00:05:37.900 --> 00:05:41.780
+and then when you want to install it, it's pretty much almost like one-click approach.
+
+114
+00:05:41.780 --> 00:05:44.160
+Or it's very seamless the way you do it.
+
+115
+00:05:45.200 --> 00:05:46.620
+There is one disadvantage, though.
+
+116
+00:05:46.780 --> 00:05:49.620
+I have been using some of these publicly available solutions
+
+117
+00:05:49.780 --> 00:05:52.960
+from other creators, and the problem is that,
+
+118
+00:05:53.120 --> 00:05:55.000
+especially, for instance, with things like Node.js,
+
+119
+00:05:55.160 --> 00:05:57.960
+where the runtime evolves quite rapidly,
+
+120
+00:05:58.120 --> 00:06:02.000
+the owners of this solution don't always keep the runtime up to date.
+
+121
+00:06:02.180 --> 00:06:05.720
+So you might end up in a situation where you want to use a specific SARS solution,
+
+122
+00:06:05.880 --> 00:06:08.560
+but then the runtime is not available in AWS anymore.
+
+123
+00:06:08.560 --> 00:06:11.620
+So you are kind of forced either to try to open up your R
+
+124
+00:06:11.780 --> 00:06:14.360
+and get the owner to update and republish,
+
+125
+00:06:14.520 --> 00:06:16.400
+or just fork it and maintain it yourself.
+
+126
+00:06:16.580 --> 00:06:19.240
+So this might be one of the downsides that, of course,
+
+127
+00:06:19.400 --> 00:06:21.620
+because somebody else is maintaining the solution,
+
+128
+00:06:21.780 --> 00:06:25.120
+you need to make sure that they're actually committing to keep it up to date
+
+129
+00:06:25.280 --> 00:06:28.420
+and maintain it every time that there is a break and change like that.
+
+130
+00:06:29.000 --> 00:06:31.960
+Now, of course, this is not the only way to share Lambda functions.
+
+131
+00:06:32.120 --> 00:06:34.920
+We have other options. So any ideas?
+
+132
+00:06:35.420 --> 00:06:38.300
+Once you have a CloudFormation template, there's actually a lot of options.
+
+133
+00:06:38.300 --> 00:06:41.640
+Around how you can share it, you can just create it and publish it on GitHub
+
+134
+00:06:41.800 --> 00:06:43.260
+or anywhere else on the web.
+
+135
+00:06:43.440 --> 00:06:47.360
+The main disadvantage really there is that you're giving your users a bit more work.
+
+136
+00:06:47.520 --> 00:06:49.240
+Just putting it in a GitHub repo.
+
+137
+00:06:49.400 --> 00:06:52.560
+Versioning support is something you will have to think about yourself.
+
+138
+00:06:52.740 --> 00:06:54.820
+And another thing is that you will have to decide then
+
+139
+00:06:54.980 --> 00:06:57.240
+how to package the Lambda function code.
+
+140
+00:06:57.400 --> 00:07:00.120
+So if you publish it in a GitHub repository,
+
+141
+00:07:00.280 --> 00:07:03.460
+you can always just let the user package and deploy for themselves.
+
+142
+00:07:03.620 --> 00:07:06.120
+For example, you could provide a SAM template
+
+143
+00:07:06.280 --> 00:07:08.040
+along with the code assets.
+
+144
+00:07:08.040 --> 00:07:11.460
+This might be more work for the user because they'll need all the tools
+
+145
+00:07:11.620 --> 00:07:14.760
+to deploy the function in whatever language you have chosen.
+
+146
+00:07:14.920 --> 00:07:18.600
+On the other hand, it does have the advantage that the code is easily visible
+
+147
+00:07:18.760 --> 00:07:21.880
+and the user has the freedom to change things as needed, fork it
+
+148
+00:07:22.060 --> 00:07:23.800
+and make their own versions of it.
+
+149
+00:07:23.980 --> 00:07:25.400
+Now, when you're creating Lambda functions,
+
+150
+00:07:25.560 --> 00:07:27.760
+you have the options of specifying the code inline.
+
+151
+00:07:27.940 --> 00:07:30.860
+You can specify it as a base 64 encoded zip file
+
+152
+00:07:31.020 --> 00:07:32.820
+or putting a zip file on S3.
+
+153
+00:07:32.980 --> 00:07:35.360
+I think the zip file on S3 is probably the most common.
+
+154
+00:07:35.520 --> 00:07:37.780
+The inline options are easier to publish.
+
+155
+00:07:37.780 --> 00:07:40.540
+They limit because you don't have to worry about buckets,
+
+156
+00:07:40.700 --> 00:07:42.700
+but they limit how much code you can have
+
+157
+00:07:42.880 --> 00:07:45.660
+because there's a maximum there of four megabytes for the zip.
+
+158
+00:07:45.840 --> 00:07:48.460
+And then you have to think about how do you bundle dependencies
+
+159
+00:07:48.620 --> 00:07:50.460
+into that inline code.
+
+160
+00:07:50.620 --> 00:07:52.220
+If you do go for the bucket option,
+
+161
+00:07:52.380 --> 00:07:54.380
+you essentially have to make the bucket public
+
+162
+00:07:54.540 --> 00:07:58.100
+if you want it to be shared and usable as is by the user.
+
+163
+00:07:58.260 --> 00:08:03.300
+Now, you can restrict your bucket to read only on specific prefixes,
+
+164
+00:08:03.480 --> 00:08:04.720
+just get object.
+
+165
+00:08:04.900 --> 00:08:07.400
+And you can even use condition keys in the policy
+
+166
+00:08:07.400 --> 00:08:10.820
+to get access to the AWS Lambda service itself.
+
+167
+00:08:10.980 --> 00:08:13.660
+So that's the only principle that will be able to read the code
+
+168
+00:08:13.820 --> 00:08:15.820
+when it's deploying the Lambda function.
+
+169
+00:08:16.000 --> 00:08:18.580
+And this is something that we have tried out
+
+170
+00:08:18.740 --> 00:08:22.340
+and we have a GitHub repository with a code example
+
+171
+00:08:22.500 --> 00:08:24.580
+showing you exactly how to configure that bucket.
+
+172
+00:08:24.760 --> 00:08:28.760
+It is a public bucket, so it's not going to be for everyone's taste.
+
+173
+00:08:28.920 --> 00:08:31.840
+It's getting to a stage now where public buckets
+
+174
+00:08:32.000 --> 00:08:34.680
+are becoming like socially unacceptable
+
+175
+00:08:34.680 --> 00:08:37.780
+as regarded as being a bit insecure,
+
+176
+00:08:37.940 --> 00:08:40.280
+but it can be done for specific cases like this.
+
+177
+00:08:40.440 --> 00:08:43.560
+Sometimes if you want to provide code publicly via S3,
+
+178
+00:08:43.740 --> 00:08:45.440
+you need to have public access.
+
+179
+00:08:45.620 --> 00:08:46.860
+So there are ways of doing that
+
+180
+00:08:47.040 --> 00:08:49.620
+where you give the least privilege possible.
+
+181
+00:08:49.780 --> 00:08:53.000
+Another simple way to let users deploy your CloudFormation template
+
+182
+00:08:53.160 --> 00:08:55.120
+is to create a one-click URL.
+
+183
+00:08:55.280 --> 00:08:56.280
+That's been around for a while.
+
+184
+00:08:56.460 --> 00:08:58.120
+You might have seen websites and GitHub repos
+
+185
+00:08:58.300 --> 00:09:01.340
+with click to deploy in CloudFormation,
+
+186
+00:09:01.500 --> 00:09:03.720
+and it just gives you the ability to have a button on your website
+
+187
+00:09:03.720 --> 00:09:06.180
+that would take users directly to the CloudFormation UI
+
+188
+00:09:06.340 --> 00:09:09.560
+with the template preloaded from S3.
+
+189
+00:09:09.720 --> 00:09:13.180
+Now, if you don't want to make the template available on GitHub or S3,
+
+190
+00:09:13.360 --> 00:09:17.020
+you can publish it as a module on the CloudFormation registry.
+
+191
+00:09:17.180 --> 00:09:20.020
+So this also gives you options for public and private access
+
+192
+00:09:20.180 --> 00:09:22.680
+like the serverless application repository,
+
+193
+00:09:22.860 --> 00:09:25.200
+and it will also allow you to do versioning.
+
+194
+00:09:25.360 --> 00:09:28.200
+It's basically a way to publish a set of resources in a template
+
+195
+00:09:28.360 --> 00:09:31.320
+and let other users include that module in their template.
+
+196
+00:09:31.320 --> 00:09:33.780
+Then when the user deploys their one,
+
+197
+00:09:33.940 --> 00:09:36.440
+CloudFormation will automatically kind of inline
+
+198
+00:09:36.620 --> 00:09:38.900
+all of your resources from the module.
+
+199
+00:09:39.080 --> 00:09:42.820
+Now, CloudFormation registry is there for lots of different purposes.
+
+200
+00:09:43.000 --> 00:09:44.820
+You can publish your own providers there too.
+
+201
+00:09:45.000 --> 00:09:47.420
+It's not incredibly common to see it used,
+
+202
+00:09:48.460 --> 00:09:51.300
+but if you're doing something public, it's an option.
+
+203
+00:09:51.460 --> 00:09:52.880
+If you want it to be private,
+
+204
+00:09:53.040 --> 00:09:55.040
+so just for your organization accounts,
+
+205
+00:09:55.220 --> 00:09:56.220
+then you might say,
+
+206
+00:09:56.380 --> 00:09:58.180
+well, why bother using the CloudFormation registry?
+
+207
+00:09:58.180 --> 00:10:02.180
+Because I think service catalog is probably a more common approach
+
+208
+00:10:02.360 --> 00:10:04.560
+than the CloudFormation registry in that case.
+
+209
+00:10:05.240 --> 00:10:07.060
+So you've got, I think, quite a few options
+
+210
+00:10:07.240 --> 00:10:09.980
+when you just have a CloudFormation template and some code,
+
+211
+00:10:10.160 --> 00:10:13.200
+but of course, it's not restricted to CloudFormation Luciano.
+
+212
+00:10:13.360 --> 00:10:18.780
+Modules are something you can do also with Terraform or OpenTofu, I guess.
+
+213
+00:10:20.120 --> 00:10:23.880
+Yeah, exactly, and this is one of the killer features of Terraform.
+
+214
+00:10:23.880 --> 00:10:28.100
+And if people have a preference for Terraform over CloudFormation,
+
+215
+00:10:28.260 --> 00:10:31.260
+you can basically make things reusable
+
+216
+00:10:31.440 --> 00:10:34.440
+by defining infrastructure as called as Terraform modules.
+
+217
+00:10:34.600 --> 00:10:37.940
+And the idea is that you can package together
+
+218
+00:10:38.100 --> 00:10:40.820
+a collection of resources in Terraform files,
+
+219
+00:10:40.980 --> 00:10:45.400
+and then you expose an interface that can receive inputs for configuration
+
+220
+00:10:45.580 --> 00:10:48.740
+and provide outputs to basically be able to connect
+
+221
+00:10:48.900 --> 00:10:50.240
+what you generated from your module
+
+222
+00:10:50.240 --> 00:10:53.740
+with the rest of your own infrastructure that you're working on.
+
+223
+00:10:53.920 --> 00:10:55.580
+And this is a fairly common approach.
+
+224
+00:10:55.740 --> 00:10:57.920
+People using Terraform should be quite used to this,
+
+225
+00:10:58.080 --> 00:11:01.720
+especially since modules have been available for so long.
+
+226
+00:11:01.880 --> 00:11:04.420
+So in this particular use case, what you could do
+
+227
+00:11:04.600 --> 00:11:07.100
+is basically define everything you need for this Lambda Authorizer
+
+228
+00:11:07.260 --> 00:11:09.880
+to work as a module and then make this module available.
+
+229
+00:11:10.060 --> 00:11:11.600
+So now, once you have the module,
+
+230
+00:11:11.760 --> 00:11:13.480
+what are the options to make it available?
+
+231
+00:11:13.640 --> 00:11:16.720
+And I think the most common one is to just publish it on GitHub,
+
+232
+00:11:16.720 --> 00:11:20.380
+because one of the many ways that you can install modules
+
+233
+00:11:20.560 --> 00:11:22.380
+coming from third parties
+
+234
+00:11:22.560 --> 00:11:24.560
+is just by referencing the GitHub repository.
+
+235
+00:11:24.720 --> 00:11:27.300
+So if that's a public repo, it's very easy.
+
+236
+00:11:27.480 --> 00:11:30.400
+So most of the modules out there, public available,
+
+237
+00:11:30.560 --> 00:11:32.060
+will follow this approach.
+
+238
+00:11:32.220 --> 00:11:35.020
+There is also another option called Terraform Registry,
+
+239
+00:11:35.180 --> 00:11:36.480
+which is a bit more centralized.
+
+240
+00:11:36.640 --> 00:11:38.140
+It's managed by Terraform itself.
+
+241
+00:11:38.320 --> 00:11:41.320
+And as a Terraform user, you can publish your own modules
+
+242
+00:11:41.480 --> 00:11:42.980
+into the registry.
+
+243
+00:11:43.160 --> 00:11:46.360
+This is basically designed specifically for sharing Terraform modules
+
+244
+00:11:46.360 --> 00:11:47.600
+and providers.
+
+245
+00:11:47.780 --> 00:11:50.600
+So you can also use that not just for modules,
+
+246
+00:11:50.780 --> 00:11:52.480
+but if you have more advanced use cases
+
+247
+00:11:52.640 --> 00:11:55.020
+where you want to create custom providers,
+
+248
+00:11:55.200 --> 00:11:58.120
+maybe because you are interacting with resources outside AWS,
+
+249
+00:11:58.280 --> 00:12:00.700
+you're using other, I don't know, SaaS solutions,
+
+250
+00:12:00.860 --> 00:12:03.320
+and you are creating your own Terraform binding code
+
+251
+00:12:03.480 --> 00:12:07.400
+to be able to provision resources into other third-party SaaS.
+
+252
+00:12:07.580 --> 00:12:10.280
+So it's very powerful because it kind of gives you
+
+253
+00:12:10.440 --> 00:12:13.860
+all the extensibility of Terraform in one place.
+
+254
+00:12:13.860 --> 00:12:16.360
+Once you have your modules in the Terraform registry,
+
+255
+00:12:16.520 --> 00:12:18.640
+you can easily include them in your configuration
+
+256
+00:12:18.800 --> 00:12:23.220
+so anyone can just reference a module from the registry.
+
+257
+00:12:23.400 --> 00:12:26.400
+Another approach which is somewhat similar to CloudFormation
+
+258
+00:12:26.560 --> 00:12:30.180
+is that you can just make things available in a URL.
+
+259
+00:12:30.360 --> 00:12:31.860
+So this is called direct download,
+
+260
+00:12:32.020 --> 00:12:34.180
+and it's basically a tarball or a zip file
+
+261
+00:12:34.360 --> 00:12:36.440
+that can live in a CDN or your own website
+
+262
+00:12:36.600 --> 00:12:40.360
+or basically anywhere else where you can access through an HTTP URL.
+
+263
+00:12:40.520 --> 00:12:42.640
+And this way, you have another additional way
+
+264
+00:12:42.640 --> 00:12:44.880
+to reference all the Terraform module code
+
+265
+00:12:45.060 --> 00:12:48.460
+and include it into another project when needed.
+
+266
+00:12:48.640 --> 00:12:51.800
+It's, I don't know if I see a use case for this.
+
+267
+00:12:51.960 --> 00:12:55.460
+Like, I think if I had this need, I would probably prefer GitHub
+
+268
+00:12:55.640 --> 00:12:59.960
+rather than having to think how to host that package myself in a URL.
+
+269
+00:13:00.140 --> 00:13:02.800
+But if you have strong reasons not to use GitHub,
+
+270
+00:13:02.960 --> 00:13:04.720
+that can be probably another approach.
+
+271
+00:13:04.880 --> 00:13:06.640
+There is another idea that might come to mind
+
+272
+00:13:06.800 --> 00:13:11.300
+because we are thinking about packaging this Lambda into a zip file,
+
+273
+00:13:11.300 --> 00:13:15.300
+but you probably know that this is not the only option to provide Lambda code
+
+274
+00:13:15.480 --> 00:13:17.640
+because the other option is to use container images.
+
+275
+00:13:17.800 --> 00:13:18.800
+And if we think about that,
+
+276
+00:13:18.980 --> 00:13:21.720
+we open up another bunch of possible options
+
+277
+00:13:21.880 --> 00:13:23.680
+on how to host the Lambda code
+
+278
+00:13:23.840 --> 00:13:25.800
+because basically we can host it everywhere
+
+279
+00:13:25.980 --> 00:13:27.980
+where you can host a container image.
+
+280
+00:13:28.140 --> 00:13:32.980
+And the obvious options are you can use Docker Hub
+
+281
+00:13:33.140 --> 00:13:36.140
+or you can use an ECR registry
+
+282
+00:13:36.300 --> 00:13:39.140
+or you can even use GitHub registry
+
+283
+00:13:39.140 --> 00:13:42.820
+because recently GitHub opened up support also for Docker images
+
+284
+00:13:42.980 --> 00:13:43.980
+in their own registry.
+
+285
+00:13:44.140 --> 00:13:45.820
+This is actually not something we have tried,
+
+286
+00:13:45.980 --> 00:13:49.400
+but because you can do public images, that should work out of the box
+
+287
+00:13:49.560 --> 00:13:51.740
+because it's still using the OCI standard
+
+288
+00:13:51.900 --> 00:13:55.240
+in terms of allowing people to pull their containers.
+
+289
+00:13:55.400 --> 00:13:58.320
+There is one thing that I think is worth discussing
+
+290
+00:13:58.480 --> 00:14:00.820
+because we were actually thinking about this option.
+
+291
+00:14:00.980 --> 00:14:03.820
+When you think about hosting stuff on S3,
+
+292
+00:14:03.980 --> 00:14:05.640
+if this is your own bucket,
+
+293
+00:14:05.640 --> 00:14:09.420
+then imagine that that thing becomes very successful,
+
+294
+00:14:09.600 --> 00:14:11.300
+it goes viral, everyone is using it,
+
+295
+00:14:11.460 --> 00:14:14.460
+you have millions of downloads per week,
+
+296
+00:14:14.640 --> 00:14:17.460
+and then suddenly you realize, wait, I'm paying for all of this.
+
+297
+00:14:17.640 --> 00:14:19.460
+I'm paying for all the access to this bucket.
+
+298
+00:14:19.640 --> 00:14:20.960
+So this is maybe not desirable
+
+299
+00:14:21.140 --> 00:14:22.460
+because you created something open source,
+
+300
+00:14:22.640 --> 00:14:25.460
+you are not monetizing from it, and suddenly you even have a cost.
+
+301
+00:14:25.640 --> 00:14:28.960
+So one thing that is commonly done in those cases,
+
+302
+00:14:29.140 --> 00:14:31.640
+so when people are sharing resources over S3,
+
+303
+00:14:31.800 --> 00:14:33.960
+but they don't want to take a hit on the cost,
+
+304
+00:14:33.960 --> 00:14:36.280
+is to use a feature called RequestedPays,
+
+305
+00:14:36.460 --> 00:14:38.280
+which basically allows you to say,
+
+306
+00:14:38.460 --> 00:14:40.280
+you can only access this public resource
+
+307
+00:14:40.460 --> 00:14:43.280
+if you decide that you are going to be paying for the access cost.
+
+308
+00:14:43.460 --> 00:14:46.280
+There is one problem with this in this particular case,
+
+309
+00:14:46.460 --> 00:14:49.280
+is that you need to pass a header in the S3 request
+
+310
+00:14:49.460 --> 00:14:52.280
+to say, I accept the cost of downloading this.
+
+311
+00:14:52.460 --> 00:14:55.280
+So it's almost like saying, I am aware that there is a cost,
+
+312
+00:14:55.460 --> 00:14:57.280
+I'm not just downloading this for free,
+
+313
+00:14:57.460 --> 00:15:00.280
+I'm going to be taking on the cost of the download.
+
+314
+00:15:00.460 --> 00:15:03.280
+And this way, AWS basically allows this mechanism
+
+315
+00:15:03.280 --> 00:15:05.600
+where you as a publisher don't have to take the cost
+
+316
+00:15:05.780 --> 00:15:08.600
+and the user is aware that they are paying the cost for the download.
+
+317
+00:15:08.780 --> 00:15:11.600
+The problem is that because it requires an extra header,
+
+318
+00:15:11.780 --> 00:15:13.600
+this is not something that is built in
+
+319
+00:15:13.780 --> 00:15:17.600
+when you reference the Lambda code from S3.
+
+320
+00:15:17.780 --> 00:15:20.600
+You cannot just say, use the x-amz-request-payer header.
+
+321
+00:15:20.780 --> 00:15:23.600
+So basically, this option is not available for you.
+
+322
+00:15:23.780 --> 00:15:28.600
+And this is one reason why if you want to use SAR,
+
+323
+00:15:28.780 --> 00:15:31.600
+in that case, all your code is going to be hosted
+
+324
+00:15:31.600 --> 00:15:33.420
+in a bucket that is owned by AWS.
+
+325
+00:15:33.600 --> 00:15:34.920
+So you don't have to worry about cost,
+
+326
+00:15:35.100 --> 00:15:37.920
+you don't have to worry about the fact that people cannot specify
+
+327
+00:15:38.100 --> 00:15:40.420
+the request by your header as another alternative.
+
+328
+00:15:40.600 --> 00:15:42.420
+So basically, this reinforces the idea that SAR
+
+329
+00:15:42.600 --> 00:15:45.420
+is probably the simplest approach for this particular use case.
+
+330
+00:15:45.600 --> 00:15:47.920
+That maybe makes me think that you mentioned SAR
+
+331
+00:15:48.100 --> 00:15:49.920
+is like an app store for your resources.
+
+332
+00:15:50.100 --> 00:15:52.420
+So now the next question is,
+
+333
+00:15:52.600 --> 00:15:54.420
+what if we actually want to make a business out of it?
+
+334
+00:15:54.600 --> 00:15:58.420
+Maybe we want to make this thing something that people have to pay to use it,
+
+335
+00:15:58.600 --> 00:16:00.920
+because maybe it's giving them so much value that...
+
+336
+00:16:00.920 --> 00:16:02.740
+And we have so much maintenance burden
+
+337
+00:16:02.920 --> 00:16:05.740
+that it makes sense to make it as a, I don't know, paid service.
+
+338
+00:16:05.920 --> 00:16:06.740
+Does that make sense?
+
+339
+00:16:06.920 --> 00:16:08.740
+And if it does make sense, what are the options
+
+340
+00:16:08.920 --> 00:16:11.740
+in terms of hosting it as a paid solution?
+
+341
+00:16:11.920 --> 00:16:13.740
+While SAR might be like a bit of an app store,
+
+342
+00:16:13.920 --> 00:16:15.740
+you can't monetize on it.
+
+343
+00:16:15.920 --> 00:16:17.240
+But there is an option for that.
+
+344
+00:16:17.420 --> 00:16:20.740
+You can publish CloudFormation templates to the AWS Marketplace
+
+345
+00:16:20.920 --> 00:16:22.740
+and set a price there.
+
+346
+00:16:22.920 --> 00:16:24.740
+So you might be familiar with AWS Marketplace
+
+347
+00:16:24.920 --> 00:16:29.740
+as a way to get third party products like AMIs, SaaS solutions.
+
+348
+00:16:29.740 --> 00:16:32.560
+You can buy through AWS Marketplace, like even Datadog and things.
+
+349
+00:16:32.740 --> 00:16:35.560
+You can buy through there so you can get it on your AWS bill.
+
+350
+00:16:35.740 --> 00:16:38.560
+But you can just provide CloudFormation templates as a product
+
+351
+00:16:38.740 --> 00:16:41.560
+and then you can charge people a monthly or a once-off cost
+
+352
+00:16:41.740 --> 00:16:43.560
+or lots of different billing options.
+
+353
+00:16:43.740 --> 00:16:46.560
+So if you think there is a market for your highly prized Lambda function,
+
+354
+00:16:46.740 --> 00:16:48.560
+this is a reasonable option.
+
+355
+00:16:48.740 --> 00:16:51.560
+Now, I don't have any experience really of doing CloudFormation templates
+
+356
+00:16:51.740 --> 00:16:53.560
+in the AWS Marketplace,
+
+357
+00:16:53.740 --> 00:16:56.560
+but I frequently listen to the Cloudonaut podcast.
+
+358
+00:16:56.560 --> 00:16:59.380
+We've mentioned it a few times where Michael and Andreas talk
+
+359
+00:16:59.560 --> 00:17:03.380
+about their experiences in publishing their products to the Marketplace.
+
+360
+00:17:03.560 --> 00:17:05.380
+And we will have a link in the show notes
+
+361
+00:17:05.560 --> 00:17:09.380
+to a really great blog post from them with an accompanying video.
+
+362
+00:17:09.560 --> 00:17:12.380
+And it's all about how to provide CloudFormation
+
+363
+00:17:12.560 --> 00:17:15.380
+as a product on the AWS Marketplace.
+
+364
+00:17:15.560 --> 00:17:17.380
+And unlike the Apple App Store,
+
+365
+00:17:17.560 --> 00:17:19.380
+they don't completely fleece you on commission.
+
+366
+00:17:19.560 --> 00:17:22.380
+I think it's much more reasonable on the Marketplace.
+
+367
+00:17:22.380 --> 00:17:26.200
+I think that's probably a good place to wrap this one up.
+
+368
+00:17:26.380 --> 00:17:30.200
+And I hope we've covered all the options for publishing Lambda functions
+
+369
+00:17:30.380 --> 00:17:34.200
+and indeed other AWS resources for public consumption.
+
+370
+00:17:34.380 --> 00:17:37.200
+We generally recommend SAR, the Serverless Application Repository,
+
+371
+00:17:37.380 --> 00:17:41.200
+as the first option since it handles the code distribution
+
+372
+00:17:41.380 --> 00:17:43.200
+and a lot of the complexity.
+
+373
+00:17:43.380 --> 00:17:46.200
+But let us know if you can think of any other creative ways for this.
+
+374
+00:17:46.380 --> 00:17:49.200
+Also, watch out and see what Luciano does in the future.
+
+375
+00:17:49.200 --> 00:17:52.020
+And if he manages to become a high-earning AWS Marketplace
+
+376
+00:17:52.200 --> 00:17:55.020
+CloudFormation entrepreneur! 😜
+
+377
+00:17:55.020 --> 00:18:19.840
+Thank you for listening and until next time, goodbye. 👋

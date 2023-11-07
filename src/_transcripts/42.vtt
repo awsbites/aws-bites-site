@@ -1,0 +1,1237 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:04.040
+A couple of episodes back, we talked about the process of migrating a monolithic application
+
+2
+00:00:04.040 --> 00:00:08.880
+to AWS using EC2 load balancers, S3 and RDS.
+
+3
+00:00:08.880 --> 00:00:12.260
+Today we want to talk about a slightly different approach where we're going to use containers
+
+4
+00:00:12.260 --> 00:00:15.840
+instead of EC2 and we want to deploy them into Fargate.
+
+5
+00:00:15.840 --> 00:00:19.400
+So we're going to cover all the components you need in that architecture, why you choose
+
+6
+00:00:19.400 --> 00:00:24.900
+Fargate over some of the alternatives and some CDK tricks to help you get started faster.
+
+7
+00:00:24.900 --> 00:00:36.320
+My name is Eoin, I'm here with Luciano and this is the AWS Bites podcast.
+
+8
+00:00:36.320 --> 00:00:40.640
+In episode 37, we talked about migrating a monolithic application to AWS.
+
+9
+00:00:40.640 --> 00:00:45.400
+And in that case, we talked about how you'd choose EC2 because adopting containers was
+
+10
+00:00:45.400 --> 00:00:48.120
+a step too far for the team.
+
+11
+00:00:48.120 --> 00:00:51.360
+The team was already having to learn a lot of new skills approaching AWS for the first
+
+12
+00:00:51.360 --> 00:00:52.720
+time.
+
+13
+00:00:52.720 --> 00:00:56.400
+But what about if we do have an appetite to move to containers and you've already got
+
+14
+00:00:56.400 --> 00:00:58.020
+some of those skills?
+
+15
+00:00:58.020 --> 00:01:02.600
+So we're going to talk about that example where we take something like an API backend
+
+16
+00:01:02.600 --> 00:01:05.840
+written in Python that can run in a container.
+
+17
+00:01:05.840 --> 00:01:09.160
+What are the simplest ways of getting it to run in a scalable and a reliable way using
+
+18
+00:01:09.160 --> 00:01:11.920
+containers when you're moving into the cloud?
+
+19
+00:01:11.920 --> 00:01:15.680
+So there's a lot of ways to run containers in AWS.
+
+20
+00:01:15.680 --> 00:01:17.840
+Why would we go for Fargate, Luciano?
+
+21
+00:01:17.840 --> 00:01:23.720
+Yeah, I think another one would be AppRunner, which is probably the simpler that I've seen
+
+22
+00:01:23.720 --> 00:01:26.680
+so far, or at least that's the way it's presented.
+
+23
+00:01:26.680 --> 00:01:30.840
+But it's still very new and that probably deserves its own dedicated episode when we
+
+24
+00:01:30.840 --> 00:01:34.520
+have some more time to actually play with it and see how it feels like.
+
+25
+00:01:34.520 --> 00:01:40.620
+So Fargate so far seems kind of the default choice to me because, well, I had some experience
+
+26
+00:01:40.620 --> 00:01:43.640
+with it and it's basically built on top of ECS.
+
+27
+00:01:43.640 --> 00:01:48.240
+So all the concepts are the same if you're familiar with ECS, which stands for Elastic
+
+28
+00:01:48.240 --> 00:01:49.840
+Container Service.
+
+29
+00:01:49.840 --> 00:01:54.680
+And just to summarize what are the main reasons, it's basically very simple to set up.
+
+30
+00:01:54.680 --> 00:01:58.560
+It doesn't require you to manage instances as in EC2 instances.
+
+31
+00:01:58.560 --> 00:01:59.960
+It's kind of serverless that way.
+
+32
+00:01:59.960 --> 00:02:05.080
+You just say, run this container for me and it will figure out some hidden instance where
+
+33
+00:02:05.080 --> 00:02:07.100
+to run it for you.
+
+34
+00:02:07.100 --> 00:02:12.400
+It supports autoscaling and also integrates very well with Elastic Load Balancers, but
+
+35
+00:02:12.400 --> 00:02:13.800
+also with CodeDeploy.
+
+36
+00:02:13.800 --> 00:02:18.880
+So you get autoscalability through Elastic Load Balancer and through multiple containers
+
+37
+00:02:18.880 --> 00:02:20.300
+running in a cluster.
+
+38
+00:02:20.300 --> 00:02:25.840
+But also you can fine-tune your pipeline with CodeDeploy to actually build and deploy your
+
+39
+00:02:25.840 --> 00:02:29.100
+containers.
+
+40
+00:02:29.100 --> 00:02:34.440
+You mentioned, though, that it's interesting to go through all the different components
+
+41
+00:02:34.440 --> 00:02:38.100
+that an architecture like this actually will require under the hood.
+
+42
+00:02:38.100 --> 00:02:40.040
+Should we describe what are those components?
+
+43
+00:02:40.040 --> 00:02:41.040
+Yeah.
+
+44
+00:02:41.040 --> 00:02:44.980
+I mean, I went through a lot of detail in episode 37 and a lot of them will be the same
+
+45
+00:02:44.980 --> 00:02:45.980
+here.
+
+46
+00:02:45.980 --> 00:02:48.480
+It's just the compute layer that we're switching out from EC2.
+
+47
+00:02:48.480 --> 00:02:50.680
+We're going for Fargate ECS instead.
+
+48
+00:02:50.680 --> 00:02:53.120
+So the VPC will be similar.
+
+49
+00:02:53.120 --> 00:02:54.960
+You've got a public and private subnet.
+
+50
+00:02:54.960 --> 00:02:58.160
+You've got the NAT gateway, your internet gateway, so that you've got outbound internet
+
+51
+00:02:58.160 --> 00:02:59.320
+access.
+
+52
+00:02:59.320 --> 00:03:04.000
+You've got your routing tables, the VPC security groups.
+
+53
+00:03:04.000 --> 00:03:05.840
+So that's your networking foundations really.
+
+54
+00:03:05.840 --> 00:03:08.720
+And then you'll have an application load balancer on top.
+
+55
+00:03:08.720 --> 00:03:12.680
+The difference between our EC2 approach and the Fargate approach is that the targets in
+
+56
+00:03:12.680 --> 00:03:17.720
+your target groups within the application load balancer will be different.
+
+57
+00:03:17.720 --> 00:03:23.680
+And yeah, we'll assume, again, we're using HTTP ES, so we'll have a Route 53 hosted zone
+
+58
+00:03:23.680 --> 00:03:28.840
+for the DNS and we'll have a certificate using certificates manager.
+
+59
+00:03:28.840 --> 00:03:30.820
+So that's the similarity.
+
+60
+00:03:30.820 --> 00:03:34.640
+And then the different parts are around ECS and Fargate.
+
+61
+00:03:34.640 --> 00:03:37.900
+And when you're working with Fargate, there's a few different resource types you need to
+
+62
+00:03:37.900 --> 00:03:38.900
+create.
+
+63
+00:03:38.900 --> 00:03:43.080
+So you've got your task definition, which is like the defining the container image and
+
+64
+00:03:43.080 --> 00:03:49.240
+all of the container configuration like environment variables, what ports are you exposing, how
+
+65
+00:03:49.240 --> 00:03:56.880
+much memory and CPU does your container need, and any volume mappings as well, volume mounts.
+
+66
+00:03:56.880 --> 00:03:59.040
+So that's your task definition.
+
+67
+00:03:59.040 --> 00:04:03.120
+You'll also have the ECS cluster itself, which is kind of like a boundary that all of your
+
+68
+00:04:03.120 --> 00:04:05.320
+Fargate services will run in.
+
+69
+00:04:05.320 --> 00:04:07.200
+And that's where you'd basically just specify the VPC.
+
+70
+00:04:07.200 --> 00:04:11.640
+So you don't have to configure any EC2 instances because it's Fargate.
+
+71
+00:04:11.640 --> 00:04:14.400
+All of that is taken to care of for you.
+
+72
+00:04:14.400 --> 00:04:17.600
+So then the last and probably the most important thing you need to create is the Fargate service
+
+73
+00:04:17.600 --> 00:04:19.000
+itself.
+
+74
+00:04:19.000 --> 00:04:23.040
+And that's where you specify, okay, how many of those tasks that I've outlined in my task
+
+75
+00:04:23.040 --> 00:04:25.600
+definition, how many of them do you want to run?
+
+76
+00:04:25.600 --> 00:04:27.520
+How do you scale it?
+
+77
+00:04:27.520 --> 00:04:31.060
+And the Fargate service is the bit that integrates well with the other pieces.
+
+78
+00:04:31.060 --> 00:04:33.760
+So it integrates well with our application load balancer.
+
+79
+00:04:33.760 --> 00:04:38.160
+So when you start a task, it will register the IP address of that container in the target
+
+80
+00:04:38.160 --> 00:04:46.100
+group so that traffic can start to be directed to that container.
+
+81
+00:04:46.100 --> 00:04:50.420
+It also will maintain a desired level of healthy containers.
+
+82
+00:04:50.420 --> 00:04:55.720
+So you can specify in your service what the minimum healthy percentage is, how many containers
+
+83
+00:04:55.720 --> 00:05:00.440
+you're desiring to run, your desired count, and your maximum count as well.
+
+84
+00:05:00.440 --> 00:05:03.320
+And then you can specify your auto scaling configuration.
+
+85
+00:05:03.320 --> 00:05:09.020
+And this is what makes it, I suppose, very advantageous moving to this container based
+
+86
+00:05:09.020 --> 00:05:14.680
+approach because based on whatever criteria you specify, you can choose to scale up and
+
+87
+00:05:14.680 --> 00:05:15.680
+down those containers.
+
+88
+00:05:15.680 --> 00:05:17.080
+So that could be based on a schedule.
+
+89
+00:05:17.080 --> 00:05:22.760
+If you know that all your traffic happens on, I don't know, Monday to Friday at 9 AM,
+
+90
+00:05:22.760 --> 00:05:27.520
+or if you're based, you can base it on the API request count, but like auto scaling groups
+
+91
+00:05:27.520 --> 00:05:30.340
+with EC2, you can also base it on any metric.
+
+92
+00:05:30.340 --> 00:05:35.000
+So the CPU of your containers, memory utilization of your containers, or actually any other
+
+93
+00:05:35.000 --> 00:05:36.000
+metric.
+
+94
+00:05:36.000 --> 00:05:42.000
+It could be a custom metric even that you're generating within the containers themselves.
+
+95
+00:05:42.000 --> 00:05:45.760
+So there's lots of different triggers you could use to say, this is when to scale up,
+
+96
+00:05:45.760 --> 00:05:49.360
+this is when to scale down, and there's a lot of advanced configuration there.
+
+97
+00:05:49.360 --> 00:05:51.360
+So there's quite a lot there, right?
+
+98
+00:05:51.360 --> 00:05:52.360
+
+
+99
+00:05:52.360 --> 00:05:56.600
+But- Yeah, one interesting detail that maybe it's worth mentioning for people that are more
+
+100
+00:05:56.600 --> 00:06:00.920
+skilled with, I don't know, something like Kubernetes, is that a task is probably a little
+
+101
+00:06:00.920 --> 00:06:05.960
+bit closer to the concept of pod in the Kubernetes world.
+
+102
+00:06:05.960 --> 00:06:09.920
+Because it's not necessarily like one-to-one with a container image or a container definition,
+
+103
+00:06:09.920 --> 00:06:14.520
+whatever you want to call it, but it's more, it could even contain multiple containers,
+
+104
+00:06:14.520 --> 00:06:19.360
+like the idea of you could run a main application and a sidecar container.
+
+105
+00:06:19.360 --> 00:06:23.680
+So that is just an interesting thing that I wasn't really aware at the beginning.
+
+106
+00:06:23.680 --> 00:06:28.280
+The task is kind of a higher level concept than just one container, but it could be multiple
+
+107
+00:06:28.280 --> 00:06:30.480
+containers that need to run together.
+
+108
+00:06:30.480 --> 00:06:31.480
+That's true.
+
+109
+00:06:31.480 --> 00:06:36.320
+And if you want to run the CloudWatch agent, for example, which you normally you run EC2,
+
+110
+00:06:36.320 --> 00:06:40.200
+but sometimes you won't need to run it with containers if you want to get the EMF metrics
+
+111
+00:06:40.200 --> 00:06:41.480
+out and stuff.
+
+112
+00:06:41.480 --> 00:06:45.340
+That's one application for that, where you would run an application with the CloudWatch
+
+113
+00:06:45.340 --> 00:06:46.720
+agent as a sidecar.
+
+114
+00:06:46.720 --> 00:06:51.380
+So this is, for people who are used to ECS, this is probably okay.
+
+115
+00:06:51.380 --> 00:06:55.160
+But if you're thinking, okay, I was expecting to hear about a simple way to get started
+
+116
+00:06:55.160 --> 00:06:56.920
+with containers on AWS.
+
+117
+00:06:56.920 --> 00:07:00.680
+And if you've never heard of any of this before, it probably doesn't sound very simple.
+
+118
+00:07:00.680 --> 00:07:02.880
+So what do you think?
+
+119
+00:07:02.880 --> 00:07:06.880
+Would you recommend any kind of templates or tutorials out there?
+
+120
+00:07:06.880 --> 00:07:08.440
+What's the best way to get started easily?
+
+121
+00:07:08.440 --> 00:07:11.720
+Yeah, there is one particular way that I used.
+
+122
+00:07:11.720 --> 00:07:13.960
+This was about one year ago, I think.
+
+123
+00:07:13.960 --> 00:07:17.520
+So my view of this thing might be a little bit obsolete right now, but I'm going to try
+
+124
+00:07:17.520 --> 00:07:21.820
+to describe the experience I got about one year ago anyway, and you can challenge me
+
+125
+00:07:21.820 --> 00:07:23.940
+if you had a more recent experience.
+
+126
+00:07:23.940 --> 00:07:29.000
+So there is something as part of CDK, it's like a set of patterns that are maintained
+
+127
+00:07:29.000 --> 00:07:32.660
+as higher level constructs by AWS itself.
+
+128
+00:07:32.660 --> 00:07:38.160
+So you just install them from AWS and this ECS patterns with CDK, what they do is they
+
+129
+00:07:38.160 --> 00:07:43.000
+basically allow you to define how, basically where the source code of your application
+
+130
+00:07:43.000 --> 00:07:48.920
+is and more or less few configuration toggles that you can just play around with to say,
+
+131
+00:07:48.920 --> 00:07:49.920
+okay, do you need volumes?
+
+132
+00:07:49.920 --> 00:07:52.540
+Do you want to associate a domain name?
+
+133
+00:07:52.540 --> 00:07:54.600
+Is it going to use a load balancer?
+
+134
+00:07:54.600 --> 00:07:59.680
+And it literally, you end up writing 10 lines of code and it's code as in configuration
+
+135
+00:07:59.680 --> 00:08:02.800
+code, you copy paste and you change a few things.
+
+136
+00:08:02.800 --> 00:08:08.080
+And later you just do CDK deploy, it takes maybe around 10 minutes and it will provision
+
+137
+00:08:08.080 --> 00:08:10.000
+almost everything for you.
+
+138
+00:08:10.000 --> 00:08:14.720
+And it will, the magic thing is that you basically just connect to that domain that you specified
+
+139
+00:08:14.720 --> 00:08:18.420
+and your application is working, which feels a little bit magic that you with 10 lines
+
+140
+00:08:18.420 --> 00:08:23.520
+of code, if you're used to AWS where it takes you to really deep dive to do anything, it
+
+141
+00:08:23.520 --> 00:08:27.640
+feels like, okay, this is still a different experience that you're not used to when dealing
+
+142
+00:08:27.640 --> 00:08:29.220
+with AWS.
+
+143
+00:08:29.220 --> 00:08:32.680
+And this can have of course, pros and cons because on one side you get started very,
+
+144
+00:08:32.680 --> 00:08:37.660
+very quickly, but it might give you a false sense of confidence that basically you know
+
+145
+00:08:37.660 --> 00:08:42.480
+what you're doing while in reality there is a lot of stuff that is being hidden from you.
+
+146
+00:08:42.480 --> 00:08:46.240
+And I think if you are building a serious application, eventually you might want to
+
+147
+00:08:46.240 --> 00:08:48.640
+know what's happening behind the scenes.
+
+148
+00:08:48.640 --> 00:08:52.920
+And when I actually did that about one year ago, I was surprised because I was trying
+
+149
+00:08:52.920 --> 00:08:58.860
+to run, it was kind of a microservice project with, I think it was something like about
+
+150
+00:08:58.860 --> 00:09:04.500
+five application runnings on different domains, but those applications would be related with
+
+151
+00:09:04.500 --> 00:09:05.500
+each other.
+
+152
+00:09:05.500 --> 00:09:09.440
+Each user will log in as one experience and jump into different domains, depending which
+
+153
+00:09:09.440 --> 00:09:13.280
+parts of the application the user was trying to use.
+
+154
+00:09:13.280 --> 00:09:17.580
+So it was like, okay, we deploy them together as part of the same cluster.
+
+155
+00:09:17.580 --> 00:09:23.160
+And I realized, and they will be using five different subdomains on the same main domain.
+
+156
+00:09:23.160 --> 00:09:28.880
+And I realized at some point that this thing was provisioning five different load balancers
+
+157
+00:09:28.880 --> 00:09:33.160
+rather than just creating rules on the same load balancer and divided the traffic that
+
+158
+00:09:33.160 --> 00:09:34.200
+way.
+
+159
+00:09:34.200 --> 00:09:37.760
+Maybe someday it could be fine tuned if you're willing to spend more time and starting at
+
+160
+00:09:37.760 --> 00:09:41.560
+the configuration, maybe there are ways to actually reuse the same load balancer.
+
+161
+00:09:41.560 --> 00:09:45.800
+But it was something that I only figured out deep down the road when I was starting to
+
+162
+00:09:45.800 --> 00:09:51.240
+look back at all the resources like, okay, this is going to be expensive and for no reason
+
+163
+00:09:51.240 --> 00:09:55.160
+because you are provisioning five load balancers when you might use just one and route the
+
+164
+00:09:55.160 --> 00:09:59.000
+traffic in a more, I don't know, efficient way, I guess.
+
+165
+00:09:59.000 --> 00:10:00.080
+So that's the caveat.
+
+166
+00:10:00.080 --> 00:10:05.040
+Just be careful that with CDK, that is kind of a golden rule anyway, that when you use
+
+167
+00:10:05.040 --> 00:10:08.680
+higher level constructs, they can do so much stuff that you're not aware.
+
+168
+00:10:08.680 --> 00:10:12.000
+So it's always good to kind of have a look at some point and make sure you really understand
+
+169
+00:10:12.000 --> 00:10:13.000
+what's going on.
+
+170
+00:10:13.000 --> 00:10:17.640
+And probably there are opportunities to fine tune a few things for your actual use case.
+
+171
+00:10:17.640 --> 00:10:22.520
+I've had another similar kind of a shock with the CDK patterns because the first one I ever
+
+172
+00:10:22.520 --> 00:10:26.160
+used was not the application load balancer one, but there's another one that is more
+
+173
+00:10:26.160 --> 00:10:28.240
+designed for background processing.
+
+174
+00:10:28.240 --> 00:10:31.360
+It's called the queue processing Fargate service.
+
+175
+00:10:31.360 --> 00:10:36.240
+And you can specify an SQS queue and it will create all the infrastructure you need to
+
+176
+00:10:36.240 --> 00:10:40.160
+scale up and down the number of workers based on the number of messages in the queue.
+
+177
+00:10:40.160 --> 00:10:42.200
+And it was really easy to get started with.
+
+178
+00:10:42.200 --> 00:10:47.480
+That's sometimes a very misleading sense of security, like you say, because it was not
+
+179
+00:10:47.480 --> 00:10:51.480
+later that I realized it had created the NAT gateway as well because it created the whole
+
+180
+00:10:51.480 --> 00:10:52.480
+VPC.
+
+181
+00:10:52.480 --> 00:10:55.440
+You don't want to necessarily create a VPC for every single thing you deploy, right?
+
+182
+00:10:55.440 --> 00:10:59.760
+You probably want to think about your VPC design a little bit more carefully.
+
+183
+00:10:59.760 --> 00:11:03.960
+And you can specify your own VPC in these services, but it's always definitely worth
+
+184
+00:11:03.960 --> 00:11:07.920
+a while to do a CDK synth before you deploy and actually look at all the resources that
+
+185
+00:11:07.920 --> 00:11:08.920
+are being deployed.
+
+186
+00:11:08.920 --> 00:11:14.160
+Because in our case, we ended up with S3 traffic going through that NAT gateway where we would
+
+187
+00:11:14.160 --> 00:11:16.820
+have just preferred a VPC endpoint.
+
+188
+00:11:16.820 --> 00:11:22.520
+And we ended up with a, it wasn't a massive bit of bill shock, but some unexpected cost
+
+189
+00:11:22.520 --> 00:11:23.640
+there for sure.
+
+190
+00:11:23.640 --> 00:11:26.080
+So I think it's a really good thing, right?
+
+191
+00:11:26.080 --> 00:11:32.080
+Because I've been using them recently as well with this API load balancer service.
+
+192
+00:11:32.080 --> 00:11:37.420
+And I think I'm still impressed when you can create those 10 lines of code, wire it through
+
+193
+00:11:37.420 --> 00:11:39.220
+to route 53.
+
+194
+00:11:39.220 --> 00:11:43.080
+You don't have to configure the certificate resource, the load balancer resource, all
+
+195
+00:11:43.080 --> 00:11:45.400
+the VPC resources, it's all done for you.
+
+196
+00:11:45.400 --> 00:11:48.560
+So it really, and you can just as well point it at your Docker file.
+
+197
+00:11:48.560 --> 00:11:52.620
+You don't even have to push a container anywhere and CDK will manage all of that for you.
+
+198
+00:11:52.620 --> 00:11:55.760
+So it's really good for getting started, but then also think about, okay, now that I've
+
+199
+00:11:55.760 --> 00:11:58.260
+got started, how do I want to keep going?
+
+200
+00:11:58.260 --> 00:12:02.560
+Do I want to continue using this pattern or is this just like a learning experience where
+
+201
+00:12:02.560 --> 00:12:06.080
+I can see all the things that's generated and then I'm going to pick and choose the
+
+202
+00:12:06.080 --> 00:12:12.340
+pieces, understand them and kind of replicate that in a more with lower level constructs
+
+203
+00:12:12.340 --> 00:12:15.300
+in CDK or with CloudFormation or Terraform.
+
+204
+00:12:15.300 --> 00:12:19.140
+So I think CDK is sometimes a neat trick for getting started and figuring out how everything
+
+205
+00:12:19.140 --> 00:12:21.740
+should fit together, but you don't necessarily have to keep going with it.
+
+206
+00:12:21.740 --> 00:12:26.800
+Maybe it's worthwhile talking about the deployment then because with containers, you have to
+
+207
+00:12:26.800 --> 00:12:29.960
+think about, okay, you've got the repository, you need to deploy that.
+
+208
+00:12:29.960 --> 00:12:35.080
+Then you've got the cluster itself and the service, and then you've got your load balancer
+
+209
+00:12:35.080 --> 00:12:36.080
+in front.
+
+210
+00:12:36.080 --> 00:12:38.740
+What happens when I've got a new version of the image and I want to deploy it?
+
+211
+00:12:38.740 --> 00:12:40.200
+What happens to my current connections?
+
+212
+00:12:40.200 --> 00:12:42.540
+What happens to existing users?
+
+213
+00:12:42.540 --> 00:12:46.100
+What happens if I deploy a container that's got a bug in it?
+
+214
+00:12:46.100 --> 00:12:47.200
+How do we manage this?
+
+215
+00:12:47.200 --> 00:12:49.960
+What do you, how will we break this down?
+
+216
+00:12:49.960 --> 00:12:51.860
+How does the first CDK pattern manage it actually?
+
+217
+00:12:51.860 --> 00:12:52.860
+Do you want to talk about that?
+
+218
+00:12:52.860 --> 00:12:56.780
+Yeah, I can try to explain what I remember from my previous experience.
+
+219
+00:12:56.780 --> 00:13:01.580
+I hope it's still up to date and relevant, but I think in broad strokes it should be
+
+220
+00:13:01.580 --> 00:13:03.520
+still the way it works today.
+
+221
+00:13:03.520 --> 00:13:04.520
+And it's very convenient.
+
+222
+00:13:04.520 --> 00:13:09.820
+As you said, you just literally in your CDK code, you literally say, this is where my
+
+223
+00:13:09.820 --> 00:13:10.820
+Docker file is.
+
+224
+00:13:10.820 --> 00:13:12.820
+You literally give it a relative path.
+
+225
+00:13:12.820 --> 00:13:17.920
+So you probably have your Docker file in the same folder where you have your CDK code and
+
+226
+00:13:17.920 --> 00:13:20.240
+magically it's going to do a lot of stuff for you.
+
+227
+00:13:20.240 --> 00:13:24.800
+And that magically means that when you do CDK deploy, basically it's going to, the same
+
+228
+00:13:24.800 --> 00:13:28.660
+CDK deploy process is going to spin up a Docker build process in the background.
+
+229
+00:13:28.660 --> 00:13:31.740
+It's going to wait for the container to build.
+
+230
+00:13:31.740 --> 00:13:38.140
+And then in the bootstrap phase, CDKs also create an ECR repository for you.
+
+231
+00:13:38.140 --> 00:13:41.940
+So basically at that point, it's built the container, finishes to build the container
+
+232
+00:13:41.940 --> 00:13:43.980
+already as a repository.
+
+233
+00:13:43.980 --> 00:13:47.160
+So it's going to push a new version of that image.
+
+234
+00:13:47.160 --> 00:13:50.880
+And then at that point you have everything ready to start a new deployment because your
+
+235
+00:13:50.880 --> 00:13:56.140
+image is up and you can just say, okay, now I want to switch over all my containers to
+
+236
+00:13:56.140 --> 00:13:57.940
+the new version.
+
+237
+00:13:57.940 --> 00:14:01.780
+And that's interesting as well because we know that there might be a lot of complexity
+
+238
+00:14:01.780 --> 00:14:04.260
+there, but you don't get to see it with CDK.
+
+239
+00:14:04.260 --> 00:14:08.020
+And if I understand correctly what's going on, it does kind of a blue green deployment
+
+240
+00:14:08.020 --> 00:14:14.020
+where it's basically provisioning a new version of the container as a new service.
+
+241
+00:14:14.020 --> 00:14:18.460
+I don't know if it's the right terminology, but basically you get a copy of the previous
+
+242
+00:14:18.460 --> 00:14:22.680
+version that is still running and the new version that starts to spin up.
+
+243
+00:14:22.680 --> 00:14:26.380
+It doesn't kill the old version until the new version is up and running and all the
+
+244
+00:14:26.380 --> 00:14:27.940
+health check pass.
+
+245
+00:14:27.940 --> 00:14:31.220
+And it registered that as a new target in the load balancer.
+
+246
+00:14:31.220 --> 00:14:35.440
+Then it starts to drain the connection from the previous version, move the connection
+
+247
+00:14:35.440 --> 00:14:39.780
+to the new version and eventually start to destroy all the old containers.
+
+248
+00:14:39.780 --> 00:14:41.240
+And of course there are health checks.
+
+249
+00:14:41.240 --> 00:14:47.260
+So if your new version of the container cannot really run and receive connection correctly,
+
+250
+00:14:47.260 --> 00:14:48.260
+it will kind of roll back.
+
+251
+00:14:48.260 --> 00:14:53.260
+It will just kill the new containers and say, okay, this deployment failed.
+
+252
+00:14:53.260 --> 00:14:55.660
+It wasn't able to pass the health checks.
+
+253
+00:14:55.660 --> 00:14:59.220
+The only issue I had with this process at the time, and again, I was trying to run five
+
+254
+00:14:59.220 --> 00:15:03.820
+different applications, is that the steps were very sequential.
+
+255
+00:15:03.820 --> 00:15:11.900
+So I had to go through five, not parallel, but sequential times building the same thing.
+
+256
+00:15:11.900 --> 00:15:15.380
+So okay, building container one takes a few minutes.
+
+257
+00:15:15.380 --> 00:15:20.700
+Then provision container one takes up to 15, 30 minutes, depending on the case, because
+
+258
+00:15:20.700 --> 00:15:25.900
+yeah, all the time of draining connections and uploading everything, health checks and
+
+259
+00:15:25.900 --> 00:15:26.900
+so on.
+
+260
+00:15:26.900 --> 00:15:29.620
+And then it goes with the second container, third container, fourth container.
+
+261
+00:15:29.620 --> 00:15:32.420
+So it might take a long time to do that.
+
+262
+00:15:32.420 --> 00:15:37.660
+And there is actually an article we're going to link in the show notes that gives you ideas
+
+263
+00:15:37.660 --> 00:15:42.100
+on how you can tweak the configuration of health checks to speed up the process.
+
+264
+00:15:42.100 --> 00:15:45.900
+So if you have containers that can come up very fast and they can prove that they are
+
+265
+00:15:45.900 --> 00:15:51.100
+healthy very, very quickly, you can kind of fine tune some of these configurations.
+
+266
+00:15:51.100 --> 00:15:57.700
+And then you have much shorter times to tell, okay, this container is already good to go,
+
+267
+00:15:57.700 --> 00:15:58.700
+start to swap them out.
+
+268
+00:15:58.700 --> 00:16:03.740
+Yeah, I think that's a good way to, I guess, get started with the deployments.
+
+269
+00:16:03.740 --> 00:16:06.020
+You can use that workflow.
+
+270
+00:16:06.020 --> 00:16:08.380
+If you have to wait so long, it's going to be a little bit awkward.
+
+271
+00:16:08.380 --> 00:16:13.740
+And I'd also recommend kind of thinking about your long-term deployment strategy, because
+
+272
+00:16:13.740 --> 00:16:16.860
+we mentioned at the start that code deploy integrates well with Fargate.
+
+273
+00:16:16.860 --> 00:16:21.940
+And that's another way to manage shifting traffic over to a new version of the container
+
+274
+00:16:21.940 --> 00:16:22.940
+image.
+
+275
+00:16:22.940 --> 00:16:27.980
+So you could think of your CDK stack as managing the infrastructure for this service, then
+
+276
+00:16:27.980 --> 00:16:31.500
+the container image updates could be done with code deploy.
+
+277
+00:16:31.500 --> 00:16:36.460
+And that's a really nice set of features, I think, what code deploy gives you, because
+
+278
+00:16:36.460 --> 00:16:41.340
+it allows you to trigger code deploy deployment, and it requires two target groups with your
+
+279
+00:16:41.340 --> 00:16:42.340
+load balancer.
+
+280
+00:16:42.340 --> 00:16:49.580
+So you could do like a blue-green deployment strategy, in which case it will start creating
+
+281
+00:16:49.580 --> 00:16:54.040
+a new target group and starting new versions of the task, but putting them in the different
+
+282
+00:16:54.040 --> 00:16:55.040
+target group.
+
+283
+00:16:55.040 --> 00:16:58.660
+And then it can use the traffic shifting features of the load balancers.
+
+284
+00:16:58.660 --> 00:17:04.320
+So it can start the waiting of the traffics between the two target groups can be adjusted
+
+285
+00:17:04.320 --> 00:17:05.440
+over time.
+
+286
+00:17:05.440 --> 00:17:09.820
+So it can start shifting some of the requests over to the new version of the image.
+
+287
+00:17:09.820 --> 00:17:12.220
+And then there's all sorts of advanced health checks you can do.
+
+288
+00:17:12.220 --> 00:17:17.460
+So you can just use your load balancer health check, but you can also put in like hooks
+
+289
+00:17:17.460 --> 00:17:23.320
+into the deployment so that it will check that all of the expected business logic is
+
+290
+00:17:23.320 --> 00:17:28.060
+working as well as you want it to, or you can check for alarms, and then you can gradually
+
+291
+00:17:28.060 --> 00:17:30.780
+shift traffic over to the new version.
+
+292
+00:17:30.780 --> 00:17:34.780
+And if anything is detected, any kind of failed health check or alarm, it will revert back
+
+293
+00:17:34.780 --> 00:17:35.780
+to the old version.
+
+294
+00:17:35.780 --> 00:17:41.260
+So you can get much safer deployment strategies and it decouples the, I guess, the creation
+
+295
+00:17:41.260 --> 00:17:45.940
+of the cluster and the service and all that stuff from the deployment of the software
+
+296
+00:17:45.940 --> 00:17:46.940
+on it.
+
+297
+00:17:46.940 --> 00:17:49.080
+So I think it's definitely worthwhile.
+
+298
+00:17:49.080 --> 00:17:52.460
+And you can integrate it into CodePipeline, or you can integrate it into whatever else
+
+299
+00:17:52.460 --> 00:17:57.300
+you're using to deploy, be it like GitLab or Bitbucket or GitHub actions, say.
+
+300
+00:17:57.300 --> 00:18:03.100
+Given that we've talked about everything from the foundations to setting up all of the resources
+
+301
+00:18:03.100 --> 00:18:06.520
+with CDK patterns and then deployment with CodePipeline, that's probably a good place
+
+302
+00:18:06.520 --> 00:18:07.660
+to wrap it up.
+
+303
+00:18:07.660 --> 00:18:12.380
+What we'll do is we can give a link to that ECS pattern in the show notes, and we'll also
+
+304
+00:18:12.380 --> 00:18:17.520
+give a link to episode 37, where we talked about migrating to the cloud with EC2.
+
+305
+00:18:17.520 --> 00:18:18.520
+Thank you very much for listening.
+
+306
+00:18:18.520 --> 00:18:19.520
+We'll see you in the next episode.
+
+307
+00:18:19.520 --> 00:18:23.000
+Have a great day.
+
+308
+00:18:23.000 --> 00:18:30.340
+We'll see you in the next OneOG video and, of course, soon in grassroots media.
+
+309
+00:18:30.340 --> 00:18:32.400
+you

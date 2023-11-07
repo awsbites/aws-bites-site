@@ -1,0 +1,481 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:10.000
+Hello and welcome to another episode of AWS Bites, the weekly show where we answer questions
+
+2
+00:00:10.000 --> 00:00:12.540
+about AWS in about five minutes.
+
+3
+00:00:12.540 --> 00:00:15.460
+I'm Eoin and again, I'm joined by Luciano.
+
+4
+00:00:15.460 --> 00:00:19.180
+And before I get started, make sure to give us a follow and a subscribe so you can be
+
+5
+00:00:19.180 --> 00:00:22.220
+notified when the next episode goes live.
+
+6
+00:00:22.220 --> 00:00:26.300
+And today's question is, how do you manage your AWS credentials?
+
+7
+00:00:26.300 --> 00:00:28.260
+What do you think of Luciano?
+
+8
+00:00:33.540 --> 00:00:35.920
+Yeah, this is really a big topic and I hope we are going to be able to summarize it effectively in the, with the time we have today.
+
+9
+00:00:35.920 --> 00:00:40.960
+But I think we generally have to distinguish between two different scenarios.
+
+10
+00:00:40.960 --> 00:00:45.880
+One is when you are a user, a person trying to access AWS and you can do that through
+
+11
+00:00:45.880 --> 00:00:51.560
+the web console or you can do that through the CLI.
+
+12
+00:00:51.560 --> 00:00:54.220
+And another one is when you are an application.
+
+13
+00:00:54.220 --> 00:01:02.740
+So imagine like a service and you need programmatic access through the SDK.
+
+14
+00:01:02.740 --> 00:01:09.640
+The traditional way that you will get access to AWS, which is no longer recommended is
+
+15
+00:01:09.640 --> 00:01:15.900
+basically that you go into IAM, you create a user, you create programmatic credentials
+
+16
+00:01:15.900 --> 00:01:22.960
+for that user, that user has a role that allows the user itself to access different resources.
+
+17
+00:01:22.960 --> 00:01:30.140
+And at this point you take those programmatic credentials and you use them to access AWS.
+
+18
+00:01:30.140 --> 00:01:35.900
+Now why this is not recommended, first of all, it's not secure because the credentials
+
+19
+00:01:35.900 --> 00:01:38.840
+are always the same until you revoke them.
+
+20
+00:01:38.840 --> 00:01:41.700
+It's not particularly easy to rotate those credentials.
+
+21
+00:01:41.700 --> 00:01:48.140
+So that discourages, I suppose, people from having good practices and rotating them often.
+
+22
+00:01:48.140 --> 00:01:52.800
+And also they are very easy to steal because for instance, if you configure the AWS CLI,
+
+23
+00:01:52.800 --> 00:01:57.960
+those credentials are just text in plain text in a file in your own directory.
+
+24
+00:01:57.960 --> 00:02:03.400
+So it's very easy to grab them and use them for all sorts of purposes.
+
+25
+00:02:03.400 --> 00:02:08.140
+So I don't know, what do you think would be a better alternative, Eoin?
+
+26
+00:02:08.140 --> 00:02:13.620
+Yeah, so I suppose it depends on what we're actually trying to achieve.
+
+27
+00:02:13.620 --> 00:02:19.880
+And for applications that are running on AWS, like in an EC2 instances or an ECS or in a
+
+28
+00:02:19.880 --> 00:02:22.760
+Lambda function, AWS manages that for you.
+
+29
+00:02:22.760 --> 00:02:25.800
+So you don't actually have to manage any credentials yourself.
+
+30
+00:02:25.800 --> 00:02:30.840
+EC2 would use a metadata service and Lambda will inject temporary credentials for you.
+
+31
+00:02:30.840 --> 00:02:36.180
+So you don't have to store and should not be storing any credentials there or any access
+
+32
+00:02:36.180 --> 00:02:37.760
+keys.
+
+33
+00:02:37.760 --> 00:02:40.960
+But you might still need to manage credentials for external applications, things that aren't
+
+34
+00:02:40.960 --> 00:02:42.120
+running in AWS.
+
+35
+00:02:42.120 --> 00:02:47.280
+So they might be running on a third party SAS or on an on-prem system.
+
+36
+00:02:47.280 --> 00:02:54.400
+And people have frequently used access keys and secret access keys for that in the past,
+
+37
+00:02:54.400 --> 00:02:56.880
+but generally you don't need to do that anymore.
+
+38
+00:02:56.880 --> 00:02:59.080
+There's alternatives there.
+
+39
+00:02:59.080 --> 00:03:05.240
+So one example of that is, let's say you're building a CI CD and you're using GitHub actions.
+
+40
+00:03:05.240 --> 00:03:11.200
+With GitHub actions, you can use a Web Identity Federation and OpenID Connect to assume a
+
+41
+00:03:11.200 --> 00:03:13.800
+role from your GitHub action.
+
+42
+00:03:13.800 --> 00:03:18.080
+And you don't have to do any credentials storage in GitHub.
+
+43
+00:03:18.080 --> 00:03:22.960
+So you don't have to worry about long lived credentials in secrets in GitHub and the possibility
+
+44
+00:03:22.960 --> 00:03:26.560
+of those being leaked as you build your application.
+
+45
+00:03:26.560 --> 00:03:32.740
+So I think it's great that we're moving away from the ability to store these really dangerous
+
+46
+00:03:32.740 --> 00:03:35.160
+access keys all over the place.
+
+47
+00:03:35.160 --> 00:03:38.100
+That's for kind of application access.
+
+48
+00:03:38.100 --> 00:03:40.700
+So let's go back to user access.
+
+49
+00:03:40.700 --> 00:03:43.100
+What do you think we can use instead of IAM users?
+
+50
+00:03:43.100 --> 00:03:44.100
+What are the options there?
+
+51
+00:03:50.040 --> 00:03:51.880
+Yeah, there are a few things I've seen in the past to try to protect a little bit more of those credentials.
+
+52
+00:03:51.880 --> 00:03:53.980
+One is using MFA.
+
+53
+00:03:53.980 --> 00:04:00.520
+With MFA, you can basically create a user with a role that is very restricted.
+
+54
+00:04:00.520 --> 00:04:03.620
+The only thing that it can do is assume another role.
+
+55
+00:04:03.620 --> 00:04:07.980
+And in the policy that allows you to assume that role, you can put a condition that says
+
+56
+00:04:07.980 --> 00:04:10.260
+you can do that only with MFA.
+
+57
+00:04:10.260 --> 00:04:16.000
+So that adds another layer of security, even if the credentials are stolen, then you still
+
+58
+00:04:16.000 --> 00:04:20.680
+need that MFA token to be able to do anything useful with those credentials.
+
+59
+00:04:20.680 --> 00:04:25.120
+So that is, I think, a good enough solution for starting.
+
+60
+00:04:25.120 --> 00:04:28.920
+There is an article from AWS that describes how to enable all of that.
+
+61
+00:04:28.920 --> 00:04:31.860
+We're going to put it in the description.
+
+62
+00:04:31.860 --> 00:04:35.680
+Another thing that I've used in the past is something called AWS Vault.
+
+63
+00:04:35.680 --> 00:04:40.320
+It's a third-party utility that you can find on GitHub, and we're going to provide the
+
+64
+00:04:40.320 --> 00:04:41.720
+link as well.
+
+65
+00:04:41.720 --> 00:04:47.800
+And that one basically allows you not to keep the credentials in clear text in your system.
+
+66
+00:04:47.800 --> 00:04:52.800
+So as a developer, you are going to store the credentials in the system keychain, which
+
+67
+00:04:52.800 --> 00:04:55.080
+should be a little bit more secure.
+
+68
+00:04:55.080 --> 00:04:59.920
+And then there is a CLI tool that allows you to extract these credentials only when you
+
+69
+00:04:59.920 --> 00:05:01.100
+need them.
+
+70
+00:05:01.100 --> 00:05:05.280
+And it also exposes a mock metadata API.
+
+71
+00:05:05.280 --> 00:05:10.520
+So when you are developing, you can still interact seamlessly using the SDK from your
+
+72
+00:05:10.520 --> 00:05:12.120
+machine.
+
+73
+00:05:12.120 --> 00:05:15.120
+So that actually works really well.
+
+74
+00:05:15.120 --> 00:05:19.960
+But again, I suppose there is a need of moving away from IAM entirely.
+
+75
+00:05:19.960 --> 00:05:22.840
+So I don't know if you have any suggestion about that.
+
+76
+00:05:22.840 --> 00:05:24.160
+Oh, yeah, definitely.
+
+77
+00:05:24.160 --> 00:05:30.400
+I mean, the way to go for moving away from IAM users is to put AWS SSO in place.
+
+78
+00:05:30.400 --> 00:05:33.720
+And this has all sorts of great benefits.
+
+79
+00:05:33.720 --> 00:05:37.080
+It works really well from a developer user experience point of view.
+
+80
+00:05:37.080 --> 00:05:42.560
+It's just much easier to manage users' permissions, groups, assignments.
+
+81
+00:05:42.560 --> 00:05:48.840
+With SSO, it gets rid of a lot of the drawbacks you have with IAM users and access keys.
+
+82
+00:05:48.840 --> 00:05:52.420
+It also allows you to use your existing identity provider.
+
+83
+00:05:52.420 --> 00:06:02.180
+So if it's Active Directory or Okta or even Google Workspaces, you can use those as your
+
+84
+00:06:02.180 --> 00:06:03.540
+identity source.
+
+85
+00:06:03.540 --> 00:06:09.520
+And then manage permission sets within SSO, assign groups, and ensure that credentials
+
+86
+00:06:09.520 --> 00:06:10.520
+are short-lived.
+
+87
+00:06:10.520 --> 00:06:13.540
+So that's really where it shines in comparison to users.
+
+88
+00:06:13.540 --> 00:06:18.000
+With SSO, you always get short-lived credentials that will expire within like one to eight
+
+89
+00:06:18.000 --> 00:06:21.760
+hours or up to 12 hours, I think.
+
+90
+00:06:21.760 --> 00:06:22.960
+So SSO is really the way to go.
+
+91
+00:06:22.960 --> 00:06:24.520
+And there's good tooling around this.
+
+92
+00:06:24.520 --> 00:06:26.100
+Now, there are still some gotchas.
+
+93
+00:06:26.100 --> 00:06:32.000
+So if you're logging on to the web console, SSO works really well and makes it really
+
+94
+00:06:32.000 --> 00:06:33.440
+seamless.
+
+95
+00:06:33.440 --> 00:06:37.880
+If you're using programmatic access, so from the CLI or from one of the SDKs, there's a
+
+96
+00:06:37.880 --> 00:06:45.520
+little bit more to it because not every SDK version supports the SSO process really well.
+
+97
+00:06:45.520 --> 00:06:46.840
+So that's a little unfortunate.
+
+98
+00:06:46.840 --> 00:06:51.720
+But until those things have come up to speed, there are some really good tools.
+
+99
+00:06:51.720 --> 00:06:58.060
+And Ben Kehoe, who's an amazing expert in the space of SSO, has put together some really
+
+100
+00:06:58.060 --> 00:07:00.660
+good tools, which I use on a daily basis.
+
+101
+00:07:00.660 --> 00:07:07.860
+One is AWS SSO util, which is just adds a lot of nice gloss on top of SSO for the CLI.
+
+102
+00:07:07.860 --> 00:07:15.200
+And it allows you to populate all of the roles available into your config file, for example.
+
+103
+00:07:15.200 --> 00:07:20.540
+If you're using things like the serverless framework or the CDK, they don't support SSO
+
+104
+00:07:20.540 --> 00:07:25.040
+for the reasons I outlined because they're using the JavaScript SDK version two, which
+
+105
+00:07:25.040 --> 00:07:27.800
+doesn't support it fully.
+
+106
+00:07:27.800 --> 00:07:32.740
+Again has another tool called AWS Export Credentials, which is like a shame that allows you to just
+
+107
+00:07:32.740 --> 00:07:38.560
+provide credentials as environment variables or somewhere else that you can use.
+
+108
+00:07:38.560 --> 00:07:39.560
+There's still short-lived credentials.
+
+109
+00:07:39.560 --> 00:07:43.220
+It adds a little bit more friction, but it means you're still able to get the best of
+
+110
+00:07:43.220 --> 00:07:47.060
+both worlds and use SSO with those tools.
+
+111
+00:07:47.060 --> 00:07:52.440
+So I know a lot of people have asked us to cover SSO on the podcast.
+
+112
+00:07:52.440 --> 00:07:56.400
+So we're definitely going to come back and talk about SSO and all of the details around
+
+113
+00:07:56.400 --> 00:07:58.040
+it in more detail.
+
+114
+00:07:58.040 --> 00:08:02.000
+But I think as regards credentials, we've covered most of the main topics there.
+
+115
+00:08:02.000 --> 00:08:03.500
+So that's all we've got for today.
+
+116
+00:08:03.500 --> 00:08:08.300
+But if you want to find out about more of this stuff in future episodes, subscribe to
+
+117
+00:08:08.300 --> 00:08:12.660
+the channel and do give us comments as well and give us a thumbs up.
+
+118
+00:08:12.660 --> 00:08:14.060
+And we always like to hear your feedback.
+
+119
+00:08:14.060 --> 00:08:15.060
+So thanks very much for that.
+
+120
+00:08:15.060 --> 00:08:27.940
+And we'll see you next time.

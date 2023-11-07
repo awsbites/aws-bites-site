@@ -1,0 +1,1301 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:05.600
+Last week, DHH, creator of Ruby on Rails, founder of Basecamp and Hey, and general internet
+
+2
+00:00:05.600 --> 00:00:11.080
+opinionist, released a bit of a controversial blog post titled, "Don't be fooled by serverless".
+
+3
+00:00:11.080 --> 00:00:15.120
+In this article, DHH states that serverless is effectively a trap that only benefits cloud
+
+4
+00:00:15.120 --> 00:00:16.120
+providers.
+
+5
+00:00:16.120 --> 00:00:19.440
+Today, we want to analyze the major points in this opinion and provide an alternative
+
+6
+00:00:19.440 --> 00:00:20.440
+point of view.
+
+7
+00:00:20.440 --> 00:00:32.200
+My name is Eoin, I'm joined by Luciano and this is the AWS Bites podcast.
+
+8
+00:00:32.200 --> 00:00:37.220
+AWS Bites is sponsored by fourTheorem and fourTheorem is your AWS partner for migration, architecture
+
+9
+00:00:37.220 --> 00:00:38.220
+and training.
+
+10
+00:00:38.220 --> 00:00:42.160
+Find out more at fourtheorem.com and you'll find that link in the show notes.
+
+11
+00:00:42.160 --> 00:00:45.220
+So let's get started by analyzing the main points of this opinion.
+
+12
+00:00:45.220 --> 00:00:49.440
+But before we do, for the sake of transparency and for your own benefit, you might want to
+
+13
+00:00:49.440 --> 00:00:51.560
+think of the article, read for yourself.
+
+14
+00:00:51.560 --> 00:00:52.620
+It's a relatively short one.
+
+15
+00:00:52.620 --> 00:00:55.740
+So if you want a more unfiltered view, pause the episode, check out the link in the show
+
+16
+00:00:55.740 --> 00:01:00.020
+notes, read the article and come back in a few minutes.
+
+17
+00:01:00.020 --> 00:01:01.020
+So welcome back.
+
+18
+00:01:01.020 --> 00:01:05.680
+Luciano, do you want to summarize the salient points in DHH's takedown of serverless?
+
+19
+00:01:05.680 --> 00:01:08.120
+I'll try my best, yeah.
+
+20
+00:01:08.120 --> 00:01:14.100
+So the main thing is that serverless is something that gets promoted a lot by cloud aficionados.
+
+21
+00:01:14.100 --> 00:01:18.480
+And I think there is a word, something like it is kind of a mantra that people keep kind
+
+22
+00:01:18.480 --> 00:01:20.320
+of repeating.
+
+23
+00:01:20.320 --> 00:01:25.100
+And this makes me think that the author immediately wants to take distance from the serverless
+
+24
+00:01:25.100 --> 00:01:28.200
+world of people who believe in serverless.
+
+25
+00:01:28.200 --> 00:01:33.720
+The other comment is that serverless is magic enough and the users don't question how serverless
+
+26
+00:01:33.720 --> 00:01:37.160
+works while they should.
+
+27
+00:01:37.160 --> 00:01:42.780
+Then there is another part, which is a little bit of a crude financial example, where DHH
+
+28
+00:01:42.780 --> 00:01:47.000
+shows how cloud providers maximize their income using serverless.
+
+29
+00:01:47.000 --> 00:01:52.360
+And the gist of it is basically they can sell smaller portion of compute for more money.
+
+30
+00:01:52.360 --> 00:01:57.020
+And the idea is that, of course, they can pack more users into less hardware.
+
+31
+00:01:57.020 --> 00:02:03.000
+So that kind of shows how this model is convenient for cloud providers.
+
+32
+00:02:03.000 --> 00:02:07.120
+Then the other opinion is that if you are an occasional user, that financial approach
+
+33
+00:02:07.120 --> 00:02:12.920
+doesn't really affect you that much, because if you have low rate of function invocation,
+
+34
+00:02:12.920 --> 00:02:17.240
+you're going to pay very little or no money just because there are like three tiers and
+
+35
+00:02:17.240 --> 00:02:18.240
+so on.
+
+36
+00:02:18.240 --> 00:02:21.240
+So this doesn't really affect occasional users of the cloud.
+
+37
+00:02:21.240 --> 00:02:25.280
+But when you start to become an heavy user, so if you start to scale up a specific project,
+
+38
+00:02:25.280 --> 00:02:29.620
+the price gets very high and unnecessarily high sometimes.
+
+39
+00:02:29.620 --> 00:02:35.100
+So the next point is that there is a massive technology and vendor lock-in because effectively
+
+40
+00:02:35.100 --> 00:02:38.040
+every cloud provider implemented serverless in a different way.
+
+41
+00:02:38.040 --> 00:02:40.440
+There isn't really a common interface.
+
+42
+00:02:40.440 --> 00:02:45.560
+So whatever cloud provider you pick, you are stuck with that.
+
+43
+00:02:45.560 --> 00:02:51.720
+And the author at the end kind of suggests that you should own the cloud computer you
+
+44
+00:02:51.720 --> 00:02:52.720
+are operating with.
+
+45
+00:02:52.720 --> 00:02:54.760
+It's literally called the cloud computer.
+
+46
+00:02:54.760 --> 00:02:57.600
+So meaning you should have your own data center.
+
+47
+00:02:57.600 --> 00:03:02.480
+And the quote is that you should own the donkey rather than renting hundreds of slices of
+
+48
+00:03:02.480 --> 00:03:07.680
+that donkey, which is a little bit of a weird image in my mind.
+
+49
+00:03:07.680 --> 00:03:12.080
+But I suppose that the conclusion is that if you are...
+
+50
+00:03:12.080 --> 00:03:16.180
+I think that the author suggested that the cloud is only good for two very specific kinds
+
+51
+00:03:16.180 --> 00:03:18.800
+of companies that are very extreme with each other.
+
+52
+00:03:18.800 --> 00:03:23.960
+Either you are a very, very big player, something like Amazon or some other big e-commerce with
+
+53
+00:03:23.960 --> 00:03:26.560
+very high swings in traffic.
+
+54
+00:03:26.560 --> 00:03:30.360
+For instance, when you launch a Black Friday campaign, then the cloud is going to be very
+
+55
+00:03:30.360 --> 00:03:35.960
+convenient for you because you can have the kind of scalability that justifies all that
+
+56
+00:03:35.960 --> 00:03:38.360
+other complexity and cost.
+
+57
+00:03:38.360 --> 00:03:44.240
+Or if you are a very, very small one where basically all this economics don't really
+
+58
+00:03:44.240 --> 00:03:48.800
+affect you because you're not going to use the cloud that much to really incur any significant
+
+59
+00:03:48.800 --> 00:03:50.320
+cost.
+
+60
+00:03:50.320 --> 00:03:57.480
+And the last piece is that serverless doesn't change this point of view because it doesn't
+
+61
+00:03:57.480 --> 00:03:58.480
+basically open up.
+
+62
+00:03:58.480 --> 00:04:01.660
+This is my interpretation that the author said that it doesn't open up for other kinds
+
+63
+00:04:01.660 --> 00:04:04.880
+of companies to take full advantage of the cloud.
+
+64
+00:04:04.880 --> 00:04:09.560
+So the conclusion is that serverless is just a trap and you should be aware of this trap
+
+65
+00:04:09.560 --> 00:04:11.240
+and you should avoid it.
+
+66
+00:04:11.240 --> 00:04:17.240
+Now for more context, I think it's worth mentioning that the author, DHH, has been transitioning
+
+67
+00:04:17.240 --> 00:04:19.600
+his companies off the cloud.
+
+68
+00:04:19.600 --> 00:04:22.440
+And there is a previous blog post called "Why We Are Leaving the Cloud".
+
+69
+00:04:22.440 --> 00:04:24.840
+We will have the link in the show notes as well.
+
+70
+00:04:24.840 --> 00:04:29.820
+And basically the idea is that the cloud comes with very big disadvantages and it might be
+
+71
+00:04:29.820 --> 00:04:33.120
+more convenient to go back and own your own data center.
+
+72
+00:04:33.120 --> 00:04:35.980
+And this article explains all of that point of view as well.
+
+73
+00:04:35.980 --> 00:04:41.760
+So probably a good idea to also in this context to read that article as well to get the bigger
+
+74
+00:04:41.760 --> 00:04:44.960
+picture of the author's opinion.
+
+75
+00:04:44.960 --> 00:04:49.360
+Now that we went through a summary of the opinion, and I hope I gave justice to this
+
+76
+00:04:49.360 --> 00:04:50.360
+opinion.
+
+77
+00:04:50.360 --> 00:04:51.360
+I didn't butcher it too much.
+
+78
+00:04:51.360 --> 00:04:56.880
+Eoin., should we go through what do we believe in our opinion that actually it is right in
+
+79
+00:04:56.880 --> 00:04:57.880
+DHH's opinion?
+
+80
+00:04:57.880 --> 00:04:59.580
+What do we think it's fair?
+
+81
+00:04:59.580 --> 00:05:03.640
+And then maybe after that we'll discuss what do we actually think that is not that fair
+
+82
+00:05:03.640 --> 00:05:05.240
+and where we have different views.
+
+83
+00:05:05.240 --> 00:05:06.860
+Yeah, let's do that.
+
+84
+00:05:06.860 --> 00:05:11.160
+Maybe first I just want to say like we're all biased when we discuss these topics.
+
+85
+00:05:11.160 --> 00:05:16.880
+And it's interesting to kind of analyze the bias on each side a little bit because I've
+
+86
+00:05:16.880 --> 00:05:22.080
+followed the content that DHH and his co-founder Jason Fried have created like the "Remote" book
+
+87
+00:05:22.080 --> 00:05:24.280
+and the "It doesn't have to be crazy at work" book.
+
+88
+00:05:24.280 --> 00:05:26.880
+I really like those.
+
+89
+00:05:26.880 --> 00:05:30.200
+There's a similar style here, which is that they're really compelling, very interesting,
+
+90
+00:05:30.200 --> 00:05:35.000
+thought provoking and good at kind of defying conventional thinking around work practices,
+
+91
+00:05:35.000 --> 00:05:39.300
+but not necessarily backed up by data or facts and figures.
+
+92
+00:05:39.300 --> 00:05:44.760
+So there's an interesting strategy I think that's working well for them and their companies
+
+93
+00:05:44.760 --> 00:05:46.880
+in that they create this content.
+
+94
+00:05:46.880 --> 00:05:52.560
+It gets a lot of discussion going that increases popularity, which increases the draw to their
+
+95
+00:05:52.560 --> 00:05:57.280
+products and it's a similar thing with their latest message around leaving the cloud.
+
+96
+00:05:57.280 --> 00:06:00.980
+I mean, it's all good publicity at the end of the day.
+
+97
+00:06:00.980 --> 00:06:07.080
+So even if the original logic for leaving the cloud doesn't necessarily stack up in
+
+98
+00:06:07.080 --> 00:06:13.200
+terms of facts and figures, it's still generating clicks and inbound leads for the companies.
+
+99
+00:06:13.200 --> 00:06:15.000
+So it's kind of win-win in a way.
+
+100
+00:06:15.000 --> 00:06:18.140
+But like, I mean, I think there's a fair point here.
+
+101
+00:06:18.140 --> 00:06:19.460
+We're also biased, right?
+
+102
+00:06:19.460 --> 00:06:21.280
+We are working on the cloud.
+
+103
+00:06:21.280 --> 00:06:23.400
+Most of our work involves cloud consulting.
+
+104
+00:06:23.400 --> 00:06:28.520
+Ultimately, we would say that we're solving business problems for people.
+
+105
+00:06:28.520 --> 00:06:30.540
+We're not just selling cloud, right?
+
+106
+00:06:30.540 --> 00:06:31.540
+That's not what we do.
+
+107
+00:06:31.540 --> 00:06:33.280
+We don't sell the cloud to people.
+
+108
+00:06:33.280 --> 00:06:36.240
+We sell solutions to people to actual problems that they have.
+
+109
+00:06:36.240 --> 00:06:39.400
+And if the cloud isn't the right solution, we try not to give it to them.
+
+110
+00:06:39.400 --> 00:06:43.120
+But at the same time, this is a part of our toolkit and we have a certain fondness for
+
+111
+00:06:43.120 --> 00:06:44.880
+it and we have biases here.
+
+112
+00:06:44.880 --> 00:06:48.400
+So let's get that disclaimer out of the way.
+
+113
+00:06:48.400 --> 00:06:51.520
+Now, what do we think is correct in this article then from DHH?
+
+114
+00:06:51.520 --> 00:06:56.600
+I think the pricing analogy, even though it's a bit crude, it does highlight a significant
+
+115
+00:06:56.600 --> 00:07:01.560
+point with serverless that people should look at seriously, especially if you take the definition
+
+116
+00:07:01.560 --> 00:07:05.640
+of serverless as Functions as a Service only, which seems to be what's being done in this
+
+117
+00:07:05.640 --> 00:07:06.640
+article.
+
+118
+00:07:06.640 --> 00:07:10.000
+It doesn't really talk about serverless in the general sense as we normally would, where
+
+119
+00:07:10.000 --> 00:07:14.080
+you're just talking about trying to remove lots of infrastructure and use things like
+
+120
+00:07:14.080 --> 00:07:19.120
+SQS, S3, DynamoDB, not just Lambda.
+
+121
+00:07:19.120 --> 00:07:24.280
+But we have talked before in the realm of compute and comparing fast EC2 and Fargate
+
+122
+00:07:24.280 --> 00:07:27.220
+about how the price of serverless kind of has to change.
+
+123
+00:07:27.220 --> 00:07:30.240
+And we can link back to that article again.
+
+124
+00:07:30.240 --> 00:07:33.580
+Since that article was published, the price of Lambda has kind of changed for bulk pricing.
+
+125
+00:07:33.580 --> 00:07:35.480
+So it may be heading in the right direction.
+
+126
+00:07:35.480 --> 00:07:40.240
+But as of today, if you were to design a workload that perfectly maximizes utilization of an
+
+127
+00:07:40.240 --> 00:07:43.920
+EC2 machine, which is the example that DHH uses in the article.
+
+128
+00:07:43.920 --> 00:07:48.840
+And then compare that price with Fargate, Fargate will cost you about three times more.
+
+129
+00:07:48.840 --> 00:07:52.260
+And even if you were to run the same workload on Lambda, it could be two and a half times
+
+130
+00:07:52.260 --> 00:07:56.320
+more expensive than Fargate or up to seven times more expensive than EC2.
+
+131
+00:07:56.320 --> 00:08:01.600
+So that's if you're just looking at raw compute cost and not factoring in all the other equations.
+
+132
+00:08:01.600 --> 00:08:02.600
+So there is a point there.
+
+133
+00:08:02.600 --> 00:08:06.480
+And we should seriously look at that, make the calculations and ask ourselves some tough
+
+134
+00:08:06.480 --> 00:08:12.600
+questions if things are going to be significantly pricey for our business.
+
+135
+00:08:12.600 --> 00:08:16.040
+It's not the case for everybody, but you definitely have to do the calculations.
+
+136
+00:08:16.040 --> 00:08:19.080
+What do you think is wrong or missing from this article that you know?
+
+137
+00:08:24.560 --> 00:08:29.240
+Yeah, I think in general that the main thing that I found was missing that maybe gets a little mention in the other article, but not in this one about serverless is total cost
+
+138
+00:08:29.240 --> 00:08:30.300
+of ownership.
+
+139
+00:08:30.300 --> 00:08:34.780
+Because when we talk about cloud total cost of ownership, we mean the costs required to
+
+140
+00:08:34.780 --> 00:08:37.760
+host, run, integrate, secure and manage your workloads.
+
+141
+00:08:37.760 --> 00:08:42.040
+And of course, if you are managing your own data center, that's significant cost that
+
+142
+00:08:42.040 --> 00:08:45.960
+needs to be taken into account when trying to compare the cost of a serverless solution
+
+143
+00:08:45.960 --> 00:08:51.560
+with the cost of that same solution running on premise or maybe even just in an EC2.
+
+144
+00:08:51.560 --> 00:08:58.320
+You'll need to have a lot more maintenance when you're running more like VM style workloads.
+
+145
+00:08:58.320 --> 00:09:04.680
+And that's cost that needs to be taken into account to have a more fair comparison.
+
+146
+00:09:04.680 --> 00:09:11.560
+Also generally when you manage your own VMs or you manage your own data center, you probably
+
+147
+00:09:11.560 --> 00:09:15.800
+need a lot of specialized stuff that can operate this infrastructure.
+
+148
+00:09:15.800 --> 00:09:19.920
+You also need to take care of electricity cooling, physical security of the buildings,
+
+149
+00:09:19.920 --> 00:09:24.740
+racking things up, making sure all the cables are connected correctly, UPS.
+
+150
+00:09:24.740 --> 00:09:28.920
+And also there is an element of opportunity cost because if you're focusing so much energies
+
+151
+00:09:28.920 --> 00:09:33.480
+of your business into this kind of elements, you're probably getting distracted from what
+
+152
+00:09:33.480 --> 00:09:36.420
+is it your business needs to deliver to customers.
+
+153
+00:09:36.420 --> 00:09:40.480
+So that's also something that needs to be taken in mind.
+
+154
+00:09:40.480 --> 00:09:47.520
+And so, yeah, it's fair to say that calculating total cost of ownership is really, really
+
+155
+00:09:47.520 --> 00:09:48.520
+hard to do correctly.
+
+156
+00:09:48.520 --> 00:09:53.140
+I don't even know if there is a definition for what correctly means, but everyone I think
+
+157
+00:09:53.140 --> 00:09:57.920
+should do a genuine effort to try to understand this particular choice.
+
+158
+00:09:57.920 --> 00:10:02.960
+Like if you go with one option or the other, you cannot just look at one dimension and
+
+159
+00:10:02.960 --> 00:10:04.320
+not consider the other.
+
+160
+00:10:04.320 --> 00:10:09.280
+You need to be consciously look at both types of cost structure and decide which one might
+
+161
+00:10:09.280 --> 00:10:13.200
+be more convenient for you.
+
+162
+00:10:13.200 --> 00:10:18.200
+So yeah, I don't know if there are other points that you have in mind where you would disagree
+
+163
+00:10:18.200 --> 00:10:19.200
+with the article?
+
+164
+00:10:19.200 --> 00:10:22.960
+Well, I think total cost of ownership is the big one and I think you're completely right.
+
+165
+00:10:22.960 --> 00:10:24.840
+That's a difficult thing to quantify.
+
+166
+00:10:24.840 --> 00:10:28.960
+So it's something that both sides of the argument can hide behind for sure.
+
+167
+00:10:28.960 --> 00:10:32.200
+But the other one is just around the agility you get with serverless.
+
+168
+00:10:32.200 --> 00:10:36.280
+I would say in our experience in general, serverless helps teams to be more agile and
+
+169
+00:10:36.280 --> 00:10:38.360
+ship products faster.
+
+170
+00:10:38.360 --> 00:10:39.880
+That's not true for everybody.
+
+171
+00:10:39.880 --> 00:10:45.960
+If you're learning serverless for the first time, I think in one of our very first episodes,
+
+172
+00:10:45.960 --> 00:10:47.880
+"Is serverless good for startups?",
+
+173
+00:10:47.880 --> 00:10:51.280
+we talked about how, if you've got a skill set and it isn't serverless, you might be
+
+174
+00:10:51.280 --> 00:10:54.280
+better off not using it at a certain point.
+
+175
+00:10:54.280 --> 00:10:58.440
+So it's not a one size fits all, but I would say in general, if you can invest in it and
+
+176
+00:10:58.440 --> 00:11:04.040
+you've got the existing expertise somewhere within your organization, you can benefit
+
+177
+00:11:04.040 --> 00:11:09.920
+massively during the innovation phases because of the low cost of experimentation with serverless.
+
+178
+00:11:09.920 --> 00:11:15.200
+You can try things, swap them out, quickly adapt and move on.
+
+179
+00:11:15.200 --> 00:11:18.200
+So I would say it also makes it easier to reverse a decision and create that two-way
+
+180
+00:11:18.200 --> 00:11:22.840
+door where, if you build a system and it does end up being expensive or suboptimal for any
+
+181
+00:11:22.840 --> 00:11:26.760
+other reason, you can switch things off and immediately stop paying for it.
+
+182
+00:11:26.760 --> 00:11:30.220
+And you don't have to worry about the capital expenditure upfront and the sunk cost fallacy
+
+183
+00:11:30.220 --> 00:11:34.680
+that comes with investing a lot of money in one particular decision.
+
+184
+00:11:34.680 --> 00:11:38.600
+That's one of the really massive benefits of serverless that isn't spoken of quite enough,
+
+185
+00:11:38.600 --> 00:11:39.600
+I think.
+
+186
+00:11:39.600 --> 00:11:43.400
+A lot of this is because a lot of the responsibilities that traditionally would fall under the umbrella
+
+187
+00:11:43.400 --> 00:11:47.760
+of different development teams are just delegated to the cloud provider itself.
+
+188
+00:11:47.760 --> 00:11:53.720
+So we're talking about security, high availability, reliability, scalability, et cetera.
+
+189
+00:11:53.720 --> 00:11:59.240
+And that should allow teams to be more focused on the business logic and the application.
+
+190
+00:11:59.240 --> 00:12:02.040
+There's always a trade off there as well.
+
+191
+00:12:02.040 --> 00:12:05.320
+You also have to understand that with new paradigms, there's new learning that has to
+
+192
+00:12:05.320 --> 00:12:06.940
+occur with new challenges.
+
+193
+00:12:06.940 --> 00:12:10.960
+So you have to bear that in mind too, and keep going with your eyes open.
+
+194
+00:12:10.960 --> 00:12:16.880
+Certainly, with massively distributed serverless applications, event driven applications.
+
+195
+00:12:16.880 --> 00:12:21.080
+You need that investment in observability and operations.
+
+196
+00:12:21.080 --> 00:12:26.640
+In response to DHH's comment around lock-in, is there really an insurmountable lock-in
+
+197
+00:12:26.640 --> 00:12:27.640
+with serverless?
+
+198
+00:12:27.640 --> 00:12:32.400
+Yeah, I have mixed feelings about that because I think it's true that every cloud vendor
+
+199
+00:12:32.400 --> 00:12:36.160
+has different APIs for Functions as a Service, at least.
+
+200
+00:12:36.160 --> 00:12:42.360
+And I remember back in 2018, I think, the Cloud Native Foundation was trying to bring
+
+201
+00:12:42.360 --> 00:12:47.760
+all the cloud vendors together, at least to try to define a common set of events and provide
+
+202
+00:12:47.760 --> 00:12:50.120
+kind of a unified interface.
+
+203
+00:12:50.120 --> 00:12:54.880
+I don't think that there was any progress in that initiative, or at least up to this
+
+204
+00:12:54.880 --> 00:12:55.880
+day.
+
+205
+00:12:55.880 --> 00:12:59.680
+I think all the cloud providers are very different in the way you are supposed to write your
+
+206
+00:12:59.680 --> 00:13:04.040
+own function as a service, the events that you get, and different capabilities that you
+
+207
+00:13:04.040 --> 00:13:07.600
+can have within your Function as a Service.
+
+208
+00:13:07.600 --> 00:13:11.160
+So definitely, that's something that we cannot negate.
+
+209
+00:13:11.160 --> 00:13:15.640
+It's definitely there and it can be a problem.
+
+210
+00:13:15.640 --> 00:13:19.780
+That creates an effect that if you want to change provider, for instance, it's not something
+
+211
+00:13:19.780 --> 00:13:22.680
+that you can do as a lift and shift kind of process.
+
+212
+00:13:22.680 --> 00:13:25.380
+You will probably need to rewrite some stuff.
+
+213
+00:13:25.380 --> 00:13:32.040
+And this is true not just for FaaS, but also for serverless compute in the broader sense.
+
+214
+00:13:32.040 --> 00:13:36.640
+Even if you use containers, for instance, if you use Fargate, if you look at Fargate
+
+215
+00:13:36.640 --> 00:13:42.080
+or container serverless in the context of AWS, it is still very specific to AWS.
+
+216
+00:13:42.080 --> 00:13:46.400
+How do you configure, for instance, networking, storage, permissions?
+
+217
+00:13:46.400 --> 00:13:49.640
+And again, even if that container probably is something that you don't need to change
+
+218
+00:13:49.640 --> 00:13:54.820
+in the event of migration, you still need to change a lot of stuff around the configuration
+
+219
+00:13:54.820 --> 00:13:58.480
+of how that container is supposed to run in another environment.
+
+220
+00:13:58.480 --> 00:14:03.060
+So I would say that in general, lock-in is something that maybe cannot really be avoided.
+
+221
+00:14:03.060 --> 00:14:08.080
+It's something that always exists because every technology choice you make in one way
+
+222
+00:14:08.080 --> 00:14:11.280
+or another causes some degree of lock-in.
+
+223
+00:14:11.280 --> 00:14:16.680
+And we can go deeper and start to look at web frameworks, libraries, hardware vendors,
+
+224
+00:14:16.680 --> 00:14:18.600
+like every one of these choices.
+
+225
+00:14:18.600 --> 00:14:21.160
+It's something that is going to lock you in to some extent.
+
+226
+00:14:21.160 --> 00:14:25.960
+And if you need to change, you'll need to incur some kind of cost and redesign some
+
+227
+00:14:25.960 --> 00:14:29.480
+elements of your solution to adapt to a different approach.
+
+228
+00:14:29.480 --> 00:14:35.560
+So yeah, I suppose that another question we might ask ourselves is, OK, let's admit that
+
+229
+00:14:35.560 --> 00:14:41.360
+there is lock-in, but is the serverless lock-in bigger than a lock-in that you would get with
+
+230
+00:14:41.360 --> 00:14:46.160
+another approach, maybe, I don't know, managing things in your own data center?
+
+231
+00:14:46.160 --> 00:14:50.880
+And in a way, I feel that this will be a very fair question to ask, but also a very difficult
+
+232
+00:14:50.880 --> 00:14:53.000
+one to answer to properly.
+
+233
+00:14:53.000 --> 00:14:57.420
+Because I think it really depends on how you build your own applications.
+
+234
+00:14:57.420 --> 00:14:59.120
+And that can be, of course, in both ways.
+
+235
+00:14:59.120 --> 00:15:03.040
+You can build a very good application on premises and a very bad application on a serverless
+
+236
+00:15:03.040 --> 00:15:04.360
+environment.
+
+237
+00:15:04.360 --> 00:15:08.380
+And therefore, one might be easier to move than the other, but also the vice versa applies
+
+238
+00:15:08.380 --> 00:15:09.380
+here.
+
+239
+00:15:09.380 --> 00:15:14.320
+So I would say in general, trying to think about how to build applications that will
+
+240
+00:15:14.320 --> 00:15:18.800
+have less lock-in, it's an exercise that you should do anyway, regardless if you go for
+
+241
+00:15:18.800 --> 00:15:22.560
+a serverless approach or for a different kind of approach, maybe your own data center on
+
+242
+00:15:22.560 --> 00:15:23.560
+premises.
+
+243
+00:15:23.560 --> 00:15:27.840
+And, of course, there are some common suggestions there that you can follow.
+
+244
+00:15:27.840 --> 00:15:33.000
+For instance, you should try to decouple your business logic from vendor-specific APIs,
+
+245
+00:15:33.000 --> 00:15:37.900
+whether they are coming from, I don't know, your own FaaS provider on the cloud, or maybe
+
+246
+00:15:37.900 --> 00:15:40.540
+they are coming from the hardware that you picked on premises.
+
+247
+00:15:40.540 --> 00:15:45.240
+You should try to isolate that code into libraries that are easy to swap so you can keep the
+
+248
+00:15:45.240 --> 00:15:50.580
+core of your application as, let's say, pure as possible so that you don't need to change
+
+249
+00:15:50.580 --> 00:15:51.580
+anything there.
+
+250
+00:15:51.580 --> 00:15:54.920
+But then all these integration layers, you should be able to write them in a way that
+
+251
+00:15:54.920 --> 00:15:59.760
+they can be swapped easily in case you decide to change that kind of integration.
+
+252
+00:15:59.760 --> 00:16:01.920
+And this is a common practice in software.
+
+253
+00:16:01.920 --> 00:16:05.600
+You've probably seen this in many, many books or talks.
+
+254
+00:16:05.600 --> 00:16:09.360
+It's not something new and I think it's just best practice that you should follow anyway,
+
+255
+00:16:09.360 --> 00:16:16.640
+even if you are not considering the option of switching your environment in the future.
+
+256
+00:16:16.640 --> 00:16:20.080
+The other thing that I think goes a little bit in favor of serverless is that serverless
+
+257
+00:16:20.080 --> 00:16:25.980
+by nature forces you to write very granular units of code, like the function unit itself.
+
+258
+00:16:25.980 --> 00:16:30.320
+So that's something that in the event of a migration can be actually convenient because
+
+259
+00:16:30.320 --> 00:16:33.920
+it doesn't force you to go for a big bang migration where you have to take an entire
+
+260
+00:16:33.920 --> 00:16:35.920
+solution and move it in one go.
+
+261
+00:16:35.920 --> 00:16:39.560
+You can actually have the freedom to move very specific functions.
+
+262
+00:16:39.560 --> 00:16:44.120
+Maybe you realize one function is very expensive and it's not convenient to run it in the cloud.
+
+263
+00:16:44.120 --> 00:16:46.040
+You can just move that one function.
+
+264
+00:16:46.040 --> 00:16:49.500
+Or maybe you can decide, I want to rewrite this one function in another language because
+
+265
+00:16:49.500 --> 00:16:53.920
+maybe that language can be more efficient, can be cheaper, can be easier to maintain.
+
+266
+00:16:53.920 --> 00:16:55.560
+You can do it with that one function.
+
+267
+00:16:55.560 --> 00:16:57.200
+You don't have to rewrite everything.
+
+268
+00:16:57.200 --> 00:17:02.180
+So actually, in a way, I think serverless can be, at least from this particular point
+
+269
+00:17:02.180 --> 00:17:06.840
+of view, can be easier to migrate incrementally than other solutions.
+
+270
+00:17:06.840 --> 00:17:11.040
+And then there is another great quote about vendor lock-in that I really like by Kelsey
+
+271
+00:17:11.040 --> 00:17:17.520
+Hightower who is saying, this is actually an old tweet, probably around 2017 or something
+
+272
+00:17:17.520 --> 00:17:18.520
+like that.
+
+273
+00:17:18.520 --> 00:17:22.760
+And he was saying that instead of trying to avoid vendor lock-in, concentrate on switching
+
+274
+00:17:22.760 --> 00:17:26.920
+costs, which basically is, you need to try to answer the question, how easy it is to
+
+275
+00:17:26.920 --> 00:17:28.960
+create a new solution.
+
+276
+00:17:28.960 --> 00:17:33.280
+How much does it cost as opposed to how much will it cost to migrate away from that solution
+
+277
+00:17:33.280 --> 00:17:34.320
+later.
+
+278
+00:17:34.320 --> 00:17:39.920
+So if for you it's very, very easy to build something, that alone might justify maybe
+
+279
+00:17:39.920 --> 00:17:42.580
+higher cost of switching in the future.
+
+280
+00:17:42.580 --> 00:17:45.800
+Of course, it's not an hard and fast rule.
+
+281
+00:17:45.800 --> 00:17:50.880
+Everyone needs to try to understand what are these costs and kind of make a balance and
+
+282
+00:17:50.880 --> 00:17:52.360
+decide, okay, this is convenient for me.
+
+283
+00:17:52.360 --> 00:17:53.360
+I'm going to go for this.
+
+284
+00:17:53.360 --> 00:17:55.080
+Or this is probably too worrying.
+
+285
+00:17:55.080 --> 00:17:59.080
+I'm not going to go for this and keep going with maybe a more traditional approach that
+
+286
+00:17:59.080 --> 00:18:02.400
+is very well known within the company.
+
+287
+00:18:02.400 --> 00:18:07.800
+So I think, yeah, it's definitely important to consider this conversation with more data
+
+288
+00:18:07.800 --> 00:18:09.840
+points and more dimensions.
+
+289
+00:18:09.840 --> 00:18:15.280
+It's of course easy to say that serverless doesn't work with just one data point.
+
+290
+00:18:15.280 --> 00:18:20.260
+I think that there is a lot more that needs to be put on the table to decide whether serverless
+
+291
+00:18:20.260 --> 00:18:24.560
+can be convenient or not for your particular project and your particular company.
+
+292
+00:18:24.560 --> 00:18:31.360
+Now I don't know if you want to add any final take on serverless and what we think about
+
+293
+00:18:31.360 --> 00:18:33.020
+the future of serverless in general?
+
+294
+00:18:33.020 --> 00:18:36.600
+We believe that serverless does bring significant benefits to the table.
+
+295
+00:18:36.600 --> 00:18:38.880
+Hopefully we've managed to convince people.
+
+296
+00:18:38.880 --> 00:18:42.680
+I think everybody needs to embrace it and figure out where it works and where it doesn't
+
+297
+00:18:42.680 --> 00:18:44.880
+work for them.
+
+298
+00:18:44.880 --> 00:18:49.040
+If you take it as your default choice but have a healthy degree of skepticism, I think
+
+299
+00:18:49.040 --> 00:18:50.280
+that's a good approach.
+
+300
+00:18:50.280 --> 00:18:51.720
+It always comes with its own trade-offs.
+
+301
+00:18:51.720 --> 00:18:55.320
+You just need to understand and evaluate them, but that goes for every choice.
+
+302
+00:18:55.320 --> 00:19:00.560
+And that choice should be made based on looking at the data and the facts a little bit deeper
+
+303
+00:19:00.560 --> 00:19:05.280
+and not just based on some well-written opinion piece.
+
+304
+00:19:05.280 --> 00:19:07.120
+It's a trend that isn't going to stop with the serverless.
+
+305
+00:19:07.120 --> 00:19:11.400
+So businesses need to deliver products fast, have to get going quickly.
+
+306
+00:19:11.400 --> 00:19:13.680
+Serverless can really help there, so don't lose out.
+
+307
+00:19:13.680 --> 00:19:19.800
+Yeah, I think this probably covers what we wanted to share and I think we did a good
+
+308
+00:19:19.800 --> 00:19:22.040
+job at giving another point of view.
+
+309
+00:19:22.040 --> 00:19:23.800
+And again, it's just another point of view.
+
+310
+00:19:23.800 --> 00:19:27.980
+So at the end of the day, you have to bring all the different opinions together and decide
+
+311
+00:19:27.980 --> 00:19:30.220
+for yourself what do you believe.
+
+312
+00:19:30.220 --> 00:19:33.040
+But we are really curious to know what do you believe.
+
+313
+00:19:33.040 --> 00:19:36.880
+So definitely let us know in the comments here if you think that serverless is actually
+
+314
+00:19:36.880 --> 00:19:40.960
+going to be more and more prevalent in the future of the cloud, or maybe it's just something
+
+315
+00:19:40.960 --> 00:19:44.520
+that is going to fade away and will come back to more traditional approaches.
+
+316
+00:19:44.520 --> 00:19:48.040
+Or maybe there is something else that we are not considering that is neither serverless,
+
+317
+00:19:48.040 --> 00:19:52.440
+neither on premise, and maybe that's something we should be focusing more on.
+
+318
+00:19:52.440 --> 00:19:57.280
+And before leaving you, I want to mention there is actually a very interesting resource,
+
+319
+00:19:57.280 --> 00:20:00.900
+which is an article by Jeremy Daly, which we will have the link in the show notes.
+
+320
+00:20:00.900 --> 00:20:05.040
+And it's a very good response to the first article by DHH, which is "Why Are We Leaving
+
+321
+00:20:05.040 --> 00:20:06.040
+the Cloud?"
+
+322
+00:20:06.040 --> 00:20:09.920
+And I think that's, again, if you're interested in this kind of conversation, it brings yet
+
+323
+00:20:09.920 --> 00:20:12.560
+another opinion into the table.
+
+324
+00:20:12.560 --> 00:20:19.280
+And it can give you more things to think about so that you can form your own opinion.
+
+325
+00:20:19.280 --> 00:20:43.240
+So yeah, thank you very much for being with us and we will see you in the next episode.

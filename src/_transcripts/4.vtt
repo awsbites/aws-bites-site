@@ -1,0 +1,553 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:11.160
+Hello and welcome to another episode of AWS Bites, the weekly show where we answer questions
+
+2
+00:00:11.160 --> 00:00:14.340
+about AWS in just about five minutes.
+
+3
+00:00:14.340 --> 00:00:18.320
+My name is Luciano and together with me, we have Eoin.
+
+4
+00:00:18.320 --> 00:00:22.660
+And today we have a very interesting question that I really, really excited about, which
+
+5
+00:00:22.660 --> 00:00:27.500
+is what language should you use for AWS Lambda?
+
+6
+00:00:27.500 --> 00:00:32.600
+So I'm going to let you start Eoin, what language do you use for your Lambdas?
+
+7
+00:00:32.600 --> 00:00:36.680
+I'm going to resist the temptation to be opinionated.
+
+8
+00:00:36.680 --> 00:00:40.120
+Really when you're selecting language, I think the first rule is always pick the language
+
+9
+00:00:40.120 --> 00:00:43.360
+that you know and you're comfortable with, especially if you're starting with Lambda
+
+10
+00:00:43.360 --> 00:00:47.600
+for the first time, there's no point trying to learn too much at once.
+
+11
+00:00:47.600 --> 00:00:52.660
+That said, my own personal favorites for Lambda attempt to be the dynamic languages.
+
+12
+00:00:52.660 --> 00:00:59.440
+So most of the Lambda functions I've written have been Node.js runtime, so JavaScript.
+
+13
+00:00:59.440 --> 00:01:03.080
+And my second favorite would be the Python runtime.
+
+14
+00:01:03.080 --> 00:01:07.160
+But you can use up whatever language you want actually these days.
+
+15
+00:01:07.160 --> 00:01:08.400
+What do you think Luciano?
+
+16
+00:01:08.400 --> 00:01:13.160
+Is there a good set of recommendations for people using Lambda for the first time in
+
+17
+00:01:13.160 --> 00:01:15.000
+what language to start with?
+
+18
+00:01:15.000 --> 00:01:19.440
+Yeah, first of all, I'm not going to resist the temptation to be opinionated.
+
+19
+00:01:19.440 --> 00:01:25.400
+So I'm going to say use Node.js because in my opinion is the best language, the best
+
+20
+00:01:25.400 --> 00:01:31.780
+runtime in general and in particular for Lambda, it's a very good fit for the way Lambda works.
+
+21
+00:01:31.780 --> 00:01:37.480
+And I've been writing a lot of Lambdas in Node.js and so far it has been working very,
+
+22
+00:01:37.480 --> 00:01:43.200
+very well in terms of both performance and ease of writing and deploying and testing
+
+23
+00:01:43.200 --> 00:01:44.200
+the Lambdas.
+
+24
+00:01:44.200 --> 00:01:46.560
+So that's definitely my favorite.
+
+25
+00:01:46.560 --> 00:01:47.560
+I got to ask then.
+
+26
+00:01:47.560 --> 00:01:52.140
+So what is it about JavaScript compared to the alternatives?
+
+27
+00:01:52.140 --> 00:01:57.820
+Because if you're coming from a.NET developer background, enterprise Java background, you've
+
+28
+00:01:57.820 --> 00:02:01.540
+got a lot of tools there to help support you.
+
+29
+00:02:01.540 --> 00:02:06.680
+The languages give you type safety and the languages themselves are both very performant
+
+30
+00:02:06.680 --> 00:02:10.720
+in Java when it comes to runtime code execution.
+
+31
+00:02:10.720 --> 00:02:15.240
+Why would you use a dynamic language instead of choosing one of those?
+
+32
+00:02:15.240 --> 00:02:21.960
+
+
+33
+00:02:21.960 --> 00:02:25.440
+Yeah, I think in particular with JavaScript, the main benefit is that the bootstrap time of your Lambda is very well optimized.
+
+34
+00:02:25.440 --> 00:02:30.280
+Like the Node.js runtime starts very, very quickly and this is something you should care
+
+35
+00:02:30.280 --> 00:02:34.920
+a lot when writing Lambdas because of course you want to minimize that cold start time
+
+36
+00:02:34.920 --> 00:02:37.840
+every time you are spinning up a new Lambda.
+
+37
+00:02:37.840 --> 00:02:42.680
+So with languages like Java, I've seen that generally you tend to have much longer cold
+
+38
+00:02:42.680 --> 00:02:46.160
+starts and in Java you have...
+
+39
+00:02:46.160 --> 00:02:51.120
+I suppose that the trick is always the same even outside the scope of Lambda.
+
+40
+00:02:51.120 --> 00:02:56.000
+With Java it's very good if you're doing like CPU intensive type of operations while Node.js
+
+41
+00:02:56.000 --> 00:02:58.780
+tends to be much better if you're doing a lot of IO.
+
+42
+00:02:58.780 --> 00:03:02.680
+And in Lambdas generally I've seen you write a lot of integration code.
+
+43
+00:03:02.680 --> 00:03:08.040
+So most often you end up doing HTTP calls or connecting to external sources.
+
+44
+00:03:08.040 --> 00:03:11.920
+So much more IO than you do CPU intensive tasks.
+
+45
+00:03:11.920 --> 00:03:17.640
+So maybe that's why I've seen Node.js being a much better fit compared to languages like
+
+46
+00:03:17.640 --> 00:03:20.040
+Java.
+
+47
+00:03:20.040 --> 00:03:25.360
+Isn't it strange though, the way when Node.js became initially popular a number of years
+
+48
+00:03:25.360 --> 00:03:31.320
+ago, it was because of its ability to handle many multiple requests at scale because of
+
+49
+00:03:31.320 --> 00:03:39.160
+how it worked with asynchronous IO and handling multiple connections on a single server.
+
+50
+00:03:39.160 --> 00:03:42.040
+With Lambda, it's always handling one single event at a time.
+
+51
+00:03:42.040 --> 00:03:44.960
+So how is it that this model translates well?
+
+52
+00:03:44.960 --> 00:03:46.880
+Is it just because it's JavaScript?
+
+53
+00:03:46.880 --> 00:03:47.880
+Do you just have to...
+
+54
+00:03:47.880 --> 00:03:52.560
+Do you just dispense with a lot of the advantages of Node.js and it still doesn't matter?
+
+55
+00:03:52.560 --> 00:03:57.720
+
+
+56
+00:03:57.720 --> 00:04:03.760
+Yeah, I think you are touching a very good point and I think this is a common complaint from many people using Lambda, especially for the first times that if you are getting
+
+57
+00:04:03.760 --> 00:04:09.600
+multiple requests at the same time, you will see multiple Lambdas spinning up, even though
+
+58
+00:04:09.600 --> 00:04:15.200
+Node.js, if you had one server, would be very capable of handling even thousands of connections
+
+59
+00:04:15.200 --> 00:04:16.560
+at the same time.
+
+60
+00:04:16.560 --> 00:04:21.720
+So definitely that's an interesting technical choice and I've heard different reasons from
+
+61
+00:04:21.720 --> 00:04:24.280
+AWS why that's implemented that way.
+
+62
+00:04:24.280 --> 00:04:30.100
+For instance, isolation, if your Lambda crashes, you are not going to affect other users asking,
+
+63
+00:04:30.100 --> 00:04:35.540
+taking other requests at the same time, which could be an interesting point.
+
+64
+00:04:35.540 --> 00:04:41.160
+To answer your question, whether you are losing the benefits on Node.js, maybe partially so,
+
+65
+00:04:41.160 --> 00:04:45.160
+but at the same time, you are still keeping the main benefit that if you're doing a lot
+
+66
+00:04:45.160 --> 00:04:52.520
+of IO, you can easily use the synchros model of Node.js and JavaScript and avail of that
+
+67
+00:04:52.520 --> 00:04:55.440
+concurrency in a very easy way.
+
+68
+00:04:55.440 --> 00:05:00.080
+So if your Lambda needs to connect to multiple places and do multiple things for a given
+
+69
+00:05:00.080 --> 00:05:04.280
+request, you can still do that in a very efficient way.
+
+70
+00:05:04.280 --> 00:05:05.620
+Okay.
+
+71
+00:05:05.620 --> 00:05:10.960
+So we've talked about JavaScript, Python, I think, you know, they get all the benefits
+
+72
+00:05:10.960 --> 00:05:12.480
+of being able to rapidly develop.
+
+73
+00:05:12.480 --> 00:05:14.640
+You don't have a compile step.
+
+74
+00:05:14.640 --> 00:05:15.640
+They start quickly.
+
+75
+00:05:15.640 --> 00:05:21.360
+I think Java,.NET are reasonable options these days too, because there are ways to
+
+76
+00:05:21.360 --> 00:05:23.400
+manage cold start issues.
+
+77
+00:05:23.400 --> 00:05:28.880
+I think.NET itself is quite performant, the.NET core runtime.
+
+78
+00:05:28.880 --> 00:05:30.120
+What about other languages?
+
+79
+00:05:30.120 --> 00:05:34.480
+Because last year we had the arrival of Lambda container image support.
+
+80
+00:05:34.480 --> 00:05:40.020
+So anything that can run in a container can now run Lambda code.
+
+81
+00:05:40.020 --> 00:05:43.920
+And before that we had custom run times, which was the ability to do the similar kind of
+
+82
+00:05:43.920 --> 00:05:46.560
+thing with a zip packaging.
+
+83
+00:05:46.560 --> 00:05:53.800
+So what other less frequently used languages would you be using in AWS Lambda?
+
+84
+00:05:53.800 --> 00:05:58.040
+Yeah I think there are two that I am particularly excited about.
+
+85
+00:05:58.040 --> 00:06:01.100
+One is Go, which I actually had the chance to use it.
+
+86
+00:06:01.100 --> 00:06:05.680
+And it's actually supported quite well by AWS these days.
+
+87
+00:06:05.680 --> 00:06:10.160
+And the reason why I use it in the past is because I actually had to do a CPU intensive
+
+88
+00:06:10.160 --> 00:06:11.160
+task.
+
+89
+00:06:11.160 --> 00:06:16.720
+It was a lot of data transformation and I was doing that in Lambda in Node.js.
+
+90
+00:06:16.720 --> 00:06:21.600
+And eventually we realized that in our entire pipeline that was one of the main bottlenecks
+
+91
+00:06:21.600 --> 00:06:24.780
+and we could probably try to do something to speed it up.
+
+92
+00:06:24.780 --> 00:06:27.900
+We rewrote that in Go and it was like 10 times faster.
+
+93
+00:06:27.900 --> 00:06:32.200
+So that was definitely a very interesting experiment and I was very happy to how easy
+
+94
+00:06:32.200 --> 00:06:37.800
+it was to write and test and ship a Lambda in Go, which was actually quite unexpected.
+
+95
+00:06:37.800 --> 00:06:40.320
+I was expecting a lot more friction.
+
+96
+00:06:40.320 --> 00:06:44.920
+Another one that I'm really excited to try, I haven't tried it yet, is Rust, which is
+
+97
+00:06:44.920 --> 00:06:50.600
+not officially supported as a runtime yet, but there is a very good package that is provided
+
+98
+00:06:50.600 --> 00:06:56.720
+by AWS itself that you just use it as a Rust crate.
+
+99
+00:06:56.720 --> 00:07:02.200
+And then when you build your executable file, it's already called Bootstrap.
+
+100
+00:07:02.200 --> 00:07:06.680
+And that's really the only file you need to put in a zip package or Docker container.
+
+101
+00:07:06.680 --> 00:07:10.480
+You just ship it as a Lambda and it should work out of the box.
+
+102
+00:07:10.480 --> 00:07:14.640
+And they give you all the nice, in the library, they give you all the nice things that you
+
+103
+00:07:14.640 --> 00:07:18.880
+expect to handle, the context, the event, exceptions.
+
+104
+00:07:18.880 --> 00:07:24.880
+So that seems to be a new interesting contender if you really care about performance and quick
+
+105
+00:07:24.880 --> 00:07:26.400
+Bootstrap times.
+
+106
+00:07:26.400 --> 00:07:31.800
+So really excited to have a chance to try that out.
+
+107
+00:07:31.800 --> 00:07:37.460
+One of the considerations I think it's worth also thinking about, and I think we always
+
+108
+00:07:37.460 --> 00:07:42.720
+fall into the pattern of thinking of how will it perform at production time, but we forget
+
+109
+00:07:42.720 --> 00:07:46.680
+as developers that performance and developer time and your developer feedback loop and
+
+110
+00:07:46.680 --> 00:07:51.580
+how quickly you can deploy, test and iterate is really important.
+
+111
+00:07:51.580 --> 00:07:56.520
+One of the things I observe is that with the most popular tooling for building and deploying
+
+112
+00:07:56.520 --> 00:07:59.900
+Lambdas these days is still the serverless framework.
+
+113
+00:07:59.900 --> 00:08:07.680
+And it seems in my experience, at least to have a strong bias towards Node.js as the
+
+114
+00:08:07.680 --> 00:08:13.580
+best supported runtime for packaging all your node modules and everything else.
+
+115
+00:08:13.580 --> 00:08:18.680
+Even if you start using Python, then shipping your dependencies has a little bit more friction.
+
+116
+00:08:18.680 --> 00:08:20.460
+Have you noticed that?
+
+117
+00:08:20.460 --> 00:08:21.460
+I did.
+
+118
+00:08:21.460 --> 00:08:22.460
+Yeah.
+
+119
+00:08:22.460 --> 00:08:26.520
+And I've been working a lot with Python Lambdas lately.
+
+120
+00:08:26.520 --> 00:08:31.860
+And yeah, it seems a little bit more complicated than it used to be with Node.js.
+
+121
+00:08:31.860 --> 00:08:36.380
+I think it's something that is going to get better over time because of course the tooling
+
+122
+00:08:36.380 --> 00:08:41.960
+and the ecosystem are always evolving and Python is a widely used language.
+
+123
+00:08:41.960 --> 00:08:47.640
+So I expect that the future is going to be greener, but right now I will agree with you
+
+124
+00:08:47.640 --> 00:08:51.640
+that Node.js is probably the easiest way to get started with Lambda, especially if you
+
+125
+00:08:51.640 --> 00:08:53.920
+already know JavaScript.
+
+126
+00:08:53.920 --> 00:08:55.800
+Yeah.
+
+127
+00:08:55.800 --> 00:09:01.800
+It looks like AWS Sam has a little bit more, I suppose, of a cross language support, at
+
+128
+00:09:01.800 --> 00:09:07.920
+least for the common runtimes and Python in particular, but maybe that AWS Sam versus
+
+129
+00:09:07.920 --> 00:09:11.400
+serverless framework is a question for another day.
+
+130
+00:09:11.400 --> 00:09:12.400
+Yeah.
+
+131
+00:09:12.400 --> 00:09:13.400
+Yeah.
+
+132
+00:09:13.400 --> 00:09:16.320
+I'm looking forward to try to answer that one.
+
+133
+00:09:16.320 --> 00:09:18.280
+But for today, that's all.
+
+134
+00:09:18.280 --> 00:09:19.920
+And thank you everyone for listening.
+
+135
+00:09:19.920 --> 00:09:24.360
+We are really curious to know what's your favorite language for Lambdas.
+
+136
+00:09:24.360 --> 00:09:29.160
+So please leave us a comment or reach out to us on Twitter and make sure to follow and
+
+137
+00:09:29.160 --> 00:09:32.520
+subscribe so we can see you next time.
+
+138
+00:09:32.520 --> 00:09:56.720
+Bye.

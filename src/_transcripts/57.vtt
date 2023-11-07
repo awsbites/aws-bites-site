@@ -1,0 +1,549 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:06.000
+Cognito is a frequently used and core AWS service for managing users, authentication and authorization.
+
+2
+00:00:06.000 --> 00:00:10.600
+But getting started with Cognito and knowing what features to apply to different use cases can be really challenging.
+
+3
+00:00:10.600 --> 00:00:15.480
+By the end of this episode, you will know the differences between Cognito user pools and identity pools,
+
+4
+00:00:15.480 --> 00:00:18.080
+also known as Cognito federated identities.
+
+5
+00:00:18.080 --> 00:00:30.080
+My name is Eoin, I'm here with Luciano and this is AWS Bites.
+
+6
+00:00:30.080 --> 00:00:32.320
+Before we start, we have a favor to ask.
+
+7
+00:00:32.320 --> 00:00:39.840
+If you have been enjoying this podcast, please consider giving us a review on Apple Podcasts or wherever else you get your podcasts.
+
+8
+00:00:39.840 --> 00:00:44.480
+If you follow us on YouTube, consider subscribing and liking our videos and giving us plenty of comments.
+
+9
+00:00:44.480 --> 00:00:49.440
+This will really help us to keep the podcast relevant and discoverable for other AWS enthusiasts.
+
+10
+00:00:49.440 --> 00:00:51.040
+Thank you so much.
+
+11
+00:00:51.040 --> 00:00:58.280
+So let's get to it. Luciano, what are some of the use cases where you might actually need to use Amazon Cognito in the first place?
+
+12
+00:00:58.280 --> 00:01:04.800
+Yeah, the most common use case is when you need to do sign up and sign in for any mobile or web application.
+
+13
+00:01:04.800 --> 00:01:07.760
+Like that's the service you go to in AWS.
+
+14
+00:01:07.760 --> 00:01:11.760
+And outside of AWS, a compatible service is generally Auth0.
+
+15
+00:01:11.760 --> 00:01:19.480
+So if you have been using Auth 0, you can always imagine as the AWS counterpart to out zero.
+
+16
+00:01:19.480 --> 00:01:25.400
+But of course, you can do more. You can also, for instance, use Cognito to limit access to APIs.
+
+17
+00:01:25.400 --> 00:01:33.520
+For instance, you build your own Lambda and you use that Lambda as a back end for an API gateway.
+
+18
+00:01:33.520 --> 00:01:40.520
+You could be using a custom authorizer backed by Cognito to make sure that only people who actually have some level of access,
+
+19
+00:01:40.520 --> 00:01:46.520
+some level of login or authentication into that particular application can actually call that API.
+
+20
+00:01:46.520 --> 00:01:55.280
+And similarly, that's not limited to HTTP. Of course, you can do that also if you're using GraphQL, for instance, by combining that with AppSync.
+
+21
+00:01:55.280 --> 00:02:00.920
+So basically, this is the use case where you have users that can perform specific actions only if they are logged in.
+
+22
+00:02:00.920 --> 00:02:05.000
+So you can build in all that security layer into your applications.
+
+23
+00:02:05.000 --> 00:02:08.840
+And very similarly, you can do that for other kinds of resources.
+
+24
+00:02:08.840 --> 00:02:16.440
+For instance, you can allow users to access S3, DynamoDB by using features that are built in in Cognito.
+
+25
+00:02:16.440 --> 00:02:26.440
+So once the user is out and together, recognized, you can somehow give them access to these kind of services and resources in your AWS account.
+
+26
+00:02:26.440 --> 00:02:37.440
+Yeah, so I think one of the things that I was confused about the most when starting to use Cognito is these two concepts of identity pools
+
+27
+00:02:37.440 --> 00:02:44.560
+and user pools, identity pools also now is being called federated identities, which I think just creates more confusion.
+
+28
+00:02:44.560 --> 00:02:49.040
+So what are these two things and what are the fundamental differences?
+
+29
+00:02:49.040 --> 00:02:56.400
+When I started building serverless applications about six years ago, Cognito was the one service that really confused me the most.
+
+30
+00:02:56.400 --> 00:03:00.200
+It's really great coming from places where you used to have to build this kind of thing yourself,
+
+31
+00:03:00.200 --> 00:03:04.760
+that you got a service that takes care of all of the security needs and the standards you need to comply with.
+
+32
+00:03:04.760 --> 00:03:07.600
+But it's really just not simple to understand at first.
+
+33
+00:03:07.600 --> 00:03:13.520
+User pools and identity pools being kind of similar and having similar names, it kind of adds that confusion.
+
+34
+00:03:13.520 --> 00:03:17.320
+So let's try and do our best to clarify what they are.
+
+35
+00:03:17.320 --> 00:03:23.640
+User pools allow you to create your own identity provider, so they're used for implementing authentication.
+
+36
+00:03:23.640 --> 00:03:28.320
+So think about sign up, log in, and they allow you to build those sign up and log in flows.
+
+37
+00:03:28.320 --> 00:03:33.240
+And as well as that, you also get a place to store user data.
+
+38
+00:03:33.240 --> 00:03:38.400
+On the other hand, identity pools or federated identities, they're more for authorization.
+
+39
+00:03:38.400 --> 00:03:41.360
+So they don't give you a place to store any user data.
+
+40
+00:03:41.360 --> 00:03:46.600
+And I prefer to think about identity pools as an identity broker because there isn't really a pool of anything.
+
+41
+00:03:46.600 --> 00:03:52.000
+It's just a place that allows you to exchange one set of credentials for another set of credentials.
+
+42
+00:03:52.000 --> 00:03:57.040
+And what you get back from identity pools are short lived IAM credentials.
+
+43
+00:03:57.040 --> 00:04:02.720
+So you're essentially swapping your already verified identity from an identity provider or IDP.
+
+44
+00:04:02.720 --> 00:04:07.280
+It's also known as an IDP and you're getting back short lived IAM credentials.
+
+45
+00:04:07.280 --> 00:04:09.280
+Now, identity pools don't have a lot of features.
+
+46
+00:04:09.280 --> 00:04:13.880
+So let's just first talk about some of the features of user pool because there's quite a lot there.
+
+47
+00:04:13.880 --> 00:04:19.280
+So you get a place to store your users in groups. You get hosted, sign up and sign in and reset password pages,
+
+48
+00:04:19.280 --> 00:04:24.320
+as well as the ability for you to implement all of that stuff yourself and customize the UI.
+
+49
+00:04:24.320 --> 00:04:28.160
+You have lots of ways to authenticate so you can authenticate with username and password.
+
+50
+00:04:28.160 --> 00:04:31.880
+And it now supports multi-factor authentication with an app as well.
+
+51
+00:04:31.880 --> 00:04:37.720
+You can do server to server authentication. You can do lots of OAuth 2.0 flows.
+
+52
+00:04:37.720 --> 00:04:44.080
+And then you can also do social sign in into your user pool with Google, Amazon, Facebook and Apple.
+
+53
+00:04:44.080 --> 00:04:51.880
+As if you don't if you're not using any of those, you can also use SAML and OIDC federated sign in for anything that supports those standards.
+
+54
+00:04:51.880 --> 00:04:58.560
+If you want to customize any part of the login flow, then you also have Lambda triggers so you can put hooks in place at various points of the sign up and login flow.
+
+55
+00:04:58.560 --> 00:05:06.960
+And as well, if you're coming from somewhere else, user pools have mechanisms that allow you to migrate your existing users and their usernames into user pools.
+
+56
+00:05:06.960 --> 00:05:09.360
+So that's pretty good.
+
+57
+00:05:09.360 --> 00:05:17.880
+So when a user logs in with Cognito, they will get an access token. That access token is particularly usually like a JWT, a JSON Web token.
+
+58
+00:05:17.880 --> 00:05:24.040
+So it's a it's a JSON object. It's signed and it's got a lot of properties in it.
+
+59
+00:05:24.040 --> 00:05:32.280
+And that access token can be used to secure access to some AWS services.
+
+60
+00:05:32.280 --> 00:05:41.000
+So you get your access token. You always get a refresh token as well. And if you're using the OIDC scope, you can get an ID token too.
+
+61
+00:05:41.000 --> 00:05:48.920
+On the other hand, when you're using identity pools, you're swapping a token like that you've already got from your ID identity provider for an IAM session.
+
+62
+00:05:48.920 --> 00:05:53.480
+And then once you've got IAM credentials, it's just like having an IAM user.
+
+63
+00:05:53.480 --> 00:06:01.320
+You can use that to make any AWS API call allowed by the policy associated with the role and the session.
+
+64
+00:06:01.320 --> 00:06:09.320
+So at this point, you might realize, since a user pool is an identity provider that issues tokens and an identity pool is a broker that swaps tokens for IAM credentials,
+
+65
+00:06:09.320 --> 00:06:17.880
+you can actually combine the two things to get IAM credentials for the users that are stored in your Cognito user pool.
+
+66
+00:06:17.880 --> 00:06:22.000
+Of course, this is always confusing because you can use any other IDP instead of user pools as well.
+
+67
+00:06:22.000 --> 00:06:29.360
+So you've got a lot of options here. So it is worthwhile exploring when to use one over the other and when to use both.
+
+68
+00:06:29.360 --> 00:06:35.040
+Yeah, absolutely. And I think it's good to to rediscuss that and maybe make an example.
+
+69
+00:06:35.040 --> 00:06:50.560
+And yeah, basically, just to summarize what I am understanding from what you just said is basically you want to if you want to have a place where you can sign up users and store attributes about these users and you don't necessarily have an existing identity provider,
+
+70
+00:06:50.560 --> 00:07:04.240
+you should use user pools. Then if you want the state to allow users to access AWS resources, we mentioned S3, could be something else.
+
+71
+00:07:04.240 --> 00:07:12.240
+Then you need basically to use identity pools because the idea is that identity pools will be the broker, as you say,
+
+72
+00:07:12.240 --> 00:07:23.280
+that will convert whatever authentication mechanism you have from user pools or something else into actual credentials that AWS recognizes to give you access to services.
+
+73
+00:07:23.280 --> 00:07:33.360
+So if you need both, you can definitely use both. And again, I want to clarify that with a practical example, because otherwise it's going to be a little bit more abstract, a little bit too much abstract.
+
+74
+00:07:33.360 --> 00:07:45.360
+So let's make our classic favorite example, an e-commerce website. In particular, what do we want to do here is as many other e-commerce users will be navigating, seeing different products.
+
+75
+00:07:45.360 --> 00:07:58.360
+And we want to be able to collect all of that information. We want to understand the user journey, the user preferences, so that we can be able to suggest the user products that might be interesting for them in as much real time as possible, of course.
+
+76
+00:07:58.360 --> 00:08:07.360
+So while they navigate, they should see suggestions that are calculated more or less in real time. So the user will be logging in with username and password.
+
+77
+00:08:07.360 --> 00:08:17.360
+So there is definitely a user pool there that will allow the users to log in, but also store all the necessary information and attributes about every single user.
+
+78
+00:08:17.360 --> 00:08:30.360
+Then while the user is navigating, we want to have IAM credentials to be able to send user activity, for instance, clicks or the different pages that the user is visualizing into a Kinesis stream.
+
+79
+00:08:30.360 --> 00:08:40.360
+And in order to do that from the client, we need to use something like Identity Pool so that we can get IAM credentials that are authorized to send messages to this Kinesis stream.
+
+80
+00:08:40.360 --> 00:08:49.360
+So in this case, we are basically using both. We are using the user pools for login and storing user attributes.
+
+81
+00:08:49.360 --> 00:08:57.360
+But then we also use Identity Pools to basically get the AWS credentials that are needed to connect to Kinesis.
+
+82
+00:08:57.360 --> 00:09:11.360
+Another interesting detail that took me a while to realize is that when we want to create a setup like this, what we are basically doing is using our user pool as an IDP for our Identity Pool.
+
+83
+00:09:11.360 --> 00:09:16.360
+So this is how we are connecting the dots between user pools and identity pools and using them together.
+
+84
+00:09:16.360 --> 00:09:24.360
+So we are basically creating that trust relationship saying to our broker for credentials, which is the identity pool, to trust our user pool.
+
+85
+00:09:24.360 --> 00:09:36.360
+So when a user is logged in into that user pool, then the identity pool is giving us credentials or actually is giving the user credentials to be able to connect the services that we want to authorize for that user in AWS.
+
+86
+00:09:36.360 --> 00:09:41.360
+There are ways to access AWS resources, but a limited subset just using user pools.
+
+87
+00:09:41.360 --> 00:09:49.360
+And there you're just talking about using your token to protect an API and implementing authorization in that API.
+
+88
+00:09:49.360 --> 00:09:51.360
+So how does that work? Let's give a few examples.
+
+89
+00:09:51.360 --> 00:10:05.360
+So if you've got an API gateway or an application load balancer that you can put in a Cognito Authorizer and that can restrict access to APIs to authenticated users from a user pool, you don't need an identity pool in that particular case.
+
+90
+00:10:05.360 --> 00:10:12.360
+So the access token is just going to be validated by the authorizer that you've configured in the load balancer or in API gateway.
+
+91
+00:10:12.360 --> 00:10:17.360
+So that doesn't really give you any role-based or attribute-based access control.
+
+92
+00:10:17.360 --> 00:10:21.360
+It's kind of all or nothing access for each authorizer you configure.
+
+93
+00:10:21.360 --> 00:10:28.360
+If your API is backed by Lambda, you do get information about the principal or the identity making the request.
+
+94
+00:10:28.360 --> 00:10:32.360
+So you can find out what groups, because Cognito also has the concept of groups of users.
+
+95
+00:10:32.360 --> 00:10:44.360
+So you can kind of use that to implement your own level of access control by checking what groups are a member of and implementing check your own checks further down the chain behind the API.
+
+96
+00:10:44.360 --> 00:10:59.360
+If you're using AppSync, it's actually a little bit better because AppSync's authorizer also gives you the ability to protect some of your AppSync queries or mutators using annotations that specify,
+
+97
+00:10:59.360 --> 00:11:05.360
+okay, this is the user pool, but the user also needs to be a member of a specific group.
+
+98
+00:11:05.360 --> 00:11:07.360
+So it's a little bit more powerful.
+
+99
+00:11:07.360 --> 00:11:16.360
+An alternative then is that you can say, okay, let's not use user pools to protect this API. Let's instead use IAM authorization.
+
+100
+00:11:16.360 --> 00:11:28.360
+So API gateway has IAM authorization, and then you're just using standard IAM policies and the request to your API has to be signed using an AWS version 4 signature, just like a request to an AWS API.
+
+101
+00:11:28.360 --> 00:11:36.360
+And in that case, you're back to using identity pools because that's where you get your IAM credentials from if you've got an IDP, as you've clearly explained.
+
+102
+00:11:36.360 --> 00:11:43.360
+So that means that you don't get any user identity information further down.
+
+103
+00:11:43.360 --> 00:11:57.360
+So once the user has access through their IAM policy as issued by the identity pool, it allows them to invoke the API, but the backing code behind that API, it doesn't have any visibility onto who that user is.
+
+104
+00:11:57.360 --> 00:12:09.360
+So in general, you kind of find that most people use user pools and access token for restricting API access for web and mobile applications and identity pool credentials are more often used for accessing other services directly.
+
+105
+00:12:09.360 --> 00:12:17.360
+S3 being a common example, but you also mentioned the case with Kinesis, or it could be Kinesis Firehose or Amazon Pinpoint is another one.
+
+106
+00:12:17.360 --> 00:12:31.360
+If you want to collect data directly from a client with low latency and overhead and let Amazon manage all the scalability and you don't want to put an API and a Lambda function in between the client and that AWS service.
+
+107
+00:12:31.360 --> 00:12:36.360
+Are there any other interesting features we should talk about?
+
+108
+00:12:36.360 --> 00:12:45.360
+Yeah, let's mention a few other interesting things that might not be too obvious and maybe worth checking out later after you listen to this episode.
+
+109
+00:12:45.360 --> 00:12:51.360
+One interesting thing is that identity pools basically, we said they are just giving you IAM credentials.
+
+110
+00:12:51.360 --> 00:12:57.360
+So you could use that idea to do ABAC or RBAC type of auto-excession.
+
+111
+00:12:57.360 --> 00:13:07.360
+So basically the idea is that because users will have certain attributes, and then you can use those attributes in your IAM policies to create conditions basically.
+
+112
+00:13:07.360 --> 00:13:17.360
+So you could, for instance, say, I don't know, if a user has this particular group, then that's a condition that allows your policy to organize it.
+
+113
+00:13:17.360 --> 00:13:28.360
+For instance, I don't know, more practical use cases like you have an admin flag or a group and you can use that to restrict that specific actions.
+
+114
+00:13:28.360 --> 00:13:36.360
+For instance, only if you have that admin flag, you can do that particular action. I don't know, maybe delete a user or something like that.
+
+115
+00:13:36.360 --> 00:13:48.360
+Similarly, you can use the same idea to do, for instance, multi-tenant systems where you could have an attribute that tells you exactly which organization that user belongs to.
+
+116
+00:13:48.360 --> 00:13:54.360
+And therefore you can allow specific actions only on the resources that are part of that organization.
+
+117
+00:13:54.360 --> 00:13:56.360
+So that could be another thing you could do.
+
+118
+00:13:56.360 --> 00:13:58.360
+Another thing is that you can do social sign-in.
+
+119
+00:13:58.360 --> 00:14:08.360
+So for instance, I don't know, you want to allow login not just by username and password, but also through Google, Facebook or some other social login system.
+
+120
+00:14:08.360 --> 00:14:14.360
+You can use the OAuth provider as part of the user pool configuration.
+
+121
+00:14:14.360 --> 00:14:19.360
+And then you can still use identity pools to still exchange tokens for IAM credentials.
+
+122
+00:14:19.360 --> 00:14:21.360
+So again, this is another way that you can combine the two.
+
+123
+00:14:21.360 --> 00:14:24.360
+It's not just limited to access with username and password.
+
+124
+00:14:24.360 --> 00:14:32.360
+You can still do the social login and then if you still need to get IAM credentials, you can also use identity pools.
+
+125
+00:14:32.360 --> 00:14:38.360
+Another thing that is interesting if you ever use Amplify, Amplify is kind of a nice abstraction over all these things.
+
+126
+00:14:38.360 --> 00:14:44.360
+It gives you very easy to use APIs, but just behind the scene is doing all the things that we just described.
+
+127
+00:14:44.360 --> 00:14:51.360
+So it's just an easier way to get those IAM credentials and use them in your own web or mobile application.
+
+128
+00:14:51.360 --> 00:14:52.360
+Great.
+
+129
+00:14:52.360 --> 00:14:55.360
+So I think that's all we have for today, but we're curious to know if you've been using Cognito.
+
+130
+00:14:55.360 --> 00:14:59.360
+Do you have any further questions about Cognito and other things we should cover in the future?
+
+131
+00:14:59.360 --> 00:15:02.360
+Do you have any interesting tips or use cases that you've managed to implement with it?
+
+132
+00:15:02.360 --> 00:15:03.360
+Please share with us.
+
+133
+00:15:03.360 --> 00:15:06.360
+You can drop us a comment on YouTube or reach out on Twitter.
+
+134
+00:15:06.360 --> 00:15:08.360
+All our contact details are in the show notes.
+
+135
+00:15:08.360 --> 00:15:12.360
+So thank you very much for listening and for liking and leaving us a review.
+
+136
+00:15:12.360 --> 00:15:13.360
+We really appreciate that.
+
+137
+00:15:13.360 --> 00:15:32.360
+And we'll see you in the next episode.

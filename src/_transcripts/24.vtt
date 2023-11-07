@@ -1,0 +1,601 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:04.400
+Hello, today we are going to answer the question, how do you use SNS?
+
+2
+00:00:04.400 --> 00:00:09.360
+By the end of this episode, you will know how SNS compares to EventBridge and SQS.
+
+3
+00:00:09.360 --> 00:00:14.000
+You'll know how to use it to send messages to customers, but also for microservice communication.
+
+4
+00:00:14.880 --> 00:00:19.680
+We'll tell you what the costs and limits are, and also how you can integrate SNS with other
+
+5
+00:00:19.680 --> 00:00:34.320
+services in AWS. My name is Eoin, I'm joined by Luciano and this is the AWS Bites podcast.
+
+6
+00:00:34.320 --> 00:00:39.600
+This is the fourth episode in the series all about services for events and messages on AWS.
+
+7
+00:00:39.600 --> 00:00:44.080
+We covered SQS and EventBridge in detail already, and today we're talking about SNS,
+
+8
+00:00:44.080 --> 00:00:49.680
+the simple notification service. Luciano, would you like to tell us how would you describe SNS?
+
+9
+00:00:56.480 --> 00:01:03.440
+Yeah, so based on how we categorize the other events and messages services, I will place SNS in the category of PubSub. So you have this Publish and Subscribe API. It's interesting
+
+10
+00:01:03.440 --> 00:01:10.960
+because it can target what is generally called in AWS A2A, which is like application to application,
+
+11
+00:01:10.960 --> 00:01:16.320
+but also something that they call A2P, application to person, which basically means that if you
+
+12
+00:01:16.320 --> 00:01:23.760
+publish something to an SNS topic, then that message can be delivered also as an SMS or as
+
+13
+00:01:23.760 --> 00:01:30.480
+an email or even a push notification. By the way, this is interesting because it feels like a little
+
+14
+00:01:30.480 --> 00:01:37.200
+bit of a legacy feature because since this feature was available in SNS, we know that now we have
+
+15
+00:01:37.200 --> 00:01:42.160
+other services that are more specialized to do that, like Pinpoint or even third parties that
+
+16
+00:01:42.160 --> 00:01:47.760
+you would generally use for SMS or emails like Twilio or SendGrid or for push notification,
+
+17
+00:01:47.760 --> 00:01:53.680
+probably you would use Firebase, Cloud Messaging. So it's interesting to see that, and we have to
+
+18
+00:01:53.680 --> 00:01:59.520
+say that also SNS is one of the oldest AWS services. It's 12 years old, I believe now.
+
+19
+00:01:59.520 --> 00:02:05.280
+So maybe this is a little bit of a legacy feature that was built there initially, but now you will
+
+20
+00:02:05.280 --> 00:02:12.800
+probably use other services. So in terms of advantages, what do you think are the strengths
+
+21
+00:02:12.800 --> 00:02:20.320
+of SNS compared to other services?
+
+22
+00:02:20.320 --> 00:02:24.880
+I'd say that the main strength compared to things like EventBridge and some of the other services, again, simplicity, but also really fast delivery. I think we mentioned
+
+23
+00:02:24.880 --> 00:02:30.880
+that in the last episode that SNS is typically lower latency. It's also push-based. You don't
+
+24
+00:02:30.880 --> 00:02:36.960
+have any polling like you do with SQS. You can have subscribers that are notified immediately.
+
+25
+00:02:36.960 --> 00:02:41.360
+So there's lots of really good things you can do with SNS. Typically what you're doing with
+
+26
+00:02:41.360 --> 00:02:47.200
+SNS is fan out. You're taking a message and broadcasting it to multiple subscribers.
+
+27
+00:02:47.920 --> 00:02:52.880
+So the things you can do with it are like event-based communication across parts of
+
+28
+00:02:52.880 --> 00:02:58.080
+microservice architectures, similar to what we discussed with EventBridge actually. So if you've
+
+29
+00:02:58.080 --> 00:03:03.600
+got a fan out pattern, so if you want to have the kind of behavior we talked about with SQS, where
+
+30
+00:03:03.600 --> 00:03:09.840
+you're sending message from one system to another, and you need that durability with SNS, you can do
+
+31
+00:03:09.840 --> 00:03:15.520
+that, but get multiple consumers involved rather than a single consumer. So you can combine SNS and
+
+32
+00:03:15.520 --> 00:03:22.720
+SQS. For example, in our e-commerce application, a new order arrives, you can send the event to
+
+33
+00:03:22.720 --> 00:03:28.480
+your fulfillment service, the analytic service, and your billing or invoicing service. One of
+
+34
+00:03:28.480 --> 00:03:35.040
+the other things you can do with SNS is send handle system alerts. AWS services will often send
+
+35
+00:03:35.040 --> 00:03:41.280
+messages to SNS when certain things happen, like CloudWatch alarms or change state. That's how you
+
+36
+00:03:41.280 --> 00:03:47.200
+get the notifications from CloudWatch alarms. And then you can take those alarm notifications,
+
+37
+00:03:47.200 --> 00:03:55.120
+send them by email, or send them to a webhook or a Lambda function, which could then send it to
+
+38
+00:03:55.120 --> 00:04:00.080
+Slack or Teams or wherever you want to receive those. It's also used for code pipeline
+
+39
+00:04:00.080 --> 00:04:06.720
+notifications. And if you use AWS config for compliance, it can send SNS messages when
+
+40
+00:04:06.720 --> 00:04:13.280
+the compliance date changes. So I think that's a pretty... That's those are the kind of things I
+
+41
+00:04:13.280 --> 00:04:18.720
+would generally use SNS for. How would you describe the usage of SNS? We talked through
+
+42
+00:04:18.720 --> 00:04:24.160
+this, I think, for EventBridge and SQS. What are the steps?
+
+43
+00:04:24.800 --> 00:04:30.480
+Yeah, it's interesting because we will see that compared to what we described for EventBridge, using SNS requires a little bit
+
+44
+00:04:30.480 --> 00:04:35.440
+more work, I would say. And that's because for instance, just for starting, you need to create
+
+45
+00:04:35.440 --> 00:04:41.280
+a topic. And a topic is effectively the place, the channel where you're going to be able to publish
+
+46
+00:04:41.280 --> 00:04:47.680
+messages. Once you create a topic, you can create a subscription on that topic. And a subscription
+
+47
+00:04:47.680 --> 00:04:53.760
+basically allows you to say, somebody wants to receive the messages once they are published on
+
+48
+00:04:53.760 --> 00:05:00.000
+this particular topic. And a subscription, sometimes it's something you need to confirm.
+
+49
+00:05:00.720 --> 00:05:08.000
+For instance, if you do a subscription that requires the destination to be an email or HTTP
+
+50
+00:05:08.000 --> 00:05:14.640
+or endpoints that live in another AWS account, AWS will actually ask you to confirm that that
+
+51
+00:05:14.640 --> 00:05:21.360
+subscription needs to be confirmed before it's actually activated. And sometimes, for instance,
+
+52
+00:05:21.360 --> 00:05:26.160
+you can receive an email and you have to click a link on that email or there are APIs that you can
+
+53
+00:05:26.160 --> 00:05:32.960
+use if you need to do that in an automated fashion. Then at that point, once you have a topic
+
+54
+00:05:32.960 --> 00:05:37.440
+and a subscription, you can publish one or more messages to that topic and you can use
+
+55
+00:05:37.440 --> 00:05:42.080
+either the publish API, which gives you one message, or the publish batch, which allows you
+
+56
+00:05:42.080 --> 00:05:47.920
+to publish more than one message with one single request. And that's interesting. But another thing
+
+57
+00:05:47.920 --> 00:05:53.360
+that is very interesting is that very often you need to also configure what are called access
+
+58
+00:05:53.360 --> 00:06:00.000
+control policies, which are something very similar to IAM policies, at least they have
+
+59
+00:06:00.000 --> 00:06:06.560
+the very similar structure. But those are basically the way you can authorize, for instance,
+
+60
+00:06:06.560 --> 00:06:14.400
+certain users to publish to a specific topic or SNS itself to be able to deliver to a queue.
+
+61
+00:06:14.400 --> 00:06:22.560
+So give SNS the permission to use the put message API to SQS. And you can also put different
+
+62
+00:06:22.560 --> 00:06:27.360
+limitations in places. For instance, you could say for this particular topic, I only want
+
+63
+00:06:27.360 --> 00:06:33.280
+subscription that deliver to HTTPS, for instance. So you can use all this feature to create
+
+64
+00:06:33.280 --> 00:06:41.920
+restrictions on how messages are consumed, but also how messages are published to the topic.
+
+65
+00:06:41.920 --> 00:06:48.320
+Are there other interesting details that are worth mentioning in terms of, I don't know,
+
+66
+00:06:48.320 --> 00:06:53.040
+the user experience of creating messages and consuming them?
+
+67
+00:06:53.040 --> 00:06:57.280
+If you remember with EventBridge, we were talking about rules and how you do pattern matching.
+
+68
+00:06:57.280 --> 00:07:02.320
+And SNS has kind of a similar feature called message filtering. But the important
+
+69
+00:07:02.320 --> 00:07:06.960
+distinction there is that message filtering is based on message attributes and not the
+
+70
+00:07:06.960 --> 00:07:12.320
+message content itself. So it's more like a filtering on metadata. So it can be used
+
+71
+00:07:12.320 --> 00:07:18.480
+to partition and filter messages. And that works pretty well, but it just doesn't have
+
+72
+00:07:18.480 --> 00:07:25.920
+the flexibility that you have with EventBridge. It feels like we're comparing it with EventBridge
+
+73
+00:07:25.920 --> 00:07:31.360
+quite a lot when we mention all these features. But one of the interesting ones is that you can
+
+74
+00:07:31.360 --> 00:07:39.600
+you can have up to 12.5 million subscribers per topic in SNS. EventBridge doesn't give you
+
+75
+00:07:39.600 --> 00:07:44.800
+anything like that. You generally don't need it, but you would have five targets per rule
+
+76
+00:07:45.360 --> 00:07:48.560
+in EventBridge. Of course, you can have as many rules as you want.
+
+77
+00:07:50.640 --> 00:07:56.560
+So then I guess we should talk about pricing. And it does seem like it's a little bit cheaper than
+
+78
+00:07:56.560 --> 00:08:03.760
+EventBridge because it's about 50 cents for a million SNS requests. And then you've got
+
+79
+00:08:04.720 --> 00:08:09.760
+additional costs for things like HTTP notification deliveries and email deliveries. So
+
+80
+00:08:09.760 --> 00:08:14.320
+if you want to target those endpoint types, that's something you should look at.
+
+81
+00:08:16.800 --> 00:08:24.480
+What about reliability? With EventBridge, you have DLQ. With SQS, you can have another Q,
+
+82
+00:08:24.480 --> 00:08:32.080
+which is a DLQ. You get that with SNS too, right? But you also have other similar features like
+
+83
+00:08:32.080 --> 00:08:36.320
+FIFO topics, which is quite a new one for SNS. Do you want to talk about what that can give you?
+
+84
+00:08:37.120 --> 00:08:41.760
+Yeah.
+
+85
+00:08:41.760 --> 00:08:48.720
+The only thing I know about that one, I haven't used it yet, but it's basically it allows you to push messages to FIFO queues and make sure that the order is respected in the process. So end
+
+86
+00:08:48.720 --> 00:08:54.720
+to end, you will be able to pull messages from the queue with the same order that the messages were
+
+87
+00:08:54.720 --> 00:09:00.160
+produced in the topic in the first place. This is as much as I know. I don't know if you have any
+
+88
+00:09:00.160 --> 00:09:06.560
+more detail that is worth sharing about that one. Yeah.
+
+89
+00:09:06.560 --> 00:09:12.240
+I think the feature is, I guess the important thing is that with SNS, FIFO, the only subscriber type is an SQS queue. That's the only
+
+90
+00:09:12.240 --> 00:09:18.640
+one that makes sense. But yeah, it's really important, obviously, I guess if you have the
+
+91
+00:09:18.640 --> 00:09:21.920
+kind of use case that you might normally use something like Kinesis or Kafka for, where you've
+
+92
+00:09:21.920 --> 00:09:27.280
+got strict ordering with multiple subscribers. So it's a really good addition. A lot of people
+
+93
+00:09:27.280 --> 00:09:34.800
+were very excited when that came out. We should also talk about, since we've been compared to
+
+94
+00:09:34.800 --> 00:09:40.800
+EventBridge, how it compares to SQS. So you've got obviously multiple consumers and you don't
+
+95
+00:09:40.800 --> 00:09:48.000
+have durability built in. So I mean, those are really headline differences between SNS and SQS,
+
+96
+00:09:48.000 --> 00:09:54.800
+but they combine really well, don't they? So it's very common to see SNS with SQS subscribers.
+
+97
+00:09:54.800 --> 00:10:01.600
+I think we covered when we were talking about SQS, that if you need the best of both worlds,
+
+98
+00:10:01.600 --> 00:10:06.720
+you can just essentially glue them together and you've got queues on the receiving end,
+
+99
+00:10:06.720 --> 00:10:16.080
+a topic on the publication end. And once you link the two, you can even have cross account SQS
+
+100
+00:10:16.080 --> 00:10:20.400
+subscriptions from an SNS topic. So you can imagine how that would work in a microservices
+
+101
+00:10:20.400 --> 00:10:25.840
+context when you have services deployed in different accounts or even across applications.
+
+102
+00:10:27.120 --> 00:10:31.840
+Yeah, there are different patterns that you can probably achieve by just combining SNS and SQS.
+
+103
+00:10:31.840 --> 00:10:38.800
+So that's a very common integration, I will say. In terms of comparison with EventBridge,
+
+104
+00:10:38.800 --> 00:10:44.240
+we already mentioned a few points. I think there are other ones that are also very interesting.
+
+105
+00:10:44.960 --> 00:10:49.280
+And we already said, for instance, that topics need to be created in advance. In SNS,
+
+106
+00:10:49.280 --> 00:10:54.160
+while in EventBridge, you get a default bus, you can create new bus if you want,
+
+107
+00:10:54.160 --> 00:10:58.080
+but you get something by default. So you don't necessarily need to provision any infrastructure
+
+108
+00:10:58.080 --> 00:11:07.120
+with EventBridge. In SNS, a subscription is bound to a topic. So you say, I want to listen for
+
+109
+00:11:07.120 --> 00:11:14.480
+messages published in this particular topic, while in EventBridge, you listen for messages in a bus,
+
+110
+00:11:15.680 --> 00:11:20.400
+which is kind of considered less granular if you want because a bus is more general purpose,
+
+111
+00:11:20.400 --> 00:11:26.000
+while a topic is more specialized, at least. This will be the most common conception, in my opinion.
+
+112
+00:11:26.000 --> 00:11:32.640
+And the reason why is because in a topic, when you subscribe, you generally get all the messages
+
+113
+00:11:32.640 --> 00:11:40.000
+in that topic, while in EventBridge, you generally provide rules that will allow you to select only
+
+114
+00:11:40.000 --> 00:11:48.160
+messages with a particular structure that you are interested in consuming. So EventBridge is
+
+115
+00:11:48.160 --> 00:11:52.960
+generally, you have the common bus for everything, and you just select things that you are interested
+
+116
+00:11:52.960 --> 00:11:59.520
+in by providing a pattern. With SNS, you select the specific topic that has the information you
+
+117
+00:11:59.520 --> 00:12:04.560
+want. You can probably achieve something similar with filtering, but we already mentioned that
+
+118
+00:12:04.560 --> 00:12:10.560
+SNS filtering, you can only filter on metadata and not the message content. So you will need to craft
+
+119
+00:12:10.560 --> 00:12:15.920
+that metadata in advance for the rules that you expect if you want to use filtering to select a
+
+120
+00:12:15.920 --> 00:12:23.120
+subset of the messages in the topic. Also, another interesting thing that we mentioned in the
+
+121
+00:12:23.120 --> 00:12:29.520
+previous episode that EventBridge gives you AWS events or even third-party integration events,
+
+122
+00:12:29.520 --> 00:12:38.160
+like Salesforce or stuff like that, while in SNS, you don't have any of that. It's up to you to
+
+123
+00:12:38.160 --> 00:12:45.120
+publish something into the different topics. SNS is much faster. Typically, you have a latency
+
+124
+00:12:45.120 --> 00:12:50.800
+of 30 milliseconds compared to something that can be around 500 milliseconds for EventBridge.
+
+125
+00:12:50.800 --> 00:12:56.880
+So definitely, this is probably the killer feature that is going to make SNS win against EventBridge
+
+126
+00:12:56.880 --> 00:13:02.160
+in certain scenarios. Like when you really need good latency, SNS is your choice.
+
+127
+00:13:02.160 --> 00:13:10.160
+EventBridge has many supported targets, while SNS is a little bit more limited. We'll mention some
+
+128
+00:13:10.160 --> 00:13:15.760
+of them in a second. And the other interesting thing, this is very cool feature that I really
+
+129
+00:13:15.760 --> 00:13:22.480
+like from EventBridge, that when you do HTTP targets, you can define a template that allows
+
+130
+00:13:22.480 --> 00:13:28.800
+you to change the structure of how the HTTP request is going to be sent. Instead, with SNS,
+
+131
+00:13:28.800 --> 00:13:34.240
+there is a standard format and that's it. So you'll need to build your APIs to accept that
+
+132
+00:13:34.240 --> 00:13:37.680
+format. Instead, EventBridge is a lot more flexible in that sense.
+
+133
+00:13:37.680 --> 00:13:41.440
+Or you'd have to put a Lambda function in between, I guess, if you need to transform it.
+
+134
+00:13:41.440 --> 00:13:43.600
+Exactly. And then you use that seamlessness.
+
+135
+00:13:43.600 --> 00:13:49.280
+Yeah. Do you want to tell us something about the integrations then?
+
+136
+00:13:50.320 --> 00:13:54.480
+Yeah.
+
+137
+00:13:54.480 --> 00:13:59.760
+So we talked at the start about the consumer targeting versus application to application cases. So you've got SMS, mobile, push, and email. But in terms of
+
+138
+00:13:59.760 --> 00:14:07.200
+service integrations, you can target SQS endpoints, Lambda, HTTPS endpoints, and Kinesis data,
+
+139
+00:14:07.200 --> 00:14:14.160
+firehose. So that can be a sync for all of your events. And on the publication side, S3
+
+140
+00:14:14.160 --> 00:14:24.480
+notifications can target SNS. API gateway can target SNS. DynamoDB. Also, SES, EventBridge
+
+141
+00:14:24.480 --> 00:14:29.840
+itself can target SNS. But in the same account only, whereas with EventBridge to EventBridge,
+
+142
+00:14:29.840 --> 00:14:34.960
+it's much easier to do cross-account. And Step Functions, of course, can publish to SNS,
+
+143
+00:14:34.960 --> 00:14:41.600
+because Step Functions can call any AWS API pretty much these days. So that, I think, covers the
+
+144
+00:14:41.600 --> 00:14:45.440
+primary integrations you'd use. Obviously, a limited subset compared to EventBridge, but
+
+145
+00:14:46.000 --> 00:14:53.840
+that's one of the trade-offs. And I think that pretty much covers all of the details on SNS.
+
+146
+00:14:53.840 --> 00:15:00.800
+And wraps up this part of the series. Next focus will be on streaming, which is a different ball
+
+147
+00:15:00.800 --> 00:15:05.280
+game and should be really interesting. Before we go, I just wanted to call out one article,
+
+148
+00:15:05.280 --> 00:15:09.840
+which is going to be in the show notes, which is from Cloud or Not blog, and it compares SNS
+
+149
+00:15:09.840 --> 00:15:15.360
+to EventBridge. I think it's a topic people are really interested in these days, so I'd recommend
+
+150
+00:15:15.360 --> 00:15:31.840
+you take a look at that. So thanks for listening, and we will see you in the next episode.

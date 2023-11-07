@@ -1,0 +1,2489 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:01.760
+Is serverless more secure?
+
+2
+00:00:02.400 --> 00:00:04.720
+In today's chat, we're going to answer this question.
+
+3
+00:00:04.720 --> 00:00:07.200
+And by the end of this episode, you will know
+
+4
+00:00:07.200 --> 00:00:09.840
+how serverless compares with more traditional deployments
+
+5
+00:00:09.840 --> 00:00:11.040
+in terms of security.
+
+6
+00:00:11.040 --> 00:00:12.720
+What are the main security strengths
+
+7
+00:00:12.720 --> 00:00:15.120
+of serverless deployments, but also what are some
+
+8
+00:00:15.120 --> 00:00:17.520
+of the weaknesses of things to be aware of,
+
+9
+00:00:17.520 --> 00:00:20.480
+common serverless security challenges, and some tips
+
+10
+00:00:20.480 --> 00:00:23.040
+to make your serverless deployments more secure.
+
+11
+00:00:23.040 --> 00:00:25.760
+My name is Luciano, and today I'm joined by Eoin,
+
+12
+00:00:25.760 --> 00:00:30.080
+and this is AWS Bites podcast.
+
+13
+00:00:30.080 --> 00:00:39.520
+Let's start with one topic that is probably
+
+14
+00:00:39.520 --> 00:00:42.640
+the most commonly discussed topic around serverless
+
+15
+00:00:42.640 --> 00:00:43.760
+and security.
+
+16
+00:00:43.760 --> 00:00:46.240
+And of course, in this case, we are trying to talk
+
+17
+00:00:46.240 --> 00:00:49.200
+more about the context of AWS.
+
+18
+00:00:49.200 --> 00:00:51.520
+So we are probably going to be talking more and more
+
+19
+00:00:51.520 --> 00:00:52.560
+about Lambda.
+
+20
+00:00:52.560 --> 00:00:56.720
+So what do we mean when we say that, for instance,
+
+21
+00:00:56.720 --> 00:00:59.200
+it's easier in that context to apply the principle
+
+22
+00:00:59.200 --> 00:01:00.560
+of least privilege?
+
+23
+00:01:01.440 --> 00:01:02.560
+What do you think, Eoin?
+
+24
+00:01:02.560 --> 00:01:04.640
+I think this is the first thing that comes up
+
+25
+00:01:04.640 --> 00:01:07.040
+when people discuss serverless and security, right?
+
+26
+00:01:07.680 --> 00:01:08.720
+Yeah, for sure.
+
+27
+00:01:08.720 --> 00:01:12.560
+So the idea with least privilege is that if you've got
+
+28
+00:01:12.560 --> 00:01:15.280
+very small units of deployment, very small granular
+
+29
+00:01:15.280 --> 00:01:18.160
+functions, you can have very small granular policies
+
+30
+00:01:18.160 --> 00:01:20.720
+that only need to do specifically what that function
+
+31
+00:01:20.720 --> 00:01:21.440
+needs to do.
+
+32
+00:01:21.440 --> 00:01:24.240
+So if you imagine like an API and you've got a get method,
+
+33
+00:01:24.240 --> 00:01:27.280
+a post method, one for listing resources, they can all
+
+34
+00:01:27.280 --> 00:01:29.440
+have the individual policy attached to their Lambda
+
+35
+00:01:29.440 --> 00:01:32.880
+execution role, and then you don't need to have access
+
+36
+00:01:32.880 --> 00:01:37.360
+to put item in a DynamoDB table in your read-only
+
+37
+00:01:38.240 --> 00:01:39.200
+resource accessors.
+
+38
+00:01:39.920 --> 00:01:43.920
+And that's a very good way to reduce the attack service,
+
+39
+00:01:43.920 --> 00:01:44.080
+right?
+
+40
+00:01:44.080 --> 00:01:46.640
+So if the function is compromised in some way and functions
+
+41
+00:01:46.640 --> 00:01:50.560
+can be compromised, generally you're limiting the blast radius,
+
+42
+00:01:50.560 --> 00:01:52.880
+you're limiting the effect that that attack can have.
+
+43
+00:01:54.880 --> 00:01:59.840
+Of course, there are ways to inject vulnerabilities into
+
+44
+00:01:59.840 --> 00:02:00.720
+Lambda deployments.
+
+45
+00:02:00.720 --> 00:02:03.680
+So what are some of the ways there?
+
+46
+00:02:04.320 --> 00:02:07.920
+I guess you're a big Node.js fan on the channel,
+
+47
+00:02:08.640 --> 00:02:10.480
+but one of the things that we've seen from time to time
+
+48
+00:02:10.480 --> 00:02:13.920
+is that dependencies can be injected through the Node.js
+
+49
+00:02:13.920 --> 00:02:14.560
+module system.
+
+50
+00:02:15.200 --> 00:02:15.840
+Exactly.
+
+51
+00:02:15.840 --> 00:02:18.960
+That's probably one of the most common attacks, even outside
+
+52
+00:02:18.960 --> 00:02:21.600
+the world of serverless, but of course, applies to serverless
+
+53
+00:02:21.600 --> 00:02:22.240
+as well.
+
+54
+00:02:22.240 --> 00:02:24.640
+Most likely, when you write a Lambda function, you are just
+
+55
+00:02:24.640 --> 00:02:27.840
+going to do npm install and get some useful dependency.
+
+56
+00:02:27.840 --> 00:02:30.000
+Of course, you need to be careful with that because those
+
+57
+00:02:30.000 --> 00:02:32.400
+dependencies can be compromised at some point.
+
+58
+00:02:32.400 --> 00:02:35.280
+You might be installing a version of even a very common
+
+59
+00:02:35.280 --> 00:02:37.600
+dependency that might have been compromised in different
+
+60
+00:02:37.600 --> 00:02:41.040
+ways, and that dependency will be running in the context
+
+61
+00:02:41.040 --> 00:02:44.960
+of your Lambda, and it might try to do dangerous things
+
+62
+00:02:44.960 --> 00:02:46.960
+that we'll probably discuss more and more through the
+
+63
+00:02:46.960 --> 00:02:47.920
+course of this episode.
+
+64
+00:02:47.920 --> 00:02:50.400
+The interesting thing in the context of least privilege
+
+65
+00:02:50.400 --> 00:02:54.000
+there is that, of course, if you have smaller units, you
+
+66
+00:02:54.000 --> 00:02:57.120
+will probably want to install the minimum amount of
+
+67
+00:02:57.120 --> 00:02:59.920
+libraries that you need for every single Lambda.
+
+68
+00:02:59.920 --> 00:03:02.400
+So every Lambda will only keep the libraries that are
+
+69
+00:03:02.400 --> 00:03:05.520
+really needed to perform that particular Lambda task, and
+
+70
+00:03:05.520 --> 00:03:08.080
+that probably helps to reduce the surface once again,
+
+71
+00:03:08.080 --> 00:03:11.840
+because if one module gets compromised, most likely that's
+
+72
+00:03:11.840 --> 00:03:14.000
+not going to affect your entire application, but only
+
+73
+00:03:14.000 --> 00:03:17.040
+those the subset of Lambdas that actually use that module.
+
+74
+00:03:17.040 --> 00:03:19.920
+So this is another way that I think we can see that the
+
+75
+00:03:21.360 --> 00:03:24.000
+principle of least privilege doesn't just apply to IAM
+
+76
+00:03:24.000 --> 00:03:26.480
+policies, but also applies to dependencies.
+
+77
+00:03:29.280 --> 00:03:32.240
+In AWS, you have this shared responsibility model, don't you, where you have a set of things that AWS take
+
+78
+00:03:32.240 --> 00:03:34.480
+responsibility for from the perspective of security, and
+
+79
+00:03:34.480 --> 00:03:36.640
+then the part that you are responsible for.
+
+80
+00:03:37.520 --> 00:03:40.640
+Is that significantly different, or how would you quantify
+
+81
+00:03:40.640 --> 00:03:43.360
+that if you're moving from a system where you're doing
+
+82
+00:03:43.360 --> 00:03:47.840
+EC2 instances, or maybe something in the middle like
+
+83
+00:03:47.840 --> 00:03:51.600
+containers on EKS, and then looking at Lambda, how much of
+
+84
+00:03:51.600 --> 00:03:54.080
+a benefit do you get with that shared responsibility shift?
+
+85
+00:03:57.680 --> 00:03:59.280
+Yeah, I think this is a very good point, because let's start with the comparison with EC2.
+
+86
+00:03:59.280 --> 00:04:01.840
+When you have to provision an EC2, generally, the first
+
+87
+00:04:01.840 --> 00:04:03.840
+thing you need to do is decide, okay, which operative
+
+88
+00:04:03.840 --> 00:04:08.080
+system am I going to use when I build my image, and with
+
+89
+00:04:08.080 --> 00:04:11.040
+that, which version of that operative system, and then at
+
+90
+00:04:11.040 --> 00:04:13.760
+that point, you probably will need to install some custom
+
+91
+00:04:13.760 --> 00:04:16.720
+software, even, I don't know, system libraries, things like
+
+92
+00:04:16.720 --> 00:04:16.880
+that.
+
+93
+00:04:17.520 --> 00:04:19.600
+Eventually, then you'll get to the point where you install
+
+94
+00:04:19.600 --> 00:04:23.120
+your own code, some sort of configuration in the machine,
+
+95
+00:04:23.120 --> 00:04:25.200
+and then at that point, you have something you can actually
+
+96
+00:04:25.200 --> 00:04:26.800
+execute as a compute unit.
+
+97
+00:04:27.360 --> 00:04:30.000
+So there is a lot of things that you need to keep in mind,
+
+98
+00:04:30.000 --> 00:04:34.080
+and a lot of places where security will go wrong in a way
+
+99
+00:04:34.080 --> 00:04:37.200
+or another, because, of course, you own all these decisions,
+
+100
+00:04:37.200 --> 00:04:39.440
+and you need to make sure that you are doing everything
+
+101
+00:04:39.440 --> 00:04:40.960
+as secure as possible, of course.
+
+102
+00:04:41.600 --> 00:04:45.360
+When you do systems in the context of, I don't know,
+
+103
+00:04:45.360 --> 00:04:48.560
+Fargate or ECS, so when you're using container, it gets a
+
+104
+00:04:48.560 --> 00:04:51.920
+little bit better, because you don't worry too much about
+
+105
+00:04:51.920 --> 00:04:54.880
+the machine itself, where things are running.
+
+106
+00:04:54.880 --> 00:04:57.760
+You only worry closer to your code.
+
+107
+00:04:57.760 --> 00:04:59.920
+But again, when you are building a container, you are
+
+108
+00:04:59.920 --> 00:05:04.160
+still starting from that similar concept of operative
+
+109
+00:05:04.160 --> 00:05:05.040
+system libraries.
+
+110
+00:05:05.040 --> 00:05:08.720
+There is still a layer where it's not just your code, but
+
+111
+00:05:08.720 --> 00:05:10.880
+there is a lot more that you are bringing in, and you need
+
+112
+00:05:10.880 --> 00:05:14.640
+to make sure that that layer is also not vulnerable or not
+
+113
+00:05:14.640 --> 00:05:15.280
+compromised.
+
+114
+00:05:15.280 --> 00:05:18.960
+And also, again, there is a similar thing with external
+
+115
+00:05:18.960 --> 00:05:19.760
+dependencies.
+
+116
+00:05:19.760 --> 00:05:22.560
+If you're using third-party containers, those might be
+
+117
+00:05:23.200 --> 00:05:26.800
+vulnerable as well, or there might be malicious attacks or
+
+118
+00:05:26.800 --> 00:05:27.520
+other worms.
+
+119
+00:05:27.520 --> 00:05:28.800
+There's a whole lot of those.
+
+120
+00:05:28.800 --> 00:05:29.600
+Yeah, exactly.
+
+121
+00:05:29.600 --> 00:05:34.480
+And I guess you're thinking about the operating system,
+
+122
+00:05:34.480 --> 00:05:36.880
+but I guess when you have containers and instances, you've
+
+123
+00:05:36.880 --> 00:05:39.520
+got the operating system, but also the disk.
+
+124
+00:05:39.520 --> 00:05:42.240
+So you might have file system security to worry about, and
+
+125
+00:05:42.240 --> 00:05:44.720
+then you have the network in a container or an EC2 instance,
+
+126
+00:05:44.720 --> 00:05:46.880
+so you have network security to worry about too.
+
+127
+00:05:49.280 --> 00:05:51.760
+Yeah, I guess the point that we are trying to make is that in the context of a Lambda, all these things are...
+
+128
+00:05:52.720 --> 00:05:56.880
+You kind of get a smaller set of options, and therefore you
+
+129
+00:05:56.880 --> 00:05:58.640
+also get a smaller surface.
+
+130
+00:05:59.280 --> 00:06:02.560
+And most of the things that are happening underneath in the
+
+131
+00:06:02.560 --> 00:06:05.840
+underlying layer that executes your Lambda are managed by
+
+132
+00:06:05.840 --> 00:06:10.400
+AWS, and AWS should reasonably take care of keeping security
+
+133
+00:06:10.400 --> 00:06:11.360
+under control.
+
+134
+00:06:11.360 --> 00:06:14.240
+And I think we had a very good example with the Log4j
+
+135
+00:06:15.920 --> 00:06:20.320
+famous vulnerability when it was a few months ago, where
+
+136
+00:06:21.440 --> 00:06:25.040
+everyone was rushing to update their deployments because,
+
+137
+00:06:25.040 --> 00:06:28.320
+of course, very, very dangerous vulnerability there.
+
+138
+00:06:28.320 --> 00:06:31.760
+It could allow pretty much uncontrolled remote execution,
+
+139
+00:06:31.760 --> 00:06:33.680
+so probably one of the most dangerous kinds of
+
+140
+00:06:33.680 --> 00:06:34.720
+vulnerabilities.
+
+141
+00:06:34.720 --> 00:06:37.440
+And Log4j is also one of the most common libraries in the
+
+142
+00:06:37.440 --> 00:06:41.040
+Java world, so almost any Java system was exposed at that
+
+143
+00:06:41.040 --> 00:06:43.440
+point, or at least potentially could have been exposed.
+
+144
+00:06:44.080 --> 00:06:47.280
+So everyone was rushing overnight to fix all their Java
+
+145
+00:06:47.280 --> 00:06:50.960
+deployments, and it's a huge surface to fix overnight.
+
+146
+00:06:50.960 --> 00:06:53.920
+And in the case of AWS, if you were running, for instance,
+
+147
+00:06:53.920 --> 00:06:57.680
+a Lambda using the Java runtime, AWS immediately, or
+
+148
+00:06:57.680 --> 00:07:00.240
+almost immediately, took care of trying to patch that
+
+149
+00:07:00.240 --> 00:07:03.680
+runtime to try to reduce to the minimum the risk for that
+
+150
+00:07:03.680 --> 00:07:07.760
+for that runtime to for people to use that would exploit
+
+151
+00:07:07.760 --> 00:07:10.720
+that vulnerability and create attacks based on that.
+
+152
+00:07:10.720 --> 00:07:13.840
+So this is just an example of having that shared
+
+153
+00:07:13.840 --> 00:07:14.960
+responsibility model.
+
+154
+00:07:14.960 --> 00:07:17.520
+It's something that can help in terms of security.
+
+155
+00:07:17.520 --> 00:07:18.000
+Right.
+
+156
+00:07:18.000 --> 00:07:21.840
+So I suppose the next topic I have in mind is another
+
+157
+00:07:21.840 --> 00:07:24.960
+advantage of Lambda, and this is a little bit of a
+
+158
+00:07:24.960 --> 00:07:29.120
+contentious one, because sometimes you talk about short
+
+159
+00:07:29.120 --> 00:07:32.320
+execution times as a negative thing for Lambda.
+
+160
+00:07:32.320 --> 00:07:35.200
+It's more like a blocker, but it's interesting to discuss
+
+161
+00:07:35.200 --> 00:07:38.160
+this because in terms of security can have, I think, even
+
+162
+00:07:38.160 --> 00:07:39.760
+a positive effect in a way.
+
+163
+00:07:39.760 --> 00:07:40.480
+What do you think?
+
+164
+00:07:40.480 --> 00:07:41.520
+What's your opinion on that?
+
+165
+00:07:42.240 --> 00:07:44.400
+Yeah, and I've heard, I can't remember who it was, but I've
+
+166
+00:07:44.400 --> 00:07:46.640
+heard members of the Lambda teams state this when people
+
+167
+00:07:46.640 --> 00:07:49.680
+are arguing for shorter execution times, they say, well,
+
+168
+00:07:49.680 --> 00:07:51.840
+look, one of the great benefits of having a short execution
+
+169
+00:07:51.840 --> 00:07:54.240
+time is that the attack window is much shorter.
+
+170
+00:07:54.240 --> 00:07:56.720
+So even if people do get access to that environment, they
+
+171
+00:07:56.720 --> 00:08:00.640
+only have 15 minutes to do the damage or to exfiltrate the
+
+172
+00:08:00.640 --> 00:08:03.280
+data or whatever it is, but it also means, you know, as
+
+173
+00:08:03.280 --> 00:08:06.640
+systems run, they accumulate state or cruft, and this can
+
+174
+00:08:06.640 --> 00:08:10.080
+also have security consequences.
+
+175
+00:08:10.080 --> 00:08:13.920
+So having things that are, don't accumulate this kind of
+
+176
+00:08:13.920 --> 00:08:16.560
+state, let's say, even it could be like some sort of memory
+
+177
+00:08:16.560 --> 00:08:19.920
+leak or something that could eventually open up an attack,
+
+178
+00:08:21.040 --> 00:08:22.880
+that 15 minutes is actually a benefit.
+
+179
+00:08:22.880 --> 00:08:26.720
+So I think we should, in a lot of cases, people should try
+
+180
+00:08:26.720 --> 00:08:28.880
+and embrace that 15 minutes and say, okay, well, how can I
+
+181
+00:08:28.880 --> 00:08:30.960
+split the workload so that everything runs in a short
+
+182
+00:08:30.960 --> 00:08:32.720
+period of time in this kind of stateless way?
+
+183
+00:08:33.520 --> 00:08:35.440
+And then you get that security benefit as well.
+
+184
+00:08:35.440 --> 00:08:36.080
+Absolutely.
+
+185
+00:08:36.640 --> 00:08:37.680
+Yeah, I agree.
+
+186
+00:08:37.680 --> 00:08:40.240
+Even though sometimes I think that there is a little bit of
+
+187
+00:08:40.240 --> 00:08:44.480
+a double-edged sword in this, because let's say that an
+
+188
+00:08:44.480 --> 00:08:49.360
+attacker managed to somehow inject something in a Lambda
+
+189
+00:08:49.360 --> 00:08:50.720
+and execute code.
+
+190
+00:08:50.720 --> 00:08:53.680
+Again, we'll be talking a little bit more of some examples.
+
+191
+00:08:53.680 --> 00:08:57.680
+What's going to happen is that from the perspective of
+
+192
+00:08:57.680 --> 00:09:00.960
+somebody managing this infrastructure, whatever the
+
+193
+00:09:00.960 --> 00:09:03.440
+attack is going to do is going to vanish very quickly when
+
+194
+00:09:03.440 --> 00:09:06.880
+the Lambda gets disposed and the next execution is started,
+
+195
+00:09:06.880 --> 00:09:07.280
+right?
+
+196
+00:09:07.760 --> 00:09:11.200
+So it can also become harder, I suppose, to see when
+
+197
+00:09:11.200 --> 00:09:13.600
+something bad is going on, because you don't have, I don't
+
+198
+00:09:13.600 --> 00:09:17.280
+know, any simple way to do, like to run scanners constantly
+
+199
+00:09:17.280 --> 00:09:20.400
+over your infrastructure or to detect drift because just
+
+200
+00:09:20.400 --> 00:09:23.680
+things get recreated and deleted all the time.
+
+201
+00:09:23.680 --> 00:09:28.160
+So if an attacker manages to time an attack very well, which
+
+202
+00:09:28.160 --> 00:09:30.560
+is going to be hard, of course, for the attacker, but it
+
+203
+00:09:30.560 --> 00:09:33.520
+also means that it can be harder to detect that kind of
+
+204
+00:09:33.520 --> 00:09:33.920
+attack.
+
+205
+00:09:34.480 --> 00:09:36.960
+So that's something to be aware of, I guess.
+
+206
+00:09:40.400 --> 00:09:42.400
+Are we generally talking about like looking at the normal set of attacks that people should be mindful for in any
+
+207
+00:09:42.400 --> 00:09:44.400
+execution environment, but a subset of that?
+
+208
+00:09:44.400 --> 00:09:46.400
+Or are there like new ones that emerge?
+
+209
+00:09:51.600 --> 00:09:53.600
+I think for sure we can talk about like same type of common attacks and how they change.
+
+210
+00:09:53.600 --> 00:09:56.240
+They will change a little bit in the context of serverless,
+
+211
+00:09:56.240 --> 00:09:59.200
+but most of them are common attacks.
+
+212
+00:09:59.200 --> 00:10:02.320
+I don't expect anything like extremely new.
+
+213
+00:10:02.320 --> 00:10:05.040
+They might just have a slightly different variation in the
+
+214
+00:10:05.040 --> 00:10:07.280
+way that they are performed and the effects that they can
+
+215
+00:10:07.280 --> 00:10:07.600
+have.
+
+216
+00:10:08.640 --> 00:10:11.440
+Of course, the first one that we already mentioned is
+
+217
+00:10:11.440 --> 00:10:14.640
+either data filtration or remote code executions and the
+
+218
+00:10:14.640 --> 00:10:18.560
+two always kind of go together because one is kind of useful
+
+219
+00:10:18.560 --> 00:10:19.200
+for the other.
+
+220
+00:10:19.840 --> 00:10:23.520
+And we say that there could be ways for an attacker to be
+
+221
+00:10:23.520 --> 00:10:26.400
+able to run arbitrary code in the context of a lambda.
+
+222
+00:10:26.400 --> 00:10:30.000
+We already mentioned the case of dependency that gets
+
+223
+00:10:30.000 --> 00:10:30.480
+compromised.
+
+224
+00:10:31.680 --> 00:10:33.440
+That can also happen with injection.
+
+225
+00:10:33.440 --> 00:10:38.320
+So if your lambda is receiving external input and that
+
+226
+00:10:38.320 --> 00:10:41.840
+external input is used in an insecure way, that might lead
+
+227
+00:10:41.840 --> 00:10:45.280
+to remote code execution as well so that there might be
+
+228
+00:10:45.280 --> 00:10:48.560
+several different ways for an attacker to be able to run
+
+229
+00:10:48.560 --> 00:10:51.120
+arbitrary code in the context of your own lambda.
+
+230
+00:10:51.120 --> 00:10:53.840
+So let's say that that happened in a way or another.
+
+231
+00:10:53.840 --> 00:10:55.200
+What can happen next?
+
+232
+00:10:55.200 --> 00:10:56.720
+What can the attacker do?
+
+233
+00:10:57.280 --> 00:11:00.960
+And the first thing is that I would expect an attacker,
+
+234
+00:11:00.960 --> 00:11:03.360
+the first thing they will do is probably try to do some
+
+235
+00:11:03.360 --> 00:11:06.560
+recon so they will try to see, OK, I am inside an AWS
+
+236
+00:11:06.560 --> 00:11:06.960
+account.
+
+237
+00:11:06.960 --> 00:11:08.080
+What else can I do?
+
+238
+00:11:08.080 --> 00:11:10.800
+What's exposed from this point, from this start to the
+
+239
+00:11:10.800 --> 00:11:11.040
+end?
+
+240
+00:11:11.040 --> 00:11:15.760
+And for instance, most likely what they're going to do is
+
+241
+00:11:15.760 --> 00:11:17.920
+they can try to grab the credentials of that particular
+
+242
+00:11:17.920 --> 00:11:21.680
+lambda where they are running and they can do that in
+
+243
+00:11:21.680 --> 00:11:22.160
+different ways.
+
+244
+00:11:22.160 --> 00:11:24.880
+There is like at that point when you can run arbitrary
+
+245
+00:11:24.880 --> 00:11:26.320
+code, you have access to the credentials.
+
+246
+00:11:26.320 --> 00:11:28.000
+So there's really no environment variables.
+
+247
+00:11:28.000 --> 00:11:28.960
+Yeah, exactly.
+
+248
+00:11:28.960 --> 00:11:32.320
+Which is one good reason not to store secrets, additional
+
+249
+00:11:32.320 --> 00:11:34.160
+secrets in environment variables, of course.
+
+250
+00:11:34.160 --> 00:11:34.720
+Exactly.
+
+251
+00:11:38.720 --> 00:11:40.900
+But also the lambda itself will have a policy that gives some permission to the lambdas for the
+
+252
+00:11:40.900 --> 00:11:41.400
+lambda.
+
+253
+00:11:41.400 --> 00:11:44.120
+So if those permissions are very wide open, the attacker
+
+254
+00:11:44.120 --> 00:11:47.240
+can start to do list of sorts of resources, try to spin up
+
+255
+00:11:47.240 --> 00:11:48.600
+EC2 instances.
+
+256
+00:11:48.600 --> 00:11:51.160
+And by spinning up EC2 instances, they can create a
+
+257
+00:11:51.160 --> 00:11:53.880
+more persistent footprint in the infrastructure.
+
+258
+00:11:53.880 --> 00:11:57.160
+Maybe they can spin up, I don't know, something that
+
+259
+00:11:57.160 --> 00:11:59.720
+allows them to do remote control of the infrastructure
+
+260
+00:11:59.720 --> 00:12:01.160
+in a more permanent way.
+
+261
+00:12:02.440 --> 00:12:04.760
+They can steal data because they can access S3.
+
+262
+00:12:04.760 --> 00:12:07.080
+So you need to be very, very careful at that point that
+
+263
+00:12:07.080 --> 00:12:10.200
+the surface of that lambda is as restricted as possible,
+
+264
+00:12:10.200 --> 00:12:12.840
+because whatever the lambda can do, the attacker will be
+
+265
+00:12:12.840 --> 00:12:13.960
+able to do the same things.
+
+266
+00:12:16.040 --> 00:12:19.640
+So it's, again, very important to apply that principle of
+
+267
+00:12:19.640 --> 00:12:20.440
+least privilege.
+
+268
+00:12:22.280 --> 00:12:25.560
+And another example, if we just want to think about maybe
+
+269
+00:12:25.560 --> 00:12:29.800
+the attacker doesn't really care about using resources in
+
+270
+00:12:29.800 --> 00:12:32.840
+your AWS account that they don't want to run compute and
+
+271
+00:12:32.840 --> 00:12:36.360
+basically steal your money in that indirect way that they
+
+272
+00:12:36.360 --> 00:12:38.680
+just run compute that you are going to pay for and they can
+
+273
+00:12:38.680 --> 00:12:40.040
+do their own stuff with it.
+
+274
+00:12:40.040 --> 00:12:45.560
+Maybe they have, exactly, like crypto mining or DDoS endpoints
+
+275
+00:12:45.560 --> 00:12:46.280
+or stuff like that.
+
+276
+00:12:46.280 --> 00:12:47.640
+Maybe they care more about data.
+
+277
+00:12:48.200 --> 00:12:51.240
+So another interesting thing is that they might try to
+
+278
+00:12:51.240 --> 00:12:52.120
+exfiltrate data.
+
+279
+00:12:52.920 --> 00:12:54.040
+And how can they do that?
+
+280
+00:12:54.680 --> 00:12:58.280
+And again, we mentioned they could try to exfiltrate
+
+281
+00:12:58.280 --> 00:13:00.600
+environment variables, secrets and so on, because that can
+
+282
+00:13:00.600 --> 00:13:03.800
+give them other types of access even to other third party
+
+283
+00:13:03.800 --> 00:13:05.960
+systems that you use in your company.
+
+284
+00:13:05.960 --> 00:13:09.400
+But they can also just try to exfiltrate interesting data
+
+285
+00:13:09.400 --> 00:13:12.760
+that you might have in your account from S3, from databases.
+
+286
+00:13:12.760 --> 00:13:15.080
+And of course, the first way that they are going to try is
+
+287
+00:13:15.080 --> 00:13:19.160
+to try to upload some data that they got access to, to some
+
+288
+00:13:19.160 --> 00:13:20.040
+remote server.
+
+289
+00:13:20.600 --> 00:13:24.600
+So the next interesting topic is probably network traffic.
+
+290
+00:13:24.600 --> 00:13:29.320
+Like, can Lambda give you ways to kind of control the network
+
+291
+00:13:29.320 --> 00:13:31.320
+traffic and limit this kind of attacks?
+
+292
+00:13:31.320 --> 00:13:34.280
+So it can definitely be beneficial as opposed to limit
+
+293
+00:13:34.280 --> 00:13:36.840
+the outbound network traffic.
+
+294
+00:13:36.840 --> 00:13:39.160
+But how is that possible with Lambda?
+
+295
+00:13:39.160 --> 00:13:39.880
+Is it easy?
+
+296
+00:13:39.880 --> 00:13:40.600
+Is it obvious?
+
+297
+00:13:41.640 --> 00:13:42.680
+We should talk about that.
+
+298
+00:13:42.680 --> 00:13:45.080
+So maybe we're getting into the area of, OK, what are some
+
+299
+00:13:45.080 --> 00:13:49.160
+of the challenges that serverless security can bring that
+
+300
+00:13:49.160 --> 00:13:51.480
+you don't have in traditional security, let's say.
+
+301
+00:13:51.480 --> 00:13:54.040
+And you already mentioned, like, OK, your 15 minute window
+
+302
+00:13:54.040 --> 00:13:56.440
+might give you a short opportunity to actually spot attacks.
+
+303
+00:13:57.960 --> 00:14:00.280
+What else do you think is challenging?
+
+304
+00:14:00.280 --> 00:14:02.680
+Because it seems like it's fairly beneficial so far.
+
+305
+00:14:06.920 --> 00:14:10.200
+Yeah, I think there are challenges mostly from an engineering perspective, because if you compare something a little bit
+
+306
+00:14:10.200 --> 00:14:13.800
+more monolithic, like a single EC2 instance or even a few
+
+307
+00:14:13.800 --> 00:14:17.720
+containers, when you look into Lambda and serverless, you
+
+308
+00:14:17.720 --> 00:14:19.400
+generally have a lot more moving parts.
+
+309
+00:14:19.960 --> 00:14:24.120
+That means that you need to be careful and diligent with a
+
+310
+00:14:24.120 --> 00:14:27.960
+lot more smaller things so that the room for mistake is there.
+
+311
+00:14:27.960 --> 00:14:30.840
+It's like it's going to, you're going to have to take care
+
+312
+00:14:30.840 --> 00:14:33.080
+and be strict with a lot more things.
+
+313
+00:14:33.080 --> 00:14:35.000
+So something might slip more easily.
+
+314
+00:14:35.640 --> 00:14:39.480
+So I think in that case, it's good to have processes in the
+
+315
+00:14:39.480 --> 00:14:41.880
+company and to have a more structured approach.
+
+316
+00:14:41.880 --> 00:14:44.280
+For instance, one thing that I really like to do, even though
+
+317
+00:14:44.280 --> 00:14:48.600
+it's a little bit painful, is whenever I write a Lambda, I
+
+318
+00:14:48.600 --> 00:14:52.840
+basically give it zero IAM permissions, except from logging
+
+319
+00:14:52.840 --> 00:14:54.200
+and the basic stuffs.
+
+320
+00:14:55.400 --> 00:14:58.040
+And then I need to use, for instance, DynamoDB.
+
+321
+00:14:58.040 --> 00:14:59.800
+I write the code, I make it fail.
+
+322
+00:14:59.800 --> 00:15:02.200
+And I see, OK, why did it fail?
+
+323
+00:15:02.200 --> 00:15:05.080
+You don't have permissions to put item, right?
+
+324
+00:15:05.080 --> 00:15:07.800
+For instance, then, OK, do I need permission to put item?
+
+325
+00:15:07.800 --> 00:15:08.440
+Obviously, yes.
+
+326
+00:15:08.440 --> 00:15:10.040
+How can I limit that permission?
+
+327
+00:15:10.040 --> 00:15:14.680
+Maybe I can limit to a subset of resources, not like put item
+
+328
+00:15:14.680 --> 00:15:15.880
+asterisk on the table.
+
+329
+00:15:16.600 --> 00:15:21.480
+So I try to do that very strict exercise of, OK, now I need to
+
+330
+00:15:21.480 --> 00:15:24.280
+give some permission, but what's the minimum level of
+
+331
+00:15:24.280 --> 00:15:25.400
+permission that I could give?
+
+332
+00:15:25.960 --> 00:15:29.160
+So that's a very painful way of doing it.
+
+333
+00:15:29.160 --> 00:15:31.880
+But I think it's one way that will help you to make sure that
+
+334
+00:15:31.880 --> 00:15:34.920
+you are at least thinking of what's the minimum amount of
+
+335
+00:15:34.920 --> 00:15:36.600
+permission you can give to a Lambda.
+
+336
+00:15:37.400 --> 00:15:39.720
+Of course, it's still challenging because over time
+
+337
+00:15:39.720 --> 00:15:40.840
+your Lambda will evolve.
+
+338
+00:15:40.840 --> 00:15:43.400
+Different people will work on that same Lambda.
+
+339
+00:15:43.400 --> 00:15:47.640
+So sometimes you end up changing even the implementation
+
+340
+00:15:47.640 --> 00:15:50.120
+and you might forget to remove permissions that maybe you
+
+341
+00:15:50.120 --> 00:15:51.400
+don't need anymore.
+
+342
+00:15:51.400 --> 00:15:54.280
+So that process is something that needs to be revised even
+
+343
+00:15:54.280 --> 00:15:56.760
+every time you do updates, not just the first time you create
+
+344
+00:15:56.760 --> 00:15:57.240
+a Lambda.
+
+345
+00:16:00.280 --> 00:16:02.040
+You might use IAM access analyzer, some of the tooling looking at your analyzing your cloud trail.
+
+346
+00:16:03.880 --> 00:16:07.080
+But yeah, just I guess auditing your policies to make sure
+
+347
+00:16:07.080 --> 00:16:10.600
+they're not overly permissive because you add them right.
+
+348
+00:16:10.600 --> 00:16:13.480
+But then you remove your DynamoDB use.
+
+349
+00:16:13.480 --> 00:16:15.560
+You don't need to have your put item action anymore, so you
+
+350
+00:16:15.560 --> 00:16:16.200
+should remove it.
+
+351
+00:16:18.840 --> 00:16:22.760
+Yeah, that's actually a very good tool and we'll put a link in the show description because I don't think many people use
+
+352
+00:16:22.760 --> 00:16:23.800
+it enough, I guess.
+
+353
+00:16:26.680 --> 00:16:29.720
+So do you think security can get in the way then of like the one of the things we talked about when we're talking
+
+354
+00:16:29.720 --> 00:16:34.600
+about serverless deployment is OK, it gives you the ability
+
+355
+00:16:34.600 --> 00:16:37.560
+to increase your deployment velocity, your speed of
+
+356
+00:16:37.560 --> 00:16:41.160
+iteration because you're able to isolate what you're doing
+
+357
+00:16:41.160 --> 00:16:42.200
+into small units.
+
+358
+00:16:43.080 --> 00:16:45.400
+You're relying on less infrastructure, so you have less
+
+359
+00:16:45.400 --> 00:16:46.120
+to deploy.
+
+360
+00:16:46.120 --> 00:16:48.600
+You're using a lot more of what's available to you in terms
+
+361
+00:16:48.600 --> 00:16:52.040
+of managed databases, API gateways, and so on.
+
+362
+00:16:52.040 --> 00:16:55.480
+Managed databases, API gateway, you know you're focusing on
+
+363
+00:16:55.480 --> 00:16:59.480
+the very least minimum amount of business logic you need
+
+364
+00:16:59.480 --> 00:16:59.960
+to implement.
+
+365
+00:16:59.960 --> 00:17:00.520
+That's the idea.
+
+366
+00:17:01.640 --> 00:17:04.520
+Do you think security might become like a barrier in that
+
+367
+00:17:04.520 --> 00:17:07.160
+like if you've got all these hundreds of IAM roles and
+
+368
+00:17:07.160 --> 00:17:09.640
+policies for all of your Lambda execution roles and your
+
+369
+00:17:09.640 --> 00:17:13.320
+step function execution role that all of this can slow you
+
+370
+00:17:13.320 --> 00:17:13.560
+down?
+
+371
+00:17:14.440 --> 00:17:17.720
+I think there are cases where that can happen and it's
+
+372
+00:17:17.720 --> 00:17:20.280
+depending on the kind of process you have in the company
+
+373
+00:17:20.280 --> 00:17:23.160
+because for instance, if you have an external security team
+
+374
+00:17:23.160 --> 00:17:26.520
+by starting I mean not working directly with the development
+
+375
+00:17:26.520 --> 00:17:30.520
+team and maybe they need to sign off everything that is
+
+376
+00:17:30.520 --> 00:17:33.320
+related to security like for instance they need to review
+
+377
+00:17:33.320 --> 00:17:35.960
+manually every single policy and sign off before you can
+
+378
+00:17:35.960 --> 00:17:36.840
+deploy.
+
+379
+00:17:36.840 --> 00:17:38.680
+At that point that can become a blocker because you're
+
+380
+00:17:38.680 --> 00:17:42.840
+probably going to create new policies every day and if you
+
+381
+00:17:42.840 --> 00:17:46.360
+need to stop and wait for somebody to approve that it
+
+382
+00:17:46.360 --> 00:17:49.080
+might block basically your work every day and you're not
+
+383
+00:17:49.080 --> 00:17:52.360
+going to take advantage of that velocity that you could
+
+384
+00:17:52.360 --> 00:17:54.520
+generally have with serverless deployments.
+
+385
+00:17:54.520 --> 00:17:57.720
+So there is another case where having a good process,
+
+386
+00:17:57.720 --> 00:18:00.600
+having collaboration and having automation and tooling,
+
+387
+00:18:00.600 --> 00:18:03.640
+it's something that might help you in that direction and
+
+388
+00:18:04.520 --> 00:18:07.640
+yeah at that point you might still get a good enough level
+
+389
+00:18:07.640 --> 00:18:10.280
+of security and still retain that velocity.
+
+390
+00:18:10.920 --> 00:18:13.800
+But I suppose it's tricky to get to that level of maturity
+
+391
+00:18:13.800 --> 00:18:17.800
+and really understand how the process can help this way of
+
+392
+00:18:17.800 --> 00:18:21.080
+development and vice versa how that's not going to affect
+
+393
+00:18:21.080 --> 00:18:22.920
+security in a bad way.
+
+394
+00:18:24.040 --> 00:18:27.800
+Yeah you have this idea of like for the over the past five
+
+395
+00:18:27.800 --> 00:18:29.880
+to ten years of shifting security left and having
+
+396
+00:18:29.880 --> 00:18:33.240
+development teams take responsibility for security and
+
+397
+00:18:33.240 --> 00:18:37.240
+that happened I guess with like DevOps movement and
+
+398
+00:18:37.240 --> 00:18:40.920
+containers it became possible I suppose for developers to
+
+399
+00:18:40.920 --> 00:18:43.880
+control things at a fine-grained level and to take part of
+
+400
+00:18:43.880 --> 00:18:45.640
+the responsibility for security.
+
+401
+00:18:45.640 --> 00:18:47.480
+Does that increase with serverless?
+
+402
+00:18:47.480 --> 00:18:48.280
+Does it decrease?
+
+403
+00:18:48.840 --> 00:18:52.040
+Is it are we now the case where you have to have developer
+
+404
+00:18:52.040 --> 00:18:54.920
+teams that have an increased level of security awareness?
+
+405
+00:18:55.560 --> 00:18:56.760
+Is that a disadvantage?
+
+406
+00:18:56.760 --> 00:18:59.480
+Because I guess like previously you mentioned you might have
+
+407
+00:18:59.480 --> 00:19:02.440
+a team that was dedicated to security so it was kind of
+
+408
+00:19:02.440 --> 00:19:03.800
+somebody else's problem.
+
+409
+00:19:03.800 --> 00:19:07.160
+Now that might have had its disadvantages because you know
+
+410
+00:19:07.160 --> 00:19:10.920
+you've a dependency on that centralized team but does it
+
+411
+00:19:10.920 --> 00:19:15.880
+become like an extra skill set that serverless developers
+
+412
+00:19:15.880 --> 00:19:16.380
+need?
+
+413
+00:19:20.940 --> 00:19:25.020
+I would probably say that this is something that like all the because the security risks are growing every day and
+
+414
+00:19:25.020 --> 00:19:29.420
+there is a lot more concerns and I think that's a skill that
+
+415
+00:19:29.420 --> 00:19:32.940
+every developer needs to develop anyway to some extent so
+
+416
+00:19:33.500 --> 00:19:35.740
+I would be very opinionated on this that way.
+
+417
+00:19:36.940 --> 00:19:41.180
+But yeah I agree that it is also beneficial to try to reduce
+
+418
+00:19:41.180 --> 00:19:45.260
+the gap between teams that are focused on security and
+
+419
+00:19:45.260 --> 00:19:48.300
+that's their core skill and teams that are more focused on
+
+420
+00:19:48.300 --> 00:19:51.180
+software engineering and that's their core skill and I've
+
+421
+00:19:51.180 --> 00:19:55.420
+seen this new term coming out a few times DevSecOps that
+
+422
+00:19:55.420 --> 00:19:58.540
+tries to kind of define I think that idea in a way that
+
+423
+00:20:00.140 --> 00:20:04.540
+DevOps so operation, development and security is not three
+
+424
+00:20:04.540 --> 00:20:07.020
+different things but it's actually something that needs to
+
+425
+00:20:07.020 --> 00:20:10.460
+work very closely together and it needs to be like one unit,
+
+426
+00:20:10.460 --> 00:20:14.140
+one skill, one methodology and probably one comprehensive
+
+427
+00:20:14.140 --> 00:20:16.860
+set of tools that they facilitate that all of that from
+
+428
+00:20:17.420 --> 00:20:19.340
+happening consistently in a company.
+
+429
+00:20:19.340 --> 00:20:21.580
+Yeah in this serverless world then the security where you've
+
+430
+00:20:21.580 --> 00:20:25.740
+got that level of skill does it become all about IAM and can
+
+431
+00:20:25.740 --> 00:20:30.620
+you dispense with the network security practices that have
+
+432
+00:20:30.620 --> 00:20:34.620
+evolved and improved over decades? Is this more just about
+
+433
+00:20:34.620 --> 00:20:35.820
+IAM on AWS?
+
+434
+00:20:39.740 --> 00:20:44.220
+I suppose yes and no I would say because I guess if you just ship your Lambdas in the default VPC then you kind of get a
+
+435
+00:20:44.220 --> 00:20:47.900
+standard starting point in terms of network security where
+
+436
+00:20:47.900 --> 00:20:52.700
+things are open to some extent but I mean most of them you
+
+437
+00:20:52.700 --> 00:20:54.700
+are just going to be worried about IAM because you take
+
+438
+00:20:54.700 --> 00:20:58.860
+everything else for granted but that doesn't necessarily mean
+
+439
+00:20:58.860 --> 00:21:01.500
+that you are secure it's just that you are not thinking about
+
+440
+00:21:01.500 --> 00:21:04.140
+some possibilities that can happen through the network.
+
+441
+00:21:05.020 --> 00:21:08.460
+With a Lambda you don't get inbound like arbitrary inbound
+
+442
+00:21:08.460 --> 00:21:11.740
+traffic you only get the events that you configured so in that
+
+443
+00:21:11.740 --> 00:21:16.300
+sense this is good but then you are still like if there is an
+
+444
+00:21:16.300 --> 00:21:19.660
+injection if there is remote execution that Lambda in a
+
+445
+00:21:19.660 --> 00:21:23.020
+default VPC can still reach out to any arbitrary server on the
+
+446
+00:21:23.020 --> 00:21:25.820
+internet so that that's something that maybe you want to
+
+447
+00:21:25.820 --> 00:21:28.140
+limit because of course at that point it's a risk.
+
+448
+00:21:29.340 --> 00:21:32.700
+Somebody can filtrate data arbitrarily connect to any
+
+449
+00:21:32.700 --> 00:21:36.220
+arbitrary server so if you want to control that you again are
+
+450
+00:21:36.220 --> 00:21:39.580
+in the realm of okay let's do our own custom network security
+
+451
+00:21:39.580 --> 00:21:43.900
+let's do our own VPC and let's configure network access and
+
+452
+00:21:43.900 --> 00:21:47.900
+maybe at that point you can control more what's going on on
+
+453
+00:21:47.900 --> 00:21:51.580
+the outbound traffic and limit exfiltration that way.
+
+454
+00:21:55.420 --> 00:22:00.460
+Yeah it's a very difficult balance I don't think there's an ideal solution there so if you talk about okay I want to put my
+
+455
+00:22:00.460 --> 00:22:03.900
+Lambda function in VPC so that I can access an RDS database and
+
+456
+00:22:03.900 --> 00:22:06.780
+that's fine you can just ensure that you've got access to that
+
+457
+00:22:06.780 --> 00:22:09.420
+RDS database and they're in the same VPC and there's no
+
+458
+00:22:09.420 --> 00:22:11.980
+additional routing outside that like there's no internet gateway
+
+459
+00:22:11.980 --> 00:22:15.420
+no NAT gateway so they can't exfiltrate data outside that
+
+460
+00:22:15.420 --> 00:22:19.740
+network but at the same time you might have an existing on-prem
+
+461
+00:22:19.740 --> 00:22:22.860
+system so you might have a VPC that allows you to route through
+
+462
+00:22:22.860 --> 00:22:27.020
+to the company's corporate network so that it can access
+
+463
+00:22:27.020 --> 00:22:30.940
+all of their existing on-prem systems and systems running in
+
+464
+00:22:30.940 --> 00:22:35.180
+other clouds or whatever it is but you can imagine that in
+
+465
+00:22:35.180 --> 00:22:38.460
+order to give network access to one of those systems you may
+
+466
+00:22:38.460 --> 00:22:40.700
+have to give access to the corporate network in general and
+
+467
+00:22:41.580 --> 00:22:45.100
+then think it becomes a little bit more onerous trying to
+
+468
+00:22:45.100 --> 00:22:49.180
+restrict it down to a single IP address or a single host or set
+
+469
+00:22:49.180 --> 00:22:54.060
+of hosts because giving an attacker through Lambda or
+
+470
+00:22:54.060 --> 00:22:57.660
+through EC2 access to your full corporate network is seriously
+
+471
+00:22:57.660 --> 00:22:59.980
+risky and usually your corporate network then access has access
+
+472
+00:22:59.980 --> 00:23:02.700
+to the internet and you might have an intrusion detection
+
+473
+00:23:02.700 --> 00:23:07.500
+system or intrusion monitoring system but suddenly your blast
+
+474
+00:23:07.500 --> 00:23:11.900
+radius is seems quite large so it seems like I always kind of
+
+475
+00:23:11.900 --> 00:23:15.660
+believed you know don't try and avoid VPCs unless you have to
+
+476
+00:23:15.660 --> 00:23:21.020
+because you know you don't have to worry about the that level
+
+477
+00:23:21.020 --> 00:23:23.660
+of that level of access and it's also a little bit more
+
+478
+00:23:23.660 --> 00:23:25.420
+complexity and you suddenly have to think about network
+
+479
+00:23:25.420 --> 00:23:28.860
+security seems less serverless once you start bringing in VPCs
+
+480
+00:23:28.860 --> 00:23:32.460
+but like you say if you don't have a VPC you can't control
+
+481
+00:23:32.460 --> 00:23:35.660
+data exfiltration very carefully because you'll have access to
+
+482
+00:23:35.660 --> 00:23:40.780
+the internet so people can access their own hosts and take
+
+483
+00:23:40.780 --> 00:23:44.060
+your secrets take any data they can pull from your S3 bucket
+
+484
+00:23:44.060 --> 00:23:46.700
+and upload it to their host wherever it is on the internet
+
+485
+00:23:46.700 --> 00:23:49.660
+there was a solution to this at one time which I know you've
+
+486
+00:23:49.660 --> 00:23:53.660
+encountered Luciano called Function Shield but it looks
+
+487
+00:23:53.660 --> 00:23:56.860
+kind of at least I know the company who developed a PureSec
+
+488
+00:23:56.860 --> 00:23:59.900
+were acquired by Panao Total Networks so I think it's not
+
+489
+00:23:59.900 --> 00:24:02.140
+maintained anymore it's been absorbed into some sort of
+
+490
+00:24:02.140 --> 00:24:07.500
+commercial offering the idea behind that was that you could
+
+491
+00:24:07.500 --> 00:24:10.060
+inject it into your lambda functions no matter what language
+
+492
+00:24:10.060 --> 00:24:13.660
+you were using and it would make it harder to do disk access
+
+493
+00:24:13.660 --> 00:24:17.900
+or network access or do other command execution in your lambda
+
+494
+00:24:17.900 --> 00:24:22.620
+environment but yeah I'm not sure there anymore but so I don't
+
+495
+00:24:22.620 --> 00:24:24.940
+think there's a valid alternative I'd be interested to
+
+496
+00:24:24.940 --> 00:24:27.180
+hear if anybody else has a creative way of solving that
+
+497
+00:24:27.180 --> 00:24:30.940
+problem of network access internet access from a lambda
+
+498
+00:24:34.700 --> 00:24:37.020
+without a VPC yeah not sure how it was implemented but that the way you would use it was actually really simple and
+
+499
+00:24:37.020 --> 00:24:40.140
+interesting it will really you import a module and that module
+
+500
+00:24:40.140 --> 00:24:43.580
+would work in Node.js, Python and Java I think so also cross
+
+501
+00:24:43.580 --> 00:24:46.620
+cross language and then with that module you just run a
+
+502
+00:24:46.620 --> 00:24:49.180
+function that says I want to use this policy and this policy
+
+503
+00:24:49.180 --> 00:24:55.740
+says this lambda cannot I don't know execute sub processes or it
+
+504
+00:24:55.740 --> 00:24:58.620
+cannot use the temporary file system or it cannot use the
+
+505
+00:24:58.620 --> 00:25:01.900
+network and then the library will limit all these things
+
+506
+00:25:01.900 --> 00:25:04.700
+from happening so that will be an extra level of security for
+
+507
+00:25:04.700 --> 00:25:07.100
+you because these are not things you can easily control
+
+508
+00:25:07.100 --> 00:25:10.380
+with IAM policies they are more behaviors of your code and this
+
+509
+00:25:10.380 --> 00:25:12.540
+way you can also control behaviors that you don't really
+
+510
+00:25:12.540 --> 00:25:17.100
+need your code to perform so yeah I'm also interested to see
+
+511
+00:25:17.100 --> 00:25:19.900
+if there is any other alternative these days.
+
+512
+00:25:19.900 --> 00:25:24.140
+Are there also potential for attacks where you know what we know that one
+
+513
+00:25:24.140 --> 00:25:26.380
+of the other advantages of serverless is that it can scale
+
+514
+00:25:26.380 --> 00:25:29.260
+with your workload but what if that workload isn't a genuine
+
+515
+00:25:29.260 --> 00:25:32.700
+workload but a malicious kind of denial of service
+
+516
+00:25:32.700 --> 00:25:36.540
+workload what what do you think about that?
+
+517
+00:25:36.540 --> 00:25:40.300
+Yeah no there are an interesting few cases that some of them I've even encountered
+
+518
+00:25:40.300 --> 00:25:43.580
+myself but I suppose that the point is that because you have
+
+519
+00:25:43.580 --> 00:25:46.140
+units of computers that just spin up themselves and they can
+
+520
+00:25:46.140 --> 00:25:48.860
+speed up in the order of thousands very very quickly
+
+521
+00:25:48.860 --> 00:25:52.780
+there are a lot of situations where that might go against I
+
+522
+00:25:52.780 --> 00:25:57.260
+suppose your benefits and for instance they can let's say
+
+523
+00:25:57.260 --> 00:25:59.740
+it's an attack what can happen for instance that if you have
+
+524
+00:25:59.740 --> 00:26:03.340
+somebody triggering a DDoS attack that DDoS attack might
+
+525
+00:26:03.340 --> 00:26:06.940
+spin up a lot of lambdas for you and maybe you don't really
+
+526
+00:26:06.940 --> 00:26:09.580
+see a negative effect in your infrastructure because the
+
+527
+00:26:09.580 --> 00:26:12.380
+infrastructure can actually scale and take that attack but
+
+528
+00:26:12.380 --> 00:26:14.540
+you might see a negative effect in your building because
+
+529
+00:26:14.540 --> 00:26:17.340
+suddenly you are running I don't know maybe an order of
+
+530
+00:26:17.340 --> 00:26:20.220
+magnitude more many lambdas that you generally run so
+
+531
+00:26:20.220 --> 00:26:23.020
+probably your bill will increase proportionally to that
+
+532
+00:26:23.020 --> 00:26:26.700
+so that that can be a dangerous side effect of serverless that
+
+533
+00:26:26.700 --> 00:26:28.940
+should be taken under consideration even though it
+
+534
+00:26:28.940 --> 00:26:32.220
+might not be strictly related to security. Another case that I
+
+535
+00:26:32.220 --> 00:26:35.660
+had myself and this is also related to VPC and configuring
+
+536
+00:26:35.660 --> 00:26:40.220
+your own VPC I had a case where I actually did configure very
+
+537
+00:26:40.220 --> 00:26:45.180
+badly a VPC because I started to put lambdas in a subnet where
+
+538
+00:26:45.180 --> 00:26:48.220
+there were also other services I think it was Elasticsearch
+
+539
+00:26:48.860 --> 00:26:54.540
+an Elasticsearch cluster and living in the same subnet at
+
+540
+00:26:54.540 --> 00:26:57.820
+some point there was a bug in the code where many lambdas
+
+541
+00:26:57.820 --> 00:27:01.900
+were retrying because of a bug in a processing logic so it
+
+542
+00:27:01.900 --> 00:27:05.660
+was failing and it was retrying and suddenly that generated a
+
+543
+00:27:05.660 --> 00:27:09.260
+huge number of lambdas trying to compete to address that
+
+544
+00:27:09.260 --> 00:27:12.460
+event that would never be fixed because there was a bug in the
+
+545
+00:27:12.460 --> 00:27:16.300
+code so I basically saturated the subnet with lambdas trying
+
+546
+00:27:16.300 --> 00:27:19.260
+to do something that I would never be able to do and that
+
+547
+00:27:19.260 --> 00:27:21.660
+stopped Elasticsearch from scaling up because the
+
+548
+00:27:21.660 --> 00:27:24.540
+Elasticsearch nodes couldn't be spun up because they couldn't
+
+549
+00:27:24.540 --> 00:27:28.780
+get an IP address in that subnet so that was an interesting
+
+550
+00:27:28.780 --> 00:27:32.780
+thing that very convoluted set of events but again the
+
+551
+00:27:32.780 --> 00:27:35.740
+reason is that if you don't do your network security
+
+552
+00:27:35.740 --> 00:27:38.380
+correctly network configuration correctly and you don't
+
+553
+00:27:38.380 --> 00:27:41.020
+consider that lambda can scale massively in a very short
+
+554
+00:27:41.020 --> 00:27:44.140
+amount of time then you might have this interesting side
+
+555
+00:27:44.140 --> 00:27:46.860
+effects where lambda is actually competing with all your
+
+556
+00:27:46.860 --> 00:27:51.020
+resources and it might have an impact on them not being able
+
+557
+00:27:51.020 --> 00:27:55.100
+to scale as much as you expect so of course then we needed
+
+558
+00:27:55.100 --> 00:27:57.340
+to fix the bug in the code we also changed the network
+
+559
+00:27:57.340 --> 00:28:00.620
+configuration to isolate the lambdas in their own subnet
+
+560
+00:28:00.620 --> 00:28:04.540
+rather than keeping them in a shared subnet and we fixed it
+
+561
+00:28:04.540 --> 00:28:06.860
+that way but it was not something obvious it was not
+
+562
+00:28:06.860 --> 00:28:09.900
+something we anticipated before we we actually encountered
+
+563
+00:28:09.900 --> 00:28:13.820
+the problem so yeah I suppose that the we could probably
+
+564
+00:28:13.820 --> 00:28:17.500
+finish this episode by summarizing what serverless
+
+565
+00:28:23.340 --> 00:28:26.620
+doesn't really protect you against what do you think good idea yeah so yeah first of all we say you don't get protection from injections meaning that yeah it will be
+
+566
+00:28:26.620 --> 00:28:30.620
+probably a little bit more complicated to inject arbitrary
+
+567
+00:28:30.620 --> 00:28:34.620
+commands or I don't know SQL injection XML injection all
+
+568
+00:28:34.620 --> 00:28:37.260
+sorts of injections you can think of it will be maybe a
+
+569
+00:28:37.260 --> 00:28:39.660
+little bit harder because you you have one additional level
+
+570
+00:28:39.660 --> 00:28:42.940
+of indirection because you have some sort of input that
+
+571
+00:28:42.940 --> 00:28:45.340
+gets converted to one event and then your input is
+
+572
+00:28:45.340 --> 00:28:48.380
+encapsulated in that event that will go into lambda but
+
+573
+00:28:48.380 --> 00:28:53.420
+that doesn't really give you any security or perfect
+
+574
+00:28:53.420 --> 00:28:56.540
+guarantee that people cannot perform injection attacks then
+
+575
+00:28:56.540 --> 00:28:58.940
+you are still receiving external input the way you process
+
+576
+00:28:58.940 --> 00:29:02.540
+that external input can lead to injection attacks and we
+
+577
+00:29:02.540 --> 00:29:05.180
+also discussed about dependency poisoning so you are using
+
+578
+00:29:05.180 --> 00:29:08.860
+third-party dependencies so those might be poisoned and
+
+579
+00:29:08.860 --> 00:29:11.980
+those might create side effect and security vulnerabilities
+
+580
+00:29:11.980 --> 00:29:16.060
+if you are not careful so one suggestion that is to use
+
+581
+00:29:16.060 --> 00:29:20.220
+dependency scanners like SNCC is probably one of the most
+
+582
+00:29:20.220 --> 00:29:22.780
+famous but there are a bunch of alternatives make sure you
+
+583
+00:29:22.780 --> 00:29:25.580
+have a process as part of your CI CD or your deployment
+
+584
+00:29:25.580 --> 00:29:29.100
+process to always keep your dependencies under control and
+
+585
+00:29:29.100 --> 00:29:32.460
+make sure at least you scan them to to find commonly
+
+586
+00:29:32.460 --> 00:29:36.620
+vulnerable dependencies and update them another risk is
+
+587
+00:29:36.620 --> 00:29:40.780
+data tampering or data destruction again if code is
+
+588
+00:29:40.780 --> 00:29:44.940
+executed in your environment malicious attacker can do all
+
+589
+00:29:44.940 --> 00:29:47.180
+sorts of different things they can try to aspitrate data they
+
+590
+00:29:47.180 --> 00:29:51.740
+can try to compromise data so that's you don't get many
+
+591
+00:29:51.740 --> 00:29:54.140
+guarantees from serverless that that's not gonna happen to
+
+592
+00:29:54.140 --> 00:29:56.940
+you maybe it's again a little bit harder but it can still
+
+593
+00:29:56.940 --> 00:30:00.540
+happen and you need to put boundaries in place and yeah
+
+594
+00:30:00.540 --> 00:30:03.740
+remote code execution is absolutely related to that
+
+595
+00:30:03.740 --> 00:30:06.700
+because at that point an attacker can try to do anything
+
+596
+00:30:06.700 --> 00:30:09.980
+not just as filtrate data but they can run any code they
+
+597
+00:30:09.980 --> 00:30:15.340
+want so you might try to limit the exposure of a lambda but
+
+598
+00:30:15.340 --> 00:30:17.820
+if you don't limit that correctly an attacker still can
+
+599
+00:30:17.820 --> 00:30:23.100
+have a very big surface to use and yeah I think that that's
+
+600
+00:30:23.100 --> 00:30:26.540
+all I have I think we we can put a bunch of links for more
+
+601
+00:30:26.540 --> 00:30:31.980
+in-depth material for instance there is a good OWASP paper
+
+602
+00:30:31.980 --> 00:30:35.820
+that gives you the top 10 vulnerabilities in kind of in a
+
+603
+00:30:35.820 --> 00:30:39.980
+more serverless way so that they reconsider the top 10 OWASP
+
+604
+00:30:39.980 --> 00:30:42.940
+from a serverless perspective and I think you will find some
+
+605
+00:30:42.940 --> 00:30:45.100
+common points with what we discussed today but probably
+
+606
+00:30:45.100 --> 00:30:48.220
+there is a lot more material there and then there is an
+
+607
+00:30:48.220 --> 00:30:52.380
+interesting blog article from AWS that gives you a bunch of
+
+608
+00:30:52.380 --> 00:30:55.900
+additional tips on how you can architect secure serverless
+
+609
+00:30:55.900 --> 00:30:59.420
+applications so we'll put the link for that in the show notes
+
+610
+00:30:59.420 --> 00:31:03.580
+as well. Okay anything else you want to add, Eoin?
+
+611
+00:31:03.580 --> 00:31:05.660
+Yeah it's never going to be possible for us to cover everything in
+
+612
+00:31:05.660 --> 00:31:08.460
+security but I think that's that seems like a pretty
+
+613
+00:31:08.460 --> 00:31:11.340
+comprehensive list but I'm curious to hear what we missed
+
+614
+00:31:11.340 --> 00:31:13.900
+if anybody has any ideas for what we missed any other
+
+615
+00:31:13.900 --> 00:31:16.620
+security incidents that they've learned.
+
+616
+00:31:16.620 --> 00:31:19.660
+Yeah absolutely security is a huge topic and it's always evolving so I'm
+
+617
+00:31:19.660 --> 00:31:22.300
+sure that there are a lot of stories that people can share
+
+618
+00:31:22.300 --> 00:31:25.180
+and we can all learn from them so definitely please let us
+
+619
+00:31:25.180 --> 00:31:28.780
+know in the comments reach out on Twitter and yeah we'll be
+
+620
+00:31:28.780 --> 00:31:32.300
+more than happy to learn with you and share your learnings so
+
+621
+00:31:32.300 --> 00:31:35.900
+please do that. Okay and with that thank you very much for
+
+622
+00:31:35.900 --> 00:31:56.940
+being with us today and we'll see you at the next episode.

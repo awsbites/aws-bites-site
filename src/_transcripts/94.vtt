@@ -1,0 +1,945 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:04.720
+Keeping track of what's going on in AWS organization accounts can be very tricky.
+
+2
+00:00:04.720 --> 00:00:08.720
+You might have potentially hundreds or thousands of changes happening every day.
+
+3
+00:00:08.720 --> 00:00:12.800
+There is a tool called CloudTrail, which makes it possible to log all of this activity.
+
+4
+00:00:12.800 --> 00:00:15.440
+But how do you best get insights into it?
+
+5
+00:00:15.440 --> 00:00:20.400
+Today, we're going to drill down into how you can use CloudTrail and also Athena together
+
+6
+00:00:20.400 --> 00:00:22.960
+to ask questions about what's going on, troubleshoot issues,
+
+7
+00:00:22.960 --> 00:00:25.520
+and answer questions for security and compliance.
+
+8
+00:00:25.520 --> 00:00:30.720
+We will also touch on AWS Glue, and we will go deep diving into Athena,
+
+9
+00:00:30.720 --> 00:00:33.200
+infrastructure as code, and AWS organization trails.
+
+10
+00:00:33.200 --> 00:00:36.800
+My name is Luciano, and I'm joined by Eoin for another episode of AWS Bites.
+
+11
+00:00:44.960 --> 00:00:47.840
+fourTheorem is the company that makes AWS Bites possible.
+
+12
+00:00:47.840 --> 00:00:50.640
+If you're looking for a partner to accompany you on your cloud journey,
+
+13
+00:00:50.640 --> 00:00:53.840
+check them out at fourtheorem.com. The link is in the show notes.
+
+14
+00:00:53.840 --> 00:00:55.920
+I'd like to start today by giving some definitions.
+
+15
+00:00:55.920 --> 00:00:58.720
+So what is CloudTrail and what is Athena?
+
+16
+00:01:01.200 --> 00:01:03.680
+I think it's a fundamental service in AWS, actually, and useful for developers and administrators alike,
+
+17
+00:01:03.680 --> 00:01:08.400
+because it lets you keep track of what's going on for audit and compliance purposes,
+
+18
+00:01:08.400 --> 00:01:10.400
+but also, like you say, for troubleshooting.
+
+19
+00:01:10.400 --> 00:01:13.680
+And as a developer, it's a pretty useful tool to have in your toolkit.
+
+20
+00:01:13.680 --> 00:01:15.440
+So it captures mainly management events,
+
+21
+00:01:15.440 --> 00:01:20.400
+like those relating to create and update and delete actions on AWS resources.
+
+22
+00:01:20.400 --> 00:01:22.480
+Every account gets a trail for free,
+
+23
+00:01:22.480 --> 00:01:24.640
+but then you can also pay if you want multiple trails,
+
+24
+00:01:24.640 --> 00:01:26.960
+or if you also want to capture some data events as well.
+
+25
+00:01:27.680 --> 00:01:29.440
+So it stores logs in JSON.
+
+26
+00:01:30.320 --> 00:01:32.720
+You can look at them in the CloudTrail console themselves.
+
+27
+00:01:32.720 --> 00:01:35.760
+So you just store it, look at them in CloudTrail for more recent events,
+
+28
+00:01:35.760 --> 00:01:38.720
+but then you can send them off to CloudWatch Logs.
+
+29
+00:01:42.960 --> 00:01:46.400
+I remember we spoke in a previous episode at length about CloudWatch Logs and how you can do ninja stuff with the syntax that it gives you
+
+30
+00:01:46.400 --> 00:01:49.600
+to do all sorts of kind of queries and aggregations and filtering.
+
+31
+00:01:49.600 --> 00:01:53.680
+So that seems like a reasonable thing that you would want to do, I guess.
+
+32
+00:01:53.680 --> 00:01:55.680
+But given that we have all these tools in CloudTrail,
+
+33
+00:01:55.680 --> 00:01:58.080
+why should we consider S3 and Athena instead?
+
+34
+00:01:58.080 --> 00:02:00.480
+Actually, let's start by defining what even is Athena.
+
+35
+00:02:04.880 --> 00:02:08.080
+Athena is a distributed query engine used to query data in object stores like S3, and it's based on the open source Presto and Trino projects.
+
+36
+00:02:08.880 --> 00:02:10.880
+Trino is a fork of Presto.
+
+37
+00:02:10.880 --> 00:02:17.680
+And using Athena, you're basically running SQL queries on JSON, CSV, Parquet, or ORC data.
+
+38
+00:02:17.680 --> 00:02:21.360
+And when you execute queries in Athena, it's basically making a query plan,
+
+39
+00:02:21.360 --> 00:02:26.160
+and in a distributed way, scanning parts of that data concurrently in chunks
+
+40
+00:02:26.160 --> 00:02:29.360
+and doing additional steps to filter and aggregate that data.
+
+41
+00:02:29.360 --> 00:02:31.760
+CloudTrail logs are stored in JSON format.
+
+42
+00:02:31.760 --> 00:02:34.960
+So they show you things like the account and the region and the date,
+
+43
+00:02:34.960 --> 00:02:38.560
+the identity, who's making the request, what's the user agent and the IP address.
+
+44
+00:02:38.560 --> 00:02:42.320
+It gives you the event name, and you can see the request parameters
+
+45
+00:02:42.320 --> 00:02:45.200
+and some of the elements that come back in the response as well.
+
+46
+00:02:45.200 --> 00:02:49.360
+You have the ability, like you say, to query CloudWatch Logs and Logs Insights,
+
+47
+00:02:49.360 --> 00:02:52.720
+but the storage for CloudWatch Logs is going to be more expensive.
+
+48
+00:02:52.720 --> 00:02:55.440
+So if you want to retain data for a longer period of time,
+
+49
+00:02:55.440 --> 00:03:00.800
+generally what people do is store the data in S3 and query it with Athena,
+
+50
+00:03:00.800 --> 00:03:06.800
+and maybe just use CloudWatch Logs insights for more recent activity like the last week or two.
+
+51
+00:03:06.800 --> 00:03:08.320
+Okay, that makes sense.
+
+52
+00:03:11.040 --> 00:03:15.280
+So I suppose the main difference is that with Athena, you can query directly into S3 as long as you're storing structured files,
+
+53
+00:03:15.280 --> 00:03:19.120
+which is something that CloudTrail allows you to do anyway by giving JSON support.
+
+54
+00:03:19.120 --> 00:03:20.400
+That sounds pretty interesting.
+
+55
+00:03:20.400 --> 00:03:22.080
+How do we get started?
+
+56
+00:03:24.880 --> 00:03:27.920
+Well, there is an easy way, not necessarily the best in the long run, but from the AWS console, if you go into CloudTrail,
+
+57
+00:03:27.920 --> 00:03:33.360
+you have a button there that if you've got a trail set up already with S3 bucket logs,
+
+58
+00:03:33.360 --> 00:03:35.600
+it'll give you a button that says create Athena table.
+
+59
+00:03:36.240 --> 00:03:38.640
+And when you click on that button, it immediately shows you
+
+60
+00:03:38.640 --> 00:03:42.720
+CTAS statement is what they call it in SQL, create table as select.
+
+61
+00:03:42.720 --> 00:03:46.240
+So it's basically creating a table by selecting data from this S3 bucket.
+
+62
+00:03:46.240 --> 00:03:54.480
+And in this big SQL DDL statement, it's basically saying which fields in the CloudTrail JSON
+
+63
+00:03:54.480 --> 00:03:58.560
+map to table columns in this virtual table that it's basically going to create for you.
+
+64
+00:03:58.560 --> 00:04:04.160
+Right.
+
+65
+00:04:04.160 --> 00:04:07.760
+That's also a bit different from what we are used to do with CloudWatch Logs insights, because with CloudWatch Logs inside, you just create a table from the S3 bucket.
+
+66
+00:04:07.760 --> 00:04:11.040
+You just query like you don't have to worry about creating a table.
+
+67
+00:04:11.040 --> 00:04:14.480
+But I suppose that's something that will come up when we start to talk about more details
+
+68
+00:04:14.480 --> 00:04:15.760
+on how Athena works.
+
+69
+00:04:15.760 --> 00:04:17.200
+So right now I have another question.
+
+70
+00:04:17.200 --> 00:04:19.440
+This seems simple enough for a single account.
+
+71
+00:04:19.440 --> 00:04:22.320
+You just go to CloudTrail, click a button, and then you're ready.
+
+72
+00:04:22.320 --> 00:04:24.960
+Select the table definition and then you're ready to query.
+
+73
+00:04:24.960 --> 00:04:26.640
+But what if you have multiple accounts?
+
+74
+00:04:26.640 --> 00:04:31.440
+Because we often advise companies to create their own landing zone,
+
+75
+00:04:31.440 --> 00:04:34.160
+structure their deployments across multiple accounts.
+
+76
+00:04:34.160 --> 00:04:37.520
+That seems kind of a more production-related solution.
+
+77
+00:04:37.520 --> 00:04:37.760
+Mm-hmm.
+
+78
+00:04:37.760 --> 00:04:39.200
+What do we do in that case?
+
+79
+00:04:39.200 --> 00:04:42.000
+That's all solved basically in how you set up the trail itself.
+
+80
+00:04:42.000 --> 00:04:44.240
+So you don't really have to do anything additional in Athena.
+
+81
+00:04:44.240 --> 00:04:46.640
+You can either set up accounts to log to a central bucket.
+
+82
+00:04:46.640 --> 00:04:49.040
+So rather than every trail logging to a separate bucket,
+
+83
+00:04:49.040 --> 00:04:52.240
+you can have a shared bucket with the right permissions and they all log into a different
+
+84
+00:04:52.240 --> 00:04:53.120
+prefix.
+
+85
+00:04:53.120 --> 00:04:57.840
+But there's actually an easier way still, which is to set up an organization-wide trail.
+
+86
+00:04:57.840 --> 00:05:02.480
+And that way you do it from your management account or from a delegated administrator account.
+
+87
+00:05:02.480 --> 00:05:05.120
+And you say, create a trail for my whole organization,
+
+88
+00:05:05.120 --> 00:05:09.680
+and it will capture all the events from all accounts and put them into one bucket for
+
+89
+00:05:09.680 --> 00:05:10.000
+you.
+
+90
+00:05:10.000 --> 00:05:12.240
+That's the way we typically do it at Fourth Hirm.
+
+91
+00:05:12.240 --> 00:05:17.840
+And it's easy then to set up Athena to query from that one single bucket.
+
+92
+00:05:17.840 --> 00:05:21.120
+And then you've got Insights and you can do queries across all accounts.
+
+93
+00:05:21.120 --> 00:05:27.600
+Like find out, okay, who did a terminate instance on EC2 in any account today?
+
+94
+00:05:27.600 --> 00:05:31.600
+Yeah, I suppose accounts at that point is just another field that you can query from.
+
+95
+00:05:31.600 --> 00:05:32.080
+Yep.
+
+96
+00:05:32.080 --> 00:05:37.600
+At the beginning, we also mentioned Glue. So how does Glue come into the picture with
+
+97
+00:05:37.600 --> 00:05:38.560
+this setup?
+
+98
+00:05:38.560 --> 00:05:43.920
+So when you create a table in Athena using this CTAS statement we talked about, this
+
+99
+00:05:43.920 --> 00:05:47.440
+is actually creating a Glue data catalog table under the hood.
+
+100
+00:05:48.160 --> 00:05:52.720
+If you haven't looked at Glue or Glue data catalog, Glue has a number of different features,
+
+101
+00:05:52.720 --> 00:05:55.360
+but we're just going to talk about the data catalog in this context.
+
+102
+00:05:55.360 --> 00:05:58.480
+And it's basically a meta store for your tables.
+
+103
+00:05:58.480 --> 00:06:04.000
+So you can use those meta store tables outside of Athena, but every time you're using Athena,
+
+104
+00:06:04.000 --> 00:06:05.280
+you have to have one of these.
+
+105
+00:06:05.280 --> 00:06:10.640
+It comes from the Apache Hive ecosystem where you had this ability back from the big data
+
+106
+00:06:10.640 --> 00:06:16.320
+ecosystem to define virtual tables for data that was stored on a file system or an object
+
+107
+00:06:16.320 --> 00:06:16.640
+store.
+
+108
+00:06:17.200 --> 00:06:21.440
+So when you do this, create table as, and you're mapping the columns to the fields in
+
+109
+00:06:21.440 --> 00:06:25.440
+your data, this is basically just creating a data catalog table in Glue.
+
+110
+00:06:25.440 --> 00:06:29.440
+So once you do this, create table as select statement, you can go over to Glue and you
+
+111
+00:06:29.440 --> 00:06:32.720
+can see the table appearing in your Glue console as well.
+
+112
+00:06:32.720 --> 00:06:35.040
+So this is just a schema representation of your table.
+
+113
+00:06:35.040 --> 00:06:36.960
+There's no data copied into Glue or anything.
+
+114
+00:06:36.960 --> 00:06:42.400
+It's just really a schema definition and it allows you to map SQL concepts to an underlying
+
+115
+00:06:42.400 --> 00:06:43.680
+data store in S3.
+
+116
+00:06:43.680 --> 00:06:47.840
+Now, instead of actually using that create table approach, you can just go and create
+
+117
+00:06:47.840 --> 00:06:49.920
+the table include data catalog directly.
+
+118
+00:06:49.920 --> 00:06:55.920
+This means we can create it visually in the console or we can use CloudFormation or Terraform,
+
+119
+00:06:55.920 --> 00:06:56.480
+et cetera.
+
+120
+00:06:56.480 --> 00:06:56.720
+Right.
+
+121
+00:06:56.720 --> 00:06:57.760
+That makes a lot of sense.
+
+122
+00:06:57.760 --> 00:07:02.720
+I imagine that it's also something that allows for a lot of optimizations because you are
+
+123
+00:07:02.720 --> 00:07:07.360
+going to be writing SQL statements and the system underneath needs to understand which
+
+124
+00:07:07.360 --> 00:07:12.480
+files can actually have the data that you're looking for and to scan the files in a smart
+
+125
+00:07:12.480 --> 00:07:16.960
+way rather than always reading everything, which might be very expensive and time consuming.
+
+126
+00:07:16.960 --> 00:07:21.920
+So I suppose that's why we go through this extra step of setting up the stable definition
+
+127
+00:07:21.920 --> 00:07:23.840
+and recording all of that into a catalog.
+
+128
+00:07:23.840 --> 00:07:27.920
+We do use that setup a lot for data analytics for theorem.
+
+129
+00:07:28.480 --> 00:07:34.560
+And I know that you can get good performances if you store the data in a very specific way.
+
+130
+00:07:34.560 --> 00:07:38.640
+So what kind of suggestions can we give to people to try to get the best performances
+
+131
+00:07:38.640 --> 00:07:39.760
+with this kind of setup?
+
+132
+00:07:43.680 --> 00:07:45.760
+Performance you get with CloudTrail queries with Athena really is going to vary hugely depending on the amount of data you're scanning.
+
+133
+00:07:45.760 --> 00:07:48.640
+So it could be a few seconds or it could be 15 minutes.
+
+134
+00:07:48.640 --> 00:07:52.320
+It depends on the query and how you optimize the Glue catalog table.
+
+135
+00:07:52.320 --> 00:07:55.680
+Sometimes Athena will have to scan all of your data depending on what the query is.
+
+136
+00:07:55.680 --> 00:07:57.280
+And that's clearly not optimal.
+
+137
+00:07:57.280 --> 00:07:59.200
+So there's a couple of things you can do to make it faster.
+
+138
+00:07:59.200 --> 00:08:01.680
+One is by setting up partitioning.
+
+139
+00:08:01.680 --> 00:08:05.360
+This is a typical optimization when you're using Glue data catalogs in Athena.
+
+140
+00:08:05.360 --> 00:08:08.560
+It allows you to have different partitions for specific fields.
+
+141
+00:08:08.560 --> 00:08:10.720
+For example, you could partition the logs by day.
+
+142
+00:08:11.360 --> 00:08:15.120
+And if you have a day in your where clause, then Athena only has to scan that limited
+
+143
+00:08:15.120 --> 00:08:17.680
+set of data because it's like an index basically.
+
+144
+00:08:17.680 --> 00:08:20.080
+Creating partitions, there's actually a few different ways of doing this.
+
+145
+00:08:20.080 --> 00:08:24.160
+You can use the Glue API to create a partition every time you have a new one, like every
+
+146
+00:08:24.160 --> 00:08:24.400
+day.
+
+147
+00:08:24.960 --> 00:08:29.840
+Or there's an alter table add partition command you can do to do it through the Athena SQL
+
+148
+00:08:29.840 --> 00:08:30.320
+interface.
+
+149
+00:08:30.880 --> 00:08:34.480
+And there's also actually another one which is MSCK repair table.
+
+150
+00:08:34.480 --> 00:08:40.160
+And that will tell Athena to go off and scan and find partitions automatically.
+
+151
+00:08:40.160 --> 00:08:42.560
+And that's the same as doing a Glue crawler.
+
+152
+00:08:42.560 --> 00:08:46.720
+So in the Glue data catalog world, there's also the concept of a crawler, which is like
+
+153
+00:08:46.720 --> 00:08:51.280
+an automated process that scans your S3 objects and finds partitions.
+
+154
+00:08:51.920 --> 00:08:54.640
+So you can use this to create the table in the first place, actually.
+
+155
+00:08:54.640 --> 00:08:58.880
+It can try and derive the schema for you based on the columns in your data.
+
+156
+00:08:58.880 --> 00:09:03.120
+But it can also identify partitions and find new partitions once you've created that table.
+
+157
+00:09:03.120 --> 00:09:07.120
+For CloudTrail, there's another feature in Athena which you can use called partition
+
+158
+00:09:07.120 --> 00:09:07.680
+projection.
+
+159
+00:09:08.240 --> 00:09:09.280
+And this is quite nice.
+
+160
+00:09:09.280 --> 00:09:12.400
+And this is the one I usually set people up with the first time.
+
+161
+00:09:12.400 --> 00:09:15.600
+Because you don't have to add partitions as data arrives.
+
+162
+00:09:15.600 --> 00:09:20.000
+Instead, when you create the table, you just specify ranges of values that are possible
+
+163
+00:09:20.000 --> 00:09:21.120
+for certain fields.
+
+164
+00:09:21.120 --> 00:09:24.160
+So you mentioned that you might want to query on account ID, right?
+
+165
+00:09:24.160 --> 00:09:25.280
+And this is just another field.
+
+166
+00:09:25.280 --> 00:09:29.280
+But if you know all of your account IDs, you can tell Athena in advance, this is my range
+
+167
+00:09:29.280 --> 00:09:30.080
+of account IDs.
+
+168
+00:09:30.640 --> 00:09:35.440
+And then it doesn't have to go to Glue data catalog to find out what the partitions are.
+
+169
+00:09:35.440 --> 00:09:39.440
+It can basically project those values and use them to build its query in an optimal
+
+170
+00:09:39.440 --> 00:09:39.680
+way.
+
+171
+00:09:39.680 --> 00:09:43.520
+And it can also do the same thing for date values or for the region field, right?
+
+172
+00:09:43.520 --> 00:09:47.920
+Because we're all generally working with a fixed set of supported regions.
+
+173
+00:09:47.920 --> 00:09:50.240
+Partition projection would be my first recommendation.
+
+174
+00:09:50.240 --> 00:09:51.600
+It makes things easier.
+
+175
+00:09:51.600 --> 00:09:53.680
+And once you set it up, it just works.
+
+176
+00:09:53.680 --> 00:09:57.360
+Another thing you can do with optimization is use the limit clause.
+
+177
+00:09:57.360 --> 00:10:00.480
+That's always a good one to reduce the volume of data returned.
+
+178
+00:10:00.480 --> 00:10:04.960
+One last optimization is actually if you want it to be really performant.
+
+179
+00:10:04.960 --> 00:10:08.720
+JSON is the slowest data format for Athena by far.
+
+180
+00:10:08.720 --> 00:10:12.000
+It's significantly slower than all the other options, even CSV.
+
+181
+00:10:12.000 --> 00:10:18.080
+What you can do is just build a pipeline to convert that data into Parquet, which would
+
+182
+00:10:18.080 --> 00:10:19.760
+be the most optimal format.
+
+183
+00:10:19.760 --> 00:10:24.640
+And you can use that using Lambda or EMR or Glue, or you can even use it.
+
+184
+00:10:24.640 --> 00:10:26.720
+You can use a Glue crawler to do that as well.
+
+185
+00:10:26.720 --> 00:10:30.480
+So that's something if you really want fast query performance, you could set that up.
+
+186
+00:10:30.480 --> 00:10:31.440
+That's really cool.
+
+187
+00:10:31.440 --> 00:10:31.760
+Okay.
+
+188
+00:10:31.760 --> 00:10:36.400
+So far, we are talking about setting things up in the console and creating resources pretty
+
+189
+00:10:36.400 --> 00:10:37.840
+much by clicking around.
+
+190
+00:10:37.840 --> 00:10:41.280
+So click ups and then doing SQL queries.
+
+191
+00:10:41.280 --> 00:10:47.040
+Is there any recommendation in terms of let's do this in a more production ready way and
+
+192
+00:10:47.040 --> 00:10:51.760
+maybe use infrastructure as code so that we end up with something that is easily reproducible
+
+193
+00:10:51.760 --> 00:10:53.760
+between accounts or customers?
+
+194
+00:10:53.760 --> 00:10:56.000
+You can, and I would prefer to do it that way.
+
+195
+00:10:56.000 --> 00:11:00.400
+I think Athena is nice because it allows analysts to be able to create things on the fly, ephemeral
+
+196
+00:11:00.400 --> 00:11:03.360
+resources and tables without having to worry about infrastructure as code.
+
+197
+00:11:03.360 --> 00:11:05.440
+And that's a really valid workflow.
+
+198
+00:11:05.440 --> 00:11:09.600
+But if you want something like this, Cloud Trail queries for your whole organization,
+
+199
+00:11:09.600 --> 00:11:11.840
+it makes sense to put it into infrastructure as code.
+
+200
+00:11:11.840 --> 00:11:16.240
+The process of creating tables in CloudFormation or Terraform is a little bit complex and it's
+
+201
+00:11:16.240 --> 00:11:18.240
+not something that's very well documented.
+
+202
+00:11:18.800 --> 00:11:22.960
+Most documentation ends up pointing to the create table method, which isn't really like
+
+203
+00:11:22.960 --> 00:11:25.280
+proper declarative infrastructure as code.
+
+204
+00:11:25.280 --> 00:11:29.680
+So in CloudFormation, you need to specify the table columns and serialization parameters
+
+205
+00:11:29.680 --> 00:11:31.440
+using your YAML or JSON.
+
+206
+00:11:31.440 --> 00:11:34.320
+And it's a little bit strange, this syntax.
+
+207
+00:11:34.320 --> 00:11:37.600
+So we've actually figured this out for Cloud Trail, so you don't have to.
+
+208
+00:11:37.600 --> 00:11:41.520
+There is code in a gist and we'll link the gist in the show notes and you can give this
+
+209
+00:11:41.520 --> 00:11:42.880
+a try and let us know how you get on.
+
+210
+00:11:47.600 --> 00:11:51.120
+It's always fun when you're defining resources and there is some kind of special syntax that you haven't seen before, which is unique for that particular type of resource.
+
+211
+00:11:51.120 --> 00:11:53.360
+But I guess that's the reality with the cloud.
+
+212
+00:11:53.360 --> 00:11:57.840
+So many resources that sometimes there are these kind of exceptions and we just need
+
+213
+00:11:57.840 --> 00:11:59.360
+to figure out how to deal with them.
+
+214
+00:11:59.360 --> 00:12:03.280
+But in general, I think Athena looks really nice and really powerful for the way you are
+
+215
+00:12:03.280 --> 00:12:04.640
+describing it.
+
+216
+00:12:04.640 --> 00:12:09.360
+In some projects we saw that you can use it as a data source for QuickSight and at that
+
+217
+00:12:09.360 --> 00:12:11.040
+point you can create nice dashboards.
+
+218
+00:12:12.160 --> 00:12:17.360
+So is that something that you would use together with Cloud Trail to create some kind of visualization
+
+219
+00:12:17.360 --> 00:12:21.280
+that, I don't know, will give you a very quick overview, like a single pane of glass that
+
+220
+00:12:21.280 --> 00:12:25.760
+you can go to and have a feeling for what's going on in your set of accounts that you're
+
+221
+00:12:25.760 --> 00:12:26.400
+monitoring?
+
+222
+00:12:26.400 --> 00:12:26.800
+Exactly.
+
+223
+00:12:30.800 --> 00:12:33.680
+This is a very powerful integration type and stops you having to jump into the Athena console the whole time and you can just, if you've got data that you just want to keep
+
+224
+00:12:33.680 --> 00:12:37.520
+an eye on all the time on the activity in the account, this is a pretty nice integration
+
+225
+00:12:37.520 --> 00:12:38.000
+to set up.
+
+226
+00:12:44.720 --> 00:12:48.480
+That covers a very nice overview on how you can achieve a good level of observability and auditing over or across your accounts for your organization.
+
+227
+00:12:48.480 --> 00:12:53.200
+If you set up this method, then you can have kind of a centralized way of queering and
+
+228
+00:12:53.200 --> 00:12:58.240
+understanding what's going on and even building dashboards that you can just look and see
+
+229
+00:12:58.240 --> 00:13:01.120
+if there are things that you should be worried about.
+
+230
+00:13:01.120 --> 00:13:04.160
+So I think for today, that's all we have to share.
+
+231
+00:13:04.160 --> 00:13:08.320
+But if you have any other tip, maybe have used different setups, maybe use different
+
+232
+00:13:08.320 --> 00:13:13.120
+tools, maybe you have different ways of provisioning all this infrastructure, definitely share
+
+233
+00:13:13.120 --> 00:13:13.760
+it with us.
+
+234
+00:13:13.760 --> 00:13:17.040
+We are always looking for alternatives and for learning.
+
+235
+00:13:17.040 --> 00:13:18.960
+Definitely looking forward to hearing more from you.
+
+236
+00:13:18.960 --> 00:13:30.880
+And until then, we'll see you in the next episode.

@@ -7,8 +7,9 @@ const MIN_PARAGRAPH_LENGTH = 150
 module.exports = async function transcripts () {
   const transcriptsFolder = path.join(__dirname, '..', '_transcripts')
   const transcriptFiles = await fs.readdir(transcriptsFolder)
+  const jsonTranscripts = transcriptFiles.filter((filename) => filename.endsWith('.json'))
 
-  const transcripts = await Promise.all(transcriptFiles.map(async (filename) => {
+  const transcripts = await Promise.all(jsonTranscripts.map(async (filename) => {
     const episodeNumber = filename.replace('.json', '')
     const fileContent = JSON.parse(await fs.readFile(path.join(transcriptsFolder, filename), 'utf8'))
 

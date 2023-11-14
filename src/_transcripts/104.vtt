@@ -1,0 +1,2129 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:02.800
+Happy 9th birthday AWS Lambda!
+
+2
+00:00:02.800 --> 00:00:06.400
+Yes, AWS Lambda was launched nine years ago this week.
+
+3
+00:00:06.400 --> 00:00:09.520
+And to celebrate this birthday today, we're going to answer the question,
+
+4
+00:00:09.520 --> 00:00:11.360
+what's inside a Lambda function?
+
+5
+00:00:11.360 --> 00:00:14.640
+I don't mean your JavaScript or Python code, I mean everything around it.
+
+6
+00:00:14.640 --> 00:00:17.040
+How does Lambda work as a service?
+
+7
+00:00:17.040 --> 00:00:21.600
+How does it execute your code and integrate it with the rest of the AWS ecosystem?
+
+8
+00:00:21.600 --> 00:00:25.240
+Today, we'll deep dive into the fascinating topic of Lambda runtimes.
+
+9
+00:00:25.240 --> 00:00:28.040
+We will discuss how Lambda works, what a runtime is,
+
+10
+00:00:28.080 --> 00:00:31.200
+we will compare official runtimes versus custom runtimes.
+
+11
+00:00:31.200 --> 00:00:33.400
+And if you stick until the very end of this episode,
+
+12
+00:00:33.400 --> 00:00:38.480
+we will also share when and why putting the effort into learning a custom runtime
+
+13
+00:00:38.480 --> 00:00:41.560
+and or building one might actually be worth your time.
+
+14
+00:00:41.560 --> 00:00:43.240
+I am Luciano, I'm here with Eoin,
+
+15
+00:00:43.240 --> 00:00:46.840
+and today we are here for another episode of AWS Bites podcast.
+
+16
+00:00:55.240 --> 00:00:57.600
+AWS Bites is brought to you by fourTheorem,
+
+17
+00:00:57.680 --> 00:00:59.360
+an advanced AWS partner.
+
+18
+00:00:59.360 --> 00:01:02.720
+If you're moving to AWS or need a partner to help you go faster,
+
+19
+00:01:02.720 --> 00:01:04.680
+check us out at fourTheorem.com.
+
+20
+00:01:04.680 --> 00:01:09.520
+Let's start by recapping what a FaaS serverless system is, how it works,
+
+21
+00:01:09.520 --> 00:01:13.840
+and in general, how does that refer to AWS Lambda?
+
+22
+00:01:13.840 --> 00:01:14.520
+What do you say?
+
+23
+00:01:14.520 --> 00:01:20.040
+Yep, Lambda is the FaaS or functions as a service, service within AWS.
+
+24
+00:01:20.040 --> 00:01:22.400
+And it's an event-based system.
+
+25
+00:01:22.400 --> 00:01:24.560
+You write some code in the form of a function,
+
+26
+00:01:24.560 --> 00:01:30.160
+that function takes an event as its input and responds with a single response.
+
+27
+00:01:30.160 --> 00:01:33.160
+It supports multiple programming languages.
+
+28
+00:01:33.160 --> 00:01:35.840
+So as a client, you will send your function code
+
+29
+00:01:35.840 --> 00:01:40.040
+and the event configuration to your cloud provider like AWS,
+
+30
+00:01:40.040 --> 00:01:43.320
+and they will make sure to run your code when the event happens.
+
+31
+00:01:43.320 --> 00:01:44.280
+And this is the magic.
+
+32
+00:01:44.280 --> 00:01:46.840
+It just figures out where to run your code
+
+33
+00:01:46.840 --> 00:01:51.320
+and how to place that within their vast set of compute infrastructure.
+
+34
+00:01:51.320 --> 00:01:55.680
+And it's also well integrated with lots and lots of other things.
+
+35
+00:01:55.680 --> 00:01:59.600
+Your function can be used to connect or to extend different cloud services.
+
+36
+00:01:59.600 --> 00:02:04.520
+A few examples of that, you can use a Lambda function with API Gateway
+
+37
+00:02:04.520 --> 00:02:07.640
+to define the logic for your web requests.
+
+38
+00:02:07.640 --> 00:02:11.480
+You can use a Lambda function to process jobs from a queue like SQS
+
+39
+00:02:11.480 --> 00:02:13.760
+and signal which ones have been processed correctly
+
+40
+00:02:13.760 --> 00:02:15.400
+and which ones may have failed.
+
+41
+00:02:15.400 --> 00:02:18.240
+And another example is you can use Lambda functions
+
+42
+00:02:18.280 --> 00:02:22.080
+to define your custom GraphQL resolvers.
+
+43
+00:02:22.080 --> 00:02:24.600
+But there's lots and lots more beside that,
+
+44
+00:02:24.600 --> 00:02:27.680
+which I think we've covered in lots of previous episodes.
+
+45
+00:02:27.680 --> 00:02:29.480
+So this magic, how does it work?
+
+46
+00:02:29.480 --> 00:02:33.320
+Well, I think at the core of that is the concept of a runtime.
+
+47
+00:02:33.320 --> 00:02:36.080
+So what is a runtime and why do we need one?
+
+48
+00:02:36.080 --> 00:02:39.680
+So yeah, you said that the cloud provider needs to have some kind of infrastructure
+
+49
+00:02:39.680 --> 00:02:42.320
+that can use to execute the code when needed,
+
+50
+00:02:42.320 --> 00:02:44.320
+so when a specific event happens.
+
+51
+00:02:44.320 --> 00:02:46.880
+So this infrastructure also needs to make sure
+
+52
+00:02:46.920 --> 00:02:49.920
+that all the information is passed correctly into the function.
+
+53
+00:02:49.920 --> 00:02:54.360
+So some kind of description of the event needs to be passed as an input.
+
+54
+00:02:54.360 --> 00:02:56.360
+And then the function is going to do some magic,
+
+55
+00:02:56.360 --> 00:03:00.640
+it's going to do some computation and eventually provide a response or an output.
+
+56
+00:03:00.640 --> 00:03:04.880
+And the runtime also needs to collect that output and do something useful with it.
+
+57
+00:03:04.880 --> 00:03:07.560
+For instance, if there are integrations to be triggered,
+
+58
+00:03:07.560 --> 00:03:11.800
+it needs to make sure it takes the output and use it to wire things together correctly.
+
+59
+00:03:11.800 --> 00:03:13.360
+And of course, there might be errors
+
+60
+00:03:13.360 --> 00:03:16.640
+because in the cloud there are always errors around the corner.
+
+61
+00:03:17.000 --> 00:03:21.360
+So if there are errors, the runtime needs to make sure it captures the error.
+
+62
+00:03:21.360 --> 00:03:25.360
+In some cases, there might be the possibility to retry the execution,
+
+63
+00:03:25.360 --> 00:03:27.880
+so it needs to make sure the execution is retried.
+
+64
+00:03:27.880 --> 00:03:31.280
+If there are too many retries, eventually it needs to stop retrying
+
+65
+00:03:31.280 --> 00:03:35.920
+and make sure the errors are communicated correctly to the user in the form of logs.
+
+66
+00:03:35.920 --> 00:03:39.120
+So the runtime has to do basically all this kind of coordination
+
+67
+00:03:39.120 --> 00:03:41.960
+around the execution of a specific Lambda function.
+
+68
+00:03:41.960 --> 00:03:45.440
+There is also an extension system that exists inside Lambda,
+
+69
+00:03:45.440 --> 00:03:50.000
+so the runtime is also responsible for integrating possible extensions.
+
+70
+00:03:50.000 --> 00:03:51.880
+And this is something that you might have seen, for instance,
+
+71
+00:03:51.880 --> 00:03:56.480
+if you use an external provider to collect telemetries on the Datadog,
+
+72
+00:03:56.480 --> 00:04:01.200
+they might be providing their own extension that you embed in the Lambda execution.
+
+73
+00:04:01.200 --> 00:04:05.200
+And as your Lambda is running, they can collect all sorts of information
+
+74
+00:04:05.200 --> 00:04:09.080
+and record it in the telemetry system so you can inspect it later.
+
+75
+00:04:09.080 --> 00:04:13.040
+Speaking of runtimes, there are generally two main categories.
+
+76
+00:04:13.040 --> 00:04:16.680
+One is built-in runtimes and another one is custom runtimes.
+
+77
+00:04:16.680 --> 00:04:21.000
+When we talk about built-in runtimes, we generally talk about the common languages
+
+78
+00:04:21.000 --> 00:04:25.960
+that we have seen with Lambda, so Node.js, Python, Java, .NET, Ruby, Go.
+
+79
+00:04:25.960 --> 00:04:28.200
+Even though Go has been recently deprecated,
+
+80
+00:04:28.200 --> 00:04:30.360
+we'll talk a little bit more about that in a second.
+
+81
+00:04:30.360 --> 00:04:33.080
+And generally, you can expect that the most recent versions
+
+82
+00:04:33.080 --> 00:04:35.640
+of these programming languages are supported.
+
+83
+00:04:35.640 --> 00:04:39.880
+So if you have a long-term supported version of a programming language,
+
+84
+00:04:39.920 --> 00:04:43.720
+that's generally going to be supported within that runtime.
+
+85
+00:04:43.720 --> 00:04:45.880
+You can also use a custom runtime, as I mentioned,
+
+86
+00:04:45.880 --> 00:04:49.280
+and that's the idea that you can support virtually anything else
+
+87
+00:04:49.280 --> 00:04:51.320
+that you want to run in Lambda.
+
+88
+00:04:51.320 --> 00:04:54.120
+There are some cases that are actually well supported,
+
+89
+00:04:54.120 --> 00:04:56.520
+even though they are still custom runtime by AWS,
+
+90
+00:04:56.520 --> 00:04:59.720
+because AWS provides libraries for you to make it easy
+
+91
+00:04:59.720 --> 00:05:03.040
+to build a custom runtime supporting specific languages.
+
+92
+00:05:03.040 --> 00:05:07.560
+And this is generally the case for languages that compile to native binaries,
+
+93
+00:05:07.560 --> 00:05:09.720
+for instance, Rust, Go, and C++.
+
+94
+00:05:09.800 --> 00:05:13.320
+And I was mentioning before that Go was deprecated as a built-in runtime,
+
+95
+00:05:13.320 --> 00:05:15.400
+and this is because now you have a library
+
+96
+00:05:15.400 --> 00:05:18.240
+that allows you very easily to build a binary
+
+97
+00:05:18.240 --> 00:05:20.760
+that contains all your code and the runtime itself,
+
+98
+00:05:20.760 --> 00:05:23.080
+and then you can ship it as a custom runtime.
+
+99
+00:05:23.080 --> 00:05:26.800
+So pretty much the same experience you would get with Rust or C++.
+
+100
+00:05:26.800 --> 00:05:28.240
+And that's, of course, not it.
+
+101
+00:05:28.240 --> 00:05:32.200
+Like, you can effectively build custom runtimes for anything you want.
+
+102
+00:05:32.200 --> 00:05:37.040
+Maybe you want to build older, newer versions of Node.js or Python
+
+103
+00:05:37.040 --> 00:05:41.280
+or languages that are not even supported by Lambda itself
+
+104
+00:05:41.280 --> 00:05:43.680
+with the built-in runtimes.
+
+105
+00:05:43.680 --> 00:05:45.800
+Very common examples are Bref,
+
+106
+00:05:45.800 --> 00:05:48.920
+which is basically an open source PHP runtime.
+
+107
+00:05:48.920 --> 00:05:51.160
+Another one exists for the Swift language,
+
+108
+00:05:51.160 --> 00:05:52.600
+which is really well supported,
+
+109
+00:05:52.600 --> 00:05:54.960
+even though it's not officially coming from AWS.
+
+110
+00:05:54.960 --> 00:05:57.520
+So you need to download it from an open source project
+
+111
+00:05:57.520 --> 00:06:00.880
+and figure out exactly how to compile it and ship it.
+
+112
+00:06:00.880 --> 00:06:03.520
+And then there might be other interesting use cases,
+
+113
+00:06:03.520 --> 00:06:06.160
+even though maybe a little bit less mature at this point.
+
+114
+00:06:06.200 --> 00:06:09.680
+For instance, I've seen Lua runtimes, WebAssembly runtimes,
+
+115
+00:06:09.680 --> 00:06:12.200
+Elixir, PowerShell, Bash.
+
+116
+00:06:12.200 --> 00:06:15.080
+And there are even more crazy examples,
+
+117
+00:06:15.080 --> 00:06:18.840
+even esoteric one, I would call them, like the BrainFact language.
+
+118
+00:06:18.840 --> 00:06:22.560
+A lot of people have spent their time building a COBOL or a Fortran runtime,
+
+119
+00:06:22.560 --> 00:06:23.800
+mostly just for fun.
+
+120
+00:06:23.800 --> 00:06:26.200
+So let's maybe try to deep dive a little bit
+
+121
+00:06:26.200 --> 00:06:28.520
+on what a custom runtime actually is.
+
+122
+00:06:28.520 --> 00:06:29.560
+How does it work?
+
+123
+00:06:33.440 --> 00:06:37.800
+Yeah, well, a custom runtime is really just a program that communicates between your handler, I guess,
+
+124
+00:06:37.800 --> 00:06:44.240
+and the control plane that is passing events in from the Lambda service itself.
+
+125
+00:06:44.240 --> 00:06:46.080
+When you're creating a runtime,
+
+126
+00:06:46.080 --> 00:06:49.960
+you essentially just create a program that needs to be called Bootstrap
+
+127
+00:06:49.960 --> 00:06:53.000
+and is placed at the root of your Lambda package.
+
+128
+00:06:53.000 --> 00:06:56.240
+So this can be a Linux binary or a shell script.
+
+129
+00:06:56.240 --> 00:06:59.800
+Remember that, I guess, the Lambda runtime environment,
+
+130
+00:06:59.800 --> 00:07:01.640
+it's just a Linux environment
+
+131
+00:07:01.640 --> 00:07:06.280
+and it's running on Amazon's Firecracker, lightweight virtual machines,
+
+132
+00:07:06.280 --> 00:07:09.040
+which are really low overhead,
+
+133
+00:07:09.040 --> 00:07:12.520
+highly optimized container-like things
+
+134
+00:07:12.520 --> 00:07:18.640
+that run an isolated and secure sandbox for a Lambda function.
+
+135
+00:07:18.640 --> 00:07:23.600
+So your Bootstrap program needs to target the Amazon Linux distribution.
+
+136
+00:07:23.600 --> 00:07:27.320
+So I think recently they've been moving to Amazon Linux 2023,
+
+137
+00:07:27.320 --> 00:07:29.600
+the latest version, which has just been released.
+
+138
+00:07:29.600 --> 00:07:31.240
+Now, what does this program do?
+
+139
+00:07:31.240 --> 00:07:34.680
+Well, there are two phases within this runtime initialization.
+
+140
+00:07:34.680 --> 00:07:37.080
+You've got initialization and then processing.
+
+141
+00:07:37.080 --> 00:07:40.880
+And in the initialization phase, it's going to retrieve some settings
+
+142
+00:07:40.880 --> 00:07:43.400
+and it can read special environment variables.
+
+143
+00:07:43.400 --> 00:07:47.960
+One is the handler, which handler file should be executed.
+
+144
+00:07:47.960 --> 00:07:50.280
+Then you've got the Lambda task root variable,
+
+145
+00:07:50.280 --> 00:07:52.080
+which tells you where the code is stored.
+
+146
+00:07:52.080 --> 00:07:57.600
+And then you've got this AWS Lambda runtime API environment variable.
+
+147
+00:07:57.600 --> 00:08:01.360
+And this is the host and the port of the Lambda runtime API.
+
+148
+00:08:01.360 --> 00:08:04.880
+And this is a really important part, which we'll talk about in a little bit.
+
+149
+00:08:04.880 --> 00:08:06.680
+So there's lots of other environment variables.
+
+150
+00:08:06.680 --> 00:08:09.520
+The full link to all of them will be in the show notes.
+
+151
+00:08:09.520 --> 00:08:12.400
+Once that's done, then it can load the handler file.
+
+152
+00:08:12.400 --> 00:08:15.000
+And this is into your function initialization.
+
+153
+00:08:15.000 --> 00:08:19.000
+So there are language-specific operations here.
+
+154
+00:08:19.000 --> 00:08:24.800
+So it might require initializing your runtime environment,
+
+155
+00:08:24.800 --> 00:08:27.040
+like your JVM, for example.
+
+156
+00:08:27.040 --> 00:08:31.960
+And then loading classes, loading jars, etc., or loading libraries.
+
+157
+00:08:31.960 --> 00:08:34.920
+And then for compiled languages, so we're talking about Rust,
+
+158
+00:08:34.920 --> 00:08:41.000
+Golang, C++, the code is generally preloaded as part of that runtime binary.
+
+159
+00:08:41.000 --> 00:08:43.600
+You also need to think about handling errors during this phase.
+
+160
+00:08:43.600 --> 00:08:46.120
+So if any error happens while loading the runtime,
+
+161
+00:08:46.120 --> 00:08:51.160
+the program needs to notify specific API and exit cleanly with an error code.
+
+162
+00:08:51.160 --> 00:08:54.840
+When it moves then into the processing phase, it's essentially running a loop.
+
+163
+00:08:54.840 --> 00:08:59.640
+It's like an event loop, so it fetches an event at a time from the runtime API.
+
+164
+00:08:59.640 --> 00:09:03.720
+It passes that to the handler function with the event payload.
+
+165
+00:09:03.720 --> 00:09:07.320
+Then it will collect the handler's response and forward it back to AWS.
+
+166
+00:09:07.320 --> 00:09:10.360
+There are also other secondary things that it needs to think about,
+
+167
+00:09:10.360 --> 00:09:14.760
+like propagating tracing information, creating the context object,
+
+168
+00:09:14.760 --> 00:09:17.320
+handling errors, and cleaning up resources.
+
+169
+00:09:17.320 --> 00:09:19.320
+Now, we talked about this runtime API.
+
+170
+00:09:19.320 --> 00:09:23.320
+So this is how you communicate with the AWS Lambda service.
+
+171
+00:09:23.320 --> 00:09:29.240
+And the AWS Lambda service is responsible for receiving the events from its API,
+
+172
+00:09:29.240 --> 00:09:31.800
+like from invoke or invokeAsync.
+
+173
+00:09:31.800 --> 00:09:35.560
+And then it needs to think about the worker placement,
+
+174
+00:09:35.560 --> 00:09:38.920
+finding a worker that has the capacity to run your function,
+
+175
+00:09:38.920 --> 00:09:42.720
+and then passing the event to the runtime on that worker.
+
+176
+00:09:42.720 --> 00:09:46.120
+So your runtime is running on a fleet of workers,
+
+177
+00:09:46.120 --> 00:09:49.360
+and the Lambda service is going to pass it to you.
+
+178
+00:09:49.360 --> 00:09:53.120
+You need to pull it using this runtime API.
+
+179
+00:09:53.120 --> 00:09:58.080
+So there's a get method on a specific invocation next path
+
+180
+00:09:58.080 --> 00:10:00.480
+that you need to pull to get the next event.
+
+181
+00:10:00.480 --> 00:10:02.160
+And you just do this one at a time.
+
+182
+00:10:02.160 --> 00:10:05.000
+And this will just hang until there's a new event available.
+
+183
+00:10:05.000 --> 00:10:08.800
+So you might have to set a long timeout on this HTTP connection.
+
+184
+00:10:08.800 --> 00:10:13.560
+When you're finished, there's also a post with an invocation response URL,
+
+185
+00:10:13.560 --> 00:10:15.960
+where you can signal that the request has been completed,
+
+186
+00:10:15.960 --> 00:10:20.600
+and then that's used to send the response payload back to AWS,
+
+187
+00:10:20.600 --> 00:10:25.040
+so that it can use it for other downstream invocations.
+
+188
+00:10:25.040 --> 00:10:28.520
+You can actually use this API to do response streaming as well,
+
+189
+00:10:28.520 --> 00:10:30.840
+which we discussed in a previous episode.
+
+190
+00:10:30.840 --> 00:10:32.880
+And we'll give a link to that episode in the show notes,
+
+191
+00:10:32.880 --> 00:10:37.880
+as well as the link to how to use this API for response streaming.
+
+192
+00:10:37.880 --> 00:10:43.520
+Another one to be aware of is the invocation error response URL.
+
+193
+00:10:43.520 --> 00:10:46.280
+And that's a separate path that you need to use
+
+194
+00:10:46.280 --> 00:10:48.560
+if you've got an error in your function,
+
+195
+00:10:48.560 --> 00:10:50.040
+and you need to report that back.
+
+196
+00:10:50.040 --> 00:10:55.440
+And then you can pass in special headers to report the specific kind of error.
+
+197
+00:10:55.440 --> 00:10:59.560
+The body of that will also contain error information and even a stack trace.
+
+198
+00:10:59.560 --> 00:11:03.360
+The fourth URL might be useful to know in the runtime API
+
+199
+00:11:03.360 --> 00:11:06.600
+is one that you can use to report initialization errors
+
+200
+00:11:06.600 --> 00:11:09.240
+in the initialization phase of your runtime.
+
+201
+00:11:09.240 --> 00:11:12.280
+So that's basically how the runtime API works.
+
+202
+00:11:12.280 --> 00:11:14.760
+I think all Lambda runtimes are using this
+
+203
+00:11:14.760 --> 00:11:18.960
+to communicate with the Lambda service just slightly different ways.
+
+204
+00:11:19.000 --> 00:11:20.800
+But one of the ways you mentioned Luciano
+
+205
+00:11:20.800 --> 00:11:22.960
+is that you can create your own custom runtime,
+
+206
+00:11:22.960 --> 00:11:25.800
+and then you can interact with this runtime API directly.
+
+207
+00:11:25.800 --> 00:11:28.120
+So if somebody's thinking about using a custom runtime,
+
+208
+00:11:28.120 --> 00:11:29.560
+what do you have to do to ship that?
+
+209
+00:11:33.080 --> 00:11:36.120
+Yeah, I guess the question is you have built this integration using the specific runtime API that you just described.
+
+210
+00:11:36.120 --> 00:11:38.200
+Now, how do you actually push it to production?
+
+211
+00:11:38.200 --> 00:11:40.200
+And generally speaking, there are two options.
+
+212
+00:11:40.200 --> 00:11:44.000
+One is that you can zip the bootstrap file within your code
+
+213
+00:11:44.000 --> 00:11:47.600
+and ship everything as one package, or you can create a Lambda layer.
+
+214
+00:11:47.600 --> 00:11:51.240
+So when you zip everything, it's more in the case
+
+215
+00:11:51.240 --> 00:11:54.680
+that maybe you're doing something that's like one-off kind of use case.
+
+216
+00:11:54.680 --> 00:11:57.400
+You are maybe doing something that you are going to be doing once.
+
+217
+00:11:57.400 --> 00:12:00.760
+You don't expect to be like a general use case within your company
+
+218
+00:12:00.760 --> 00:12:03.000
+or even within kind of the open-source space
+
+219
+00:12:03.000 --> 00:12:05.320
+for other people, other customers.
+
+220
+00:12:05.320 --> 00:12:09.320
+So maybe it's just easier to do one zip file and ship it.
+
+221
+00:12:09.320 --> 00:12:13.600
+And this is actually the case when you use combined languages,
+
+222
+00:12:13.600 --> 00:12:16.240
+again, like Go, C++, or Rust,
+
+223
+00:12:16.240 --> 00:12:18.680
+because since you are producing just one binary
+
+224
+00:12:18.680 --> 00:12:21.520
+that contains the runtime code that is coming as a library
+
+225
+00:12:21.520 --> 00:12:23.560
+and your own custom handler code,
+
+226
+00:12:23.560 --> 00:12:26.840
+and eventually ends up everything together in the single binary,
+
+227
+00:12:26.840 --> 00:12:29.000
+that's pretty much the only way you have.
+
+228
+00:12:29.000 --> 00:12:32.440
+You just zip it and you ship it as one thing
+
+229
+00:12:32.440 --> 00:12:35.720
+that contains both the runtime and your own custom business logic.
+
+230
+00:12:35.720 --> 00:12:37.880
+The other option, as I mentioned, is a Lambda layer,
+
+231
+00:12:37.880 --> 00:12:40.640
+and this is more convenient when, for instance,
+
+232
+00:12:40.640 --> 00:12:43.800
+you think you have a use case that is a little bit more common.
+
+233
+00:12:43.800 --> 00:12:48.240
+You might want to do multiple Lambdas pretty much using the same runtime,
+
+234
+00:12:48.240 --> 00:12:50.920
+or maybe you are building something that can even be an open-source project.
+
+235
+00:12:50.920 --> 00:12:53.320
+Maybe you want to support a new language
+
+236
+00:12:53.320 --> 00:12:56.920
+and you expect other people to be willing to use the same runtime
+
+237
+00:12:56.920 --> 00:12:59.760
+because they also want to play with that new language in Lambda.
+
+238
+00:12:59.760 --> 00:13:02.080
+And the way you do this is actually pretty simple,
+
+239
+00:13:02.080 --> 00:13:05.080
+because again, you just need to zip that bootstrap file
+
+240
+00:13:05.080 --> 00:13:07.280
+and then you can publish it as a Lambda layer.
+
+241
+00:13:07.280 --> 00:13:09.760
+And another case where this is very convenient
+
+242
+00:13:09.760 --> 00:13:12.080
+is where you have interpreted languages,
+
+243
+00:13:12.080 --> 00:13:14.560
+because once you have shipped it as a layer,
+
+244
+00:13:14.560 --> 00:13:16.760
+anyone that wants to use that runtime,
+
+245
+00:13:16.760 --> 00:13:18.800
+the only thing they need to do is basically go,
+
+246
+00:13:18.800 --> 00:13:22.160
+even from the web UI, they can just go on the Lambda service,
+
+247
+00:13:22.160 --> 00:13:25.200
+they can create a new Lambda, they select the custom runtime,
+
+248
+00:13:25.200 --> 00:13:28.600
+they select the specific layer that implements the runtime,
+
+249
+00:13:28.600 --> 00:13:31.920
+and then they can just use the built-in editor to create script files.
+
+250
+00:13:31.920 --> 00:13:36.680
+For instance, if we have built a runtime that can support bash scripting,
+
+251
+00:13:36.680 --> 00:13:38.200
+they just need to select the layer
+
+252
+00:13:38.200 --> 00:13:41.720
+and then you can just create a file called, I don't know, handler.sh,
+
+253
+00:13:41.720 --> 00:13:43.000
+write your code there,
+
+254
+00:13:43.000 --> 00:13:47.440
+and assuming that you are following the spec of the underfile directory
+
+255
+00:13:47.440 --> 00:13:49.520
+as the runtime expects,
+
+256
+00:13:49.520 --> 00:13:51.320
+you can just run your Lambda from there
+
+257
+00:13:51.320 --> 00:13:54.160
+without needing to do anything more complicated than that.
+
+258
+00:13:54.160 --> 00:13:57.000
+So this is actually convenient, again,
+
+259
+00:13:57.000 --> 00:13:59.720
+in this case where you have either scripted languages
+
+260
+00:13:59.720 --> 00:14:02.080
+or you want to do something a bit more reusable.
+
+261
+00:14:02.080 --> 00:14:04.080
+But one thing that is always worth mentioning
+
+262
+00:14:04.080 --> 00:14:05.760
+when it comes to Lambda layers
+
+263
+00:14:05.760 --> 00:14:09.520
+is that they are not a way to escape file size limitations
+
+264
+00:14:09.520 --> 00:14:10.760
+that you might have with Lambda,
+
+265
+00:14:10.760 --> 00:14:16.440
+because the layers are basically added on top of the total 250 megabytes unzipped
+
+266
+00:14:16.440 --> 00:14:18.840
+that you can have for your Lambda package.
+
+267
+00:14:18.840 --> 00:14:22.800
+So if you have very, very big, I don't know, runtimes,
+
+268
+00:14:22.800 --> 00:14:26.800
+because maybe you have something like a JVM or something very big
+
+269
+00:14:26.800 --> 00:14:30.200
+that includes lots of native libraries that your code can use,
+
+270
+00:14:30.200 --> 00:14:31.800
+this is something that generally can go easily
+
+271
+00:14:31.800 --> 00:14:33.560
+in the order of hundreds of megabytes.
+
+272
+00:14:33.560 --> 00:14:35.360
+So in that case, you need to be very careful,
+
+273
+00:14:35.360 --> 00:14:39.920
+because then you might, just the runtime might go over the 250 megabytes,
+
+274
+00:14:39.920 --> 00:14:43.040
+or you might be leaving very little space for the user code.
+
+275
+00:14:43.040 --> 00:14:44.720
+Which brings us to the next topic,
+
+276
+00:14:44.720 --> 00:14:47.200
+because these are actually not the only two options,
+
+277
+00:14:47.200 --> 00:14:49.280
+zip in the code or Lambda layers,
+
+278
+00:14:49.280 --> 00:14:52.000
+there is also the option of using containers.
+
+279
+00:14:52.000 --> 00:14:53.560
+Do you want to talk about that, Alwyn?
+
+280
+00:14:55.640 --> 00:14:59.160
+Yeah, I'm getting more and more, I'm warming more and more to the idea of container image deployments for Lambda,
+
+281
+00:14:59.160 --> 00:15:01.600
+because they're showing a lot of benefits,
+
+282
+00:15:01.600 --> 00:15:04.800
+and one of the huge benefits there is that you've got 10 gigabytes
+
+283
+00:15:04.800 --> 00:15:07.840
+to include all of your layers and dependencies and everything else.
+
+284
+00:15:07.840 --> 00:15:12.200
+So everything we've talked about so far has been about zip packaged functions.
+
+285
+00:15:12.200 --> 00:15:14.400
+When you have standard zip packaged functions,
+
+286
+00:15:14.400 --> 00:15:17.920
+you have the option of using the built-in or the custom runtimes,
+
+287
+00:15:17.920 --> 00:15:20.400
+and in the case of the built-in runtimes,
+
+288
+00:15:20.400 --> 00:15:22.240
+it's completely managed by AWS,
+
+289
+00:15:22.240 --> 00:15:24.840
+and they are responsible for keeping it up to date and secure,
+
+290
+00:15:24.840 --> 00:15:28.240
+and this is one of the big benefits of Lambda in general,
+
+291
+00:15:28.240 --> 00:15:30.520
+and one of the reasons why people don't like custom runtimes,
+
+292
+00:15:30.520 --> 00:15:32.640
+they don't like container image deployments,
+
+293
+00:15:32.640 --> 00:15:36.400
+is because you'll sacrifice that if you go with one of those.
+
+294
+00:15:36.400 --> 00:15:39.760
+With container images, you don't have the provided built-in runtimes
+
+295
+00:15:39.760 --> 00:15:42.160
+like you do with zip packaged functions.
+
+296
+00:15:42.160 --> 00:15:46.720
+Instead, AWS maintains and provides base images
+
+297
+00:15:46.720 --> 00:15:49.520
+that you can use to build your container image
+
+298
+00:15:49.520 --> 00:15:51.200
+that you deploy for your function,
+
+299
+00:15:51.200 --> 00:15:53.520
+and these are available for all of the provided runtimes
+
+300
+00:15:53.520 --> 00:15:54.880
+that you already mentioned.
+
+301
+00:15:54.880 --> 00:15:57.520
+The shared responsibility model here is going to be different, though,
+
+302
+00:15:57.520 --> 00:16:00.720
+because although AWS is providing these base images,
+
+303
+00:16:00.720 --> 00:16:03.000
+they are not going to be automatically updated
+
+304
+00:16:03.000 --> 00:16:04.680
+without you having to redeploy your function.
+
+305
+00:16:04.680 --> 00:16:06.840
+You will need to continuously build and deploy
+
+306
+00:16:06.840 --> 00:16:08.600
+against the latest build image
+
+307
+00:16:08.600 --> 00:16:11.480
+in order to stay secure and up to date.
+
+308
+00:16:11.480 --> 00:16:14.360
+You also have the option of going with a completely custom approach
+
+309
+00:16:14.360 --> 00:16:15.880
+with container image deployments,
+
+310
+00:16:15.880 --> 00:16:18.480
+so it's similar to zip packaged functions,
+
+311
+00:16:18.480 --> 00:16:22.040
+where you're using the very same Lambda runtime interface client
+
+312
+00:16:22.040 --> 00:16:24.480
+that could communicate with this runtime API,
+
+313
+00:16:24.480 --> 00:16:27.480
+and you just add that client to your container image.
+
+314
+00:16:27.480 --> 00:16:30.040
+So you have a choice with the container image build.
+
+315
+00:16:30.040 --> 00:16:31.720
+You either start with one of the base images,
+
+316
+00:16:31.720 --> 00:16:33.720
+and you add your subsequent layers,
+
+317
+00:16:33.720 --> 00:16:36.200
+or you can start with your own image.
+
+318
+00:16:36.200 --> 00:16:38.880
+If you've got some machine learning image, for example,
+
+319
+00:16:38.880 --> 00:16:40.920
+you need all of its base components,
+
+320
+00:16:40.920 --> 00:16:43.360
+then you just add the runtime interface client
+
+321
+00:16:43.360 --> 00:16:46.120
+and the entry point and everything at the end.
+
+322
+00:16:46.120 --> 00:16:48.400
+So if you're using Lambda container image deployment
+
+323
+00:16:48.400 --> 00:16:51.480
+to take advantage of existing images you have and you don't,
+
+324
+00:16:51.480 --> 00:16:53.080
+and you just want to use them with Lambda,
+
+325
+00:16:53.080 --> 00:16:55.120
+it's possible that you'll just start with your own base image
+
+326
+00:16:55.120 --> 00:16:57.200
+and add that runtime interface client,
+
+327
+00:16:57.200 --> 00:17:01.120
+even if you don't have any need otherwise for a special custom runtime.
+
+328
+00:17:01.120 --> 00:17:03.320
+With container images, you also have the benefit
+
+329
+00:17:03.400 --> 00:17:05.880
+that you can use the runtime interface emulator,
+
+330
+00:17:05.880 --> 00:17:09.000
+and that allows you to run your container image locally
+
+331
+00:17:09.000 --> 00:17:12.080
+with this emulator, and you just get an HTTP endpoint
+
+332
+00:17:12.080 --> 00:17:13.360
+to post events to.
+
+333
+00:17:13.360 --> 00:17:16.840
+And it behaves then a lot more like a real Lambda function,
+
+334
+00:17:16.840 --> 00:17:19.000
+not completely like a Lambda function,
+
+335
+00:17:19.000 --> 00:17:21.600
+but it's a nice local emulation thing
+
+336
+00:17:21.600 --> 00:17:23.640
+that you get for free with container images
+
+337
+00:17:23.640 --> 00:17:25.200
+that I think is sometimes nicer
+
+338
+00:17:25.200 --> 00:17:27.440
+than the other local emulation options you have.
+
+339
+00:17:27.440 --> 00:17:29.720
+Now, container images, it's probably worth saying,
+
+340
+00:17:29.720 --> 00:17:32.600
+might even be a preferable way to deploy functions
+
+341
+00:17:32.640 --> 00:17:35.120
+if you're trying to reduce the call start times.
+
+342
+00:17:35.120 --> 00:17:37.840
+And I've been doing a bit of benchmarking
+
+343
+00:17:37.840 --> 00:17:39.680
+of certain runtimes recently,
+
+344
+00:17:39.680 --> 00:17:43.240
+particularly runtimes that involve
+
+345
+00:17:43.240 --> 00:17:45.360
+typically heavy package dependencies.
+
+346
+00:17:45.360 --> 00:17:48.760
+I'm talking particularly about the Python data science stack
+
+347
+00:17:48.760 --> 00:17:51.080
+when you need pandas and pyarrow and numpy
+
+348
+00:17:51.080 --> 00:17:52.560
+and all of these things,
+
+349
+00:17:52.560 --> 00:17:55.680
+and you quickly run into a 250 megabyte limit.
+
+350
+00:17:55.680 --> 00:17:59.040
+Now, AWS actually released a paper
+
+351
+00:17:59.040 --> 00:18:02.400
+where they describe all of the special performance optimizations
+
+352
+00:18:03.040 --> 00:18:04.920
+that they made for container image deployment
+
+353
+00:18:04.920 --> 00:18:08.080
+that caches files that are used by multiple images,
+
+354
+00:18:08.080 --> 00:18:10.560
+even by multiple different customers.
+
+355
+00:18:10.560 --> 00:18:12.840
+So the time to load a 10 gigabyte function
+
+356
+00:18:12.840 --> 00:18:15.560
+may actually be less with container images
+
+357
+00:18:15.560 --> 00:18:19.400
+than the time it can take to call start a 250 megabyte zip.
+
+358
+00:18:19.400 --> 00:18:21.840
+And that's very counterintuitive, but it is the case,
+
+359
+00:18:21.840 --> 00:18:24.800
+and I've definitely seen results that show that.
+
+360
+00:18:24.800 --> 00:18:26.600
+And we'll link that paper in the show notes.
+
+361
+00:18:26.600 --> 00:18:27.680
+It's pretty short,
+
+362
+00:18:27.680 --> 00:18:30.000
+but it talks about the neat caching strategies
+
+363
+00:18:30.000 --> 00:18:31.720
+that the Lambda team put in place
+
+364
+00:18:31.880 --> 00:18:34.520
+to make sure that container image deployments
+
+365
+00:18:34.520 --> 00:18:35.440
+can be really fast,
+
+366
+00:18:35.440 --> 00:18:38.840
+even though you're talking about 10 gigabytes of storage.
+
+367
+00:18:38.840 --> 00:18:41.160
+So going back to runtimes and custom runtimes,
+
+368
+00:18:41.160 --> 00:18:44.280
+then Luciano, what is our recommendation for people?
+
+369
+00:18:44.280 --> 00:18:45.360
+Do you need a custom runtime?
+
+370
+00:18:45.360 --> 00:18:47.520
+Is this something people should be thinking about doing
+
+371
+00:18:47.520 --> 00:18:50.800
+in their job for any particular reason
+
+372
+00:18:50.800 --> 00:18:52.640
+or are there good use cases for it?
+
+373
+00:18:52.640 --> 00:18:55.680
+I've personally been playing a lot with the Rust runtime,
+
+374
+00:18:55.680 --> 00:18:58.560
+so I kind of had to explore this space
+
+375
+00:18:58.560 --> 00:18:59.760
+a little bit more in depth,
+
+376
+00:18:59.800 --> 00:19:03.280
+and I am very excited to understand more how Lambda works
+
+377
+00:19:03.280 --> 00:19:06.040
+and to use Rust in the context of Lambda.
+
+378
+00:19:06.040 --> 00:19:08.600
+But if I have to be honest and think about
+
+379
+00:19:08.600 --> 00:19:10.240
+kind of the generic use cases
+
+380
+00:19:10.240 --> 00:19:11.840
+that I've seen in the industry,
+
+381
+00:19:11.840 --> 00:19:13.760
+I think the answer to the question,
+
+382
+00:19:13.760 --> 00:19:15.560
+do you really need a custom runtime?
+
+383
+00:19:15.560 --> 00:19:17.280
+Most of the time, it's probably not.
+
+384
+00:19:17.280 --> 00:19:20.080
+And the reason is because the official runtime
+
+385
+00:19:20.080 --> 00:19:23.520
+gives you, basically gives AWS
+
+386
+00:19:23.520 --> 00:19:25.960
+more of that chunk of shared responsibility,
+
+387
+00:19:25.960 --> 00:19:28.800
+and you are free to think more about the business value
+
+388
+00:19:28.840 --> 00:19:29.680
+that you want to provide.
+
+389
+00:19:29.680 --> 00:19:31.680
+You don't have to think about all these details
+
+390
+00:19:31.680 --> 00:19:33.880
+about the runtime, you just write your own code
+
+391
+00:19:33.880 --> 00:19:36.280
+and everything should work out of the box for you.
+
+392
+00:19:36.280 --> 00:19:38.800
+AWS focuses on keeping the runtime up to date,
+
+393
+00:19:38.800 --> 00:19:40.240
+performant and secure,
+
+394
+00:19:40.240 --> 00:19:42.400
+and you just focus on writing your code
+
+395
+00:19:42.400 --> 00:19:45.000
+and making sure that it's as bug-free as possible.
+
+396
+00:19:45.000 --> 00:19:49.360
+And provider runtimes are also potentially more,
+
+397
+00:19:50.240 --> 00:19:53.600
+I guess, optimized to avoid cold start times
+
+398
+00:19:53.600 --> 00:19:57.280
+because AWS can easily keep the runtime cached
+
+399
+00:19:57.280 --> 00:19:58.680
+in the local workers,
+
+400
+00:19:59.560 --> 00:20:00.400
+which is not something you can do
+
+401
+00:20:00.400 --> 00:20:01.240
+with your own custom runtimes,
+
+402
+00:20:01.240 --> 00:20:02.080
+because of course,
+
+403
+00:20:02.080 --> 00:20:04.320
+every time you are publishing the runtime,
+
+404
+00:20:04.320 --> 00:20:06.440
+it can be different from customer to customer.
+
+405
+00:20:06.440 --> 00:20:08.080
+Most likely it's going to be very different.
+
+406
+00:20:08.080 --> 00:20:10.200
+So there is really no point in AWS
+
+407
+00:20:10.200 --> 00:20:11.680
+trying to cache that locally.
+
+408
+00:20:11.680 --> 00:20:14.680
+And the other thing it's in terms of pricing,
+
+409
+00:20:14.680 --> 00:20:17.560
+because with the provider runtimes,
+
+410
+00:20:17.560 --> 00:20:21.240
+you don't pay for the cold start phase for the most part.
+
+411
+00:20:21.240 --> 00:20:23.360
+And there is actually a very interesting article
+
+412
+00:20:23.360 --> 00:20:24.920
+by Luke Van Dorgeskort
+
+413
+00:20:24.920 --> 00:20:27.520
+that explains a little bit of the research
+
+414
+00:20:27.520 --> 00:20:28.520
+that has been doing,
+
+415
+00:20:29.200 --> 00:20:30.040
+but the summary of it is that
+
+416
+00:20:30.040 --> 00:20:31.800
+if you do your own custom runtime,
+
+417
+00:20:31.800 --> 00:20:33.760
+you pay not just for the execution time,
+
+418
+00:20:33.760 --> 00:20:35.360
+but even for the cold start time.
+
+419
+00:20:35.360 --> 00:20:37.280
+So there might be an impact there
+
+420
+00:20:37.280 --> 00:20:39.080
+in terms of additional cost
+
+421
+00:20:39.080 --> 00:20:41.920
+if your runtime is not particularly faster
+
+422
+00:20:41.920 --> 00:20:44.760
+than what you could do with the built-in runtimes.
+
+423
+00:20:44.760 --> 00:20:47.560
+And again, I think that the point of this episode
+
+424
+00:20:47.560 --> 00:20:50.240
+was more to try to understand a little bit better
+
+425
+00:20:50.240 --> 00:20:52.360
+how Lambda works under the hood.
+
+426
+00:20:52.360 --> 00:20:54.480
+And then there might be cases
+
+427
+00:20:54.480 --> 00:20:57.240
+when you actually might need a custom runtime.
+
+428
+00:20:57.280 --> 00:20:58.960
+What can be those cases?
+
+429
+00:20:58.960 --> 00:21:01.640
+One case could be maybe you have some legacy stuff
+
+430
+00:21:01.640 --> 00:21:03.720
+that runs maybe in a very old Python,
+
+431
+00:21:03.720 --> 00:21:04.920
+let's say Python 2,
+
+432
+00:21:04.920 --> 00:21:05.880
+because that's on the,
+
+433
+00:21:05.880 --> 00:21:08.520
+that I still see actually frequent enough,
+
+434
+00:21:08.520 --> 00:21:10.040
+and you don't have time right now
+
+435
+00:21:10.040 --> 00:21:12.660
+to move it to something more up to date
+
+436
+00:21:12.660 --> 00:21:14.280
+and use the latest runtime.
+
+437
+00:21:14.280 --> 00:21:16.560
+So what you can do as a quick and dirty solution
+
+438
+00:21:16.560 --> 00:21:19.560
+is just create your own runtime using Python 2,
+
+439
+00:21:19.560 --> 00:21:21.160
+and then you can run your own code.
+
+440
+00:21:21.160 --> 00:21:22.880
+Of course, this is far from ideal
+
+441
+00:21:22.880 --> 00:21:24.040
+because you need to be aware
+
+442
+00:21:24.040 --> 00:21:27.000
+you are still exposed to a bunch of security issues
+
+443
+00:21:27.640 --> 00:21:30.200
+because all the runtimes are probably not supported
+
+444
+00:21:30.200 --> 00:21:31.380
+from a security perspective.
+
+445
+00:21:31.380 --> 00:21:33.880
+So this is only a very dirty hack
+
+446
+00:21:33.880 --> 00:21:35.560
+that you can do for a limited amount of time,
+
+447
+00:21:35.560 --> 00:21:37.260
+and eventually you need to have a plan
+
+448
+00:21:37.260 --> 00:21:39.240
+to migrate to the newer versions.
+
+449
+00:21:39.240 --> 00:21:40.560
+So a more interesting use case
+
+450
+00:21:40.560 --> 00:21:42.600
+is actually when you want to be bleeding edge
+
+451
+00:21:42.600 --> 00:21:45.020
+and you want to try very new runtimes,
+
+452
+00:21:45.020 --> 00:21:46.500
+very new version of runtimes,
+
+453
+00:21:46.500 --> 00:21:49.360
+for instance, Python 3.12,
+
+454
+00:21:49.360 --> 00:21:51.400
+I think it was released last month,
+
+455
+00:21:51.400 --> 00:21:53.540
+and I believe there isn't yet,
+
+456
+00:21:53.540 --> 00:21:55.340
+there isn't already an official version
+
+457
+00:21:55.340 --> 00:21:57.460
+of that runtime supported by AWS.
+
+458
+00:21:57.460 --> 00:21:59.740
+So if for any reason you want to use
+
+459
+00:21:59.740 --> 00:22:01.900
+maybe some of the newest features
+
+460
+00:22:01.900 --> 00:22:03.740
+or the additional performance gains
+
+461
+00:22:03.740 --> 00:22:05.220
+that that version provides,
+
+462
+00:22:05.220 --> 00:22:06.660
+and you're willing to take the cost
+
+463
+00:22:06.660 --> 00:22:09.500
+of building your own runtime in exchange for that,
+
+464
+00:22:09.500 --> 00:22:11.380
+that could be a very valid use case.
+
+465
+00:22:11.380 --> 00:22:14.660
+And we can do a very similar conversation for Node.js 20,
+
+466
+00:22:14.660 --> 00:22:16.100
+even though it seems that AWS
+
+467
+00:22:16.100 --> 00:22:17.980
+is going to release that very, very soon.
+
+468
+00:22:17.980 --> 00:22:20.860
+Another use case which we have seen actually
+
+469
+00:22:20.860 --> 00:22:23.380
+across a bunch of people that were trying to experiment
+
+470
+00:22:23.380 --> 00:22:25.000
+with different JavaScript runtimes,
+
+471
+00:22:25.520 --> 00:22:26.920
+maybe they want to play with Deno or BUN
+
+472
+00:22:26.920 --> 00:22:28.320
+in the context of Lambda,
+
+473
+00:22:28.320 --> 00:22:30.880
+either to be able to run TypeScript more natively
+
+474
+00:22:30.880 --> 00:22:32.440
+or because they want to compare
+
+475
+00:22:32.440 --> 00:22:34.540
+different performance characteristics.
+
+476
+00:22:34.540 --> 00:22:37.600
+And because there is no official Deno or BUN runtime,
+
+477
+00:22:37.600 --> 00:22:39.320
+the only option you have in that case
+
+478
+00:22:39.320 --> 00:22:41.120
+is to build your own runtime
+
+479
+00:22:41.120 --> 00:22:43.400
+and basically package all of that that way.
+
+480
+00:22:43.400 --> 00:22:44.840
+We already mentioned other cases,
+
+481
+00:22:44.840 --> 00:22:48.760
+like you want to use compile languages like Rust, Go, C++,
+
+482
+00:22:48.760 --> 00:22:50.840
+and this can be a good use case
+
+483
+00:22:50.840 --> 00:22:53.020
+when you are looking for a stream performance
+
+484
+00:22:53.020 --> 00:22:55.700
+or reduce latency to the very minimum,
+
+485
+00:22:55.700 --> 00:22:58.120
+or maybe because you need to use some kind of native library
+
+486
+00:22:58.120 --> 00:23:00.940
+that only exists for these compile languages.
+
+487
+00:23:00.940 --> 00:23:04.340
+In those cases, I would recommend don't reinvent the wheel.
+
+488
+00:23:04.340 --> 00:23:07.380
+AWS gives you these libraries that are really well maintained
+
+489
+00:23:07.380 --> 00:23:09.660
+and they have really good developer experience.
+
+490
+00:23:09.660 --> 00:23:12.740
+So just use the library and that will cover 90%
+
+491
+00:23:12.740 --> 00:23:13.580
+of what you need to do,
+
+492
+00:23:13.580 --> 00:23:15.980
+and you can focus on the writing,
+
+493
+00:23:15.980 --> 00:23:18.020
+actually the business logic of your own Lambda.
+
+494
+00:23:18.020 --> 00:23:20.700
+And the last point is if you want to use a language
+
+495
+00:23:20.700 --> 00:23:22.380
+that is not supported yet,
+
+496
+00:23:22.380 --> 00:23:24.020
+or maybe it's never going to be supported
+
+497
+00:23:24.020 --> 00:23:25.900
+because it's kind of a niche language,
+
+498
+00:23:25.900 --> 00:23:27.700
+that's definitely a good use case.
+
+499
+00:23:27.700 --> 00:23:30.540
+And a true story is that we once had a customer
+
+500
+00:23:30.540 --> 00:23:34.500
+that had a significant existing code base in TCL,
+
+501
+00:23:34.500 --> 00:23:35.880
+or sometimes called T-CODE,
+
+502
+00:23:35.880 --> 00:23:38.040
+which is a relatively old language,
+
+503
+00:23:38.040 --> 00:23:40.780
+but apparently there is lots of software
+
+504
+00:23:40.780 --> 00:23:43.420
+that historically has been built with descriptive language.
+
+505
+00:23:43.420 --> 00:23:45.820
+And as part of their migration strategy to the cloud,
+
+506
+00:23:45.820 --> 00:23:49.000
+we consider using a custom Lambda runtime
+
+507
+00:23:49.000 --> 00:23:51.900
+just because some of their work was very event driven.
+
+508
+00:23:52.260 --> 00:23:54.660
+So creating a Lambda would have been very convenient
+
+509
+00:23:54.660 --> 00:23:56.500
+from an architecture perspective,
+
+510
+00:23:56.500 --> 00:23:58.220
+but of course we were missing the runtime.
+
+511
+00:23:58.220 --> 00:23:59.620
+So we were considering,
+
+512
+00:23:59.620 --> 00:24:01.900
+is it worth building the runtime or not?
+
+513
+00:24:01.900 --> 00:24:04.260
+So this is a consideration you might be doing
+
+514
+00:24:04.260 --> 00:24:06.820
+when you're facing this kind of migration scenarios
+
+515
+00:24:06.820 --> 00:24:09.660
+and you have things that might be well-fitted to run
+
+516
+00:24:09.660 --> 00:24:12.300
+in a Lambda, but maybe just the language support
+
+517
+00:24:12.300 --> 00:24:13.260
+is not there yet.
+
+518
+00:24:13.260 --> 00:24:14.340
+And I think that's everything.
+
+519
+00:24:14.340 --> 00:24:16.140
+So we are at the end of this episode.
+
+520
+00:24:16.140 --> 00:24:18.840
+I really hope that you found this particular episode
+
+521
+00:24:18.840 --> 00:24:20.220
+informative and useful,
+
+522
+00:24:20.220 --> 00:24:22.980
+and we always look for your feedback and your comments.
+
+523
+00:24:22.980 --> 00:24:25.180
+So don't be shy, reach out to us
+
+524
+00:24:25.180 --> 00:24:26.980
+and tell us what we can do better.
+
+525
+00:24:26.980 --> 00:24:28.580
+What did you like, what you didn't like.
+
+526
+00:24:28.580 --> 00:24:30.500
+And if you think this is useful,
+
+527
+00:24:30.500 --> 00:24:32.660
+please remember to like and subscribe,
+
+528
+00:24:32.660 --> 00:24:34.740
+share it with your friends and colleagues,
+
+529
+00:24:34.740 --> 00:24:37.020
+and this way we can grow the channels together
+
+530
+00:24:37.020 --> 00:24:39.100
+and always make sure we provide the best value
+
+531
+00:24:39.100 --> 00:24:40.580
+we can provide to you.
+
+532
+00:24:40.580 --> 00:24:43.580
+So thanks again, and we'll see you in the next episode.

@@ -1,0 +1,3200 @@
+{
+  "speakers": {
+    "spk_0": "Luciano",
+    "spk_1": "Eoin"
+  },
+  "segments": [
+    {
+      "speakerLabel": "spk_0",
+      "start": 0,
+      "end": 2.8000000000000003,
+      "text": " Happy 9th birthday AWS Lambda!"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2.8000000000000003,
+      "end": 6.4,
+      "text": " Yes, AWS Lambda was launched nine years ago this week."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 6.4,
+      "end": 9.52,
+      "text": " And to celebrate this birthday today, we're going to answer the question,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 9.52,
+      "end": 11.36,
+      "text": " what's inside a Lambda function?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 11.36,
+      "end": 14.64,
+      "text": " I don't mean your JavaScript or Python code, I mean everything around it."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 14.64,
+      "end": 17.04,
+      "text": " How does Lambda work as a service?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 17.04,
+      "end": 21.6,
+      "text": " How does it execute your code and integrate it with the rest of the AWS ecosystem?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 21.6,
+      "end": 25.240000000000002,
+      "text": " Today, we'll deep dive into the fascinating topic of Lambda runtimes."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 25.240000000000002,
+      "end": 28.04,
+      "text": " We will discuss how Lambda works, what a runtime is,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 28.08,
+      "end": 31.2,
+      "text": " we will compare official runtimes versus custom runtimes."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 31.2,
+      "end": 33.4,
+      "text": " And if you stick until the very end of this episode,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 33.4,
+      "end": 38.48,
+      "text": " we will also share when and why putting the effort into learning a custom runtime"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 38.48,
+      "end": 41.56,
+      "text": " and or building one might actually be worth your time."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 41.56,
+      "end": 43.24,
+      "text": " I am Luciano, I'm here with Eoin,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 43.24,
+      "end": 46.84,
+      "text": " and today we are here for another episode of AWS Bites podcast."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 55.239999999999995,
+      "end": 57.6,
+      "text": " AWS Bites is brought to you by fourTheorem,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 57.68,
+      "end": 59.36,
+      "text": " an advanced AWS partner."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 59.36,
+      "end": 62.72,
+      "text": " If you're moving to AWS or need a partner to help you go faster,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 62.72,
+      "end": 64.68,
+      "text": " check us out at fourTheorem.com."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 64.68,
+      "end": 69.52,
+      "text": " Let's start by recapping what a FaaS serverless system is, how it works,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 69.52,
+      "end": 73.84,
+      "text": " and in general, how does that refer to AWS Lambda?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 73.84,
+      "end": 74.52000000000001,
+      "text": " What do you say?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 74.52000000000001,
+      "end": 80.04,
+      "text": " Yep, Lambda is the FaaS or functions as a service, service within AWS."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 80.04,
+      "end": 82.4,
+      "text": " And it's an event-based system."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 82.4,
+      "end": 84.56,
+      "text": " You write some code in the form of a function,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 84.56,
+      "end": 90.16,
+      "text": " that function takes an event as its input and responds with a single response."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 90.16,
+      "end": 93.16,
+      "text": " It supports multiple programming languages."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 93.16,
+      "end": 95.84,
+      "text": " So as a client, you will send your function code"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 95.84,
+      "end": 100.04,
+      "text": " and the event configuration to your cloud provider like AWS,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 100.04,
+      "end": 103.32000000000001,
+      "text": " and they will make sure to run your code when the event happens."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 103.32000000000001,
+      "end": 104.28,
+      "text": " And this is the magic."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 104.28,
+      "end": 106.84,
+      "text": " It just figures out where to run your code"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 106.84,
+      "end": 111.32000000000001,
+      "text": " and how to place that within their vast set of compute infrastructure."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 111.32,
+      "end": 115.67999999999999,
+      "text": " And it's also well integrated with lots and lots of other things."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 115.67999999999999,
+      "end": 119.6,
+      "text": " Your function can be used to connect or to extend different cloud services."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 119.6,
+      "end": 124.52,
+      "text": " A few examples of that, you can use a Lambda function with API Gateway"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 124.52,
+      "end": 127.63999999999999,
+      "text": " to define the logic for your web requests."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 127.63999999999999,
+      "end": 131.48,
+      "text": " You can use a Lambda function to process jobs from a queue like SQS"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 131.48,
+      "end": 133.76,
+      "text": " and signal which ones have been processed correctly"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 133.76,
+      "end": 135.4,
+      "text": " and which ones may have failed."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 135.4,
+      "end": 138.24,
+      "text": " And another example is you can use Lambda functions"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 138.28,
+      "end": 142.08,
+      "text": " to define your custom GraphQL resolvers."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 142.08,
+      "end": 144.60000000000002,
+      "text": " But there's lots and lots more beside that,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 144.60000000000002,
+      "end": 147.68,
+      "text": " which I think we've covered in lots of previous episodes."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 147.68,
+      "end": 149.48000000000002,
+      "text": " So this magic, how does it work?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 149.48000000000002,
+      "end": 153.32000000000002,
+      "text": " Well, I think at the core of that is the concept of a runtime."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 153.32000000000002,
+      "end": 156.08,
+      "text": " So what is a runtime and why do we need one?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 156.08,
+      "end": 159.68,
+      "text": " So yeah, you said that the cloud provider needs to have some kind of infrastructure"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 159.68,
+      "end": 162.32000000000002,
+      "text": " that can use to execute the code when needed,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 162.32000000000002,
+      "end": 164.32000000000002,
+      "text": " so when a specific event happens."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 164.32000000000002,
+      "end": 166.88,
+      "text": " So this infrastructure also needs to make sure"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 166.92,
+      "end": 169.92,
+      "text": " that all the information is passed correctly into the function."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 169.92,
+      "end": 174.35999999999999,
+      "text": " So some kind of description of the event needs to be passed as an input."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 174.35999999999999,
+      "end": 176.35999999999999,
+      "text": " And then the function is going to do some magic,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 176.35999999999999,
+      "end": 180.64,
+      "text": " it's going to do some computation and eventually provide a response or an output."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 180.64,
+      "end": 184.88,
+      "text": " And the runtime also needs to collect that output and do something useful with it."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 184.88,
+      "end": 187.56,
+      "text": " For instance, if there are integrations to be triggered,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 187.56,
+      "end": 191.8,
+      "text": " it needs to make sure it takes the output and use it to wire things together correctly."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 191.8,
+      "end": 193.35999999999999,
+      "text": " And of course, there might be errors"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 193.35999999999999,
+      "end": 196.64,
+      "text": " because in the cloud there are always errors around the corner."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 197,
+      "end": 201.35999999999999,
+      "text": " So if there are errors, the runtime needs to make sure it captures the error."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 201.35999999999999,
+      "end": 205.35999999999999,
+      "text": " In some cases, there might be the possibility to retry the execution,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 205.35999999999999,
+      "end": 207.88,
+      "text": " so it needs to make sure the execution is retried."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 207.88,
+      "end": 211.27999999999997,
+      "text": " If there are too many retries, eventually it needs to stop retrying"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 211.27999999999997,
+      "end": 215.92,
+      "text": " and make sure the errors are communicated correctly to the user in the form of logs."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 215.92,
+      "end": 219.11999999999998,
+      "text": " So the runtime has to do basically all this kind of coordination"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 219.11999999999998,
+      "end": 221.95999999999998,
+      "text": " around the execution of a specific Lambda function."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 221.95999999999998,
+      "end": 225.44,
+      "text": " There is also an extension system that exists inside Lambda,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 225.44,
+      "end": 230,
+      "text": " so the runtime is also responsible for integrating possible extensions."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 230,
+      "end": 231.88,
+      "text": " And this is something that you might have seen, for instance,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 231.88,
+      "end": 236.48,
+      "text": " if you use an external provider to collect telemetries on the Datadog,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 236.48,
+      "end": 241.2,
+      "text": " they might be providing their own extension that you embed in the Lambda execution."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 241.2,
+      "end": 245.2,
+      "text": " And as your Lambda is running, they can collect all sorts of information"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 245.2,
+      "end": 249.07999999999998,
+      "text": " and record it in the telemetry system so you can inspect it later."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 249.07999999999998,
+      "end": 253.04,
+      "text": " Speaking of runtimes, there are generally two main categories."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 253.04,
+      "end": 256.68,
+      "text": " One is built-in runtimes and another one is custom runtimes."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 256.68,
+      "end": 261,
+      "text": " When we talk about built-in runtimes, we generally talk about the common languages"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 261,
+      "end": 265.96,
+      "text": " that we have seen with Lambda, so Node.js, Python, Java, .NET, Ruby, Go."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 265.96,
+      "end": 268.2,
+      "text": " Even though Go has been recently deprecated,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 268.2,
+      "end": 270.36,
+      "text": " we'll talk a little bit more about that in a second."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 270.36,
+      "end": 273.08,
+      "text": " And generally, you can expect that the most recent versions"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 273.08,
+      "end": 275.64,
+      "text": " of these programming languages are supported."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 275.64,
+      "end": 279.88,
+      "text": " So if you have a long-term supported version of a programming language,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 279.92,
+      "end": 283.71999999999997,
+      "text": " that's generally going to be supported within that runtime."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 283.71999999999997,
+      "end": 285.88,
+      "text": " You can also use a custom runtime, as I mentioned,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 285.88,
+      "end": 289.28,
+      "text": " and that's the idea that you can support virtually anything else"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 289.28,
+      "end": 291.32,
+      "text": " that you want to run in Lambda."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 291.32,
+      "end": 294.12,
+      "text": " There are some cases that are actually well supported,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 294.12,
+      "end": 296.52,
+      "text": " even though they are still custom runtime by AWS,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 296.52,
+      "end": 299.71999999999997,
+      "text": " because AWS provides libraries for you to make it easy"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 299.71999999999997,
+      "end": 303.04,
+      "text": " to build a custom runtime supporting specific languages."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 303.04,
+      "end": 307.56,
+      "text": " And this is generally the case for languages that compile to native binaries,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 307.56,
+      "end": 309.71999999999997,
+      "text": " for instance, Rust, Go, and C++."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 309.8,
+      "end": 313.32000000000005,
+      "text": " And I was mentioning before that Go was deprecated as a built-in runtime,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 313.32000000000005,
+      "end": 315.40000000000003,
+      "text": " and this is because now you have a library"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 315.40000000000003,
+      "end": 318.24,
+      "text": " that allows you very easily to build a binary"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 318.24,
+      "end": 320.76000000000005,
+      "text": " that contains all your code and the runtime itself,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 320.76000000000005,
+      "end": 323.08000000000004,
+      "text": " and then you can ship it as a custom runtime."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 323.08000000000004,
+      "end": 326.8,
+      "text": " So pretty much the same experience you would get with Rust or C++."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 326.8,
+      "end": 328.24,
+      "text": " And that's, of course, not it."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 328.24,
+      "end": 332.20000000000005,
+      "text": " Like, you can effectively build custom runtimes for anything you want."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 332.20000000000005,
+      "end": 337.04,
+      "text": " Maybe you want to build older, newer versions of Node.js or Python"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 337.04,
+      "end": 341.28000000000003,
+      "text": " or languages that are not even supported by Lambda itself"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 341.28000000000003,
+      "end": 343.68,
+      "text": " with the built-in runtimes."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 343.68,
+      "end": 345.8,
+      "text": " Very common examples are Bref,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 345.8,
+      "end": 348.92,
+      "text": " which is basically an open source PHP runtime."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 348.92,
+      "end": 351.16,
+      "text": " Another one exists for the Swift language,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 351.16,
+      "end": 352.6,
+      "text": " which is really well supported,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 352.6,
+      "end": 354.96000000000004,
+      "text": " even though it's not officially coming from AWS."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 354.96000000000004,
+      "end": 357.52000000000004,
+      "text": " So you need to download it from an open source project"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 357.52000000000004,
+      "end": 360.88,
+      "text": " and figure out exactly how to compile it and ship it."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 360.88,
+      "end": 363.52000000000004,
+      "text": " And then there might be other interesting use cases,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 363.52000000000004,
+      "end": 366.16,
+      "text": " even though maybe a little bit less mature at this point."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 366.20000000000005,
+      "end": 369.68,
+      "text": " For instance, I've seen Lua runtimes, WebAssembly runtimes,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 369.68,
+      "end": 372.20000000000005,
+      "text": " Elixir, PowerShell, Bash."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 372.20000000000005,
+      "end": 375.08000000000004,
+      "text": " And there are even more crazy examples,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 375.08000000000004,
+      "end": 378.84000000000003,
+      "text": " even esoteric one, I would call them, like the BrainFact language."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 378.84000000000003,
+      "end": 382.56,
+      "text": " A lot of people have spent their time building a COBOL or a Fortran runtime,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 382.56,
+      "end": 383.8,
+      "text": " mostly just for fun."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 383.8,
+      "end": 386.20000000000005,
+      "text": " So let's maybe try to deep dive a little bit"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 386.20000000000005,
+      "end": 388.52000000000004,
+      "text": " on what a custom runtime actually is."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 388.52000000000004,
+      "end": 389.56,
+      "text": " How does it work?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 393.44,
+      "end": 397.8,
+      "text": " Yeah, well, a custom runtime is really just a program that communicates between your handler, I guess,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 397.8,
+      "end": 404.24,
+      "text": " and the control plane that is passing events in from the Lambda service itself."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 404.24,
+      "end": 406.08,
+      "text": " When you're creating a runtime,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 406.08,
+      "end": 409.96,
+      "text": " you essentially just create a program that needs to be called Bootstrap"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 409.96,
+      "end": 413,
+      "text": " and is placed at the root of your Lambda package."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 413,
+      "end": 416.24,
+      "text": " So this can be a Linux binary or a shell script."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 416.24,
+      "end": 419.8,
+      "text": " Remember that, I guess, the Lambda runtime environment,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 419.8,
+      "end": 421.64,
+      "text": " it's just a Linux environment"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 421.64,
+      "end": 426.28,
+      "text": " and it's running on Amazon's Firecracker, lightweight virtual machines,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 426.28,
+      "end": 429.03999999999996,
+      "text": " which are really low overhead,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 429.03999999999996,
+      "end": 432.52,
+      "text": " highly optimized container-like things"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 432.52,
+      "end": 438.64,
+      "text": " that run an isolated and secure sandbox for a Lambda function."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 438.64,
+      "end": 443.59999999999997,
+      "text": " So your Bootstrap program needs to target the Amazon Linux distribution."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 443.59999999999997,
+      "end": 447.32,
+      "text": " So I think recently they've been moving to Amazon Linux 2023,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 447.32,
+      "end": 449.59999999999997,
+      "text": " the latest version, which has just been released."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 449.59999999999997,
+      "end": 451.24,
+      "text": " Now, what does this program do?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 451.24,
+      "end": 454.68,
+      "text": " Well, there are two phases within this runtime initialization."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 454.68,
+      "end": 457.08,
+      "text": " You've got initialization and then processing."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 457.08,
+      "end": 460.88,
+      "text": " And in the initialization phase, it's going to retrieve some settings"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 460.88,
+      "end": 463.40000000000003,
+      "text": " and it can read special environment variables."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 463.40000000000003,
+      "end": 467.96000000000004,
+      "text": " One is the handler, which handler file should be executed."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 467.96000000000004,
+      "end": 470.28000000000003,
+      "text": " Then you've got the Lambda task root variable,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 470.28000000000003,
+      "end": 472.08,
+      "text": " which tells you where the code is stored."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 472.08,
+      "end": 477.6,
+      "text": " And then you've got this AWS Lambda runtime API environment variable."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 477.6,
+      "end": 481.36,
+      "text": " And this is the host and the port of the Lambda runtime API."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 481.36,
+      "end": 484.88,
+      "text": " And this is a really important part, which we'll talk about in a little bit."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 484.88,
+      "end": 486.68,
+      "text": " So there's lots of other environment variables."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 486.68,
+      "end": 489.52000000000004,
+      "text": " The full link to all of them will be in the show notes."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 489.52000000000004,
+      "end": 492.40000000000003,
+      "text": " Once that's done, then it can load the handler file."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 492.40000000000003,
+      "end": 495,
+      "text": " And this is into your function initialization."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 495,
+      "end": 499,
+      "text": " So there are language-specific operations here."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 499,
+      "end": 504.8,
+      "text": " So it might require initializing your runtime environment,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 504.8,
+      "end": 507.04,
+      "text": " like your JVM, for example."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 507.04,
+      "end": 511.96000000000004,
+      "text": " And then loading classes, loading jars, etc., or loading libraries."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 511.96000000000004,
+      "end": 514.9200000000001,
+      "text": " And then for compiled languages, so we're talking about Rust,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 514.9200000000001,
+      "end": 521,
+      "text": " Golang, C++, the code is generally preloaded as part of that runtime binary."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 521,
+      "end": 523.6,
+      "text": " You also need to think about handling errors during this phase."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 523.6,
+      "end": 526.12,
+      "text": " So if any error happens while loading the runtime,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 526.12,
+      "end": 531.16,
+      "text": " the program needs to notify specific API and exit cleanly with an error code."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 531.16,
+      "end": 534.84,
+      "text": " When it moves then into the processing phase, it's essentially running a loop."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 534.84,
+      "end": 539.64,
+      "text": " It's like an event loop, so it fetches an event at a time from the runtime API."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 539.64,
+      "end": 543.72,
+      "text": " It passes that to the handler function with the event payload."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 543.72,
+      "end": 547.32,
+      "text": " Then it will collect the handler's response and forward it back to AWS."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 547.32,
+      "end": 550.36,
+      "text": " There are also other secondary things that it needs to think about,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 550.36,
+      "end": 554.76,
+      "text": " like propagating tracing information, creating the context object,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 554.76,
+      "end": 557.32,
+      "text": " handling errors, and cleaning up resources."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 557.32,
+      "end": 559.32,
+      "text": " Now, we talked about this runtime API."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 559.32,
+      "end": 563.32,
+      "text": " So this is how you communicate with the AWS Lambda service."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 563.32,
+      "end": 569.24,
+      "text": " And the AWS Lambda service is responsible for receiving the events from its API,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 569.24,
+      "end": 571.8000000000001,
+      "text": " like from invoke or invokeAsync."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 571.8000000000001,
+      "end": 575.5600000000001,
+      "text": " And then it needs to think about the worker placement,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 575.5600000000001,
+      "end": 578.9200000000001,
+      "text": " finding a worker that has the capacity to run your function,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 578.9200000000001,
+      "end": 582.72,
+      "text": " and then passing the event to the runtime on that worker."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 582.72,
+      "end": 586.12,
+      "text": " So your runtime is running on a fleet of workers,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 586.12,
+      "end": 589.36,
+      "text": " and the Lambda service is going to pass it to you."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 589.36,
+      "end": 593.12,
+      "text": " You need to pull it using this runtime API."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 593.12,
+      "end": 598.08,
+      "text": " So there's a get method on a specific invocation next path"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 598.08,
+      "end": 600.48,
+      "text": " that you need to pull to get the next event."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 600.48,
+      "end": 602.16,
+      "text": " And you just do this one at a time."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 602.16,
+      "end": 605,
+      "text": " And this will just hang until there's a new event available."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 605,
+      "end": 608.8,
+      "text": " So you might have to set a long timeout on this HTTP connection."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 608.8,
+      "end": 613.5600000000001,
+      "text": " When you're finished, there's also a post with an invocation response URL,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 613.5600000000001,
+      "end": 615.96,
+      "text": " where you can signal that the request has been completed,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 615.96,
+      "end": 620.6,
+      "text": " and then that's used to send the response payload back to AWS,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 620.6,
+      "end": 625.0400000000001,
+      "text": " so that it can use it for other downstream invocations."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 625.0400000000001,
+      "end": 628.52,
+      "text": " You can actually use this API to do response streaming as well,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 628.52,
+      "end": 630.84,
+      "text": " which we discussed in a previous episode."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 630.84,
+      "end": 632.88,
+      "text": " And we'll give a link to that episode in the show notes,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 632.88,
+      "end": 637.88,
+      "text": " as well as the link to how to use this API for response streaming."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 637.88,
+      "end": 643.52,
+      "text": " Another one to be aware of is the invocation error response URL."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 643.52,
+      "end": 646.28,
+      "text": " And that's a separate path that you need to use"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 646.28,
+      "end": 648.5600000000001,
+      "text": " if you've got an error in your function,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 648.5600000000001,
+      "end": 650.0400000000001,
+      "text": " and you need to report that back."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 650.04,
+      "end": 655.4399999999999,
+      "text": " And then you can pass in special headers to report the specific kind of error."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 655.4399999999999,
+      "end": 659.56,
+      "text": " The body of that will also contain error information and even a stack trace."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 659.56,
+      "end": 663.36,
+      "text": " The fourth URL might be useful to know in the runtime API"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 663.36,
+      "end": 666.5999999999999,
+      "text": " is one that you can use to report initialization errors"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 666.5999999999999,
+      "end": 669.24,
+      "text": " in the initialization phase of your runtime."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 669.24,
+      "end": 672.28,
+      "text": " So that's basically how the runtime API works."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 672.28,
+      "end": 674.76,
+      "text": " I think all Lambda runtimes are using this"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 674.76,
+      "end": 678.9599999999999,
+      "text": " to communicate with the Lambda service just slightly different ways."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 679,
+      "end": 680.8000000000001,
+      "text": " But one of the ways you mentioned Luciano"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 680.8000000000001,
+      "end": 682.96,
+      "text": " is that you can create your own custom runtime,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 682.96,
+      "end": 685.8000000000001,
+      "text": " and then you can interact with this runtime API directly."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 685.8000000000001,
+      "end": 688.12,
+      "text": " So if somebody's thinking about using a custom runtime,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 688.12,
+      "end": 689.5600000000001,
+      "text": " what do you have to do to ship that?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 693.08,
+      "end": 696.12,
+      "text": " Yeah, I guess the question is you have built this integration using the specific runtime API that you just described."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 696.12,
+      "end": 698.2,
+      "text": " Now, how do you actually push it to production?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 698.2,
+      "end": 700.2,
+      "text": " And generally speaking, there are two options."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 700.2,
+      "end": 704,
+      "text": " One is that you can zip the bootstrap file within your code"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 704,
+      "end": 707.6,
+      "text": " and ship everything as one package, or you can create a Lambda layer."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 707.6,
+      "end": 711.24,
+      "text": " So when you zip everything, it's more in the case"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 711.24,
+      "end": 714.6800000000001,
+      "text": " that maybe you're doing something that's like one-off kind of use case."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 714.6800000000001,
+      "end": 717.4,
+      "text": " You are maybe doing something that you are going to be doing once."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 717.4,
+      "end": 720.76,
+      "text": " You don't expect to be like a general use case within your company"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 720.76,
+      "end": 723,
+      "text": " or even within kind of the open-source space"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 723,
+      "end": 725.32,
+      "text": " for other people, other customers."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 725.32,
+      "end": 729.32,
+      "text": " So maybe it's just easier to do one zip file and ship it."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 729.32,
+      "end": 733.6,
+      "text": " And this is actually the case when you use combined languages,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 733.6,
+      "end": 736.24,
+      "text": " again, like Go, C++, or Rust,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 736.24,
+      "end": 738.6800000000001,
+      "text": " because since you are producing just one binary"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 738.6800000000001,
+      "end": 741.52,
+      "text": " that contains the runtime code that is coming as a library"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 741.52,
+      "end": 743.5600000000001,
+      "text": " and your own custom handler code,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 743.5600000000001,
+      "end": 746.84,
+      "text": " and eventually ends up everything together in the single binary,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 746.84,
+      "end": 749,
+      "text": " that's pretty much the only way you have."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 749,
+      "end": 752.44,
+      "text": " You just zip it and you ship it as one thing"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 752.44,
+      "end": 755.72,
+      "text": " that contains both the runtime and your own custom business logic."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 755.72,
+      "end": 757.88,
+      "text": " The other option, as I mentioned, is a Lambda layer,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 757.88,
+      "end": 760.64,
+      "text": " and this is more convenient when, for instance,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 760.64,
+      "end": 763.8,
+      "text": " you think you have a use case that is a little bit more common."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 763.8,
+      "end": 768.24,
+      "text": " You might want to do multiple Lambdas pretty much using the same runtime,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 768.24,
+      "end": 770.92,
+      "text": " or maybe you are building something that can even be an open-source project."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 770.92,
+      "end": 773.3199999999999,
+      "text": " Maybe you want to support a new language"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 773.3199999999999,
+      "end": 776.92,
+      "text": " and you expect other people to be willing to use the same runtime"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 776.92,
+      "end": 779.76,
+      "text": " because they also want to play with that new language in Lambda."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 779.76,
+      "end": 782.0799999999999,
+      "text": " And the way you do this is actually pretty simple,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 782.0799999999999,
+      "end": 785.0799999999999,
+      "text": " because again, you just need to zip that bootstrap file"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 785.0799999999999,
+      "end": 787.28,
+      "text": " and then you can publish it as a Lambda layer."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 787.28,
+      "end": 789.76,
+      "text": " And another case where this is very convenient"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 789.76,
+      "end": 792.0799999999999,
+      "text": " is where you have interpreted languages,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 792.08,
+      "end": 794.5600000000001,
+      "text": " because once you have shipped it as a layer,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 794.5600000000001,
+      "end": 796.76,
+      "text": " anyone that wants to use that runtime,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 796.76,
+      "end": 798.8000000000001,
+      "text": " the only thing they need to do is basically go,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 798.8000000000001,
+      "end": 802.1600000000001,
+      "text": " even from the web UI, they can just go on the Lambda service,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 802.1600000000001,
+      "end": 805.2,
+      "text": " they can create a new Lambda, they select the custom runtime,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 805.2,
+      "end": 808.6,
+      "text": " they select the specific layer that implements the runtime,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 808.6,
+      "end": 811.9200000000001,
+      "text": " and then they can just use the built-in editor to create script files."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 811.9200000000001,
+      "end": 816.6800000000001,
+      "text": " For instance, if we have built a runtime that can support bash scripting,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 816.6800000000001,
+      "end": 818.2,
+      "text": " they just need to select the layer"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 818.2,
+      "end": 821.72,
+      "text": " and then you can just create a file called, I don't know, handler.sh,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 821.72,
+      "end": 823,
+      "text": " write your code there,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 823,
+      "end": 827.44,
+      "text": " and assuming that you are following the spec of the underfile directory"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 827.44,
+      "end": 829.52,
+      "text": " as the runtime expects,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 829.52,
+      "end": 831.32,
+      "text": " you can just run your Lambda from there"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 831.32,
+      "end": 834.1600000000001,
+      "text": " without needing to do anything more complicated than that."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 834.1600000000001,
+      "end": 837,
+      "text": " So this is actually convenient, again,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 837,
+      "end": 839.72,
+      "text": " in this case where you have either scripted languages"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 839.72,
+      "end": 842.08,
+      "text": " or you want to do something a bit more reusable."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 842.08,
+      "end": 844.08,
+      "text": " But one thing that is always worth mentioning"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 844.08,
+      "end": 845.76,
+      "text": " when it comes to Lambda layers"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 845.76,
+      "end": 849.52,
+      "text": " is that they are not a way to escape file size limitations"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 849.52,
+      "end": 850.76,
+      "text": " that you might have with Lambda,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 850.76,
+      "end": 856.4399999999999,
+      "text": " because the layers are basically added on top of the total 250 megabytes unzipped"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 856.4399999999999,
+      "end": 858.84,
+      "text": " that you can have for your Lambda package."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 858.84,
+      "end": 862.8,
+      "text": " So if you have very, very big, I don't know, runtimes,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 862.8,
+      "end": 866.8,
+      "text": " because maybe you have something like a JVM or something very big"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 866.8,
+      "end": 870.2,
+      "text": " that includes lots of native libraries that your code can use,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 870.2,
+      "end": 871.8,
+      "text": " this is something that generally can go easily"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 871.8,
+      "end": 873.56,
+      "text": " in the order of hundreds of megabytes."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 873.56,
+      "end": 875.36,
+      "text": " So in that case, you need to be very careful,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 875.36,
+      "end": 879.92,
+      "text": " because then you might, just the runtime might go over the 250 megabytes,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 879.92,
+      "end": 883.04,
+      "text": " or you might be leaving very little space for the user code."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 883.04,
+      "end": 884.7199999999999,
+      "text": " Which brings us to the next topic,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 884.7199999999999,
+      "end": 887.1999999999999,
+      "text": " because these are actually not the only two options,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 887.1999999999999,
+      "end": 889.28,
+      "text": " zip in the code or Lambda layers,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 889.28,
+      "end": 892,
+      "text": " there is also the option of using containers."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 892,
+      "end": 893.56,
+      "text": " Do you want to talk about that, Alwyn?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 895.64,
+      "end": 899.16,
+      "text": " Yeah, I'm getting more and more, I'm warming more and more to the idea of container image deployments for Lambda,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 899.16,
+      "end": 901.5999999999999,
+      "text": " because they're showing a lot of benefits,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 901.5999999999999,
+      "end": 904.8,
+      "text": " and one of the huge benefits there is that you've got 10 gigabytes"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 904.8,
+      "end": 907.8399999999999,
+      "text": " to include all of your layers and dependencies and everything else."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 907.84,
+      "end": 912.2,
+      "text": " So everything we've talked about so far has been about zip packaged functions."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 912.2,
+      "end": 914.4,
+      "text": " When you have standard zip packaged functions,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 914.4,
+      "end": 917.9200000000001,
+      "text": " you have the option of using the built-in or the custom runtimes,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 917.9200000000001,
+      "end": 920.4,
+      "text": " and in the case of the built-in runtimes,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 920.4,
+      "end": 922.24,
+      "text": " it's completely managed by AWS,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 922.24,
+      "end": 924.84,
+      "text": " and they are responsible for keeping it up to date and secure,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 924.84,
+      "end": 928.24,
+      "text": " and this is one of the big benefits of Lambda in general,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 928.24,
+      "end": 930.52,
+      "text": " and one of the reasons why people don't like custom runtimes,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 930.52,
+      "end": 932.64,
+      "text": " they don't like container image deployments,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 932.64,
+      "end": 936.4000000000001,
+      "text": " is because you'll sacrifice that if you go with one of those."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 936.4,
+      "end": 939.76,
+      "text": " With container images, you don't have the provided built-in runtimes"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 939.76,
+      "end": 942.16,
+      "text": " like you do with zip packaged functions."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 942.16,
+      "end": 946.72,
+      "text": " Instead, AWS maintains and provides base images"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 946.72,
+      "end": 949.52,
+      "text": " that you can use to build your container image"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 949.52,
+      "end": 951.1999999999999,
+      "text": " that you deploy for your function,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 951.1999999999999,
+      "end": 953.52,
+      "text": " and these are available for all of the provided runtimes"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 953.52,
+      "end": 954.88,
+      "text": " that you already mentioned."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 954.88,
+      "end": 957.52,
+      "text": " The shared responsibility model here is going to be different, though,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 957.52,
+      "end": 960.72,
+      "text": " because although AWS is providing these base images,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 960.72,
+      "end": 963,
+      "text": " they are not going to be automatically updated"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 963,
+      "end": 964.68,
+      "text": " without you having to redeploy your function."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 964.68,
+      "end": 966.8399999999999,
+      "text": " You will need to continuously build and deploy"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 966.8399999999999,
+      "end": 968.5999999999999,
+      "text": " against the latest build image"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 968.5999999999999,
+      "end": 971.4799999999999,
+      "text": " in order to stay secure and up to date."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 971.4799999999999,
+      "end": 974.3599999999999,
+      "text": " You also have the option of going with a completely custom approach"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 974.3599999999999,
+      "end": 975.88,
+      "text": " with container image deployments,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 975.88,
+      "end": 978.4799999999999,
+      "text": " so it's similar to zip packaged functions,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 978.4799999999999,
+      "end": 982.04,
+      "text": " where you're using the very same Lambda runtime interface client"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 982.04,
+      "end": 984.4799999999999,
+      "text": " that could communicate with this runtime API,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 984.4799999999999,
+      "end": 987.4799999999999,
+      "text": " and you just add that client to your container image."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 987.4799999999999,
+      "end": 990.04,
+      "text": " So you have a choice with the container image build."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 990.04,
+      "end": 991.7199999999999,
+      "text": " You either start with one of the base images,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 991.7199999999999,
+      "end": 993.7199999999999,
+      "text": " and you add your subsequent layers,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 993.72,
+      "end": 996.2,
+      "text": " or you can start with your own image."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 996.2,
+      "end": 998.88,
+      "text": " If you've got some machine learning image, for example,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 998.88,
+      "end": 1000.9200000000001,
+      "text": " you need all of its base components,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1000.9200000000001,
+      "end": 1003.36,
+      "text": " then you just add the runtime interface client"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1003.36,
+      "end": 1006.12,
+      "text": " and the entry point and everything at the end."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1006.12,
+      "end": 1008.4,
+      "text": " So if you're using Lambda container image deployment"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1008.4,
+      "end": 1011.48,
+      "text": " to take advantage of existing images you have and you don't,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1011.48,
+      "end": 1013.08,
+      "text": " and you just want to use them with Lambda,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1013.08,
+      "end": 1015.12,
+      "text": " it's possible that you'll just start with your own base image"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1015.12,
+      "end": 1017.2,
+      "text": " and add that runtime interface client,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1017.2,
+      "end": 1021.12,
+      "text": " even if you don't have any need otherwise for a special custom runtime."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1021.12,
+      "end": 1023.32,
+      "text": " With container images, you also have the benefit"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1023.4000000000001,
+      "end": 1025.88,
+      "text": " that you can use the runtime interface emulator,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1025.88,
+      "end": 1029,
+      "text": " and that allows you to run your container image locally"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1029,
+      "end": 1032.0800000000002,
+      "text": " with this emulator, and you just get an HTTP endpoint"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1032.0800000000002,
+      "end": 1033.3600000000001,
+      "text": " to post events to."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1033.3600000000001,
+      "end": 1036.8400000000001,
+      "text": " And it behaves then a lot more like a real Lambda function,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1036.8400000000001,
+      "end": 1039,
+      "text": " not completely like a Lambda function,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1039,
+      "end": 1041.6000000000001,
+      "text": " but it's a nice local emulation thing"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1041.6000000000001,
+      "end": 1043.64,
+      "text": " that you get for free with container images"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1043.64,
+      "end": 1045.2,
+      "text": " that I think is sometimes nicer"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1045.2,
+      "end": 1047.44,
+      "text": " than the other local emulation options you have."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1047.44,
+      "end": 1049.72,
+      "text": " Now, container images, it's probably worth saying,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1049.72,
+      "end": 1052.6000000000001,
+      "text": " might even be a preferable way to deploy functions"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1052.6399999999999,
+      "end": 1055.12,
+      "text": " if you're trying to reduce the call start times."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1055.12,
+      "end": 1057.84,
+      "text": " And I've been doing a bit of benchmarking"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1057.84,
+      "end": 1059.6799999999998,
+      "text": " of certain runtimes recently,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1059.6799999999998,
+      "end": 1063.24,
+      "text": " particularly runtimes that involve"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1063.24,
+      "end": 1065.36,
+      "text": " typically heavy package dependencies."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1065.36,
+      "end": 1068.76,
+      "text": " I'm talking particularly about the Python data science stack"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1068.76,
+      "end": 1071.08,
+      "text": " when you need pandas and pyarrow and numpy"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1071.08,
+      "end": 1072.56,
+      "text": " and all of these things,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1072.56,
+      "end": 1075.6799999999998,
+      "text": " and you quickly run into a 250 megabyte limit."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1075.6799999999998,
+      "end": 1079.04,
+      "text": " Now, AWS actually released a paper"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1079.04,
+      "end": 1082.3999999999999,
+      "text": " where they describe all of the special performance optimizations"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1083.0400000000002,
+      "end": 1084.92,
+      "text": " that they made for container image deployment"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1084.92,
+      "end": 1088.0800000000002,
+      "text": " that caches files that are used by multiple images,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1088.0800000000002,
+      "end": 1090.5600000000002,
+      "text": " even by multiple different customers."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1090.5600000000002,
+      "end": 1092.8400000000001,
+      "text": " So the time to load a 10 gigabyte function"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1092.8400000000001,
+      "end": 1095.5600000000002,
+      "text": " may actually be less with container images"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1095.5600000000002,
+      "end": 1099.4,
+      "text": " than the time it can take to call start a 250 megabyte zip."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1099.4,
+      "end": 1101.8400000000001,
+      "text": " And that's very counterintuitive, but it is the case,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1101.8400000000001,
+      "end": 1104.8000000000002,
+      "text": " and I've definitely seen results that show that."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1104.8000000000002,
+      "end": 1106.6000000000001,
+      "text": " And we'll link that paper in the show notes."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1106.6000000000001,
+      "end": 1107.68,
+      "text": " It's pretty short,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1107.68,
+      "end": 1110,
+      "text": " but it talks about the neat caching strategies"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1110,
+      "end": 1111.72,
+      "text": " that the Lambda team put in place"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1111.88,
+      "end": 1114.52,
+      "text": " to make sure that container image deployments"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1114.52,
+      "end": 1115.44,
+      "text": " can be really fast,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1115.44,
+      "end": 1118.84,
+      "text": " even though you're talking about 10 gigabytes of storage."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1118.84,
+      "end": 1121.16,
+      "text": " So going back to runtimes and custom runtimes,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1121.16,
+      "end": 1124.28,
+      "text": " then Luciano, what is our recommendation for people?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1124.28,
+      "end": 1125.3600000000001,
+      "text": " Do you need a custom runtime?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1125.3600000000001,
+      "end": 1127.52,
+      "text": " Is this something people should be thinking about doing"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1127.52,
+      "end": 1130.8,
+      "text": " in their job for any particular reason"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1130.8,
+      "end": 1132.64,
+      "text": " or are there good use cases for it?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1132.64,
+      "end": 1135.68,
+      "text": " I've personally been playing a lot with the Rust runtime,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1135.68,
+      "end": 1138.56,
+      "text": " so I kind of had to explore this space"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1138.56,
+      "end": 1139.76,
+      "text": " a little bit more in depth,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1139.8,
+      "end": 1143.28,
+      "text": " and I am very excited to understand more how Lambda works"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1143.28,
+      "end": 1146.04,
+      "text": " and to use Rust in the context of Lambda."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1146.04,
+      "end": 1148.6,
+      "text": " But if I have to be honest and think about"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1148.6,
+      "end": 1150.24,
+      "text": " kind of the generic use cases"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1150.24,
+      "end": 1151.84,
+      "text": " that I've seen in the industry,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1151.84,
+      "end": 1153.76,
+      "text": " I think the answer to the question,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1153.76,
+      "end": 1155.56,
+      "text": " do you really need a custom runtime?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1155.56,
+      "end": 1157.28,
+      "text": " Most of the time, it's probably not."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1157.28,
+      "end": 1160.08,
+      "text": " And the reason is because the official runtime"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1160.08,
+      "end": 1163.52,
+      "text": " gives you, basically gives AWS"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1163.52,
+      "end": 1165.96,
+      "text": " more of that chunk of shared responsibility,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1165.96,
+      "end": 1168.8,
+      "text": " and you are free to think more about the business value"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1168.84,
+      "end": 1169.68,
+      "text": " that you want to provide."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1169.68,
+      "end": 1171.68,
+      "text": " You don't have to think about all these details"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1171.68,
+      "end": 1173.8799999999999,
+      "text": " about the runtime, you just write your own code"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1173.8799999999999,
+      "end": 1176.28,
+      "text": " and everything should work out of the box for you."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1176.28,
+      "end": 1178.8,
+      "text": " AWS focuses on keeping the runtime up to date,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1178.8,
+      "end": 1180.24,
+      "text": " performant and secure,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1180.24,
+      "end": 1182.3999999999999,
+      "text": " and you just focus on writing your code"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1182.3999999999999,
+      "end": 1185,
+      "text": " and making sure that it's as bug-free as possible."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1185,
+      "end": 1189.36,
+      "text": " And provider runtimes are also potentially more,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1190.24,
+      "end": 1193.6,
+      "text": " I guess, optimized to avoid cold start times"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1193.6,
+      "end": 1197.28,
+      "text": " because AWS can easily keep the runtime cached"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1197.28,
+      "end": 1198.68,
+      "text": " in the local workers,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1199.5600000000002,
+      "end": 1200.4,
+      "text": " which is not something you can do"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1200.4,
+      "end": 1201.24,
+      "text": " with your own custom runtimes,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1201.24,
+      "end": 1202.0800000000002,
+      "text": " because of course,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1202.0800000000002,
+      "end": 1204.3200000000002,
+      "text": " every time you are publishing the runtime,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1204.3200000000002,
+      "end": 1206.44,
+      "text": " it can be different from customer to customer."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1206.44,
+      "end": 1208.0800000000002,
+      "text": " Most likely it's going to be very different."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1208.0800000000002,
+      "end": 1210.2,
+      "text": " So there is really no point in AWS"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1210.2,
+      "end": 1211.68,
+      "text": " trying to cache that locally."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1211.68,
+      "end": 1214.68,
+      "text": " And the other thing it's in terms of pricing,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1214.68,
+      "end": 1217.5600000000002,
+      "text": " because with the provider runtimes,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1217.5600000000002,
+      "end": 1221.24,
+      "text": " you don't pay for the cold start phase for the most part."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1221.24,
+      "end": 1223.3600000000001,
+      "text": " And there is actually a very interesting article"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1223.3600000000001,
+      "end": 1224.92,
+      "text": " by Luke Van Dorgeskort"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1224.92,
+      "end": 1227.52,
+      "text": " that explains a little bit of the research"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1227.52,
+      "end": 1228.52,
+      "text": " that has been doing,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1229.2,
+      "end": 1230.04,
+      "text": " but the summary of it is that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1230.04,
+      "end": 1231.8,
+      "text": " if you do your own custom runtime,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1231.8,
+      "end": 1233.76,
+      "text": " you pay not just for the execution time,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1233.76,
+      "end": 1235.36,
+      "text": " but even for the cold start time."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1235.36,
+      "end": 1237.28,
+      "text": " So there might be an impact there"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1237.28,
+      "end": 1239.08,
+      "text": " in terms of additional cost"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1239.08,
+      "end": 1241.92,
+      "text": " if your runtime is not particularly faster"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1241.92,
+      "end": 1244.76,
+      "text": " than what you could do with the built-in runtimes."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1244.76,
+      "end": 1247.56,
+      "text": " And again, I think that the point of this episode"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1247.56,
+      "end": 1250.24,
+      "text": " was more to try to understand a little bit better"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1250.24,
+      "end": 1252.36,
+      "text": " how Lambda works under the hood."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1252.36,
+      "end": 1254.48,
+      "text": " And then there might be cases"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1254.48,
+      "end": 1257.24,
+      "text": " when you actually might need a custom runtime."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1257.28,
+      "end": 1258.96,
+      "text": " What can be those cases?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1258.96,
+      "end": 1261.64,
+      "text": " One case could be maybe you have some legacy stuff"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1261.64,
+      "end": 1263.72,
+      "text": " that runs maybe in a very old Python,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1263.72,
+      "end": 1264.92,
+      "text": " let's say Python 2,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1264.92,
+      "end": 1265.88,
+      "text": " because that's on the,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1265.88,
+      "end": 1268.52,
+      "text": " that I still see actually frequent enough,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1268.52,
+      "end": 1270.04,
+      "text": " and you don't have time right now"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1270.04,
+      "end": 1272.66,
+      "text": " to move it to something more up to date"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1272.66,
+      "end": 1274.28,
+      "text": " and use the latest runtime."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1274.28,
+      "end": 1276.56,
+      "text": " So what you can do as a quick and dirty solution"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1276.56,
+      "end": 1279.56,
+      "text": " is just create your own runtime using Python 2,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1279.56,
+      "end": 1281.16,
+      "text": " and then you can run your own code."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1281.16,
+      "end": 1282.88,
+      "text": " Of course, this is far from ideal"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1282.88,
+      "end": 1284.04,
+      "text": " because you need to be aware"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1284.04,
+      "end": 1287,
+      "text": " you are still exposed to a bunch of security issues"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1287.64,
+      "end": 1290.2,
+      "text": " because all the runtimes are probably not supported"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1290.2,
+      "end": 1291.38,
+      "text": " from a security perspective."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1291.38,
+      "end": 1293.88,
+      "text": " So this is only a very dirty hack"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1293.88,
+      "end": 1295.56,
+      "text": " that you can do for a limited amount of time,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1295.56,
+      "end": 1297.26,
+      "text": " and eventually you need to have a plan"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1297.26,
+      "end": 1299.24,
+      "text": " to migrate to the newer versions."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1299.24,
+      "end": 1300.56,
+      "text": " So a more interesting use case"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1300.56,
+      "end": 1302.6,
+      "text": " is actually when you want to be bleeding edge"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1302.6,
+      "end": 1305.02,
+      "text": " and you want to try very new runtimes,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1305.02,
+      "end": 1306.5,
+      "text": " very new version of runtimes,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1306.5,
+      "end": 1309.36,
+      "text": " for instance, Python 3.12,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1309.36,
+      "end": 1311.4,
+      "text": " I think it was released last month,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1311.4,
+      "end": 1313.54,
+      "text": " and I believe there isn't yet,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1313.54,
+      "end": 1315.34,
+      "text": " there isn't already an official version"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1315.34,
+      "end": 1317.4599999999998,
+      "text": " of that runtime supported by AWS."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1317.4599999999998,
+      "end": 1319.74,
+      "text": " So if for any reason you want to use"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1319.74,
+      "end": 1321.8999999999999,
+      "text": " maybe some of the newest features"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1321.8999999999999,
+      "end": 1323.74,
+      "text": " or the additional performance gains"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1323.74,
+      "end": 1325.22,
+      "text": " that that version provides,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1325.22,
+      "end": 1326.6599999999999,
+      "text": " and you're willing to take the cost"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1326.6599999999999,
+      "end": 1329.5,
+      "text": " of building your own runtime in exchange for that,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1329.5,
+      "end": 1331.3799999999999,
+      "text": " that could be a very valid use case."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1331.3799999999999,
+      "end": 1334.6599999999999,
+      "text": " And we can do a very similar conversation for Node.js 20,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1334.6599999999999,
+      "end": 1336.1,
+      "text": " even though it seems that AWS"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1336.1,
+      "end": 1337.98,
+      "text": " is going to release that very, very soon."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1337.98,
+      "end": 1340.86,
+      "text": " Another use case which we have seen actually"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1340.86,
+      "end": 1343.3799999999999,
+      "text": " across a bunch of people that were trying to experiment"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1343.3799999999999,
+      "end": 1345,
+      "text": " with different JavaScript runtimes,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1345.52,
+      "end": 1346.92,
+      "text": " maybe they want to play with Deno or BUN"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1346.92,
+      "end": 1348.32,
+      "text": " in the context of Lambda,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1348.32,
+      "end": 1350.88,
+      "text": " either to be able to run TypeScript more natively"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1350.88,
+      "end": 1352.44,
+      "text": " or because they want to compare"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1352.44,
+      "end": 1354.54,
+      "text": " different performance characteristics."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1354.54,
+      "end": 1357.6,
+      "text": " And because there is no official Deno or BUN runtime,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1357.6,
+      "end": 1359.32,
+      "text": " the only option you have in that case"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1359.32,
+      "end": 1361.12,
+      "text": " is to build your own runtime"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1361.12,
+      "end": 1363.4,
+      "text": " and basically package all of that that way."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1363.4,
+      "end": 1364.84,
+      "text": " We already mentioned other cases,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1364.84,
+      "end": 1368.76,
+      "text": " like you want to use compile languages like Rust, Go, C++,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1368.76,
+      "end": 1370.84,
+      "text": " and this can be a good use case"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1370.84,
+      "end": 1373.02,
+      "text": " when you are looking for a stream performance"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1373.02,
+      "end": 1375.7,
+      "text": " or reduce latency to the very minimum,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1375.7,
+      "end": 1378.12,
+      "text": " or maybe because you need to use some kind of native library"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1378.12,
+      "end": 1380.94,
+      "text": " that only exists for these compile languages."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1380.94,
+      "end": 1384.34,
+      "text": " In those cases, I would recommend don't reinvent the wheel."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1384.34,
+      "end": 1387.3799999999999,
+      "text": " AWS gives you these libraries that are really well maintained"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1387.3799999999999,
+      "end": 1389.66,
+      "text": " and they have really good developer experience."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1389.66,
+      "end": 1392.74,
+      "text": " So just use the library and that will cover 90%"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1392.74,
+      "end": 1393.58,
+      "text": " of what you need to do,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1393.58,
+      "end": 1395.98,
+      "text": " and you can focus on the writing,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1395.98,
+      "end": 1398.02,
+      "text": " actually the business logic of your own Lambda."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1398.02,
+      "end": 1400.7,
+      "text": " And the last point is if you want to use a language"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1400.7,
+      "end": 1402.3799999999999,
+      "text": " that is not supported yet,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1402.38,
+      "end": 1404.0200000000002,
+      "text": " or maybe it's never going to be supported"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1404.0200000000002,
+      "end": 1405.9,
+      "text": " because it's kind of a niche language,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1405.9,
+      "end": 1407.7,
+      "text": " that's definitely a good use case."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1407.7,
+      "end": 1410.5400000000002,
+      "text": " And a true story is that we once had a customer"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1410.5400000000002,
+      "end": 1414.5,
+      "text": " that had a significant existing code base in TCL,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1414.5,
+      "end": 1415.88,
+      "text": " or sometimes called T-CODE,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1415.88,
+      "end": 1418.0400000000002,
+      "text": " which is a relatively old language,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1418.0400000000002,
+      "end": 1420.7800000000002,
+      "text": " but apparently there is lots of software"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1420.7800000000002,
+      "end": 1423.42,
+      "text": " that historically has been built with descriptive language."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1423.42,
+      "end": 1425.8200000000002,
+      "text": " And as part of their migration strategy to the cloud,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1425.8200000000002,
+      "end": 1429,
+      "text": " we consider using a custom Lambda runtime"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1429,
+      "end": 1431.9,
+      "text": " just because some of their work was very event driven."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1432.26,
+      "end": 1434.66,
+      "text": " So creating a Lambda would have been very convenient"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1434.66,
+      "end": 1436.5,
+      "text": " from an architecture perspective,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1436.5,
+      "end": 1438.22,
+      "text": " but of course we were missing the runtime."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1438.22,
+      "end": 1439.6200000000001,
+      "text": " So we were considering,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1439.6200000000001,
+      "end": 1441.9,
+      "text": " is it worth building the runtime or not?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1441.9,
+      "end": 1444.26,
+      "text": " So this is a consideration you might be doing"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1444.26,
+      "end": 1446.8200000000002,
+      "text": " when you're facing this kind of migration scenarios"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1446.8200000000002,
+      "end": 1449.66,
+      "text": " and you have things that might be well-fitted to run"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1449.66,
+      "end": 1452.3000000000002,
+      "text": " in a Lambda, but maybe just the language support"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1452.3000000000002,
+      "end": 1453.26,
+      "text": " is not there yet."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1453.26,
+      "end": 1454.3400000000001,
+      "text": " And I think that's everything."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1454.3400000000001,
+      "end": 1456.14,
+      "text": " So we are at the end of this episode."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1456.14,
+      "end": 1458.8400000000001,
+      "text": " I really hope that you found this particular episode"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1458.8400000000001,
+      "end": 1460.22,
+      "text": " informative and useful,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1460.22,
+      "end": 1462.98,
+      "text": " and we always look for your feedback and your comments."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1462.98,
+      "end": 1465.18,
+      "text": " So don't be shy, reach out to us"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1465.18,
+      "end": 1466.98,
+      "text": " and tell us what we can do better."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1466.98,
+      "end": 1468.58,
+      "text": " What did you like, what you didn't like."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1468.58,
+      "end": 1470.5,
+      "text": " And if you think this is useful,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1470.5,
+      "end": 1472.66,
+      "text": " please remember to like and subscribe,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1472.66,
+      "end": 1474.74,
+      "text": " share it with your friends and colleagues,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1474.74,
+      "end": 1477.02,
+      "text": " and this way we can grow the channels together"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1477.02,
+      "end": 1479.1000000000001,
+      "text": " and always make sure we provide the best value"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1479.1000000000001,
+      "end": 1480.58,
+      "text": " we can provide to you."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1480.58,
+      "end": 1483.58,
+      "text": " So thanks again, and we'll see you in the next episode."
+    }
+  ]
+}

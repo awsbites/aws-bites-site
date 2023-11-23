@@ -1,0 +1,1832 @@
+{
+  "speakers": {
+    "spk_0": "spk_0",
+    "spk_1": "spk_1"
+  },
+  "segments": [
+    {
+      "speakerLabel": "spk_0",
+      "start": 0,
+      "end": 3.6,
+      "text": " Integration testing event driven systems is a classic hard problem."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 3.6,
+      "end": 8.08,
+      "text": " With modern distributed applications, you have events filing off all over the place."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 8.08,
+      "end": 12.08,
+      "text": " How do you write integration tests that check if events have been sent and received correctly?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 12.08,
+      "end": 16.48,
+      "text": " As part of pre-Invent, AWS have just released a solution for exactly that."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 16.48,
+      "end": 18.64,
+      "text": " The AWS IATK."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 18.64,
+      "end": 22.240000000000002,
+      "text": " We've been taking it for a test drive and are going to share everything we found out."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 22.240000000000002,
+      "end": 24.64,
+      "text": " We'll also talk about some of the alternatives."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 24.64,
+      "end": 28.88,
+      "text": " By the end of this episode, you should have a good idea of how you can use IATK"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 28.88,
+      "end": 32.24,
+      "text": " and we'll share a project where we have been able to use it to test"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 32.24,
+      "end": 34.56,
+      "text": " a cross account application with EventBridge."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 34.56,
+      "end": 37.44,
+      "text": " My name is Eoin. I'm here with Luciano and this is AWS Bites."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 44.8,
+      "end": 49.68,
+      "text": " AWS Bites is brought to you by 4thErem, the ultimate AWS partner for modern applications on"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 49.68,
+      "end": 55.2,
+      "text": " AWS. We can help you to be successful with AWS. So check us out at 4thErem.com."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 55.2,
+      "end": 59.760000000000005,
+      "text": " Before we get into IATK and the alternatives, let's take a step back to Luciano."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 59.760000000000005,
+      "end": 63.440000000000005,
+      "text": " What is integration testing? How does it compare to other forms of testing?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 63.440000000000005,
+      "end": 66.96000000000001,
+      "text": " And why is it so difficult for event-driven applications?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 67.92,
+      "end": 74.4,
+      "text": " Testing involves taking your code and testing it together with your application and including"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 74.4,
+      "end": 81.36,
+      "text": " external systems. So if your code is communicating with things like a database, for instance,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 81.36,
+      "end": 85.04,
+      "text": " as part of your integration test, you need to include that database."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 85.04,
+      "end": 89.52,
+      "text": " And for instance, in a more complicated use case, maybe you connect to another base first,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 89.52,
+      "end": 93.36,
+      "text": " then you create an email and then you send that email through an email provider."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 93.36,
+      "end": 98.32,
+      "text": " So you can include all these external pieces as part of your integration test."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 98.96000000000001,
+      "end": 104.72,
+      "text": " And it's a little bit broader than what you might have been used to if you only have done unit tests,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 105.28,
+      "end": 111.03999999999999,
+      "text": " which typically are focusing only on small units of code in isolation."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 111.12,
+      "end": 116.24000000000001,
+      "text": " The idea is to be very efficient, very specific, make sure that that one feature works really,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 116.24000000000001,
+      "end": 120.56,
+      "text": " really well, but they don't cover how do you integrate that feature with the rest of the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 120.56,
+      "end": 126.24000000000001,
+      "text": " application. So this is where integration tests come into place to make sure that you are actually"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 126.24000000000001,
+      "end": 131.28,
+      "text": " writing units that are correct, but then those units are actually still correct when they are"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 131.28,
+      "end": 138.56,
+      "text": " put together and combined into your own software solution. So with AWS, it's tricky because often"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 138.56,
+      "end": 144.32,
+      "text": " when you build a solution for AWS, you start to use all these very specific AWS services"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 144.32,
+      "end": 151.36,
+      "text": " with their own specific APIs, for instance, EC2, RDS, ElastiCache or DynamoDB, EventBridge."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 151.36,
+      "end": 157.12,
+      "text": " And of course, if you're writing unit tests, you can mock some of that and simulate their"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 157.12,
+      "end": 161.2,
+      "text": " behavior to make sure that part of your own business logic works well. But then at some"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 161.2,
+      "end": 165.92000000000002,
+      "text": " point you need to make sure that also your own mocks are correct and your implementation"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 165.92,
+      "end": 171.35999999999999,
+      "text": " actually works with the real backend, with the real AWS services. So that's when writing"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 171.35999999999999,
+      "end": 175.51999999999998,
+      "text": " integration tests can help to increase the confidence that your application is actually"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 175.51999999999998,
+      "end": 180.72,
+      "text": " going to perform well and be correct when you deploy to production. And it's very often that"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 180.72,
+      "end": 185.76,
+      "text": " you will find bugs not in your code itself, but just the way that you are integrating things"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 185.76,
+      "end": 190.95999999999998,
+      "text": " together. Maybe a configuration option is wrong, or maybe you assume that certain API will work in"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 190.95999999999998,
+      "end": 195.67999999999998,
+      "text": " a certain way and then in reality works slightly different. So in your unit test, you didn't"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 195.68,
+      "end": 200.96,
+      "text": " capture that behavior because you mocked that API and made assumptions. But then when you run"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 200.96,
+      "end": 205.44,
+      "text": " it against the real service, then you realize that there was a mistake there or an edge case that you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 205.44,
+      "end": 211.92000000000002,
+      "text": " didn't include in your own logic. We usually like to mention as an example building e-commerce"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 211.92000000000002,
+      "end": 217.44,
+      "text": " solution, because I think this is an example that everyone can relate to. And in that particular"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 217.44,
+      "end": 222.72,
+      "text": " case, we can imagine that there is, I don't know, an order service and a delivery service."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 222.72,
+      "end": 227.6,
+      "text": " You might be writing them independently as two totally separate services. They might have their"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 227.6,
+      "end": 232.07999999999998,
+      "text": " own tests, but then at some point they will have to be integrated together. So for instance,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 232.07999999999998,
+      "end": 237.92,
+      "text": " we might have the case where when you place an order, that order is pushed to something like"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 237.92,
+      "end": 243.12,
+      "text": " EventBridge. And through EventBridge, there is a notification that gets picked up by the delivery"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 243.12,
+      "end": 249.68,
+      "text": " service and the delivery service knows that an order was created and it starts to process it and"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 249.76000000000002,
+      "end": 255.6,
+      "text": " do all the fulfillment procedure that you put in place for your own e-commerce. So that EventBridge"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 255.6,
+      "end": 262,
+      "text": " is the tricky bit because how do you actually test it and how do you make sure that on one side you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 262,
+      "end": 266.56,
+      "text": " are producing the right type of event, on the other side you are picking it up and processing"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 266.56,
+      "end": 272.16,
+      "text": " it correctly. So that's the question that we want to explore today."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 272.16,
+      "end": 277.2,
+      "text": " There's different ways, different approaches that people use for testing events, these kinds of applications. One is you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 277.28,
+      "end": 282.08,
+      "text": " just build in logging to the event system so all events are logged. And then in your integration"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 282.08,
+      "end": 288.71999999999997,
+      "text": " test, you can actually scan the logs and filter out for the ones that you're interested in testing"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 288.71999999999997,
+      "end": 294.4,
+      "text": " and validating. That's a fairly simple approach, but logs aren't always reliable in terms of the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 294.4,
+      "end": 298.88,
+      "text": " time to deliver them and the guarantees around delivering them and having to parse them. It can"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 298.88,
+      "end": 303.59999999999997,
+      "text": " be a little bit slow and inefficient. Another approach you can take is just focus on more"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 303.6,
+      "end": 308.96000000000004,
+      "text": " end-to-end testing. So testing the final outcome like a record appearing in the database or an"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 308.96000000000004,
+      "end": 312.96000000000004,
+      "text": " email being delivered and then you don't have to think about testing the events at all. It might"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 312.96000000000004,
+      "end": 318.08000000000004,
+      "text": " work for some cases, but not all cases will have a readable outcome like this and you might want to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 318.08000000000004,
+      "end": 322.8,
+      "text": " focus on just a smaller unit that you're integrating. And then the third approach"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 322.8,
+      "end": 328.24,
+      "text": " is temporarily recreating an additional consumer for the event just for the purposes of your test."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 328.24,
+      "end": 335.36,
+      "text": " So if you are testing SNS or EventBridge, this could involve adding a temporary SQS queue"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 335.36,
+      "end": 340.32,
+      "text": " as a subscriber or target and polling that SQS queue for a limited period to check"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 340.32,
+      "end": 345.36,
+      "text": " for delivery of the expected message. I think this last approach with the temporary queue"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 345.36,
+      "end": 349.36,
+      "text": " is probably the most reliable, but it requires a bit of setup. You also have to think about"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 349.36,
+      "end": 353.6,
+      "text": " the additional latency to create these test resources and also think about deleting the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 353.6,
+      "end": 358.8,
+      "text": " queue when the test is finished, including in cases where the test exits before any tear-down"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 358.8,
+      "end": 363.36,
+      "text": " phase has a chance to happen. Now when we're talking about the different approaches, we're"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 363.36,
+      "end": 368.8,
+      "text": " talking about integration testing and end-to-end testing, so it might be worth clarifying the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 368.8,
+      "end": 373.68,
+      "text": " distinction between those two. Integration testing, as you said Luciano, is basically ensuring that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 373.68,
+      "end": 378.72,
+      "text": " application components work well individually and together, including with external systems."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 379.28000000000003,
+      "end": 384.40000000000003,
+      "text": " End-to-end testing is broader. It's still integration testing because you're using real"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 384.40000000000003,
+      "end": 390,
+      "text": " services, but it's really everything altogether. So it evaluates the product as a whole from the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 390,
+      "end": 395.20000000000005,
+      "text": " user's perspective, user flows, and that can include starting with your front end or an API"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 395.20000000000005,
+      "end": 401.44000000000005,
+      "text": " or whatever the external user interface is. So given those three approaches we talk about,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 401.44000000000005,
+      "end": 407.20000000000005,
+      "text": " what are the tools out there to help you with this?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 407.2,
+      "end": 413.76,
+      "text": " One of the tools that we have been using, and I think it's very relevant here, is called SLS Test Tools, which comes from this company"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 413.76,
+      "end": 421.28,
+      "text": " called Alayos. It's basically a tool that extends Jest, so the famous Node.js test runner,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 421.28,
+      "end": 426.64,
+      "text": " and it provides a bunch of additional matchers, I guess I'm going to call them. I'm not sure it's"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 426.64,
+      "end": 432.88,
+      "text": " the right terminology, but it extends basically the capabilities of Jest, the built-in checks"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 432.88,
+      "end": 438.15999999999997,
+      "text": " that you can do to include checks that are very specific to AWS services, for instance DynamoDB,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 438.15999999999997,
+      "end": 446.15999999999997,
+      "text": " S3, Step Functions, SQS, EventBridge. So the idea is that you will create a test where you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 446.15999999999997,
+      "end": 452.32,
+      "text": " provision some infrastructure and then as part of your test running you can use the specific"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 452.32,
+      "end": 457.68,
+      "text": " matchers or assertions to basically check that the infrastructure was created correctly and that"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 458.40000000000003,
+      "end": 463.44,
+      "text": " certain behaviors actually are apparent in the infrastructure after you executed the specific"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 463.44,
+      "end": 468.8,
+      "text": " tests. There is a very good article by Sarah Hamilton that we're going to put in the show"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 468.8,
+      "end": 475.04,
+      "text": " notes which describes a little bit of a tutorial on how to use it and why it can be very convenient,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 475.04,
+      "end": 481.92,
+      "text": " but I think the hype these days is into this new tool announced by AWS that we mentioned in the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 481.92,
+      "end": 488.24,
+      "text": " introduction and I think we want to show a little bit more of that and maybe compare it with SLS"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 488.24,
+      "end": 494.48,
+      "text": " test tools. So how does AWS integrated application test kit compares with SLS test tools?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 499.6,
+      "end": 504.16,
+      "text": " I think that Sarah Hamilton article is actually a very good article on the general approach here, everything we're describing, and I wouldn't be surprised if it actually inspired some of the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 504.16,
+      "end": 509.92,
+      "text": " design of this integration application test kit from AWS. So it just has been launched and it's"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 509.92,
+      "end": 514.5600000000001,
+      "text": " still under public preview, so we're going to talk about the pros and cons, but we should be"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 514.5600000000001,
+      "end": 520,
+      "text": " fair and say that this is just released. AWS releases things early so we can expect some"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 520,
+      "end": 526,
+      "text": " glitches. This one is currently available for Python-based tests, although it's implemented"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 526,
+      "end": 533.12,
+      "text": " mostly in Go, Golang for the core and it simply uses an RPC wrapper for Python. AWS says that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 533.12,
+      "end": 538.5600000000001,
+      "text": " they will add other languages in time, so I think that's a good thing to see. It has a few"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 538.56,
+      "end": 543.68,
+      "text": " capabilities. We can kind of break them down into three parts. One is creating test events from the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 543.68,
+      "end": 548.16,
+      "text": " EventBridge schema registry that you can use in your integration tests. The second one is probably"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 548.16,
+      "end": 552.9599999999999,
+      "text": " more aligned to what we've been talking about in terms of challenges and that's the validating that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 552.9599999999999,
+      "end": 557.92,
+      "text": " events have been received via EventBridge and have the correct structure. And the third one,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 557.92,
+      "end": 563.3599999999999,
+      "text": " which is kind of the most innovative piece almost, is checking the correct flow of events with X-ray."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 563.3599999999999,
+      "end": 568.3199999999999,
+      "text": " So we'll go through how the process for all of these things work. Maybe Luciano, you can talk"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 568.32,
+      "end": 575.7600000000001,
+      "text": " about IATK and how it works from the perspective of EventBridge event testing."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 575.7600000000001,
+      "end": 583.84,
+      "text": " So what we tested is basically a very simple example and in this example what happens with this IATK tool is that"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 583.84,
+      "end": 590.08,
+      "text": " it creates a temporary SQS queue and a temporary rule on the bus which uses the same patterns as"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 590.08,
+      "end": 596.8000000000001,
+      "text": " the rule you want to test and that will allow you to basically put into SQS copies of the events"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 596.8,
+      "end": 601.3599999999999,
+      "text": " that are happening so you can expect them and make sure that they look correct from an application"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 601.3599999999999,
+      "end": 606.56,
+      "text": " perspective. It doesn't allow you to specify any pattern. You have to specify a rule and a target"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 606.56,
+      "end": 611.3599999999999,
+      "text": " when you create a test listener and this seems a little bit strange. Now I don't know why it needs"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 611.3599999999999,
+      "end": 617.3599999999999,
+      "text": " the target but we could be missing something that maybe is a little bit obvious to AWS and that we"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 617.3599999999999,
+      "end": 624.88,
+      "text": " are not seeing here. Now the idea is that again you are trying to capture that event into SQS and"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 624.88,
+      "end": 629.92,
+      "text": " then analyze it after you have been executing the code that you want to test. So it provides"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 629.92,
+      "end": 636.24,
+      "text": " a number of helper functions for you to effectively clean up everything after you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 636.24,
+      "end": 642.48,
+      "text": " executed the test but also to inspect the state of the system after the test was executed. And"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 642.48,
+      "end": 649.68,
+      "text": " you can also do things like clean up first just in case that a previous execution maybe left things"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 649.68,
+      "end": 653.6,
+      "text": " in a little bit of a dirty state. So this is something that's actually recommended by the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 653.6,
+      "end": 660,
+      "text": " documentation and then you run your test, you do all of your own assertions and then in the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 660,
+      "end": 666,
+      "text": " third down phase you clean up again. Now before we go through all the features of this tool and how"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 666,
+      "end": 673.44,
+      "text": " to use it, it's interesting to note that everything is available on GitHub including examples"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 673.44,
+      "end": 679.76,
+      "text": " and what we did is basically we created an integration test for a repository that we call"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 679.76,
+      "end": 684.3199999999999,
+      "text": " Cross Account Event Bridge which is something we built previously and it basically allows you to"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 685.2,
+      "end": 691.28,
+      "text": " execute event bridge across accounts and share messages across accounts. And this is something"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 691.28,
+      "end": 697.52,
+      "text": " we mentioned in a previous episode, episode 39, and you can find the link in the show notes if"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 697.52,
+      "end": 702.4,
+      "text": " you want to know a little bit more about that specific use case and why we built it. Now this"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 702.4,
+      "end": 709.6,
+      "text": " repository uses TypeScript for the CDK but because right now this tool only allows you to use Python,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 710.48,
+      "end": 716.8000000000001,
+      "text": " we wrote the integration tests in Python and we will also have a link to the specific test section in this"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 716.8000000000001,
+      "end": 722.64,
+      "text": " repository if you want to find a quick way to go and just see how we brought the tests. So let's talk"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 722.64,
+      "end": 728.4,
+      "text": " maybe a little bit about the process of creating this kind of test. Eoin, do you want to cover that?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 735.44,
+      "end": 742.32,
+      "text": " Yep, so what we did was we were using PyTest so you create your Python test then you use the AWS IATK Python module and instantiate it. Now immediately we kind of ran into an issue where"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 742.32,
+      "end": 746.8800000000001,
+      "text": " it didn't pick up the credentials locally. The documentation says that it should pick up your"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 746.8800000000001,
+      "end": 752,
+      "text": " AWS environment variables but I was just getting expired key all the time and I think it was"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 752,
+      "end": 756.6400000000001,
+      "text": " picking them up from somewhere else like from a credentials file or config file. I don't use"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 756.6400000000001,
+      "end": 762.24,
+      "text": " credentials for files so I don't know why but that didn't seem to work as documented so we had to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 762.24,
+      "end": 768.4,
+      "text": " actually specify a profile argument in the constructor in order to get this to work. Once"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 768.4,
+      "end": 773.92,
+      "text": " we've done that then you just you need to know the event bus, the rule and the target. So IATK"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 773.92,
+      "end": 780.72,
+      "text": " also provides some utility functions for reading cloud formation resource physical IDs or reading"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 780.72,
+      "end": 786.72,
+      "text": " cloud formation outputs so that you can get those values for your stack. You mentioned also the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 786.8000000000001,
+      "end": 792.96,
+      "text": " cleanup process for ephemeral resources so you can use the IATK remove listeners helper to do that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 792.96,
+      "end": 799.12,
+      "text": " and you will it will use a tag filter to identify the resources that it can clean up safely. So you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 799.12,
+      "end": 803.6800000000001,
+      "text": " call that at the start of your test and then you also call it during your tear down. That's"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 803.6800000000001,
+      "end": 810.88,
+      "text": " basically how you do it so that it clean up at the end of the tests normally but it'll also run at the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 810.88,
+      "end": 816.56,
+      "text": " start of tests in case there's anything dangling from previously aborted runs. So then you create"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 816.56,
+      "end": 822.32,
+      "text": " an IATK listener so you give it the bus name, the rule name, the target ID and some tags and this"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 822.32,
+      "end": 827.04,
+      "text": " will allow you to start checking for events. So when you create this listener under the hood it's"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 827.04,
+      "end": 832.72,
+      "text": " creating an SQS queue and it's creating an event bridge rule to route events to that queue and it"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 832.72,
+      "end": 836.96,
+      "text": " basically copies the pattern from the rule you provided. Again the fact that they ask you to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 836.96,
+      "end": 842.32,
+      "text": " provide the target ID as well doesn't make any sense to me because once you have a rule and a"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 842.32,
+      "end": 847.84,
+      "text": " bus and you have a pattern that's all you need I think to do the test. So I didn't look into the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 847.84,
+      "end": 853.76,
+      "text": " code to find out what was that what that was all about. I'm not very good at reading Golang so I"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 853.76,
+      "end": 859.12,
+      "text": " wasn't going to go in there and try to figure out what was going on but yeah maybe somebody can"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 859.12,
+      "end": 863.36,
+      "text": " explain. I'm sure they have a valid reason for it. And then you have two options for actually"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 863.36,
+      "end": 868.16,
+      "text": " retrieving the events and doing the validation. One is wait until event matched. This basically"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 868.16,
+      "end": 873.44,
+      "text": " just waits for one event to come in on the bus and you provide an assertion function to check if the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 873.44,
+      "end": 878.32,
+      "text": " message is the one you expect. The other one is poll events. So this is a different model where"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 878.32,
+      "end": 882.24,
+      "text": " you basically say you poll for events for 20 seconds and it'll give you all the events that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 882.24,
+      "end": 886.24,
+      "text": " arrive in that period and then you can go through them and filter them and check if they are valid"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 886.24,
+      "end": 890.96,
+      "text": " yourself. In your tests teardown function then just remember to clean up the resources created by"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 891.6800000000001,
+      "end": 898.5600000000001,
+      "text": " IATK. And you can see this example and we have in our cross-account event bridge e-commerce example"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 898.5600000000001,
+      "end": 904.72,
+      "text": " we have the event bridge testing approach but we also tried out the trace validation with x-ray"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 904.72,
+      "end": 909.0400000000001,
+      "text": " which seemed pretty exciting. We got some mixed results but we were able to get it to work."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 909.0400000000001,
+      "end": 915.9200000000001,
+      "text": " Luciano do you want to describe that process?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 915.92,
+      "end": 922.4799999999999,
+      "text": " Yes I think it's a good advice in general to have x-ray enabled when you're doing event driven systems because that gives you peace of mind that you can"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 922.4799999999999,
+      "end": 928.16,
+      "text": " trace exactly how requests flow through the system and which different components gets"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 928.88,
+      "end": 933.76,
+      "text": " used based on your own requests. And of course this is something you can even leverage here"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 933.76,
+      "end": 938.9599999999999,
+      "text": " for testing and this is the one of the more innovative things that I think this tool brings"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 938.9599999999999,
+      "end": 944.48,
+      "text": " to the table. So the idea is that you set up everything, you execute your test, meanwhile"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 944.48,
+      "end": 950.08,
+      "text": " the system is also collecting traces because you have enabled x-ray. And one of the things that"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 950.08,
+      "end": 956.16,
+      "text": " you can do in your own assertions is that you can actually fetch the traces as a structured object"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 956.16,
+      "end": 962.8000000000001,
+      "text": " and then do assertions on the traces themselves. So basically that can help you to make sure that"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 963.44,
+      "end": 967.76,
+      "text": " the systems that you expect to be involved in that particular flow are actually being involved."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 967.76,
+      "end": 972.96,
+      "text": " If there is some kind of ordering that might be important for you it's also something you can use"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 972.96,
+      "end": 978.5600000000001,
+      "text": " to do assertion and make sure systems are actually propagating messages in the correct order."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 978.5600000000001,
+      "end": 985.6800000000001,
+      "text": " So basically what the library allows you to do is gives you an helper function that's called"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 986.64,
+      "end": 992.5600000000001,
+      "text": " getTraceTree and with this function you can specify a tracing header as a parameter and then"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 992.5600000000001,
+      "end": 998.24,
+      "text": " it gives you back this object which represents the tree of traces so it's a nested structure"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 998.24,
+      "end": 1002.5600000000001,
+      "text": " where you can follow the different branches to make sure that things are happening correctly."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1002.56,
+      "end": 1007.3599999999999,
+      "text": " Now depending of course on the complexity of your code and how many systems are involved"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1008,
+      "end": 1013.76,
+      "text": " you might have to write lots of code to do these assertions correctly like it's not like a plain"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1013.76,
+      "end": 1018.56,
+      "text": " array where it's easy to assert certain things you might need to traverse the tree so it might be a"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1018.56,
+      "end": 1023.5999999999999,
+      "text": " little bit tricky to test exactly what you want to test but you have the entire view of all the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1023.5999999999999,
+      "end": 1030.24,
+      "text": " systems involved there assuming that you enable and configure x-ray correctly. Now just to give"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1030.24,
+      "end": 1036.72,
+      "text": " you examples of the kind of matching that you might be doing on the trace tree for instance"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1036.72,
+      "end": 1044.24,
+      "text": " you might check if there are errors in any segment maybe a specific system was part of this"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1044.24,
+      "end": 1048.88,
+      "text": " transaction and that system produced an error maybe it's not something you might realize"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1048.88,
+      "end": 1053.92,
+      "text": " immediately by just looking at the final result of your execution but just looking at the tree"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1053.92,
+      "end": 1059.2,
+      "text": " you might realize that some of the components was failing in some unexpected way so I think it's"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1059.2,
+      "end": 1063.92,
+      "text": " good practice to try to traverse the tree and look for this kind of things and if you didn't"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1063.92,
+      "end": 1069.3600000000001,
+      "text": " expect any error in the case you see an error maybe make the test fail and report that particular"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1069.3600000000001,
+      "end": 1074.48,
+      "text": " error. You can also check performance metrics so make sure for instance if you have requirements"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1074.48,
+      "end": 1080.64,
+      "text": " in terms of SLAs regarding response times you might produce a warning or even fail the test"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1080.64,
+      "end": 1086.64,
+      "text": " if you see that certain numbers go beyond the thresholds that you expect as acceptable and you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1086.64,
+      "end": 1093.2,
+      "text": " can also check if specific components were actually part of the trace maybe there are"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1093.2,
+      "end": 1099.3600000000001,
+      "text": " systems that don't really expose a behavior that you can assert at the end of your test but you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1099.3600000000001,
+      "end": 1104.0800000000002,
+      "text": " just want to make sure that they received for instance some information and somehow they were"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1104.0800000000002,
+      "end": 1110.48,
+      "text": " part of this transaction so you can just assert that they were part of the trace tree at some"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1110.48,
+      "end": 1115.76,
+      "text": " point in the tree and finally you can also do the inverse for instance you might know that there are"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1115.76,
+      "end": 1121.36,
+      "text": " only three systems for example involved so you might assert that those three systems are there"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1121.36,
+      "end": 1125.2,
+      "text": " but if by any chance you see a fourth system that's probably a symptom that you are doing"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1125.2,
+      "end": 1129.28,
+      "text": " something a little bit unexpected so maybe something else that you might want to write"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1129.28,
+      "end": 1134,
+      "text": " an assertion about and make sure that only the things that you expect to happen are actually"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1134,
+      "end": 1138.96,
+      "text": " happening and nothing else is happening in the flow. So what are the things that we were happy"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1138.96,
+      "end": 1143.2,
+      "text": " with and the things that we were disappointed with?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1143.2,
+      "end": 1147.52,
+      "text": " I think we were curious to see this in action but when we did the testing there were a couple of issues with the x-ray approach."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1147.52,
+      "end": 1154.0800000000002,
+      "text": " The get trace tree function you mentioned gave us an error which basically said error building trace"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1154.0800000000002,
+      "end": 1159.8400000000001,
+      "text": " tree and it said that it found a trace with a segment that had no parent which was a very"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1159.8400000000001,
+      "end": 1164.64,
+      "text": " strange one like how can how can you get a segment from x-ray with no parent so we looked into the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1164.64,
+      "end": 1169.76,
+      "text": " raw data like in the x-ray console in cloud watch and we saw the raw data we saw the segment and we"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1169.76,
+      "end": 1175.44,
+      "text": " saw that it had a parent so we figured maybe it was like an eventual consistency kind of a problem"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1175.44,
+      "end": 1180.16,
+      "text": " that but at the time when the test was reading it maybe all of the data hadn't been fully settled"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1180.8799999999999,
+      "end": 1187.76,
+      "text": " so what we did was we filed a bug in the IADK repo and we did a workaround so there was that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1187.76,
+      "end": 1194.32,
+      "text": " other function you mentioned that allows you to wait until a trace comes with a valid condition."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1195.28,
+      "end": 1201.12,
+      "text": " We still had to add in a sleep in order for this to work so when we switched over to that function"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1201.12,
+      "end": 1205.28,
+      "text": " even though the documentation says you should never have to sleep in order to get it to work"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1205.28,
+      "end": 1210.72,
+      "text": " we had to get it to sleep and that would work. Now there are examples in the code of using"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1210.72,
+      "end": 1215.4399999999998,
+      "text": " sleeps with the get trace tree approach but not with the approach we eventually used so"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1216.08,
+      "end": 1221.6,
+      "text": " it seems like the documentation and the behavior aren't 100 aligned on this but luckily we were"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1221.6,
+      "end": 1226.9599999999998,
+      "text": " able to do it and we were able to get the traces in this example application we have we've got"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1226.9599999999998,
+      "end": 1232.1599999999999,
+      "text": " three kind of services we've got this kind of global bus and then we've got an order service"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1232.1599999999999,
+      "end": 1237.36,
+      "text": " and a delivery service so the flow the trace is kind of interesting it's like an event bridge to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1237.36,
+      "end": 1242.08,
+      "text": " lambda to event bridge event bridge to lambda to event bridge three times and we were able to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1242.08,
+      "end": 1247.04,
+      "text": " assert that that's true and we were also able to put in some performance checks like an SLA that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1247.04,
+      "end": 1252.56,
+      "text": " all of this should take no longer than 10 seconds for example which is pretty good for exposing any"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1252.56,
+      "end": 1257.28,
+      "text": " unexpected performance degradations just in your continuous build process so I think that was quite"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1257.28,
+      "end": 1262.24,
+      "text": " a nice one. So that's we've talked about the event bridge testing approach the x-ray testing approach"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1262.24,
+      "end": 1267.76,
+      "text": " there was one other feature in IATK do you want to say something about mock events?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1267.76,
+      "end": 1272.08,
+      "text": " Yes mock event is something else we we tried and it's an interesting feature that you have available"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1272.72,
+      "end": 1279.12,
+      "text": " and the idea is that if you're using event bridge in event bridge you can have a schema registry so"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1279.12,
+      "end": 1284.8799999999999,
+      "text": " what this library allows you to do is basically to generate a mock event starting from your own"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1284.8799999999999,
+      "end": 1291.28,
+      "text": " schema registry and then use it effectively as a source for your own tests and for instance you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1291.28,
+      "end": 1298.3999999999999,
+      "text": " you can say I want to generate a mock event that invokes a lambda or a step function and then"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1298.4,
+      "end": 1304.24,
+      "text": " that's basically the starting point of your own test and this can be convenient for instance when"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1304.24,
+      "end": 1310,
+      "text": " you have maybe a very complex flow and you want to break down the testing into individual parts"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1310,
+      "end": 1314.96,
+      "text": " maybe you want to test one integration at the time it can make it a little bit easier to actually have"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1314.96,
+      "end": 1320.72,
+      "text": " a clear starting point where you can craft exactly the event that gives you a good test case without"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1320.72,
+      "end": 1325.68,
+      "text": " having maybe to go through a bunch of additional steps that you might have in the entire flow"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1325.68,
+      "end": 1332.4,
+      "text": " so it's basically a way to make your test case start from an event in event bridge"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1334.16,
+      "end": 1338.96,
+      "text": " I don't think this was very applicable for our own testing so we kind of had more of a look at"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1338.96,
+      "end": 1343.44,
+      "text": " the documentation and so that looks like an interesting feature when you have kind of a"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1343.44,
+      "end": 1348.96,
+      "text": " multi-step approach maybe going through different rounds of generating events on event bridge"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1348.96,
+      "end": 1353.3600000000001,
+      "text": " picking up the event from there and doing something else but yeah in our case this wasn't"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1353.36,
+      "end": 1358.32,
+      "text": " really applicable but nonetheless it's an interesting feature that you might find useful"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1358.32,
+      "end": 1364.8799999999999,
+      "text": " and it's great to have the convenience to be able to create an event not let's say from scratch but"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1364.8799999999999,
+      "end": 1369.12,
+      "text": " starting with what you have already in your schema registry which should give you a little bit of"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1369.12,
+      "end": 1374.8799999999999,
+      "text": " confidence that the event is matching what you will actually have in a production scenario"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1374.8799999999999,
+      "end": 1382.4799999999998,
+      "text": " so what are all our overall thoughts like what did we like and what we didn't like about this new tool"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1387.1200000000001,
+      "end": 1393.04,
+      "text": " on the good side I think this is a nice addition just fills a gap in tooling for integration testing there weren't a lot of options out there we had sls test tools people are rolling their"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1393.04,
+      "end": 1397.92,
+      "text": " own this is a good one it supports other languages which is a good thing I think as well once you're"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1397.92,
+      "end": 1403.44,
+      "text": " familiar with it it makes testing these pretty complex cases quite simple the fact that they"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1403.44,
+      "end": 1407.28,
+      "text": " allow you to clean up down resources easily it's very nice because that's one of the problems you'll"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1407.28,
+      "end": 1413.76,
+      "text": " face if you do this yourself and I think an advantage of that RPC approach is that we will"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1413.76,
+      "end": 1417.84,
+      "text": " have support for additional languages in the future which is promising because it'll see"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1417.84,
+      "end": 1423.12,
+      "text": " broader adoption and hopefully then more features without them having to rewrite different versions"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1423.12,
+      "end": 1428.32,
+      "text": " for different languages what about the bad do you want to be the messenger for all the bad news"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1435.52,
+      "end": 1440.56,
+      "text": " Luciano I can't bear it I can be the bearer of bad news so let's recap what we didn't like and just disclaimer this is probably due to the fact that this is a very new product it's still very early"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1440.56,
+      "end": 1446.32,
+      "text": " stage so everything we are saying here maybe it's not going to be applicable anymore in a few months"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1446.32,
+      "end": 1452.16,
+      "text": " as the product evolves and gets polished gets new feature gets bug fixes and so on so we already"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1452.16,
+      "end": 1457.12,
+      "text": " mentioned that traces didn't work the first time maybe our fault maybe we did something wrong but"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1457.12,
+      "end": 1461.2,
+      "text": " it wasn't really obvious how to do this just by looking at the documentation and copying their"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1461.2,
+      "end": 1465.92,
+      "text": " own example so definitely something to be improved either fixing bugs improving the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1465.92,
+      "end": 1471.6000000000001,
+      "text": " documentation providing more examples and making this functionality easier to use correctly the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1471.6000000000001,
+      "end": 1478,
+      "text": " other problem is that there is right now no SQS or SNS or Kinesis or Kafka support yet so really"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1478,
+      "end": 1483.76,
+      "text": " this is applicable today if you're using EventBridge but we know that EventBridge is not the only option"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1483.76,
+      "end": 1488.96,
+      "text": " here so depending on your architecture it might be disappointing to be able to test"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1488.96,
+      "end": 1494.56,
+      "text": " EventBridge but not to be able to test the other types of integrations documentation is there"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1494.56,
+      "end": 1500.56,
+      "text": " there is actually a website with a bunch of pages and examples but it looks like it was put together"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1500.56,
+      "end": 1507.1200000000001,
+      "text": " very quickly so it feels like there is a a lot more work to be done there for instance there is"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1507.1200000000001,
+      "end": 1512.72,
+      "text": " a section called tutorial and in that tutorial you only learn how to install the tool and then there"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1512.72,
+      "end": 1517.92,
+      "text": " is a link to some examples so I had the feeling that they want to create a more kind of fully"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1517.92,
+      "end": 1522.88,
+      "text": " fledged tutorial that walk you through all the different steps and gives you a bunch of different"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1522.88,
+      "end": 1528.16,
+      "text": " examples where every example is actually discussed what is the rationale behind the specific"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1528.16,
+      "end": 1533.28,
+      "text": " implementation for that example but right now you have to kind of fill the gaps on your own and just"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1533.28,
+      "end": 1538,
+      "text": " learn how to install it look at the code and the examples and figure out everything else in between"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1538,
+      "end": 1543.3600000000001,
+      "text": " now this is also a project that is open source so maybe if people are willing to contribute they can"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1543.36,
+      "end": 1549.1999999999998,
+      "text": " speed up the process of building this body of documentation and making the experience better"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1549.1999999999998,
+      "end": 1554.4799999999998,
+      "text": " for everyone else so that wouldn't be the first time for AWS to receive open source contribution"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1554.4799999999998,
+      "end": 1560.8,
+      "text": " and make specific tooling a little bit better so probably something where actually we have a chance"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1560.8,
+      "end": 1566.4799999999998,
+      "text": " to contribute and makes the project a little bit better the last one is on the RPC approach that we"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1566.4799999999998,
+      "end": 1571.84,
+      "text": " mentioned we like on one side because it makes this project more likely to be fully supported"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1571.84,
+      "end": 1577.6,
+      "text": " across languages in a consistent way even though today is all available for python the problem that"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1577.6,
+      "end": 1583.76,
+      "text": " we expect to see there is that with this kind of abstractions often when you have an error that"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1583.76,
+      "end": 1589.1999999999998,
+      "text": " error can be very obscure because it's just showing you for instance an issue at the python"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1589.1999999999998,
+      "end": 1595.36,
+      "text": " wrapper level but that error that you might see might be very generic and then the actual error is"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1595.36,
+      "end": 1601.6,
+      "text": " hidden in the go implementation which is abstracted away by the RPC wrapper this is something that we"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1601.6,
+      "end": 1608.24,
+      "text": " have seen for many many times i guess when when we use cdk and we see the kind of js"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1608.24,
+      "end": 1613.84,
+      "text": " ai errors appearing and it's always very hard to troubleshoot here because the design seems very"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1613.84,
+      "end": 1618.9599999999998,
+      "text": " similar we expect to have the same problem and this is maybe something that can be fixed by"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1618.9599999999998,
+      "end": 1624.32,
+      "text": " putting lots of attention in making sure that the rpc layer also propagates good errors and these"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1624.32,
+      "end": 1629.28,
+      "text": " errors are actually displayed well by all the different wrappers but nonetheless is an effort"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1629.28,
+      "end": 1634.6399999999999,
+      "text": " that ws needs to put into building the library and building the reporting tools when an exception"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1634.6399999999999,
+      "end": 1639.68,
+      "text": " happens so we expect this to be a bit of a friction point for people using the tool now again"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1639.68,
+      "end": 1645.12,
+      "text": " it's worth remarking that this project is in public preview so we don't need to be too harsh on"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1645.12,
+      "end": 1650,
+      "text": " judgment here i think the starting point is absolutely positive and it's great to have this"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1650,
+      "end": 1654.32,
+      "text": " tool so i think that the future is going to be brighter and this is going to be a valuable tool"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1660.48,
+      "end": 1665.76,
+      "text": " for people to use and write their own integration tests with in general iatk looks very promising i think and we hope to see plenty of improvements before it becomes generally available aws as we"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1665.76,
+      "end": 1671.28,
+      "text": " mentioned tends to release products early so we won't dwell further on the shortcomings if the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1671.28,
+      "end": 1677.04,
+      "text": " concerns are addressed this should really be a valuable part of our toolkit but let us know what"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1677.04,
+      "end": 1683.52,
+      "text": " you think if you've tried it out what alternative approaches might we have missed and if there's"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1683.52,
+      "end": 1689.6,
+      "text": " some other features that you think should be added into iatk let us know and let the maintainers know"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1689.6,
+      "end": 1694.32,
+      "text": " as well until then we'll see you in the next episode"
+    }
+  ]
+}

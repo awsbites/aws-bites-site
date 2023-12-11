@@ -1,0 +1,1853 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:02.100
+Python is one of the two most popular languages
+
+2
+00:00:02.240 --> 00:00:04.040
+for developing AWS Lambda functions.
+
+3
+00:00:04.160 --> 00:00:05.960
+When it comes to data science, statistics,
+
+4
+00:00:06.100 --> 00:00:08.940
+and machine learning workloads, Python is the undisputed leader.
+
+5
+00:00:09.060 --> 00:00:11.900
+But it has often been difficult, and sometimes even impossible,
+
+6
+00:00:12.040 --> 00:00:14.600
+to deploy certain data science workloads in AWS Lambda.
+
+7
+00:00:14.740 --> 00:00:17.360
+The 250 megabyte packet size limit in Lambda
+
+8
+00:00:17.500 --> 00:00:20.760
+has been at odds with the heavy nature of Python data science modules
+
+9
+00:00:20.900 --> 00:00:21.960
+like NumPy and Pandas,
+
+10
+00:00:22.100 --> 00:00:24.860
+not to mention machine learning packages like PyTorch and TensorFlow.
+
+11
+00:00:25.000 --> 00:00:27.260
+And this problem might actually occur with other runtimes as well.
+
+12
+00:00:27.400 --> 00:00:29.560
+So today we're going to talk about some benchmarking
+
+13
+00:00:29.560 --> 00:00:30.820
+we did on Lambda functions
+
+14
+00:00:30.960 --> 00:00:32.620
+and present some really interesting findings.
+
+15
+00:00:32.760 --> 00:00:35.000
+We're going to talk about zip packaging, Lambda layers,
+
+16
+00:00:35.120 --> 00:00:38.320
+and also talk about the trade-offs between zip, images, and Lambda layers.
+
+17
+00:00:38.460 --> 00:00:40.460
+And by the end, you'll hear how container image packaging
+
+18
+00:00:40.600 --> 00:00:43.800
+can actually solve this problem and even provide superior performance.
+
+19
+00:00:43.920 --> 00:00:46.100
+This episode also has an accompanying source code,
+
+20
+00:00:46.220 --> 00:00:48.160
+repository, and detailed blog post.
+
+21
+00:00:48.300 --> 00:00:49.420
+I'm Eoin, I'm here with Luciano,
+
+22
+00:00:49.560 --> 00:00:52.060
+and this is another episode of the AWS Bites podcast.
+
+23
+00:00:58.960 --> 00:01:00.900
+So, Eoin, I'd like to start by asking you the question,
+
+24
+00:01:01.020 --> 00:01:03.420
+why would you even consider Lambda as a target
+
+25
+00:01:03.560 --> 00:01:05.000
+when doing data science with Python?
+
+26
+00:01:05.120 --> 00:01:07.120
+Because this is generally heavy workloads,
+
+27
+00:01:07.260 --> 00:01:09.600
+so Lambda might not seem like the right solution,
+
+28
+00:01:09.720 --> 00:01:11.560
+but maybe I'm missing something important there.
+
+29
+00:01:11.700 --> 00:01:13.700
+I think there's plenty of people using Python
+
+30
+00:01:13.820 --> 00:01:16.020
+for just API-based workloads
+
+31
+00:01:16.160 --> 00:01:19.800
+and normal kind of data transformation on AWS on Lambda.
+
+32
+00:01:20.400 --> 00:01:22.460
+But when you think about data science,
+
+33
+00:01:22.600 --> 00:01:25.560
+you have to also think then about all the other options you have on AWS
+
+34
+00:01:25.560 --> 00:01:28.620
+for running those kind of workloads like Python Shell
+
+35
+00:01:28.760 --> 00:01:32.400
+or PySpark workloads on Glue or Elastic MapReduce,
+
+36
+00:01:32.520 --> 00:01:33.600
+you have more as well,
+
+37
+00:01:33.720 --> 00:01:36.500
+and then you have SageMaker, SageMaker Notebooks.
+
+38
+00:01:36.960 --> 00:01:40.820
+So you can also think about services like EC2, ECS, right?
+
+39
+00:01:41.420 --> 00:01:44.400
+Lambda, I would say, is best suited to two classes of workloads,
+
+40
+00:01:44.520 --> 00:01:46.020
+so those that are really bursty,
+
+41
+00:01:46.960 --> 00:01:49.000
+where you don't really have constant traffic,
+
+42
+00:01:49.120 --> 00:01:51.420
+and those where you need a lot of concurrency very quickly.
+
+43
+00:01:51.560 --> 00:01:54.520
+And that could be like data processing,
+
+44
+00:01:54.680 --> 00:01:56.480
+it could be like high-performance computing,
+
+45
+00:01:56.620 --> 00:01:59.160
+high-throughput computing, lots of data science,
+
+46
+00:01:59.280 --> 00:02:00.880
+financial modelling, scale,
+
+47
+00:02:01.020 --> 00:02:04.460
+even kind of HPC stuff like fluid dynamics
+
+48
+00:02:04.580 --> 00:02:06.820
+or all sorts of scientific modelling.
+
+49
+00:02:06.960 --> 00:02:08.380
+And the great benefit of Lambda there
+
+50
+00:02:08.520 --> 00:02:11.420
+is that executions can start faster than any alternative.
+
+51
+00:02:11.560 --> 00:02:15.660
+Like, you can get thousands of concurrent instances in a few seconds,
+
+52
+00:02:15.780 --> 00:02:18.620
+and now since the new announcement at re-Invent,
+
+53
+00:02:18.760 --> 00:02:22.380
+you can increase by like a thousand every ten seconds.
+
+54
+00:02:22.480 --> 00:02:23.580
+When you think about it,
+
+55
+00:02:23.720 --> 00:02:26.240
+you've got two classes of data science workloads, I guess.
+
+56
+00:02:26.380 --> 00:02:29.320
+On AWS, you've got ones that are highly coupled,
+
+57
+00:02:29.440 --> 00:02:31.880
+and then you use something like Spark or Ray or Dask
+
+58
+00:02:32.020 --> 00:02:33.920
+or one of those distributed frameworks
+
+59
+00:02:34.040 --> 00:02:37.080
+to spread it across lots of stateful nodes.
+
+60
+00:02:37.220 --> 00:02:38.980
+Lambda isn't really suitable for that kind of workload,
+
+61
+00:02:39.120 --> 00:02:42.120
+where each concurrent unit in a Lambda environment
+
+62
+00:02:42.240 --> 00:02:44.220
+is not going to communicate with the others, right?
+
+63
+00:02:44.340 --> 00:02:45.280
+It's stateless.
+
+64
+00:02:45.420 --> 00:02:48.240
+So instead, Lambda functions are more highly isolated,
+
+65
+00:02:48.380 --> 00:02:50.720
+and you would just run lots of them in parallel
+
+66
+00:02:50.880 --> 00:02:52.560
+and just orchestrate them with step function
+
+67
+00:02:52.680 --> 00:02:54.080
+or with other schedulers.
+
+68
+00:02:54.220 --> 00:02:57.260
+But there are plenty of good use cases for Lambda with Python,
+
+69
+00:02:57.380 --> 00:02:59.760
+and we've even done lots of machine learning inference
+
+70
+00:02:59.880 --> 00:03:02.360
+on Python very successfully, where you don't need a GPU.
+
+71
+00:03:02.480 --> 00:03:04.420
+I think we've talked about that in the past.
+
+72
+00:03:04.560 --> 00:03:07.520
+So, like, Python is definitely a great fit for Lambda.
+
+73
+00:03:07.660 --> 00:03:10.920
+You know, we use it for doing real-time data analytics for IoT,
+
+74
+00:03:11.060 --> 00:03:14.280
+for doing event-driven ETL or batch processing ETL,
+
+75
+00:03:14.420 --> 00:03:17.980
+preparing data, machine learning, and aggregation in general.
+
+76
+00:03:17.980 --> 00:03:21.320
+So if you have a workload that is, I suppose,
+
+77
+00:03:21.440 --> 00:03:24.840
+more for data scientists to do ad hoc, hands-on work,
+
+78
+00:03:24.980 --> 00:03:27.580
+then you're probably going to use something like JupyterLab,
+
+79
+00:03:27.720 --> 00:03:28.780
+SageMaker notebooks,
+
+80
+00:03:28.920 --> 00:03:31.480
+and maybe use an orchestrator like Airflow or DAGster.
+
+81
+00:03:31.620 --> 00:03:34.740
+There's a load of them there in the Python ecosystem.
+
+82
+00:03:34.880 --> 00:03:36.280
+Lambda functions can run up to 50 minutes,
+
+83
+00:03:36.420 --> 00:03:39.020
+which is usually plenty, and use up to 10 gigs of RAM.
+
+84
+00:03:39.140 --> 00:03:40.440
+That can be enough, but sometimes it's not,
+
+85
+00:03:40.580 --> 00:03:42.820
+and then you might run for something like Fargate
+
+86
+00:03:42.940 --> 00:03:44.120
+or AppRunner instead.
+
+87
+00:03:44.240 --> 00:03:46.020
+So it's always a trade-off.
+
+88
+00:03:46.140 --> 00:03:47.580
+If Lambda does suit your workload,
+
+89
+00:03:47.620 --> 00:03:50.320
+you can avoid a huge amount of infrastructure
+
+90
+00:03:50.440 --> 00:03:51.940
+and all that kind of stuff.
+
+91
+00:03:52.080 --> 00:03:53.980
+But if you've got something that's long-running,
+
+92
+00:03:54.120 --> 00:03:57.780
+then you might just go with EC2 or a container instead.
+
+93
+00:03:57.920 --> 00:04:01.420
+You mentioned the difference between long-running, short-running.
+
+94
+00:04:01.540 --> 00:04:04.120
+We are very well aware of the limitation in Lambda,
+
+95
+00:04:04.240 --> 00:04:06.540
+but are there other limitations that are relevant
+
+96
+00:04:06.680 --> 00:04:08.720
+when you want to do data science with Python
+
+97
+00:04:08.840 --> 00:04:10.480
+and trying to target Lambda?
+
+98
+00:04:10.620 --> 00:04:13.820
+When we started using serverless architectures
+
+99
+00:04:13.940 --> 00:04:16.540
+and combining it with Python data analytics,
+
+100
+00:04:16.700 --> 00:04:18.480
+we were generally, this is going back a few years,
+
+101
+00:04:18.600 --> 00:04:20.940
+so container image packaging wasn't a possibility,
+
+102
+00:04:21.080 --> 00:04:24.040
+and you were always working within the 250-megabyte size limit.
+
+103
+00:04:24.180 --> 00:04:28.100
+And that's everything unzipped, all of your layers all together,
+
+104
+00:04:28.240 --> 00:04:30.300
+all of your code, there's no way to get around it.
+
+105
+00:04:30.940 --> 00:04:35.840
+And when you look at even just a naive basic data science package
+
+106
+00:04:35.980 --> 00:04:38.580
+with Python, a lot of the stuff we would do would have NumPy,
+
+107
+00:04:38.700 --> 00:04:42.080
+Pandas, and PyArrow as well, and PyArrow is also a bit of a beast.
+
+108
+00:04:42.200 --> 00:04:44.780
+So if you've got these things, then by default,
+
+109
+00:04:44.940 --> 00:04:47.740
+you're already exceeding the 250-megabyte limit.
+
+110
+00:04:47.880 --> 00:04:51.280
+And you might want to ship Boto3, your own version as well,
+
+111
+00:04:51.420 --> 00:04:54.740
+and AWS Lambda Power Tools for Python is pretty indispensable as well.
+
+112
+00:04:54.880 --> 00:04:56.280
+Those things aren't massive,
+
+113
+00:04:56.420 --> 00:04:59.740
+but even PyArrow is like 125 megs just on its own.
+
+114
+00:04:59.880 --> 00:05:02.680
+So that storage requirement becomes a really big problem.
+
+115
+00:05:06.020 --> 00:05:07.580
+Yes, so I remember doing lots of tricks to try to strip down the binaries
+
+116
+00:05:07.720 --> 00:05:10.740
+that sometimes you get from these packages,
+
+117
+00:05:10.880 --> 00:05:13.480
+because behind the scenes, they try to use native packages
+
+118
+00:05:13.520 --> 00:05:16.780
+just to be faster, and you can reduce the size a little bit.
+
+119
+00:05:16.920 --> 00:05:19.440
+But yeah, I guess at some point, there is always that limit,
+
+120
+00:05:19.580 --> 00:05:21.080
+and the more libraries they use,
+
+121
+00:05:21.220 --> 00:05:23.580
+the more likely you are to bump into this limit
+
+122
+00:05:23.720 --> 00:05:25.220
+that you cannot bump in any way.
+
+123
+00:05:25.340 --> 00:05:27.640
+So that, I guess, brings us to the next question,
+
+124
+00:05:27.780 --> 00:05:30.420
+which is, you mentioned already container deployments.
+
+125
+00:05:30.540 --> 00:05:32.840
+What are the pros and cons of using zip packages
+
+126
+00:05:32.980 --> 00:05:34.680
+versus container deployments?
+
+127
+00:05:34.820 --> 00:05:37.680
+And I guess for this particular use case,
+
+128
+00:05:37.820 --> 00:05:40.040
+is one of the two options more suitable?
+
+129
+00:05:42.280 --> 00:05:44.240
+I'd say in general, zip packaging is still the preferred way,
+
+130
+00:05:44.380 --> 00:05:46.440
+and the main reason for that is that it's the only way
+
+131
+00:05:46.580 --> 00:05:49.500
+to make sure that AWS has the maximum amount of responsibility
+
+132
+00:05:49.640 --> 00:05:50.700
+for your whole environment.
+
+133
+00:05:50.840 --> 00:05:54.640
+And I think when container image support was announced in 2020,
+
+134
+00:05:54.780 --> 00:05:56.540
+I believe a lot of people were excited about it,
+
+135
+00:05:56.680 --> 00:05:58.880
+because it allowed you to take your existing images
+
+136
+00:05:59.000 --> 00:06:02.100
+and kind of shove them into Lambda in a weird way.
+
+137
+00:06:02.940 --> 00:06:04.600
+But I remember you had people like Ben Kehoe as well,
+
+138
+00:06:04.740 --> 00:06:07.680
+who's always quite wise,
+
+139
+00:06:07.800 --> 00:06:09.540
+I would guess, in his assessment of these things,
+
+140
+00:06:09.640 --> 00:06:13.740
+and he mentioned that, you know, once you have a container image,
+
+141
+00:06:13.880 --> 00:06:16.380
+you're essentially taking responsibility for the runtime,
+
+142
+00:06:16.500 --> 00:06:17.740
+because it's like a custom runtime,
+
+143
+00:06:17.880 --> 00:06:20.640
+and we talked about this in the recent runtimes episode.
+
+144
+00:06:20.780 --> 00:06:23.380
+So you suddenly need to maintain that runtime yourself
+
+145
+00:06:23.500 --> 00:06:25.200
+just because you're using container image deployment.
+
+146
+00:06:25.340 --> 00:06:27.400
+So while it's giving you benefits of being able to use
+
+147
+00:06:27.540 --> 00:06:30.840
+container image packaging tools, like Docker and
+
+148
+00:06:30.980 --> 00:06:31.480
+Finch,
+
+149
+00:06:31.600 --> 00:06:33.980
+a new one from AWS and Podman and all these tools,
+
+150
+00:06:34.780 --> 00:06:35.540
+that's really great.
+
+151
+00:06:35.680 --> 00:06:37.880
+You also get the 10 gigabyte package size limit,
+
+152
+00:06:38.040 --> 00:06:41.680
+which is 40 times greater than the 250 megabytes you get with Zip.
+
+153
+00:06:42.280 --> 00:06:45.620
+But now all of a sudden, if you have a Java base layer,
+
+154
+00:06:45.740 --> 00:06:47.440
+and there's a bug in the JVM,
+
+155
+00:06:47.580 --> 00:06:49.580
+it's your responsibility for patching that JVM
+
+156
+00:06:49.720 --> 00:06:51.340
+and releasing a new base image,
+
+157
+00:06:51.480 --> 00:06:55.380
+whereas with Zip packaged and one of the AWS supported runtimes,
+
+158
+00:06:55.520 --> 00:06:56.820
+they're responsible for that packaging,
+
+159
+00:06:56.940 --> 00:07:00.020
+and it just happens while you sleep in the night, usually,
+
+160
+00:07:00.140 --> 00:07:01.120
+which is a really great benefit.
+
+161
+00:07:01.240 --> 00:07:03.940
+So I wouldn't understate that benefit.
+
+162
+00:07:04.540 --> 00:07:07.780
+Security is job zero for all of us, really,
+
+163
+00:07:07.900 --> 00:07:09.380
+so it's pretty important.
+
+164
+00:07:09.500 --> 00:07:11.380
+But you have to make these tradeoffs, you know?
+
+165
+00:07:11.500 --> 00:07:14.480
+And again, a lot of people are running container images anyway,
+
+166
+00:07:14.600 --> 00:07:17.080
+even in other environments alongside the Lambda functions.
+
+167
+00:07:17.200 --> 00:07:19.080
+So they might say, well, look, I'm running container images,
+
+168
+00:07:19.200 --> 00:07:21.440
+and I have my whole security tooling in place
+
+169
+00:07:21.580 --> 00:07:22.980
+to do the patching and upgrades anyway.
+
+170
+00:07:23.100 --> 00:07:26.000
+So I'm not really concerned about that additional drawback.
+
+171
+00:07:26.140 --> 00:07:29.340
+But one of the things that might come into play here is performance.
+
+172
+00:07:29.480 --> 00:07:31.540
+And I heard a few times from different people
+
+173
+00:07:31.680 --> 00:07:33.580
+that they are worried about going to containers
+
+174
+00:07:33.580 --> 00:07:35.720
+because they expect worse performance.
+
+175
+00:07:35.840 --> 00:07:37.440
+So you mentioned that we did some benchmarks,
+
+176
+00:07:37.580 --> 00:07:41.020
+and I'm curious to find out whether that's actually true,
+
+177
+00:07:41.140 --> 00:07:43.320
+and especially in this particular case where we use Python
+
+178
+00:07:43.440 --> 00:07:45.940
+and all these different data science libraries.
+
+179
+00:07:46.080 --> 00:07:47.920
+Yeah, I mean, there's a lot of factors at play here.
+
+180
+00:07:48.040 --> 00:07:49.880
+And the traditional way we just solved this problem
+
+181
+00:07:50.020 --> 00:07:51.840
+before we had container image support,
+
+182
+00:07:51.980 --> 00:07:53.180
+there was, with serverless framework,
+
+183
+00:07:53.320 --> 00:07:56.020
+there was a very popular plugin called serverless-python-requirements,
+
+184
+00:07:56.140 --> 00:07:57.540
+and it would do exactly what you mentioned.
+
+185
+00:07:57.680 --> 00:08:01.320
+It would take all the tests out of your Python packages.
+
+186
+00:08:01.580 --> 00:08:05.060
+It would remove your readme and any documentation,
+
+187
+00:08:05.180 --> 00:08:07.660
+and then it would strip any native shared libraries as well.
+
+188
+00:08:07.780 --> 00:08:09.360
+So there'd be no debug symbols.
+
+189
+00:08:09.480 --> 00:08:12.720
+It was also common to remove the PYC bytecode files as well,
+
+190
+00:08:12.860 --> 00:08:15.460
+the precompiled bytecode, just to save on that extra space.
+
+191
+00:08:15.580 --> 00:08:17.520
+Of course, that might result in a performance hit.
+
+192
+00:08:17.660 --> 00:08:20.180
+So at every step, you need to think about the tradeoff, right?
+
+193
+00:08:20.320 --> 00:08:24.020
+So when you're using Lambda, you're supposed to be just writing the code
+
+194
+00:08:24.160 --> 00:08:26.520
+and let AWS manage everything else. That's the promise.
+
+195
+00:08:26.660 --> 00:08:28.320
+And if you end up having to do all this heavy lifting
+
+196
+00:08:28.460 --> 00:08:30.720
+to strip out your packages, you kind of wonder,
+
+197
+00:08:30.760 --> 00:08:32.320
+are you really realizing that benefit?
+
+198
+00:08:32.460 --> 00:08:35.260
+So with container images, when they came out first,
+
+199
+00:08:35.380 --> 00:08:38.420
+I suppose 10 gigabytes, the assumption
+
+200
+00:08:38.560 --> 00:08:40.980
+and a lot of the observation was that cold starts were faster.
+
+201
+00:08:41.120 --> 00:08:43.260
+And that's kind of intuitively something that makes sense
+
+202
+00:08:43.380 --> 00:08:45.120
+because you say, okay, well, it's going to take longer
+
+203
+00:08:45.260 --> 00:08:49.180
+to cold start a 10 gigabyte function than it is a 250 megabyte function.
+
+204
+00:08:49.320 --> 00:08:52.580
+What we did was we started to do some proper benchmarks on this
+
+205
+00:08:52.720 --> 00:08:54.020
+and measure cold starts.
+
+206
+00:08:54.160 --> 00:08:57.920
+And we put together some benchmark code base
+
+207
+00:08:58.080 --> 00:09:00.780
+with lots of different permutations of Lambda deployments.
+
+208
+00:09:00.920 --> 00:09:04.320
+So we had zip package ones, we had zip package ones with layers.
+
+209
+00:09:04.980 --> 00:09:06.920
+And the whole idea of using layers is actually
+
+210
+00:09:07.060 --> 00:09:10.660
+that there's a provided Lambda layer from AWS
+
+211
+00:09:10.780 --> 00:09:13.420
+called the AWS SDK for Pandas layer.
+
+212
+00:09:13.560 --> 00:09:16.320
+And that already has Pandas, PyArrow,
+
+213
+00:09:16.460 --> 00:09:19.620
+and NumPy already stripped down and optimized for you.
+
+214
+00:09:19.760 --> 00:09:21.060
+You can look into their build process
+
+215
+00:09:21.180 --> 00:09:24.320
+and they're like compiling PyArrow with all the minimal flags
+
+216
+00:09:24.460 --> 00:09:27.080
+and they're stripping out debug symbols, and that's how they do it.
+
+217
+00:09:27.240 --> 00:09:30.040
+So layers doesn't really give you a benefit inherently,
+
+218
+00:09:30.180 --> 00:09:32.080
+but the fact that somebody else has gone to the trouble
+
+219
+00:09:32.220 --> 00:09:34.780
+of doing the stripping for you kind of gets around that problem.
+
+220
+00:09:34.920 --> 00:09:37.220
+So that was why we tested the layers option.
+
+221
+00:09:37.340 --> 00:09:38.840
+And then we tested images as well.
+
+222
+00:09:38.980 --> 00:09:41.640
+We tested it with lots of different memory configurations
+
+223
+00:09:41.780 --> 00:09:43.440
+because we know that memory configuration
+
+224
+00:09:43.580 --> 00:09:45.680
+can affect Lambda performance as well.
+
+225
+00:09:45.820 --> 00:09:48.520
+So you mentioned that you did some benchmarks.
+
+226
+00:09:48.640 --> 00:09:51.040
+What are the results of these benchmarks?
+
+227
+00:09:51.180 --> 00:09:54.440
+Is it container the favorite option in terms of performance
+
+228
+00:09:54.540 --> 00:09:57.540
+or is it still zip in terms of delivering better?
+
+229
+00:09:57.680 --> 00:09:59.840
+Maybe call starts versus execution time as well
+
+230
+00:09:59.980 --> 00:10:01.880
+could be another dimension to explore.
+
+231
+00:10:02.000 --> 00:10:04.200
+Sure, yeah.
+
+232
+00:10:04.340 --> 00:10:06.940
+So in this benchmark application, we've got the CDK project that deploys all these permutations
+
+233
+00:10:07.080 --> 00:10:08.840
+of the Python functions we mentioned.
+
+234
+00:10:08.980 --> 00:10:11.800
+So we try four different supported Python versions,
+
+235
+00:10:11.940 --> 00:10:15.440
+four different memory configurations from like one gigabyte up to 10 gigs.
+
+236
+00:10:16.040 --> 00:10:19.840
+And then we execute them all from a cold start situation.
+
+237
+00:10:19.980 --> 00:10:20.980
+So we deploy it into a region
+
+238
+00:10:21.100 --> 00:10:22.980
+where we haven't deployed these things before,
+
+239
+00:10:23.140 --> 00:10:25.020
+and then we start invoking the functions.
+
+240
+00:10:25.140 --> 00:10:27.520
+So we have a script that basically just invokes
+
+241
+00:10:27.640 --> 00:10:30.080
+all the functions in parallel 2000 times,
+
+242
+00:10:30.220 --> 00:10:32.740
+or however many times, we just say 2000 times.
+
+243
+00:10:33.280 --> 00:10:36.920
+And then we extracted all of the inner durations
+
+244
+00:10:37.040 --> 00:10:39.580
+from the logs of every single invocation.
+
+245
+00:10:39.720 --> 00:10:43.540
+And we started plotting these using Jupyter Notebook and Matplotlib.
+
+246
+00:10:43.680 --> 00:10:45.920
+So since we're talking about Python data science,
+
+247
+00:10:46.040 --> 00:10:47.820
+we're using all the familiar tools here.
+
+248
+00:10:48.520 --> 00:10:51.380
+Now, the initial results we get from the first invocation
+
+249
+00:10:51.520 --> 00:10:52.680
+are pretty bad for images.
+
+250
+00:10:52.680 --> 00:10:55.520
+And this kind of proves the suspicion that most people have
+
+251
+00:10:55.640 --> 00:10:58.520
+that the first time you end up with significantly worse cold starts
+
+252
+00:10:58.640 --> 00:10:59.240
+for images.
+
+253
+00:10:59.380 --> 00:11:02.920
+And the difference we're talking about is that for zip package functions,
+
+254
+00:11:03.040 --> 00:11:05.140
+we're getting about four seconds of cold start.
+
+255
+00:11:05.280 --> 00:11:07.580
+But for image package functions,
+
+256
+00:11:07.720 --> 00:11:09.720
+it's more like nine seconds to begin with.
+
+257
+00:11:09.840 --> 00:11:11.240
+So it's significantly worse.
+
+258
+00:11:12.080 --> 00:11:15.620
+So this makes sense, I guess, but we run it again.
+
+259
+00:11:16.180 --> 00:11:20.580
+And the second time we run it, now we can force a cold start again
+
+260
+00:11:20.740 --> 00:11:23.380
+by changing the environment variables of the functions.
+
+261
+00:11:23.520 --> 00:11:27.040
+But we did that, but we also waited 90 minutes as well,
+
+262
+00:11:27.180 --> 00:11:29.140
+just to be sure and let things settle.
+
+263
+00:11:29.280 --> 00:11:32.140
+And the second time we invoke it, the results are completely the opposite.
+
+264
+00:11:32.280 --> 00:11:35.620
+So this zip package functions invocation times
+
+265
+00:11:35.740 --> 00:11:38.680
+are still three to four seconds, pretty much the same as the first one.
+
+266
+00:11:38.820 --> 00:11:41.220
+But the image package functions cold starts have gone down
+
+267
+00:11:41.340 --> 00:11:42.640
+to one to two seconds,
+
+268
+00:11:42.780 --> 00:11:44.920
+mostly in the one to one and a half second range.
+
+269
+00:11:45.040 --> 00:11:47.140
+So this is completely different.
+
+270
+00:11:47.280 --> 00:11:49.820
+So we decided, okay, let's leave it.
+
+271
+00:11:49.820 --> 00:11:53.380
+And the wait overnight and try it again the next day.
+
+272
+00:11:53.520 --> 00:11:55.120
+And the next day we try it again.
+
+273
+00:11:55.260 --> 00:11:57.160
+Everything is cold starting from the start again,
+
+274
+00:11:57.280 --> 00:11:59.980
+and we get the same results, images way faster,
+
+275
+00:12:00.120 --> 00:12:02.080
+down to one second, one and a half seconds,
+
+276
+00:12:02.220 --> 00:12:04.260
+whereas the zip package functions,
+
+277
+00:12:04.380 --> 00:12:06.580
+they are still between three and four seconds.
+
+278
+00:12:06.720 --> 00:12:08.920
+And by the way, the one with layers is a little slower
+
+279
+00:12:09.060 --> 00:12:11.380
+than the one without layers when it comes to zip packaging.
+
+280
+00:12:11.520 --> 00:12:16.360
+So I think this confirmed some of our suspicions in both senses,
+
+281
+00:12:16.480 --> 00:12:19.760
+because we had also been hearing from other members of the community
+
+282
+00:12:19.880 --> 00:12:23.220
+and other AJ Stuyvenberg has been doing a load of great research
+
+283
+00:12:23.360 --> 00:12:24.360
+around cold starts as well.
+
+284
+00:12:24.480 --> 00:12:26.620
+So it wasn't totally a surprise to us.
+
+285
+00:12:26.760 --> 00:12:30.680
+It was kind of showing us that if you want to optimize your Lambda functions
+
+286
+00:12:30.820 --> 00:12:34.120
+and you're doing heavy dependencies in Python or any other language,
+
+287
+00:12:34.260 --> 00:12:36.520
+that image deployments seem to actually be a great fit.
+
+288
+00:12:36.660 --> 00:12:39.760
+You just have to exclude that first batch of implications
+
+289
+00:12:39.880 --> 00:12:40.980
+after you deploy your function.
+
+290
+00:12:41.120 --> 00:12:43.720
+Yeah, I'm still a bit surprised about this result.
+
+291
+00:12:43.860 --> 00:12:46.460
+And I'm wondering if you try to figure out exactly
+
+292
+00:12:46.580 --> 00:12:47.780
+what's going on behind the scenes
+
+293
+00:12:47.940 --> 00:12:52.880
+to justify this better performance in terms of cold start of containers
+
+294
+00:12:53.020 --> 00:12:55.980
+after, let's say, a second round of cold starts.
+
+295
+00:12:56.120 --> 00:12:59.320
+So I'm wondering, what have you tried to try to understand
+
+296
+00:12:59.440 --> 00:13:00.680
+what's really going on?
+
+297
+00:13:00.820 --> 00:13:02.580
+Maybe you tried different memory configurations.
+
+298
+00:13:02.720 --> 00:13:04.240
+Maybe you tried to understand,
+
+299
+00:13:04.380 --> 00:13:06.920
+is it something at the file system level that is happening?
+
+300
+00:13:07.040 --> 00:13:09.480
+And maybe in general, you can walk me through the process
+
+301
+00:13:09.620 --> 00:13:11.580
+of how did you do these benchmarks?
+
+302
+00:13:15.640 --> 00:13:18.220
+Yeah, I mean, the benchmark gathering process is pretty simple in that we had just an illustrative Lambda function
+
+303
+00:13:18.340 --> 00:13:22.520
+that's generating some random data, doing some aggregations on it
+
+304
+00:13:22.640 --> 00:13:25.380
+with pandas and then uploading it to S3
+
+305
+00:13:25.520 --> 00:13:28.520
+after using PyArrow to convert it into Parquet format.
+
+306
+00:13:28.640 --> 00:13:32.680
+And this is pretty standard, I guess, in the Python data science world.
+
+307
+00:13:33.340 --> 00:13:35.140
+So when it came to understanding the benchmarks
+
+308
+00:13:35.280 --> 00:13:38.440
+and why we were getting this performance, bear in mind as well,
+
+309
+00:13:39.080 --> 00:13:42.780
+some of your data analytics workloads might take 30 seconds
+
+310
+00:13:42.820 --> 00:13:43.980
+or 90 seconds to run,
+
+311
+00:13:44.120 --> 00:13:47.020
+in which case your 4 to 10 second cold start
+
+312
+00:13:47.140 --> 00:13:48.780
+may not be that big of an issue.
+
+313
+00:13:48.920 --> 00:13:53.480
+This workload I had was taken about 500 to 1,000 milliseconds to run,
+
+314
+00:13:53.620 --> 00:13:55.280
+so the cold start was massive.
+
+315
+00:13:55.420 --> 00:13:57.080
+We were able to figure out what was going on
+
+316
+00:13:57.220 --> 00:13:59.280
+and why images were giving us better performance
+
+317
+00:13:59.420 --> 00:14:03.120
+because luckily, the Lambda team at AWS
+
+318
+00:14:03.240 --> 00:14:04.780
+wrote an excellent paper on it,
+
+319
+00:14:04.920 --> 00:14:07.880
+and it's called On Demand Container Loading in AWS Lambda.
+
+320
+00:14:08.020 --> 00:14:09.180
+The link will be in the show notes.
+
+321
+00:14:09.320 --> 00:14:11.880
+It's not a very long paper, but it is pretty interesting to read.
+
+322
+00:14:11.980 --> 00:14:14.940
+And the gist of that paper is that they've put together
+
+323
+00:14:15.080 --> 00:14:18.940
+a whole set of optimizations around container image deployment
+
+324
+00:14:19.080 --> 00:14:21.680
+that doesn't exist yet for zip package deployments.
+
+325
+00:14:21.820 --> 00:14:25.040
+So I guess when they were building in the container image support,
+
+326
+00:14:25.180 --> 00:14:27.440
+because they had to support larger file systems,
+
+327
+00:14:27.580 --> 00:14:29.480
+they had to figure out how are we going to make this work
+
+328
+00:14:29.620 --> 00:14:32.280
+without creating 30 second cold starts for people.
+
+329
+00:14:33.180 --> 00:14:34.780
+And how they do that is pretty clever.
+
+330
+00:14:34.920 --> 00:14:36.580
+So when you deploy a container image function,
+
+331
+00:14:36.720 --> 00:14:38.920
+it's not like a normal container runtime environment.
+
+332
+00:14:39.040 --> 00:14:41.040
+They take all of your container image layers,
+
+333
+00:14:41.140 --> 00:14:42.140
+your Docker image layers,
+
+334
+00:14:42.280 --> 00:14:44.500
+and they flatten them all out into a flat file system.
+
+335
+00:14:44.640 --> 00:14:47.840
+And then they chunk all of those files into like 500K blocks.
+
+336
+00:14:47.980 --> 00:14:51.640
+And those blocks are encrypted, but they're encrypted in a special way
+
+337
+00:14:51.780 --> 00:14:54.840
+that if two customers deploy the same 500K block,
+
+338
+00:14:54.980 --> 00:14:57.480
+because they're using shared similar dependencies,
+
+339
+00:14:57.600 --> 00:15:01.700
+then they'll be able to be cached once, which is really cool, right?
+
+340
+00:15:01.840 --> 00:15:04.740
+Because your private blocks are still going to be private,
+
+341
+00:15:04.880 --> 00:15:06.840
+but they will recognize if people have got
+
+342
+00:15:06.980 --> 00:15:09.600
+the exact same binary block of 500K.
+
+343
+00:15:09.700 --> 00:15:12.560
+And that way, it doesn't have to deploy all of the common stuff
+
+344
+00:15:12.700 --> 00:15:14.700
+that everybody's going to have across base images.
+
+345
+00:15:14.840 --> 00:15:17.040
+You can imagine Linux shared libraries,
+
+346
+00:15:17.160 --> 00:15:20.000
+other utilities, Python modules, node modules,
+
+347
+00:15:20.140 --> 00:15:23.300
+whatever else it is, Java jars, they'll be cached,
+
+348
+00:15:23.440 --> 00:15:25.040
+and everybody can benefit from that cache.
+
+349
+00:15:25.160 --> 00:15:28.540
+And within this whole caching system they built for container images,
+
+350
+00:15:28.660 --> 00:15:30.140
+they've got a tiered cache.
+
+351
+00:15:30.260 --> 00:15:33.660
+So caches exist in each Lambda worker on the actual node
+
+352
+00:15:33.800 --> 00:15:35.040
+where Lambda is running the code,
+
+353
+00:15:35.160 --> 00:15:37.040
+but they also have an availability zone cache as well.
+
+354
+00:15:37.200 --> 00:15:41.380
+So if chunks are not in the worker cache, it'll go to the AZ cache,
+
+355
+00:15:41.500 --> 00:15:43.500
+and if the AZ cache doesn't have the block,
+
+356
+00:15:43.640 --> 00:15:45.800
+it'll go to S3 only then, right?
+
+357
+00:15:45.940 --> 00:15:50.780
+And the paper reports cache hit rates of 65% in the worker cache
+
+358
+00:15:50.900 --> 00:15:53.540
+and actually 99% in the AZ cache.
+
+359
+00:15:53.680 --> 00:15:56.600
+So this is why we're getting this massive performance benefit.
+
+360
+00:15:56.740 --> 00:15:58.740
+So even though your container image has 10 gigs,
+
+361
+00:15:58.880 --> 00:16:01.180
+and it can benefit from this cache all the time,
+
+362
+00:16:01.300 --> 00:16:04.540
+and it also benefits from the fact that in a 10-gigabyte container image,
+
+363
+00:16:04.680 --> 00:16:06.800
+you don't need to load most of the files most of the time.
+
+364
+00:16:06.800 --> 00:16:08.300
+There's only a subset you'll ever need.
+
+365
+00:16:08.440 --> 00:16:10.700
+So they've got this virtual overlay file system
+
+366
+00:16:10.840 --> 00:16:13.100
+that takes advantage of this, reads from the caches,
+
+367
+00:16:13.240 --> 00:16:14.440
+and makes it highly performant.
+
+368
+00:16:18.800 --> 00:16:21.500
+That's an amazing summary, and yeah, it's also very interesting to see that AWS has gone to the length of publishing a paper
+
+369
+00:16:21.640 --> 00:16:24.160
+so that we can learn all these new techniques
+
+370
+00:16:24.300 --> 00:16:26.140
+and see how they are building systems at scale,
+
+371
+00:16:26.260 --> 00:16:28.900
+how they are building this amazing caching strategy.
+
+372
+00:16:29.040 --> 00:16:32.300
+So I guess going through to the end of this episode,
+
+373
+00:16:32.440 --> 00:16:33.960
+do you have a definitive recommendation
+
+374
+00:16:34.120 --> 00:16:37.120
+on whether people should use zip or containers?
+
+375
+00:16:37.260 --> 00:16:39.960
+Maybe not necessarily just in the data science space,
+
+376
+00:16:40.100 --> 00:16:41.500
+but more in general?
+
+377
+00:16:42.760 --> 00:16:47.000
+Yeah, I still think zip packaging isn't as developer-friendly
+
+378
+00:16:47.120 --> 00:16:48.620
+as container image packaging,
+
+379
+00:16:48.760 --> 00:16:52.360
+but because you get AWS still taking the responsibility for your runtime,
+
+380
+00:16:52.500 --> 00:16:54.860
+I still think it's the best preferred way initially,
+
+381
+00:16:55.000 --> 00:16:58.660
+and only if you have a need such as this to go for something beefier.
+
+382
+00:16:58.800 --> 00:17:01.060
+Then you've got a lot of module dependencies.
+
+383
+00:17:01.220 --> 00:17:04.120
+Maybe you've got even machine learning modules in your image.
+
+384
+00:17:04.260 --> 00:17:06.620
+Then you can think about using container images,
+
+385
+00:17:06.760 --> 00:17:09.200
+and I would say it's not as bad as we thought it might be,
+
+386
+00:17:09.320 --> 00:17:11.620
+and as long as you've got the security situation covered
+
+387
+00:17:11.760 --> 00:17:14.520
+and you're patching and upgrading your base images regularly enough,
+
+388
+00:17:14.660 --> 00:17:16.200
+I think it'll do fine.
+
+389
+00:17:16.320 --> 00:17:17.660
+It's probably also worth pointing out
+
+390
+00:17:17.800 --> 00:17:20.700
+that because we did multiple memory configurations,
+
+391
+00:17:20.820 --> 00:17:22.660
+we were able to see if there was much of an impact
+
+392
+00:17:22.800 --> 00:17:25.360
+from changing the memory size on performance,
+
+393
+00:17:25.500 --> 00:17:27.700
+and the answer is that there wasn't really,
+
+394
+00:17:28.300 --> 00:17:30.660
+and there's probably an easy explanation for that.
+
+395
+00:17:30.760 --> 00:17:34.360
+We know that when you run Lambda, you set the memory size,
+
+396
+00:17:34.500 --> 00:17:37.060
+and the amount of CPU and network I.O. and disk I.O.
+
+397
+00:17:37.200 --> 00:17:40.420
+you get is linearly proportional to the memory you set.
+
+398
+00:17:41.000 --> 00:17:44.460
+So I think it's 1,769 megabytes of memory
+
+399
+00:17:44.600 --> 00:17:46.860
+is equivalent to one virtual CPU,
+
+400
+00:17:47.000 --> 00:17:49.260
+and if you use less than that, you'll get less than the CPU.
+
+401
+00:17:49.400 --> 00:17:51.860
+If you use 10 gigabytes, you'll get around six CPUs,
+
+402
+00:17:52.000 --> 00:17:54.600
+but actually in the cold start phase of a Lambda function,
+
+403
+00:17:54.720 --> 00:17:56.520
+they always give you two CPUs.
+
+404
+00:17:56.660 --> 00:18:00.160
+Even if you've only allocated 256 megabytes of memory,
+
+405
+00:18:00.260 --> 00:18:03.160
+you'll still get two CPUs to kind of give you that extra boost
+
+406
+00:18:03.300 --> 00:18:04.860
+while your function is cold starting.
+
+407
+00:18:05.000 --> 00:18:07.900
+So the memory configuration didn't really affect cold start performance.
+
+408
+00:18:08.020 --> 00:18:10.500
+There were some minor discrepancies, but nothing impactful,
+
+409
+00:18:10.620 --> 00:18:12.220
+at least for this set of benchmarks we ran.
+
+410
+00:18:12.360 --> 00:18:15.820
+We also kind of looked at the individual module load time,
+
+411
+00:18:15.960 --> 00:18:18.300
+so we broke the benchmarks down into the time
+
+412
+00:18:18.420 --> 00:18:20.260
+to load individual modules.
+
+413
+00:18:20.400 --> 00:18:22.760
+Pandas, I think, is one of the worst ones for load time.
+
+414
+00:18:22.900 --> 00:18:27.200
+It can take up to four seconds on Lambda without any optimizations.
+
+415
+00:18:27.840 --> 00:18:30.260
+So it's meaningful, all this load time.
+
+416
+00:18:30.400 --> 00:18:33.260
+We also looked at things like the time to initialize Boto3
+
+417
+00:18:33.400 --> 00:18:35.400
+and the time to initialize power tools.
+
+418
+00:18:35.540 --> 00:18:36.660
+These all had an impact.
+
+419
+00:18:36.800 --> 00:18:39.340
+You can see the exact numbers in the benchmark reports.
+
+420
+00:18:39.460 --> 00:18:41.400
+We've got lots of visualizations and tables
+
+421
+00:18:41.540 --> 00:18:43.360
+of all the results in the blog post,
+
+422
+00:18:43.500 --> 00:18:47.460
+but I think you don't have to worry too much about memory configuration.
+
+423
+00:18:47.600 --> 00:18:51.200
+For cold start, that's more of an issue for the handler execution itself.
+
+424
+00:18:53.900 --> 00:18:56.560
+You mentioned already a few interesting resources, like the paper published by AWS.
+
+425
+00:18:56.560 --> 00:19:00.060
+Is there anything else worth mentioning other than that paper,
+
+426
+00:19:00.200 --> 00:19:02.460
+our source code, our blog post?
+
+427
+00:19:02.600 --> 00:19:04.820
+Yeah, actually, just before we published it,
+
+428
+00:19:04.960 --> 00:19:08.120
+I was able to catch Heitor Lessa and Ran Isenberg's talk
+
+429
+00:19:08.260 --> 00:19:12.160
+on pragmatic Python development in Lambda from Reinvent.
+
+430
+00:19:12.300 --> 00:19:13.800
+It gave me some insight into some more tools
+
+431
+00:19:13.920 --> 00:19:15.860
+you can use for Python performance analysis.
+
+432
+00:19:16.000 --> 00:19:17.660
+I'd definitely recommend you check that out.
+
+433
+00:19:17.800 --> 00:19:18.820
+If I'd seen that beforehand,
+
+434
+00:19:18.960 --> 00:19:21.000
+it might have changed the approach on this benchmarking.
+
+435
+00:19:21.120 --> 00:19:22.500
+I mean, I think the results are still the same,
+
+436
+00:19:22.620 --> 00:19:25.600
+but they have some nice tools for visualizing import times in particular
+
+437
+00:19:25.760 --> 00:19:27.540
+and runtime analysis as well.
+
+438
+00:19:27.660 --> 00:19:30.200
+I think another thing to think about with all this
+
+439
+00:19:30.340 --> 00:19:33.940
+is that when we see the import time performance for Python,
+
+440
+00:19:34.060 --> 00:19:37.040
+and we just looked at pandas and PyArrow and that sort of thing,
+
+441
+00:19:37.160 --> 00:19:39.740
+but other modules can be even more significant.
+
+442
+00:19:39.860 --> 00:19:44.000
+We didn't even deal with like Scikit or PyTorch or any of those.
+
+443
+00:19:45.200 --> 00:19:46.400
+When we think about Snap Start,
+
+444
+00:19:46.540 --> 00:19:49.560
+the new feature that was launched for Java Lambda functions last year,
+
+445
+00:19:50.100 --> 00:19:52.160
+if that support comes in for Python as well,
+
+446
+00:19:52.300 --> 00:19:55.100
+then you can imagine a world where when you deploy your function,
+
+447
+00:19:55.200 --> 00:19:57.500
+it can go through this module import time
+
+448
+00:19:57.640 --> 00:19:59.160
+and then checkpoint it and freeze it.
+
+449
+00:19:59.300 --> 00:20:00.600
+Then when your function is invoked,
+
+450
+00:20:00.740 --> 00:20:03.440
+the cold start won't have to include the module load time anymore.
+
+451
+00:20:03.560 --> 00:20:05.040
+That's going to make a big difference
+
+452
+00:20:05.160 --> 00:20:08.560
+if the Lambda team can introduce that support for Python as well.
+
+453
+00:20:08.700 --> 00:20:10.500
+We've got a good few resources there.
+
+454
+00:20:10.640 --> 00:20:13.740
+Luc from Donkersgoed has written a couple of great articles
+
+455
+00:20:13.860 --> 00:20:16.860
+on cold start performance, which we'll link in the show notes.
+
+456
+00:20:17.000 --> 00:20:18.900
+And we've also got the blog post,
+
+457
+00:20:19.040 --> 00:20:21.300
+which gives all the details that we've gone through here,
+
+458
+00:20:21.440 --> 00:20:24.140
+but a lot more as well on all the visualizations of data,
+
+459
+00:20:24.300 --> 00:20:25.780
+as well as the source code repository.
+
+460
+00:20:25.900 --> 00:20:27.840
+So we do recommend that you check those out.
+
+461
+00:20:27.980 --> 00:20:30.500
+And with that, please let us know if you've got any tips and tricks
+
+462
+00:20:30.640 --> 00:20:33.700
+for optimizing Lambda functions, especially Python Lambda functions.
+
+463
+00:20:33.840 --> 00:20:36.300
+Thanks very much for joining us, and we'll see you in the next episode.

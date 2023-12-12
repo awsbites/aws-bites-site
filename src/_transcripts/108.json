@@ -1,0 +1,2786 @@
+{
+  "speakers": {
+    "spk_0": "Eoin",
+    "spk_1": "Luciano"
+  },
+  "segments": [
+    {
+      "speakerLabel": "spk_0",
+      "start": 0,
+      "end": 2.1,
+      "text": " Python is one of the two most popular languages"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2.24,
+      "end": 4.04,
+      "text": " for developing AWS Lambda functions."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 4.16,
+      "end": 5.96,
+      "text": " When it comes to data science, statistics,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 6.1000000000000005,
+      "end": 8.94,
+      "text": " and machine learning workloads, Python is the undisputed leader."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 9.06,
+      "end": 11.9,
+      "text": " But it has often been difficult, and sometimes even impossible,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 12.040000000000001,
+      "end": 14.6,
+      "text": " to deploy certain data science workloads in AWS Lambda."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 14.74,
+      "end": 17.36,
+      "text": " The 250 megabyte packet size limit in Lambda"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 17.5,
+      "end": 20.76,
+      "text": " has been at odds with the heavy nature of Python data science modules"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 20.900000000000002,
+      "end": 21.96,
+      "text": " like NumPy and Pandas,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 22.1,
+      "end": 24.86,
+      "text": " not to mention machine learning packages like PyTorch and TensorFlow."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 25,
+      "end": 27.26,
+      "text": " And this problem might actually occur with other runtimes as well."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 27.400000000000002,
+      "end": 29.560000000000002,
+      "text": " So today we're going to talk about some benchmarking"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 29.56,
+      "end": 30.82,
+      "text": " we did on Lambda functions"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 30.959999999999997,
+      "end": 32.62,
+      "text": " and present some really interesting findings."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 32.76,
+      "end": 35,
+      "text": " We're going to talk about zip packaging, Lambda layers,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 35.12,
+      "end": 38.32,
+      "text": " and also talk about the trade-offs between zip, images, and Lambda layers."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 38.46,
+      "end": 40.46,
+      "text": " And by the end, you'll hear how container image packaging"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 40.6,
+      "end": 43.8,
+      "text": " can actually solve this problem and even provide superior performance."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 43.92,
+      "end": 46.099999999999994,
+      "text": " This episode also has an accompanying source code,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 46.22,
+      "end": 48.16,
+      "text": " repository, and detailed blog post."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 48.3,
+      "end": 49.42,
+      "text": " I'm Eoin, I'm here with Luciano,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 49.56,
+      "end": 52.06,
+      "text": " and this is another episode of the AWS Bites podcast."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 58.959999999999994,
+      "end": 60.9,
+      "text": " So, Eoin, I'd like to start by asking you the question,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 61.019999999999996,
+      "end": 63.419999999999995,
+      "text": " why would you even consider Lambda as a target"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 63.559999999999995,
+      "end": 65,
+      "text": " when doing data science with Python?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 65.11999999999999,
+      "end": 67.12,
+      "text": " Because this is generally heavy workloads,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 67.25999999999999,
+      "end": 69.6,
+      "text": " so Lambda might not seem like the right solution,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 69.72,
+      "end": 71.56,
+      "text": " but maybe I'm missing something important there."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 71.7,
+      "end": 73.7,
+      "text": " I think there's plenty of people using Python"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 73.82,
+      "end": 76.02,
+      "text": " for just API-based workloads"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 76.16,
+      "end": 79.8,
+      "text": " and normal kind of data transformation on AWS on Lambda."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 80.4,
+      "end": 82.46,
+      "text": " But when you think about data science,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 82.6,
+      "end": 85.56,
+      "text": " you have to also think then about all the other options you have on AWS"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 85.56,
+      "end": 88.62,
+      "text": " for running those kind of workloads like Python Shell"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 88.76,
+      "end": 92.4,
+      "text": " or PySpark workloads on Glue or Elastic MapReduce,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 92.52,
+      "end": 93.60000000000001,
+      "text": " you have more as well,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 93.72,
+      "end": 96.5,
+      "text": " and then you have SageMaker, SageMaker Notebooks."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 96.96000000000001,
+      "end": 100.82000000000001,
+      "text": " So you can also think about services like EC2, ECS, right?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 101.42,
+      "end": 104.4,
+      "text": " Lambda, I would say, is best suited to two classes of workloads,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 104.52000000000001,
+      "end": 106.02000000000001,
+      "text": " so those that are really bursty,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 106.96000000000001,
+      "end": 109,
+      "text": " where you don't really have constant traffic,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 109.12,
+      "end": 111.42,
+      "text": " and those where you need a lot of concurrency very quickly."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 111.56,
+      "end": 114.52000000000001,
+      "text": " And that could be like data processing,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 114.67999999999999,
+      "end": 116.47999999999999,
+      "text": " it could be like high-performance computing,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 116.61999999999999,
+      "end": 119.16,
+      "text": " high-throughput computing, lots of data science,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 119.28,
+      "end": 120.88,
+      "text": " financial modelling, scale,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 121.02,
+      "end": 124.46,
+      "text": " even kind of HPC stuff like fluid dynamics"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 124.58,
+      "end": 126.82,
+      "text": " or all sorts of scientific modelling."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 126.96,
+      "end": 128.38,
+      "text": " And the great benefit of Lambda there"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 128.51999999999998,
+      "end": 131.42,
+      "text": " is that executions can start faster than any alternative."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 131.56,
+      "end": 135.66,
+      "text": " Like, you can get thousands of concurrent instances in a few seconds,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 135.78,
+      "end": 138.62,
+      "text": " and now since the new announcement at re-Invent,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 138.76,
+      "end": 142.38,
+      "text": " you can increase by like a thousand every ten seconds."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 142.48,
+      "end": 143.57999999999998,
+      "text": " When you think about it,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 143.72,
+      "end": 146.24,
+      "text": " you've got two classes of data science workloads, I guess."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 146.38,
+      "end": 149.32,
+      "text": " On AWS, you've got ones that are highly coupled,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 149.44,
+      "end": 151.88,
+      "text": " and then you use something like Spark or Ray or Dask"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 152.01999999999998,
+      "end": 153.92,
+      "text": " or one of those distributed frameworks"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 154.04,
+      "end": 157.07999999999998,
+      "text": " to spread it across lots of stateful nodes."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 157.22,
+      "end": 158.98,
+      "text": " Lambda isn't really suitable for that kind of workload,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 159.12,
+      "end": 162.12,
+      "text": " where each concurrent unit in a Lambda environment"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 162.24,
+      "end": 164.22,
+      "text": " is not going to communicate with the others, right?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 164.34,
+      "end": 165.28,
+      "text": " It's stateless."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 165.42,
+      "end": 168.24,
+      "text": " So instead, Lambda functions are more highly isolated,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 168.38,
+      "end": 170.72,
+      "text": " and you would just run lots of them in parallel"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 170.88,
+      "end": 172.56,
+      "text": " and just orchestrate them with step function"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 172.68,
+      "end": 174.08,
+      "text": " or with other schedulers."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 174.22,
+      "end": 177.26,
+      "text": " But there are plenty of good use cases for Lambda with Python,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 177.38,
+      "end": 179.76,
+      "text": " and we've even done lots of machine learning inference"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 179.88,
+      "end": 182.36,
+      "text": " on Python very successfully, where you don't need a GPU."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 182.48,
+      "end": 184.42,
+      "text": " I think we've talked about that in the past."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 184.56,
+      "end": 187.52,
+      "text": " So, like, Python is definitely a great fit for Lambda."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 187.66,
+      "end": 190.92,
+      "text": " You know, we use it for doing real-time data analytics for IoT,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 191.06,
+      "end": 194.28,
+      "text": " for doing event-driven ETL or batch processing ETL,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 194.42,
+      "end": 197.98,
+      "text": " preparing data, machine learning, and aggregation in general."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 197.98,
+      "end": 201.32,
+      "text": " So if you have a workload that is, I suppose,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 201.44,
+      "end": 204.84,
+      "text": " more for data scientists to do ad hoc, hands-on work,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 204.98,
+      "end": 207.57999999999998,
+      "text": " then you're probably going to use something like JupyterLab,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 207.72,
+      "end": 208.78,
+      "text": " SageMaker notebooks,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 208.92,
+      "end": 211.48,
+      "text": " and maybe use an orchestrator like Airflow or DAGster."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 211.62,
+      "end": 214.73999999999998,
+      "text": " There's a load of them there in the Python ecosystem."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 214.88,
+      "end": 216.28,
+      "text": " Lambda functions can run up to 50 minutes,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 216.42,
+      "end": 219.01999999999998,
+      "text": " which is usually plenty, and use up to 10 gigs of RAM."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 219.14,
+      "end": 220.44,
+      "text": " That can be enough, but sometimes it's not,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 220.57999999999998,
+      "end": 222.82,
+      "text": " and then you might run for something like Fargate"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 222.94,
+      "end": 224.12,
+      "text": " or AppRunner instead."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 224.23999999999998,
+      "end": 226.01999999999998,
+      "text": " So it's always a trade-off."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 226.14,
+      "end": 227.57999999999998,
+      "text": " If Lambda does suit your workload,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 227.62,
+      "end": 230.32000000000002,
+      "text": " you can avoid a huge amount of infrastructure"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 230.44000000000003,
+      "end": 231.94000000000003,
+      "text": " and all that kind of stuff."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 232.08,
+      "end": 233.98000000000002,
+      "text": " But if you've got something that's long-running,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 234.12,
+      "end": 237.78,
+      "text": " then you might just go with EC2 or a container instead."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 237.92000000000002,
+      "end": 241.42000000000002,
+      "text": " You mentioned the difference between long-running, short-running."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 241.54000000000002,
+      "end": 244.12,
+      "text": " We are very well aware of the limitation in Lambda,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 244.24,
+      "end": 246.54000000000002,
+      "text": " but are there other limitations that are relevant"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 246.68,
+      "end": 248.72000000000003,
+      "text": " when you want to do data science with Python"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 248.84,
+      "end": 250.48000000000002,
+      "text": " and trying to target Lambda?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 250.62,
+      "end": 253.82000000000002,
+      "text": " When we started using serverless architectures"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 253.94,
+      "end": 256.54,
+      "text": " and combining it with Python data analytics,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 256.70000000000005,
+      "end": 258.48,
+      "text": " we were generally, this is going back a few years,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 258.6,
+      "end": 260.94,
+      "text": " so container image packaging wasn't a possibility,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 261.08000000000004,
+      "end": 264.04,
+      "text": " and you were always working within the 250-megabyte size limit."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 264.18,
+      "end": 268.1,
+      "text": " And that's everything unzipped, all of your layers all together,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 268.24,
+      "end": 270.3,
+      "text": " all of your code, there's no way to get around it."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 270.94,
+      "end": 275.84000000000003,
+      "text": " And when you look at even just a naive basic data science package"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 275.98,
+      "end": 278.58000000000004,
+      "text": " with Python, a lot of the stuff we would do would have NumPy,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 278.70000000000005,
+      "end": 282.08000000000004,
+      "text": " Pandas, and PyArrow as well, and PyArrow is also a bit of a beast."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 282.20000000000005,
+      "end": 284.78000000000003,
+      "text": " So if you've got these things, then by default,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 284.94,
+      "end": 287.73999999999995,
+      "text": " you're already exceeding the 250-megabyte limit."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 287.88,
+      "end": 291.28,
+      "text": " And you might want to ship Boto3, your own version as well,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 291.41999999999996,
+      "end": 294.73999999999995,
+      "text": " and AWS Lambda Power Tools for Python is pretty indispensable as well."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 294.88,
+      "end": 296.28,
+      "text": " Those things aren't massive,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 296.41999999999996,
+      "end": 299.73999999999995,
+      "text": " but even PyArrow is like 125 megs just on its own."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 299.88,
+      "end": 302.67999999999995,
+      "text": " So that storage requirement becomes a really big problem."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 306.02,
+      "end": 307.58,
+      "text": " Yes, so I remember doing lots of tricks to try to strip down the binaries"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 307.71999999999997,
+      "end": 310.73999999999995,
+      "text": " that sometimes you get from these packages,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 310.88,
+      "end": 313.47999999999996,
+      "text": " because behind the scenes, they try to use native packages"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 313.52000000000004,
+      "end": 316.78000000000003,
+      "text": " just to be faster, and you can reduce the size a little bit."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 316.92,
+      "end": 319.44,
+      "text": " But yeah, I guess at some point, there is always that limit,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 319.58000000000004,
+      "end": 321.08000000000004,
+      "text": " and the more libraries they use,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 321.22,
+      "end": 323.58000000000004,
+      "text": " the more likely you are to bump into this limit"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 323.72,
+      "end": 325.22,
+      "text": " that you cannot bump in any way."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 325.34000000000003,
+      "end": 327.64000000000004,
+      "text": " So that, I guess, brings us to the next question,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 327.78000000000003,
+      "end": 330.42,
+      "text": " which is, you mentioned already container deployments."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 330.54,
+      "end": 332.84000000000003,
+      "text": " What are the pros and cons of using zip packages"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 332.98,
+      "end": 334.68,
+      "text": " versus container deployments?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 334.82,
+      "end": 337.68,
+      "text": " And I guess for this particular use case,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 337.82,
+      "end": 340.04,
+      "text": " is one of the two options more suitable?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 342.28000000000003,
+      "end": 344.24,
+      "text": " I'd say in general, zip packaging is still the preferred way,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 344.38,
+      "end": 346.44,
+      "text": " and the main reason for that is that it's the only way"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 346.58000000000004,
+      "end": 349.5,
+      "text": " to make sure that AWS has the maximum amount of responsibility"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 349.64000000000004,
+      "end": 350.70000000000005,
+      "text": " for your whole environment."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 350.84000000000003,
+      "end": 354.64000000000004,
+      "text": " And I think when container image support was announced in 2020,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 354.78000000000003,
+      "end": 356.54,
+      "text": " I believe a lot of people were excited about it,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 356.68,
+      "end": 358.88,
+      "text": " because it allowed you to take your existing images"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 359,
+      "end": 362.1,
+      "text": " and kind of shove them into Lambda in a weird way."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 362.94,
+      "end": 364.6,
+      "text": " But I remember you had people like Ben Kehoe as well,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 364.74,
+      "end": 367.68,
+      "text": " who's always quite wise,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 367.8,
+      "end": 369.54,
+      "text": " I would guess, in his assessment of these things,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 369.64000000000004,
+      "end": 373.74,
+      "text": " and he mentioned that, you know, once you have a container image,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 373.88,
+      "end": 376.38,
+      "text": " you're essentially taking responsibility for the runtime,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 376.5,
+      "end": 377.74,
+      "text": " because it's like a custom runtime,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 377.88,
+      "end": 380.64000000000004,
+      "text": " and we talked about this in the recent runtimes episode."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 380.78000000000003,
+      "end": 383.38,
+      "text": " So you suddenly need to maintain that runtime yourself"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 383.5,
+      "end": 385.20000000000005,
+      "text": " just because you're using container image deployment."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 385.34000000000003,
+      "end": 387.40000000000003,
+      "text": " So while it's giving you benefits of being able to use"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 387.54,
+      "end": 390.84000000000003,
+      "text": " container image packaging tools, like Docker and"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 390.98,
+      "end": 391.48,
+      "text": " Finch, "
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 391.6,
+      "end": 393.98,
+      "text": " a new one from AWS and Podman and all these tools,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 394.78000000000003,
+      "end": 395.54,
+      "text": " that's really great."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 395.68,
+      "end": 397.88,
+      "text": " You also get the 10 gigabyte package size limit,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 398.04,
+      "end": 401.68,
+      "text": " which is 40 times greater than the 250 megabytes you get with Zip."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 402.28,
+      "end": 405.62,
+      "text": " But now all of a sudden, if you have a Java base layer,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 405.74,
+      "end": 407.44,
+      "text": " and there's a bug in the JVM,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 407.58,
+      "end": 409.58,
+      "text": " it's your responsibility for patching that JVM"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 409.71999999999997,
+      "end": 411.34,
+      "text": " and releasing a new base image,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 411.48,
+      "end": 415.38,
+      "text": " whereas with Zip packaged and one of the AWS supported runtimes,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 415.52,
+      "end": 416.82,
+      "text": " they're responsible for that packaging,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 416.94,
+      "end": 420.02,
+      "text": " and it just happens while you sleep in the night, usually,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 420.14,
+      "end": 421.12,
+      "text": " which is a really great benefit."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 421.24,
+      "end": 423.94,
+      "text": " So I wouldn't understate that benefit."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 424.54,
+      "end": 427.78,
+      "text": " Security is job zero for all of us, really,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 427.9,
+      "end": 429.38,
+      "text": " so it's pretty important."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 429.5,
+      "end": 431.38,
+      "text": " But you have to make these tradeoffs, you know?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 431.5,
+      "end": 434.48,
+      "text": " And again, a lot of people are running container images anyway,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 434.6,
+      "end": 437.08,
+      "text": " even in other environments alongside the Lambda functions."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 437.2,
+      "end": 439.08,
+      "text": " So they might say, well, look, I'm running container images,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 439.2,
+      "end": 441.44,
+      "text": " and I have my whole security tooling in place"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 441.58,
+      "end": 442.98,
+      "text": " to do the patching and upgrades anyway."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 443.1,
+      "end": 446,
+      "text": " So I'm not really concerned about that additional drawback."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 446.14,
+      "end": 449.34,
+      "text": " But one of the things that might come into play here is performance."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 449.48,
+      "end": 451.54,
+      "text": " And I heard a few times from different people"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 451.68,
+      "end": 453.58,
+      "text": " that they are worried about going to containers"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 453.58,
+      "end": 455.71999999999997,
+      "text": " because they expect worse performance."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 455.84,
+      "end": 457.44,
+      "text": " So you mentioned that we did some benchmarks,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 457.58,
+      "end": 461.02,
+      "text": " and I'm curious to find out whether that's actually true,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 461.14,
+      "end": 463.32,
+      "text": " and especially in this particular case where we use Python"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 463.44,
+      "end": 465.94,
+      "text": " and all these different data science libraries."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 466.08,
+      "end": 467.91999999999996,
+      "text": " Yeah, I mean, there's a lot of factors at play here."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 468.03999999999996,
+      "end": 469.88,
+      "text": " And the traditional way we just solved this problem"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 470.02,
+      "end": 471.84,
+      "text": " before we had container image support,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 471.97999999999996,
+      "end": 473.18,
+      "text": " there was, with serverless framework,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 473.32,
+      "end": 476.02,
+      "text": " there was a very popular plugin called serverless-python-requirements,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 476.14,
+      "end": 477.53999999999996,
+      "text": " and it would do exactly what you mentioned."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 477.68,
+      "end": 481.32,
+      "text": " It would take all the tests out of your Python packages."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 481.58,
+      "end": 485.06,
+      "text": " It would remove your readme and any documentation,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 485.18,
+      "end": 487.65999999999997,
+      "text": " and then it would strip any native shared libraries as well."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 487.78,
+      "end": 489.36,
+      "text": " So there'd be no debug symbols."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 489.48,
+      "end": 492.71999999999997,
+      "text": " It was also common to remove the PYC bytecode files as well,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 492.86,
+      "end": 495.46,
+      "text": " the precompiled bytecode, just to save on that extra space."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 495.58,
+      "end": 497.52,
+      "text": " Of course, that might result in a performance hit."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 497.65999999999997,
+      "end": 500.18,
+      "text": " So at every step, you need to think about the tradeoff, right?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 500.32,
+      "end": 504.02,
+      "text": " So when you're using Lambda, you're supposed to be just writing the code"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 504.15999999999997,
+      "end": 506.52,
+      "text": " and let AWS manage everything else. That's the promise."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 506.65999999999997,
+      "end": 508.32,
+      "text": " And if you end up having to do all this heavy lifting"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 508.46,
+      "end": 510.71999999999997,
+      "text": " to strip out your packages, you kind of wonder,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 510.76000000000005,
+      "end": 512.32,
+      "text": " are you really realizing that benefit?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 512.46,
+      "end": 515.26,
+      "text": " So with container images, when they came out first,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 515.38,
+      "end": 518.4200000000001,
+      "text": " I suppose 10 gigabytes, the assumption"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 518.5600000000001,
+      "end": 520.98,
+      "text": " and a lot of the observation was that cold starts were faster."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 521.12,
+      "end": 523.26,
+      "text": " And that's kind of intuitively something that makes sense"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 523.38,
+      "end": 525.12,
+      "text": " because you say, okay, well, it's going to take longer"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 525.26,
+      "end": 529.1800000000001,
+      "text": " to cold start a 10 gigabyte function than it is a 250 megabyte function."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 529.32,
+      "end": 532.58,
+      "text": " What we did was we started to do some proper benchmarks on this"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 532.72,
+      "end": 534.02,
+      "text": " and measure cold starts."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 534.1600000000001,
+      "end": 537.9200000000001,
+      "text": " And we put together some benchmark code base"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 538.0799999999999,
+      "end": 540.78,
+      "text": " with lots of different permutations of Lambda deployments."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 540.92,
+      "end": 544.3199999999999,
+      "text": " So we had zip package ones, we had zip package ones with layers."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 544.9799999999999,
+      "end": 546.92,
+      "text": " And the whole idea of using layers is actually"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 547.06,
+      "end": 550.66,
+      "text": " that there's a provided Lambda layer from AWS"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 550.78,
+      "end": 553.42,
+      "text": " called the AWS SDK for Pandas layer."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 553.56,
+      "end": 556.3199999999999,
+      "text": " And that already has Pandas, PyArrow,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 556.4599999999999,
+      "end": 559.62,
+      "text": " and NumPy already stripped down and optimized for you."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 559.76,
+      "end": 561.06,
+      "text": " You can look into their build process"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 561.18,
+      "end": 564.3199999999999,
+      "text": " and they're like compiling PyArrow with all the minimal flags"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 564.4599999999999,
+      "end": 567.0799999999999,
+      "text": " and they're stripping out debug symbols, and that's how they do it."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 567.24,
+      "end": 570.0400000000001,
+      "text": " So layers doesn't really give you a benefit inherently,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 570.1800000000001,
+      "end": 572.08,
+      "text": " but the fact that somebody else has gone to the trouble"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 572.22,
+      "end": 574.7800000000001,
+      "text": " of doing the stripping for you kind of gets around that problem."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 574.9200000000001,
+      "end": 577.22,
+      "text": " So that was why we tested the layers option."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 577.34,
+      "end": 578.84,
+      "text": " And then we tested images as well."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 578.98,
+      "end": 581.64,
+      "text": " We tested it with lots of different memory configurations"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 581.7800000000001,
+      "end": 583.44,
+      "text": " because we know that memory configuration"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 583.58,
+      "end": 585.6800000000001,
+      "text": " can affect Lambda performance as well."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 585.82,
+      "end": 588.5200000000001,
+      "text": " So you mentioned that you did some benchmarks."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 588.64,
+      "end": 591.0400000000001,
+      "text": " What are the results of these benchmarks?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 591.1800000000001,
+      "end": 594.44,
+      "text": " Is it container the favorite option in terms of performance"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 594.5400000000001,
+      "end": 597.5400000000001,
+      "text": " or is it still zip in terms of delivering better?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 597.6800000000001,
+      "end": 599.84,
+      "text": " Maybe call starts versus execution time as well"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 599.98,
+      "end": 601.8800000000001,
+      "text": " could be another dimension to explore."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 602,
+      "end": 604.2,
+      "text": " Sure, yeah."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 604.34,
+      "end": 606.94,
+      "text": " So in this benchmark application, we've got the CDK project that deploys all these permutations"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 607.08,
+      "end": 608.84,
+      "text": " of the Python functions we mentioned."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 608.98,
+      "end": 611.8000000000001,
+      "text": " So we try four different supported Python versions,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 611.94,
+      "end": 615.44,
+      "text": " four different memory configurations from like one gigabyte up to 10 gigs."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 616.0400000000001,
+      "end": 619.84,
+      "text": " And then we execute them all from a cold start situation."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 619.98,
+      "end": 620.98,
+      "text": " So we deploy it into a region"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 621.1,
+      "end": 622.98,
+      "text": " where we haven't deployed these things before,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 623.14,
+      "end": 625.02,
+      "text": " and then we start invoking the functions."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 625.14,
+      "end": 627.52,
+      "text": " So we have a script that basically just invokes"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 627.64,
+      "end": 630.08,
+      "text": " all the functions in parallel 2000 times,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 630.22,
+      "end": 632.74,
+      "text": " or however many times, we just say 2000 times."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 633.28,
+      "end": 636.9200000000001,
+      "text": " And then we extracted all of the inner durations"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 637.04,
+      "end": 639.58,
+      "text": " from the logs of every single invocation."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 639.72,
+      "end": 643.54,
+      "text": " And we started plotting these using Jupyter Notebook and Matplotlib."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 643.6800000000001,
+      "end": 645.9200000000001,
+      "text": " So since we're talking about Python data science,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 646.04,
+      "end": 647.82,
+      "text": " we're using all the familiar tools here."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 648.52,
+      "end": 651.38,
+      "text": " Now, the initial results we get from the first invocation"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 651.52,
+      "end": 652.6800000000001,
+      "text": " are pretty bad for images."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 652.68,
+      "end": 655.52,
+      "text": " And this kind of proves the suspicion that most people have"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 655.64,
+      "end": 658.52,
+      "text": " that the first time you end up with significantly worse cold starts"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 658.64,
+      "end": 659.2399999999999,
+      "text": " for images."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 659.38,
+      "end": 662.92,
+      "text": " And the difference we're talking about is that for zip package functions,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 663.04,
+      "end": 665.14,
+      "text": " we're getting about four seconds of cold start."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 665.28,
+      "end": 667.5799999999999,
+      "text": " But for image package functions,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 667.7199999999999,
+      "end": 669.7199999999999,
+      "text": " it's more like nine seconds to begin with."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 669.8399999999999,
+      "end": 671.2399999999999,
+      "text": " So it's significantly worse."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 672.0799999999999,
+      "end": 675.62,
+      "text": " So this makes sense, I guess, but we run it again."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 676.18,
+      "end": 680.5799999999999,
+      "text": " And the second time we run it, now we can force a cold start again"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 680.74,
+      "end": 683.38,
+      "text": " by changing the environment variables of the functions."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 683.5200000000001,
+      "end": 687.0400000000001,
+      "text": " But we did that, but we also waited 90 minutes as well,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 687.1800000000001,
+      "end": 689.14,
+      "text": " just to be sure and let things settle."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 689.2800000000001,
+      "end": 692.14,
+      "text": " And the second time we invoke it, the results are completely the opposite."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 692.2800000000001,
+      "end": 695.62,
+      "text": " So this zip package functions invocation times"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 695.74,
+      "end": 698.6800000000001,
+      "text": " are still three to four seconds, pretty much the same as the first one."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 698.82,
+      "end": 701.22,
+      "text": " But the image package functions cold starts have gone down"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 701.34,
+      "end": 702.64,
+      "text": " to one to two seconds,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 702.7800000000001,
+      "end": 704.9200000000001,
+      "text": " mostly in the one to one and a half second range."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 705.0400000000001,
+      "end": 707.1400000000001,
+      "text": " So this is completely different."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 707.2800000000001,
+      "end": 709.82,
+      "text": " So we decided, okay, let's leave it."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 709.82,
+      "end": 713.38,
+      "text": " And the wait overnight and try it again the next day."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 713.5200000000001,
+      "end": 715.12,
+      "text": " And the next day we try it again."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 715.2600000000001,
+      "end": 717.1600000000001,
+      "text": " Everything is cold starting from the start again,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 717.2800000000001,
+      "end": 719.98,
+      "text": " and we get the same results, images way faster,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 720.12,
+      "end": 722.08,
+      "text": " down to one second, one and a half seconds,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 722.22,
+      "end": 724.2600000000001,
+      "text": " whereas the zip package functions,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 724.38,
+      "end": 726.58,
+      "text": " they are still between three and four seconds."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 726.72,
+      "end": 728.9200000000001,
+      "text": " And by the way, the one with layers is a little slower"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 729.0600000000001,
+      "end": 731.38,
+      "text": " than the one without layers when it comes to zip packaging."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 731.5200000000001,
+      "end": 736.36,
+      "text": " So I think this confirmed some of our suspicions in both senses,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 736.48,
+      "end": 739.7600000000001,
+      "text": " because we had also been hearing from other members of the community"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 739.88,
+      "end": 743.22,
+      "text": " and other AJ Stuyvenberg has been doing a load of great research"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 743.36,
+      "end": 744.36,
+      "text": " around cold starts as well."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 744.48,
+      "end": 746.62,
+      "text": " So it wasn't totally a surprise to us."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 746.7600000000001,
+      "end": 750.6800000000001,
+      "text": " It was kind of showing us that if you want to optimize your Lambda functions"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 750.82,
+      "end": 754.12,
+      "text": " and you're doing heavy dependencies in Python or any other language,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 754.2600000000001,
+      "end": 756.5200000000001,
+      "text": " that image deployments seem to actually be a great fit."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 756.6600000000001,
+      "end": 759.7600000000001,
+      "text": " You just have to exclude that first batch of implications"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 759.88,
+      "end": 760.98,
+      "text": " after you deploy your function."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 761.12,
+      "end": 763.72,
+      "text": " Yeah, I'm still a bit surprised about this result."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 763.86,
+      "end": 766.46,
+      "text": " And I'm wondering if you try to figure out exactly"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 766.58,
+      "end": 767.7800000000001,
+      "text": " what's going on behind the scenes"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 767.9399999999999,
+      "end": 772.88,
+      "text": " to justify this better performance in terms of cold start of containers"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 773.02,
+      "end": 775.98,
+      "text": " after, let's say, a second round of cold starts."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 776.12,
+      "end": 779.3199999999999,
+      "text": " So I'm wondering, what have you tried to try to understand"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 779.4399999999999,
+      "end": 780.68,
+      "text": " what's really going on?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 780.8199999999999,
+      "end": 782.5799999999999,
+      "text": " Maybe you tried different memory configurations."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 782.72,
+      "end": 784.24,
+      "text": " Maybe you tried to understand,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 784.38,
+      "end": 786.92,
+      "text": " is it something at the file system level that is happening?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 787.04,
+      "end": 789.48,
+      "text": " And maybe in general, you can walk me through the process"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 789.62,
+      "end": 791.5799999999999,
+      "text": " of how did you do these benchmarks?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 795.64,
+      "end": 798.22,
+      "text": " Yeah, I mean, the benchmark gathering process is pretty simple in that we had just an illustrative Lambda function"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 798.34,
+      "end": 802.52,
+      "text": " that's generating some random data, doing some aggregations on it"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 802.64,
+      "end": 805.38,
+      "text": " with pandas and then uploading it to S3"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 805.52,
+      "end": 808.52,
+      "text": " after using PyArrow to convert it into Parquet format."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 808.64,
+      "end": 812.6800000000001,
+      "text": " And this is pretty standard, I guess, in the Python data science world."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 813.34,
+      "end": 815.14,
+      "text": " So when it came to understanding the benchmarks"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 815.28,
+      "end": 818.44,
+      "text": " and why we were getting this performance, bear in mind as well,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 819.08,
+      "end": 822.78,
+      "text": " some of your data analytics workloads might take 30 seconds"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 822.8199999999999,
+      "end": 823.98,
+      "text": " or 90 seconds to run,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 824.12,
+      "end": 827.02,
+      "text": " in which case your 4 to 10 second cold start"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 827.14,
+      "end": 828.78,
+      "text": " may not be that big of an issue."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 828.92,
+      "end": 833.48,
+      "text": " This workload I had was taken about 500 to 1,000 milliseconds to run,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 833.62,
+      "end": 835.28,
+      "text": " so the cold start was massive."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 835.42,
+      "end": 837.0799999999999,
+      "text": " We were able to figure out what was going on"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 837.22,
+      "end": 839.28,
+      "text": " and why images were giving us better performance"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 839.42,
+      "end": 843.12,
+      "text": " because luckily, the Lambda team at AWS"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 843.24,
+      "end": 844.78,
+      "text": " wrote an excellent paper on it,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 844.92,
+      "end": 847.88,
+      "text": " and it's called On Demand Container Loading in AWS Lambda."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 848.02,
+      "end": 849.18,
+      "text": " The link will be in the show notes."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 849.3199999999999,
+      "end": 851.88,
+      "text": " It's not a very long paper, but it is pretty interesting to read."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 851.98,
+      "end": 854.9399999999999,
+      "text": " And the gist of that paper is that they've put together"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 855.08,
+      "end": 858.9399999999999,
+      "text": " a whole set of optimizations around container image deployment"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 859.08,
+      "end": 861.68,
+      "text": " that doesn't exist yet for zip package deployments."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 861.82,
+      "end": 865.04,
+      "text": " So I guess when they were building in the container image support,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 865.18,
+      "end": 867.4399999999999,
+      "text": " because they had to support larger file systems,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 867.58,
+      "end": 869.48,
+      "text": " they had to figure out how are we going to make this work"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 869.62,
+      "end": 872.28,
+      "text": " without creating 30 second cold starts for people."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 873.18,
+      "end": 874.78,
+      "text": " And how they do that is pretty clever."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 874.92,
+      "end": 876.58,
+      "text": " So when you deploy a container image function,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 876.72,
+      "end": 878.92,
+      "text": " it's not like a normal container runtime environment."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 879.04,
+      "end": 881.04,
+      "text": " They take all of your container image layers,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 881.14,
+      "end": 882.14,
+      "text": " your Docker image layers,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 882.28,
+      "end": 884.5,
+      "text": " and they flatten them all out into a flat file system."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 884.64,
+      "end": 887.8399999999999,
+      "text": " And then they chunk all of those files into like 500K blocks."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 887.98,
+      "end": 891.64,
+      "text": " And those blocks are encrypted, but they're encrypted in a special way"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 891.78,
+      "end": 894.8399999999999,
+      "text": " that if two customers deploy the same 500K block,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 894.98,
+      "end": 897.48,
+      "text": " because they're using shared similar dependencies,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 897.5999999999999,
+      "end": 901.6999999999999,
+      "text": " then they'll be able to be cached once, which is really cool, right?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 901.8399999999999,
+      "end": 904.74,
+      "text": " Because your private blocks are still going to be private,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 904.88,
+      "end": 906.8399999999999,
+      "text": " but they will recognize if people have got"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 906.98,
+      "end": 909.5999999999999,
+      "text": " the exact same binary block of 500K."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 909.7,
+      "end": 912.5600000000001,
+      "text": " And that way, it doesn't have to deploy all of the common stuff"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 912.7,
+      "end": 914.7,
+      "text": " that everybody's going to have across base images."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 914.84,
+      "end": 917.0400000000001,
+      "text": " You can imagine Linux shared libraries,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 917.16,
+      "end": 920,
+      "text": " other utilities, Python modules, node modules,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 920.14,
+      "end": 923.3000000000001,
+      "text": " whatever else it is, Java jars, they'll be cached,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 923.44,
+      "end": 925.0400000000001,
+      "text": " and everybody can benefit from that cache."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 925.16,
+      "end": 928.5400000000001,
+      "text": " And within this whole caching system they built for container images,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 928.66,
+      "end": 930.14,
+      "text": " they've got a tiered cache."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 930.26,
+      "end": 933.6600000000001,
+      "text": " So caches exist in each Lambda worker on the actual node"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 933.8000000000001,
+      "end": 935.0400000000001,
+      "text": " where Lambda is running the code,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 935.1600000000001,
+      "end": 937.0400000000001,
+      "text": " but they also have an availability zone cache as well."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 937.1999999999999,
+      "end": 941.38,
+      "text": " So if chunks are not in the worker cache, it'll go to the AZ cache,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 941.5,
+      "end": 943.5,
+      "text": " and if the AZ cache doesn't have the block,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 943.64,
+      "end": 945.8,
+      "text": " it'll go to S3 only then, right?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 945.9399999999999,
+      "end": 950.78,
+      "text": " And the paper reports cache hit rates of 65% in the worker cache"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 950.9,
+      "end": 953.54,
+      "text": " and actually 99% in the AZ cache."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 953.68,
+      "end": 956.5999999999999,
+      "text": " So this is why we're getting this massive performance benefit."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 956.74,
+      "end": 958.74,
+      "text": " So even though your container image has 10 gigs,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 958.88,
+      "end": 961.18,
+      "text": " and it can benefit from this cache all the time,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 961.3,
+      "end": 964.54,
+      "text": " and it also benefits from the fact that in a 10-gigabyte container image,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 964.68,
+      "end": 966.8,
+      "text": " you don't need to load most of the files most of the time."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 966.8,
+      "end": 968.3,
+      "text": " There's only a subset you'll ever need."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 968.4399999999999,
+      "end": 970.6999999999999,
+      "text": " So they've got this virtual overlay file system"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 970.8399999999999,
+      "end": 973.0999999999999,
+      "text": " that takes advantage of this, reads from the caches,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 973.24,
+      "end": 974.4399999999999,
+      "text": " and makes it highly performant."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 978.8,
+      "end": 981.5,
+      "text": " That's an amazing summary, and yeah, it's also very interesting to see that AWS has gone to the length of publishing a paper"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 981.64,
+      "end": 984.16,
+      "text": " so that we can learn all these new techniques"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 984.3,
+      "end": 986.14,
+      "text": " and see how they are building systems at scale,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 986.26,
+      "end": 988.9,
+      "text": " how they are building this amazing caching strategy."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 989.04,
+      "end": 992.3,
+      "text": " So I guess going through to the end of this episode,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 992.4399999999999,
+      "end": 993.9599999999999,
+      "text": " do you have a definitive recommendation"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 994.12,
+      "end": 997.12,
+      "text": " on whether people should use zip or containers?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 997.26,
+      "end": 999.96,
+      "text": " Maybe not necessarily just in the data science space,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1000.1,
+      "end": 1001.5,
+      "text": " but more in general?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1002.76,
+      "end": 1007,
+      "text": " Yeah, I still think zip packaging isn't as developer-friendly"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1007.12,
+      "end": 1008.62,
+      "text": " as container image packaging,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1008.76,
+      "end": 1012.36,
+      "text": " but because you get AWS still taking the responsibility for your runtime,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1012.5,
+      "end": 1014.86,
+      "text": " I still think it's the best preferred way initially,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1015,
+      "end": 1018.6600000000001,
+      "text": " and only if you have a need such as this to go for something beefier."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1018.8000000000001,
+      "end": 1021.0600000000001,
+      "text": " Then you've got a lot of module dependencies."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1021.2199999999999,
+      "end": 1024.12,
+      "text": " Maybe you've got even machine learning modules in your image."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1024.26,
+      "end": 1026.62,
+      "text": " Then you can think about using container images,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1026.76,
+      "end": 1029.2,
+      "text": " and I would say it's not as bad as we thought it might be,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1029.32,
+      "end": 1031.62,
+      "text": " and as long as you've got the security situation covered"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1031.76,
+      "end": 1034.52,
+      "text": " and you're patching and upgrading your base images regularly enough,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1034.6599999999999,
+      "end": 1036.2,
+      "text": " I think it'll do fine."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1036.32,
+      "end": 1037.6599999999999,
+      "text": " It's probably also worth pointing out"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1037.8,
+      "end": 1040.7,
+      "text": " that because we did multiple memory configurations,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1040.82,
+      "end": 1042.6599999999999,
+      "text": " we were able to see if there was much of an impact"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1042.8,
+      "end": 1045.36,
+      "text": " from changing the memory size on performance,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1045.5,
+      "end": 1047.7,
+      "text": " and the answer is that there wasn't really,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1048.3,
+      "end": 1050.6599999999999,
+      "text": " and there's probably an easy explanation for that."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1050.76,
+      "end": 1054.3600000000001,
+      "text": " We know that when you run Lambda, you set the memory size,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1054.5,
+      "end": 1057.0600000000002,
+      "text": " and the amount of CPU and network I.O. and disk I.O."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1057.2,
+      "end": 1060.42,
+      "text": " you get is linearly proportional to the memory you set."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1061,
+      "end": 1064.46,
+      "text": " So I think it's 1,769 megabytes of memory"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1064.6000000000001,
+      "end": 1066.8600000000001,
+      "text": " is equivalent to one virtual CPU,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1067,
+      "end": 1069.26,
+      "text": " and if you use less than that, you'll get less than the CPU."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1069.4,
+      "end": 1071.8600000000001,
+      "text": " If you use 10 gigabytes, you'll get around six CPUs,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1072,
+      "end": 1074.6000000000001,
+      "text": " but actually in the cold start phase of a Lambda function,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1074.72,
+      "end": 1076.52,
+      "text": " they always give you two CPUs."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1076.66,
+      "end": 1080.16,
+      "text": " Even if you've only allocated 256 megabytes of memory,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1080.26,
+      "end": 1083.16,
+      "text": " you'll still get two CPUs to kind of give you that extra boost"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1083.3000000000002,
+      "end": 1084.8600000000001,
+      "text": " while your function is cold starting."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1085,
+      "end": 1087.9,
+      "text": " So the memory configuration didn't really affect cold start performance."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1088.02,
+      "end": 1090.5,
+      "text": " There were some minor discrepancies, but nothing impactful,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1090.6200000000001,
+      "end": 1092.22,
+      "text": " at least for this set of benchmarks we ran."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1092.3600000000001,
+      "end": 1095.8200000000002,
+      "text": " We also kind of looked at the individual module load time,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1095.96,
+      "end": 1098.3000000000002,
+      "text": " so we broke the benchmarks down into the time"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1098.42,
+      "end": 1100.26,
+      "text": " to load individual modules."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1100.4,
+      "end": 1102.76,
+      "text": " Pandas, I think, is one of the worst ones for load time."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1102.9,
+      "end": 1107.2,
+      "text": " It can take up to four seconds on Lambda without any optimizations."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1107.8400000000001,
+      "end": 1110.26,
+      "text": " So it's meaningful, all this load time."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1110.4,
+      "end": 1113.26,
+      "text": " We also looked at things like the time to initialize Boto3"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1113.4,
+      "end": 1115.4,
+      "text": " and the time to initialize power tools."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1115.54,
+      "end": 1116.66,
+      "text": " These all had an impact."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1116.8,
+      "end": 1119.3400000000001,
+      "text": " You can see the exact numbers in the benchmark reports."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1119.46,
+      "end": 1121.4,
+      "text": " We've got lots of visualizations and tables"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1121.54,
+      "end": 1123.3600000000001,
+      "text": " of all the results in the blog post,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1123.5,
+      "end": 1127.46,
+      "text": " but I think you don't have to worry too much about memory configuration."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1127.6000000000001,
+      "end": 1131.2,
+      "text": " For cold start, that's more of an issue for the handler execution itself."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1133.9,
+      "end": 1136.56,
+      "text": " You mentioned already a few interesting resources, like the paper published by AWS."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1136.56,
+      "end": 1140.06,
+      "text": " Is there anything else worth mentioning other than that paper,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1140.2,
+      "end": 1142.46,
+      "text": " our source code, our blog post?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1142.6,
+      "end": 1144.82,
+      "text": " Yeah, actually, just before we published it,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1144.96,
+      "end": 1148.12,
+      "text": " I was able to catch Heitor Lessa and Ran Isenberg's talk"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1148.26,
+      "end": 1152.1599999999999,
+      "text": " on pragmatic Python development in Lambda from Reinvent."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1152.3,
+      "end": 1153.8,
+      "text": " It gave me some insight into some more tools"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1153.9199999999998,
+      "end": 1155.86,
+      "text": " you can use for Python performance analysis."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1156,
+      "end": 1157.6599999999999,
+      "text": " I'd definitely recommend you check that out."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1157.8,
+      "end": 1158.82,
+      "text": " If I'd seen that beforehand,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1158.96,
+      "end": 1161,
+      "text": " it might have changed the approach on this benchmarking."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1161.12,
+      "end": 1162.5,
+      "text": " I mean, I think the results are still the same,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1162.62,
+      "end": 1165.6,
+      "text": " but they have some nice tools for visualizing import times in particular"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1165.76,
+      "end": 1167.54,
+      "text": " and runtime analysis as well."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1167.6599999999999,
+      "end": 1170.1999999999998,
+      "text": " I think another thing to think about with all this"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1170.34,
+      "end": 1173.9399999999998,
+      "text": " is that when we see the import time performance for Python,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1174.06,
+      "end": 1177.04,
+      "text": " and we just looked at pandas and PyArrow and that sort of thing,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1177.1599999999999,
+      "end": 1179.74,
+      "text": " but other modules can be even more significant."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1179.86,
+      "end": 1184,
+      "text": " We didn't even deal with like Scikit or PyTorch or any of those."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1185.1999999999998,
+      "end": 1186.3999999999999,
+      "text": " When we think about Snap Start,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1186.54,
+      "end": 1189.56,
+      "text": " the new feature that was launched for Java Lambda functions last year,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1190.1,
+      "end": 1192.1599999999999,
+      "text": " if that support comes in for Python as well,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1192.3,
+      "end": 1195.1,
+      "text": " then you can imagine a world where when you deploy your function,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1195.1999999999998,
+      "end": 1197.5,
+      "text": " it can go through this module import time"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1197.6399999999999,
+      "end": 1199.1599999999999,
+      "text": " and then checkpoint it and freeze it."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1199.3,
+      "end": 1200.6,
+      "text": " Then when your function is invoked,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1200.74,
+      "end": 1203.4399999999998,
+      "text": " the cold start won't have to include the module load time anymore."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1203.56,
+      "end": 1205.04,
+      "text": " That's going to make a big difference"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1205.1599999999999,
+      "end": 1208.56,
+      "text": " if the Lambda team can introduce that support for Python as well."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1208.6999999999998,
+      "end": 1210.5,
+      "text": " We've got a good few resources there."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1210.6399999999999,
+      "end": 1213.74,
+      "text": " Luc from Donkersgoed has written a couple of great articles"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1213.86,
+      "end": 1216.86,
+      "text": " on cold start performance, which we'll link in the show notes."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1217,
+      "end": 1218.8999999999999,
+      "text": " And we've also got the blog post,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1219.04,
+      "end": 1221.3,
+      "text": " which gives all the details that we've gone through here,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1221.4399999999998,
+      "end": 1224.1399999999999,
+      "text": " but a lot more as well on all the visualizations of data,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1224.3000000000002,
+      "end": 1225.7800000000002,
+      "text": " as well as the source code repository."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1225.9,
+      "end": 1227.8400000000001,
+      "text": " So we do recommend that you check those out."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1227.98,
+      "end": 1230.5,
+      "text": " And with that, please let us know if you've got any tips and tricks"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1230.64,
+      "end": 1233.7,
+      "text": " for optimizing Lambda functions, especially Python Lambda functions."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1233.8400000000001,
+      "end": 1236.3000000000002,
+      "text": " Thanks very much for joining us, and we'll see you in the next episode."
+    }
+  ]
+}

@@ -1,0 +1,993 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:07.000
+Ever find yourself bootstrapping new cloud projects, endlessly copy-pasting config files and drowning in repetitive tasks?
+
+2
+00:00:07.000 --> 00:00:14.000
+What if you could ditch the copy-paste chaos and channel all of that energy into real value, crafting your project business logic itself?
+
+3
+00:00:14.000 --> 00:00:18.000
+Today we are going to discuss a new AWS open source project that aims to address this problem.
+
+4
+00:00:18.000 --> 00:00:21.000
+It's called AWS Project Development Kit, aka PDK.
+
+5
+00:00:21.000 --> 00:00:29.000
+If you stick around, you will learn what PDK is, what kind of features it supports, how to get started with it, and finally we will also disclose our opinion on it,
+
+6
+00:00:29.000 --> 00:00:33.000
+what are the pros and cons, and whether you should be using it or not, depending on the kind of company you work with.
+
+7
+00:00:33.000 --> 00:00:37.000
+My name is Luciano and I'm joined by Eoin for another episode of AWS Bites podcast.
+
+8
+00:00:59.000 --> 00:01:02.000
+We have discussed CDK in the past, but what is PDK?
+
+9
+00:01:02.000 --> 00:01:09.000
+Yeah, it's another three words acronym, so it might be more confusing than ever with all the variety of tools that exist in AWS.
+
+10
+00:01:09.000 --> 00:01:15.000
+We have a new one with another acronym, so the name PDK stands for Project Development Kit, and it's relatively new.
+
+11
+00:01:15.000 --> 00:01:22.000
+I actually checked the first commit was like more than two years ago, so I think it has been going on for a while, but I think only now it's starting to get a little bit of traction.
+
+12
+00:01:22.000 --> 00:01:24.000
+Maybe it's becoming a little bit more stable.
+
+13
+00:01:24.000 --> 00:01:28.000
+We only discovered it like last week, so it came under our radar very recently.
+
+14
+00:01:28.000 --> 00:01:39.000
+So the idea is that if you actually have the problem that we discussed in the introduction, so you spin up projects and projects, you work in a very active company with lots of stuff going on,
+
+15
+00:01:39.000 --> 00:01:47.000
+you end up probably copy pasting a lot and lots of boilerplate being somehow managed, and this tool is trying to give structure to that kind of problem.
+
+16
+00:01:47.000 --> 00:01:51.000
+So how do you consistently put up new projects? That's the goal of the tool.
+
+17
+00:01:51.000 --> 00:01:57.000
+And just to give you an example, if you start a JavaScript project, you probably know how many configuration files do you need.
+
+18
+00:01:57.000 --> 00:02:01.000
+You probably need a TypeScript config, linting config, coverage config.
+
+19
+00:02:01.000 --> 00:02:09.000
+You will have some kind of CI CD, and when you start to add on top of that, also infrastructure with CDK configuration and all that kind of stuff, it only compounds,
+
+20
+00:02:09.000 --> 00:02:14.000
+and you have all this massive configuration file that you have to manage over and over and over again,
+
+21
+00:02:14.000 --> 00:02:20.000
+and then every time there is a change in your organization, good luck trying to keep everything standardized and up to date.
+
+22
+00:02:20.000 --> 00:02:23.000
+So that's kind of the problem space that this tool tries to address.
+
+23
+00:02:23.000 --> 00:02:31.000
+And the example that you get from the website is basically you can build a monorepo, so that seems to be kind of one of the main cases that the tool tries to address.
+
+24
+00:02:31.000 --> 00:02:37.000
+So when you build a monorepo, you can also have additional things like how is the build pipeline going to work?
+
+25
+00:02:37.000 --> 00:02:44.000
+Maybe I only want to build the projects that are actually changed from my latest commit, and you need to have some kind of mechanisms to do all of that consistently.
+
+26
+00:02:44.000 --> 00:02:49.000
+Generally, you also have caching. You might have dependencies between the different projects that are part of your monorepo.
+
+27
+00:02:49.000 --> 00:02:55.000
+So this tool also tries to give you all the tools to manage all the different problems in a consistent way.
+
+28
+00:02:55.000 --> 00:02:59.000
+It is built on top of CDK and Projen, so two very interesting technologies.
+
+29
+00:02:59.000 --> 00:03:05.000
+We have been speaking about CDK before, and we have an entire episode dedicated to that, so we will have a link in the show notes.
+
+30
+00:03:05.000 --> 00:03:11.000
+But if you've never heard of CDK, it's pretty much a way to do infrastructure as code using programming languages.
+
+31
+00:03:11.000 --> 00:03:17.000
+So rather than using YAML, you can use TypeScript, Python, Java, Go, and so you can think of it as terraform or cloud formation,
+
+32
+00:03:17.000 --> 00:03:23.000
+but using those languages and variables and classes and instantiating constructs rather than defining the clarity code.
+
+33
+00:03:23.000 --> 00:03:28.000
+Okay, so yeah, I mean, we like CDK for a certain number of cases.
+
+34
+00:03:28.000 --> 00:03:35.000
+I think we've both got our reservations for when it comes to CDK wider adoption, but we know why it shines.
+
+35
+00:03:35.000 --> 00:03:39.000
+It's really good for bootstrapping and prototyping and building dynamic infrastructure as code,
+
+36
+00:03:39.000 --> 00:03:43.000
+because you just create those classes and it can create a load of boilerplate for you.
+
+37
+00:03:43.000 --> 00:03:48.000
+So I can kind of understand that if you've got project templates and all that boilerplate that you have with new projects,
+
+38
+00:03:48.000 --> 00:03:52.000
+especially with full-stack projects and monorepos, it gets to be a lot, right?
+
+39
+00:03:52.000 --> 00:03:57.000
+And copy-pasting everything every time is really very difficult to get a handle on it
+
+40
+00:03:57.000 --> 00:04:00.000
+and then keep it up to date over time as some of those dependencies change.
+
+41
+00:04:00.000 --> 00:04:03.000
+So I'd say, okay, there's definitely a problem to be solved here.
+
+42
+00:04:03.000 --> 00:04:07.000
+I guess I haven't seen a perfect solution to this. We've seen some odd things in the past.
+
+43
+00:04:07.000 --> 00:04:12.000
+And you mentioned Projen. So Projen is something I hear of behind CDK experts.
+
+44
+00:04:12.000 --> 00:04:18.000
+I hear Matthew Bonig and other CDK Day speakers talking about Projen from time to time.
+
+45
+00:04:18.000 --> 00:04:21.000
+Do you know much about it? Can you describe how it fits into the ecosystem?
+
+46
+00:04:21.000 --> 00:04:25.000
+Yeah, it's probably worth detailing a little bit more what Projen is.
+
+47
+00:04:25.000 --> 00:04:29.000
+By the way, it's spelled Projen as P-R-O-J-E-N.
+
+48
+00:04:29.000 --> 00:04:34.000
+So it sounds like project, but it's Projen instead, which I always find it a little bit of a funny name.
+
+49
+00:04:34.000 --> 00:04:37.000
+Anyway, it's a project that was started. It's an open-source tool.
+
+50
+00:04:37.000 --> 00:04:39.000
+It was started by Elad Ben Israel.
+
+51
+00:04:39.000 --> 00:04:45.000
+And there is actually a very interesting talk with a demo that summarized very well in just 15 minutes what the project does.
+
+52
+00:04:45.000 --> 00:04:50.000
+And you can find it from the... It's one of the talks from a CDK Day from a couple of years ago.
+
+53
+00:04:50.000 --> 00:04:55.000
+So we will have the link in the show notes if you want to just 15 minutes intro of what it does and how it works.
+
+54
+00:04:55.000 --> 00:04:59.000
+But the idea is that it basically allows you to synthesize project configuration files.
+
+55
+00:04:59.000 --> 00:05:04.000
+We discussed before, if you start a JavaScript project, probably you need a Packet JSON, TS-Config JSON.
+
+56
+00:05:04.000 --> 00:05:09.000
+You will need some kind of Git ignore, ESLint configuration, Jest, and all that kind of stuff.
+
+57
+00:05:09.000 --> 00:05:16.000
+So the idea is that it can synthesize all of that stuff for you in an opinionated way, but you can probably pick and choose from different templates.
+
+58
+00:05:16.000 --> 00:05:20.000
+And the more revolutionary idea is that it doesn't just do that once.
+
+59
+00:05:20.000 --> 00:05:24.000
+Like you don't just bootstrap your project and that's it, and then you take it from there.
+
+60
+00:05:24.000 --> 00:05:28.000
+It is a way to manage all these files going forward as well.
+
+61
+00:05:28.000 --> 00:05:32.000
+So these files that are created, you can kind of consider them read only.
+
+62
+00:05:32.000 --> 00:05:34.000
+So you're not going to attach them manually anymore.
+
+63
+00:05:34.000 --> 00:05:38.000
+But instead you're going to be using a more, let's say, consistent configuration,
+
+64
+00:05:38.000 --> 00:05:43.000
+where that configuration gives you a programmatic interface that looks like the one you get with CDK.
+
+65
+00:05:43.000 --> 00:05:47.000
+So you write typed codes with classes and variables and so on.
+
+66
+00:05:47.000 --> 00:05:51.000
+And in this code, you actually try to describe exactly what this that you want to generate.
+
+67
+00:05:51.000 --> 00:05:59.000
+For instance, if you want to generate a front end with React, it will know how to generate code for all these configuration files that are suitable for that particular environment.
+
+68
+00:05:59.000 --> 00:06:01.000
+And of course, you can tweak things.
+
+69
+00:06:01.000 --> 00:06:06.000
+So you can change configuration options that maybe you want to change, that may be different from what you get by default.
+
+70
+00:06:06.000 --> 00:06:13.000
+And it's basically a CDK, but for generating project templates with all the related configuration.
+
+71
+00:06:13.000 --> 00:06:19.000
+So if you use something like Projen, you can spin up multiple projects in your organization.
+
+72
+00:06:19.000 --> 00:06:26.000
+And then if there is a change that you want to apply across the board, you can easily just change one line of configuration and reapply to all the projects.
+
+73
+00:06:26.000 --> 00:06:30.000
+And basically will align all the configuration across all of them, which seems very powerful.
+
+74
+00:06:30.000 --> 00:06:36.000
+So again, it's just a tool to generate configuration, but also tries to give you a way to keep that configuration consistent,
+
+75
+00:06:36.000 --> 00:06:42.000
+which is something that is missing in most of the other tools for generating boilerplate or configuration or just bootstrapping projects.
+
+76
+00:06:42.000 --> 00:06:51.000
+Okay. This is the kind of project do you think that where you might have like a platform engineering team or something maintaining this, these constructs, this Projen stuff?
+
+77
+00:06:51.000 --> 00:06:57.000
+And they would say, okay, there's new versions of all of this front end stuff or even backend libraries coming out all the time.
+
+78
+00:06:57.000 --> 00:07:02.000
+So we'll have a maybe a test project and a build pipeline that will test the generator for the project.
+
+79
+00:07:02.000 --> 00:07:08.000
+We'll check that it all works and builds together, and then people will have an easier time upgrading and aligning to the latest version
+
+80
+00:07:08.000 --> 00:07:12.000
+and keeping kind of evergreen all of their dependencies in the individual projects in a bigger company.
+
+81
+00:07:12.000 --> 00:07:19.000
+Yeah. I haven't used it myself outside that just a quick demos, to be honest, but I can see organization using it that way.
+
+82
+00:07:19.000 --> 00:07:22.000
+And you can also take it to the next step and even automate that.
+
+83
+00:07:22.000 --> 00:07:29.000
+So you can have pipelines that will look for updates on, I don't know, common dependencies or maybe look for vulnerabilities
+
+84
+00:07:29.000 --> 00:07:32.000
+and automatically try to apply the updates around all the tests.
+
+85
+00:07:32.000 --> 00:07:35.000
+And if everything is green, they can just submit a request.
+
+86
+00:07:35.000 --> 00:07:41.000
+So some kind of like the bot you get with GitHub to apply to your project configuration rather than just do your own dependencies.
+
+87
+00:07:41.000 --> 00:07:45.000
+So that could be a cool use case, but I haven't seen it, to be honest.
+
+88
+00:07:45.000 --> 00:07:48.000
+It's just making it up on the fly because it kind of makes sense.
+
+89
+00:07:48.000 --> 00:07:54.000
+Okay. It sounds kind of valuable.
+
+90
+00:07:54.000 --> 00:08:00.000
+Every time I go back to a project I've written even like a year or two years ago, full stack project, I find there's so much that has stagnated or decayed because everything moved on and node versions are out of LTS
+
+91
+00:08:00.000 --> 00:08:03.000
+and frontend libraries have all these vulnerabilities in them.
+
+92
+00:08:03.000 --> 00:08:06.000
+So you can't just leave code alone anymore.
+
+93
+00:08:06.000 --> 00:08:09.000
+You have to constantly refresh it with the latest dependencies.
+
+94
+00:08:09.000 --> 00:08:11.000
+So I can see how that might help.
+
+95
+00:08:11.000 --> 00:08:15.000
+How do we then get started with Projen? What's the first hello world we need to think about?
+
+96
+00:08:15.000 --> 00:08:18.000
+Yeah. So Projen will be part of your PDK.
+
+97
+00:08:18.000 --> 00:08:27.000
+So you don't really have to think about it too much because PDK is, let's say, an additional layer of abstraction that uses Projen and CDK.
+
+98
+00:08:27.000 --> 00:08:34.000
+So if we look at the quick start guide that you can find on the PDK documentation, the idea is that you can start by creating like a monorepo
+
+99
+00:08:34.000 --> 00:08:39.000
+and then on that monorepo you can add additional things.
+
+100
+00:08:39.000 --> 00:08:45.000
+So some of the things that you can do are, for instance, you can create an API backend and you can use either OpenAPI or Smitty.
+
+101
+00:08:45.000 --> 00:08:51.000
+It can also generate documentation in a variety of formats for your own APIs, for your own frontend.
+
+102
+00:08:51.000 --> 00:08:53.000
+It can generate infrastructure as code.
+
+103
+00:08:53.000 --> 00:09:02.000
+For instance, if you want to ship your API as Lambdas, which I think is the default, it will generate all the infrastructure as code using CDK for that API layer to be deployed in Lambda.
+
+104
+00:09:02.000 --> 00:09:04.000
+It can also generate libraries.
+
+105
+00:09:04.000 --> 00:09:11.000
+For instance, one thing I found interesting is that it's very easy if you create an API and you want in the future to create a React frontend.
+
+106
+00:09:11.000 --> 00:09:19.000
+It can also generate a library that contains React hooks that are built with all the auto completion and all the models that you have in your own API.
+
+107
+00:09:19.000 --> 00:09:25.000
+So it makes it much easier for you to then call that frontend because you don't have to think about how do I do this specific API call.
+
+108
+00:09:25.000 --> 00:09:29.000
+You just use the hooks and you have a much more expressive experience that way.
+
+109
+00:09:29.000 --> 00:09:37.000
+It can also generate the boilerplate code for your Lambdas handler, React frontends for single page applications, deploying them on S3.
+
+110
+00:09:37.000 --> 00:09:41.000
+It can also use Cloudscape, which is the design system published by AWS.
+
+111
+00:09:41.000 --> 00:09:48.000
+And finally, one of the cool things that I think are very interesting is that it can also generate diagrams.
+
+112
+00:09:48.000 --> 00:09:57.000
+So for your own architecture, based on the CDK code that you have, as you build, it also spits out diagrams that you can visualize to make sense of the architecture that was generated.
+
+113
+00:09:57.000 --> 00:10:01.000
+So to get started, what you need to do is you need to have Node.js installed.
+
+114
+00:10:01.000 --> 00:10:05.000
+And then at that point, you can run npm install aws-pdk.
+
+115
+00:10:05.000 --> 00:10:08.000
+And that will just install the CLI tool.
+
+116
+00:10:08.000 --> 00:10:10.000
+It might require some additional dependencies.
+
+117
+00:10:10.000 --> 00:10:12.000
+Of course, you need to have the AWS CLI installed.
+
+118
+00:10:12.000 --> 00:10:15.000
+It might need to use Git, depending on the modules you use.
+
+119
+00:10:15.000 --> 00:10:20.000
+It might also need to use Java and Maven, again, depending on the kind of modules that you're going to be using with PDK.
+
+120
+00:10:20.000 --> 00:10:22.000
+So you might need to install additional dependencies.
+
+121
+00:10:22.000 --> 00:10:27.000
+But generally speaking, having a JS and a WCLI should be more than enough to get started.
+
+122
+00:10:27.000 --> 00:10:30.000
+Then you can scaffold a new PDK project.
+
+123
+00:10:30.000 --> 00:10:31.000
+And this is a bit of a meta statement.
+
+124
+00:10:31.000 --> 00:10:37.000
+You can use a generator to generate a generator by saying PDK new in the template.
+
+125
+00:10:37.000 --> 00:10:45.000
+For instance, PDK new mono repo dash ts will generate the basic PDK project to manage a TypeScript-based mono repo.
+
+126
+00:10:45.000 --> 00:10:49.000
+And once you've done that, you can already browse around.
+
+127
+00:10:49.000 --> 00:10:51.000
+So it will generate a bunch of files for you.
+
+128
+00:10:51.000 --> 00:10:58.000
+And you can see, for instance, that it created a Projen RC file, which is the starting point where all the configuration leaves.
+
+129
+00:10:58.000 --> 00:11:03.000
+And that you can modify to add additional bits and pieces and then make changes to the project structure.
+
+130
+00:11:03.000 --> 00:11:07.000
+So at this point, if you run PDK, it will actually do all of that.
+
+131
+00:11:07.000 --> 00:11:09.000
+It will generate all the files.
+
+132
+00:11:09.000 --> 00:11:15.000
+But then you can also run PDK build, which is kind of a wrapper around all running build on all the packages, basically.
+
+133
+00:11:15.000 --> 00:11:21.000
+And if you do that, since it's going to create also CDK stuff, you can also go inside.
+
+134
+00:11:21.000 --> 00:11:23.000
+I think it's going to be packages slash infra.
+
+135
+00:11:23.000 --> 00:11:26.000
+And you can see all the CDK stuff that was generated and built.
+
+136
+00:11:26.000 --> 00:11:31.000
+And inside that folder, you will also find the diagrams for the architecture that was generated.
+
+137
+00:11:31.000 --> 00:11:34.000
+So this is one more way to generate diagrams.
+
+138
+00:11:34.000 --> 00:11:37.000
+We have a dedicated episode on how to generate diagrams for AWS.
+
+139
+00:11:37.000 --> 00:11:39.000
+If you use this tool, it's an additional way.
+
+140
+00:11:39.000 --> 00:11:45.000
+So if you're interested in this topic, we'll link to the previous show where we talk about creating diagrams for AWS.
+
+141
+00:11:45.000 --> 00:11:47.000
+And then finally, there are additional commands.
+
+142
+00:11:47.000 --> 00:11:52.000
+For instance, this is only local so far, but at some point you will want to deploy all of this code to AWS.
+
+143
+00:11:52.000 --> 00:12:00.000
+So PDK as a wrapper gives you a high-level command called PDK deploy, which can deploy in dev mode using CDK or swap.
+
+144
+00:12:00.000 --> 00:12:01.000
+Or for production.
+
+145
+00:12:01.000 --> 00:12:04.000
+And basically it will deploy everything that needs to be deployed.
+
+146
+00:12:04.000 --> 00:12:12.000
+And finally, if you are just testing things out and you want to destroy everything, there is a PDK destroy command that will clean up all the deployed infrastructure.
+
+147
+00:12:12.000 --> 00:12:15.000
+So I guess the next question will be where do you go from here?
+
+148
+00:12:15.000 --> 00:12:19.000
+So this is just a quick run through on how do you get started and what you can do with it.
+
+149
+00:12:19.000 --> 00:12:22.000
+But if you look at the documentation, there are more examples.
+
+150
+00:12:22.000 --> 00:12:27.000
+There is an interesting guided tutorial where you're going to be building an API in the front end.
+
+151
+00:12:27.000 --> 00:12:29.000
+Then add login using Cognito to this front end.
+
+152
+00:12:29.000 --> 00:12:32.000
+And finally, you can also add more advanced capability.
+
+153
+00:12:32.000 --> 00:12:37.000
+It's kind of a shopping list application where it's a little bit more interactive and you get to see all the moving parts.
+
+154
+00:12:37.000 --> 00:12:42.000
+And there is also a developer guide that covers specific modules.
+
+155
+00:12:42.000 --> 00:12:49.000
+So you can see, for instance, what the static website module does in detail and all the other modules that are available by default.
+
+156
+00:12:49.000 --> 00:12:56.000
+So we will have links to all these tutorials and the detailed documentation in the show notes if you want to take it from there.
+
+157
+00:12:56.000 --> 00:12:57.000
+Okay, cool.
+
+158
+00:12:57.000 --> 00:13:02.000
+And I've already fallen into the habit of mixing up Projen and PDK.
+
+159
+00:13:02.000 --> 00:13:08.000
+But if we're looking at PDK, then I just tried, as you mentioned, I just tried NPM installing it.
+
+160
+00:13:08.000 --> 00:13:16.000
+And I can see that when I want to do a PDK new, it gives me options of doing a React website, infrastructure projects, and then the Monorepo.
+
+161
+00:13:16.000 --> 00:13:21.000
+You mentioned Monorepo TS, but there's also it looks like Monorepo Java and Python.
+
+162
+00:13:21.000 --> 00:13:26.000
+So those are the languages that are supported. Is that right? Java, Python, and TypeScript?
+
+163
+00:13:26.000 --> 00:13:40.000
+I think there is a difference between the code that you write, which is probably depending on what Projen supports, and then the code you actually generate, which probably there you can create your own modules and generate pretty much anything if you really want to make an effort.
+
+164
+00:13:40.000 --> 00:13:48.000
+So, yeah, in a sense, I think we need to distinguish between the code that you can use to manage PDK and Projen and the code that you can generate.
+
+165
+00:13:48.000 --> 00:13:53.000
+And I think, yeah, you probably have options on the first one, but on the other one, it's pretty much up to you.
+
+166
+00:13:53.000 --> 00:14:04.000
+You will have good defaults if you stick with Python or TypeScript and standard ones. But if you want to go wild and use, I don't know, Elixir, you can probably still do that as long as you put the effort into generating all the modules for that.
+
+167
+00:14:04.000 --> 00:14:10.000
+Okay, nice. Yeah, it looks like yeah, those are the Projen supported languages from what I can see anyway, those three.
+
+168
+00:14:10.000 --> 00:14:19.000
+Okay, which I guess will cover bases for a lot of people, but there's no C sharp, it seems like which is is supported in CDK. So maybe that's something that will come down the tracks.
+
+169
+00:14:20.000 --> 00:14:27.000
+I think that was a pretty good overview. What about your opinion then? What's the good and bad? What are the pros and cons as we look at the current state of PDK?
+
+170
+00:14:27.000 --> 00:14:43.000
+Yeah, let's start with the good things. I think it's great to have a tool that tries to standardize the way that you bootstrap projects, but not just bootstrap, but also maintain them over time, which I think is where most of the other tools fail, because it's easy to generate a template and just copy paste it.
+
+171
+00:14:43.000 --> 00:14:54.000
+There are millions of tools that you can use to do that and customize things a little bit. But then after that, you're pretty much on your own and then projects will drift over time and then it becomes harder to to to add that level of consistency.
+
+172
+00:14:54.000 --> 00:15:05.000
+A tool like this can actually be a solution to that problem. Now, this is a vague statement intentionally because we haven't used it to the level that we can say that it actually fulfills that objective, but it seems very promising.
+
+173
+00:15:05.000 --> 00:15:17.000
+The other thing is that it's also focusing on giving you some degree of standardization when it comes to documentation through using open API, other tools to generate documentation, generates diagrams.
+
+174
+00:15:17.000 --> 00:15:26.000
+And this is one of the big pain points that I see, especially going to larger organizations. Documentation is always very inconsistent. Sometimes it's lacking. It's not up to date.
+
+175
+00:15:26.000 --> 00:15:34.000
+So a tool like this can also address that kind of problem and encourage people to be consistent, make it very easy actually to have that level of consistency.
+
+176
+00:15:34.000 --> 00:15:48.000
+And the other thing is that if you like CDK, I think it's a very similar experience, so it will feel familiar enough. So I'm going to put that on the good side. That is not going to try to reinvent a new paradigm, but it's giving you something that if you have used CDK, it should be pretty familiar.
+
+177
+00:15:48.000 --> 00:15:49.000
+Do you want to ask?
+
+178
+00:15:49.000 --> 00:15:59.000
+Okay, so that's the good part of PDK. Are there any cons? What do you think? What would stop people from using it today at least?
+
+179
+00:15:59.000 --> 00:16:15.000
+Yeah, this is a very opinionated take based on my quick experience with PDK. So I hope it's not going to sound too harsh because that would be unfair. But the first thing that kind of made me a little bit, I don't know, not enjoy the experience is that it feels very opinionated.
+
+180
+00:16:15.000 --> 00:16:32.000
+There are lots of starters and all the starters are very opinionated in a way that is very AWS heavy, which is not necessarily a bad thing. But it feels like the tool wants to encourage people to use more of these AWS things that maybe are not necessarily the best in class for the specific topics of interest.
+
+181
+00:16:32.000 --> 00:16:44.000
+For instance, you get to use CDK for infrastructure as code, which we know is like a tool that does the job, but it's AWS specific for the most part. So AWS is already pushing that kind of tool onto you if you use PDK.
+
+182
+00:16:44.000 --> 00:16:55.000
+Similarly, Projen is probably a little bit more generic, but has a lot of ties with CDK and other AWS tools. So you will probably see Projen more in the AWS space than in other ecosystem.
+
+183
+00:16:56.000 --> 00:17:07.000
+Then there is Meety, which is the internal tool from AWS to generate types and models and then create APIs based on that. You can also use OpenAPI, but Meety seems to be kind of the default.
+
+184
+00:17:07.000 --> 00:17:08.000
+Then there is Cloud speed.
+
+185
+00:17:08.000 --> 00:17:19.000
+And does that support GraphQL or is GraphQL outside of this completely? Because I know there's a whole, I knew everything that you said Smithy could do seems to be already supported in another GraphQL ecosystem and tooling like Apollo, etc.
+
+186
+00:17:19.000 --> 00:17:30.000
+Might be. Honestly, I haven't looked in detail. I expect that there will be modules for that to make it easier. I don't know if there are already built in or if you can easily create your own.
+
+187
+00:17:30.000 --> 00:17:39.000
+The other one is Cloudscape. So there is this new designs, relatively new design system that was published by AWS. And you might argue that is not the most famous design system, at least not yet.
+
+188
+00:17:39.000 --> 00:17:51.000
+But of course it's a tool coming from AWS. So they had to pick the design system from AWS. And then there is Cognito for user management. So again, it's just that it's very opinionated in a too much AWS heavy way.
+
+189
+00:17:51.000 --> 00:18:01.000
+So you probably need to go the extra mile if you want to use other options out there and create all your own starters, starter modules and use, I don't know, maybe you don't like Cloudscape.
+
+190
+00:18:01.000 --> 00:18:10.000
+You want to use Bootstrap or material design. You're probably going to be a little bit on your own to figure out how to migrate that original Cloudscape module into something else.
+
+191
+00:18:10.000 --> 00:18:18.000
+And then there might be a little bit too many dependencies. So you need to have Node.js, CDK, probably Java, Maven, Maven, AWS CLI.
+
+192
+00:18:18.000 --> 00:18:24.000
+So you already need to buy in into the entire developer ecosystem of AWS plus additional new things if you want to use this tool.
+
+193
+00:18:24.000 --> 00:18:32.000
+So maybe the starting point, if you're just starting from scratch, might feel like there is a little bit too much work involved into just getting the development environment ready.
+
+194
+00:18:32.000 --> 00:18:37.000
+And I think this is the main one that I have now is that it can feel quite complex, especially at first.
+
+195
+00:18:37.000 --> 00:18:44.000
+And if you think about that is because there are many layers of abstraction. So when too many layers of abstraction is too many, I don't know.
+
+196
+00:18:44.000 --> 00:18:53.000
+But it feels like we are getting to a limit here because you basically have a project to manage projects and you basically have to bootstrap this project to manage projects.
+
+197
+00:18:53.000 --> 00:19:03.000
+And then every time you have to do a change, you will have this PDK making change into CDK, which will make changes, for instance, into generated cloud formation.
+
+198
+00:19:03.000 --> 00:19:14.000
+So there are so many levels of generating code. So if you have an issue, first of all, good luck trying to figure out where the issue is, then figuring out at which level you actually need to apply the fix and how to do that.
+
+199
+00:19:14.000 --> 00:19:23.000
+And then I expect that there will be so many escape arches sometimes just because maybe something is not supported at one level and you need to figure out exactly how to do a workaround.
+
+200
+00:19:23.000 --> 00:19:33.000
+So, yeah, I guess having too many layers just adds complexity. And with that level of complexity, the development experience might not always be nice, especially when you have to deal with bugs and things to fix.
+
+201
+00:19:33.000 --> 00:19:45.000
+So my final, I guess, judgment is that it feels like something that AWS wanted to have internally because they probably built lots of examples, lots of projects, and they have their own preference on how to do all of that.
+
+202
+00:19:45.000 --> 00:19:55.000
+And that's probably why all the main tools that are coming as default ones are AWS specific tools. And they just made it open source because other people might find it useful.
+
+203
+00:19:55.000 --> 00:20:03.000
+But right now the state of the project makes me think that this started as an internal AWS thing, as a convenience thing, and now it's maybe getting into general adoption.
+
+204
+00:20:03.000 --> 00:20:15.000
+So all my opinions might get better over time as maybe with more general adoption, there will be more variety in that ecosystem. But right now, we just feel something fresh off of AWS that only AWS can really get value off.
+
+205
+00:20:15.000 --> 00:20:24.000
+Got it. That makes sense. I think there's probably also a benefit in that, the fact that it came, if it is internally used, it probably means that it's more likely to be supported and grow in the future.
+
+206
+00:20:24.000 --> 00:20:34.000
+And that there are people inside AWS who are going to be passionate about it. And it's not like some sort of side project that they've launched as open source and they're looking for kind of a solution, looking for a problem.
+
+207
+00:20:34.000 --> 00:20:43.000
+If they're already using it, you know, I've seen Smithy pop up as a dependency in the new SDKs. So they're obviously using this ecosystem that might actually bode well for the future. Who knows?
+
+208
+00:20:43.000 --> 00:20:49.000
+What's the general community sense around PDK then and adoption? Have you seen much traction?
+
+209
+00:20:49.000 --> 00:20:57.000
+I've seen a conversation on Twitter, mostly started by Vlad Ionescu with AWS Hero. So we will have the link in the show notes if you want to read all of that.
+
+210
+00:20:57.000 --> 00:21:04.000
+He seems to be very skeptical and I'm not going to try to quote his opinion too much because I don't want to paraphrase it.
+
+211
+00:21:05.000 --> 00:21:18.000
+But yeah, I guess the feeling is that this is not necessarily a tool that he wants to use, but the trade is interesting because other people chime in and they bring different opinions as well. So I think it's worth reading if you're looking for other perspective on the tool.
+
+212
+00:21:18.000 --> 00:21:27.000
+Okay, fair enough. And if people don't feel like adopting PDK, is it the only show in town or would you recommend any alternatives if people have the same problems that we're trying to address here?
+
+213
+00:21:27.000 --> 00:21:36.000
+Yeah, I guess in terms of bootstrapping projects, the most famous ones that I know are Yeoman, which was, I'm going to say was because I'm seeing it less and less in the last few years.
+
+214
+00:21:36.000 --> 00:21:50.000
+But it was the tool of choice for all things front end. So all things like JavaScript projects, front ends, APIs, and so on. While in the Python space, probably people will be a lot more familiar with something like Cookie Cutter, but the concepts are the same.
+
+215
+00:21:50.000 --> 00:22:00.000
+You can define a template, you can define some kind of configuration. And then when you install the template, you can combine that template with your own configuration and will generate a project with some degree of customization.
+
+216
+00:22:00.000 --> 00:22:15.000
+And I think both projects after that step, like you are on your own, you need to figure out how to keep it going and how to keep that consistency. So in that sense, PDK might be a little bit better trying to address also what is the next step after you generated the project?
+
+217
+00:22:15.000 --> 00:22:29.000
+How do you guarantee that degree of consistency? So interesting different approaches there, but the tools are somewhat similar. Then we might also talk about specific generators. For instance, I don't know if you do React, there are many ways to generate React projects.
+
+218
+00:22:29.000 --> 00:22:41.000
+The most famous is create React app, but there are lots of other alternatives. Or I don't know if you do Lambdas, there are many generators. For instance, if you use Rust, we spoke before about Cargo Lambda.
+
+219
+00:22:41.000 --> 00:22:53.000
+So that's another very domain specific tool that allows you to generate projects. And then there are other approaches that are probably the most common that I see all the time when people just create a repository on GitHub, they publish it as a template.
+
+220
+00:22:53.000 --> 00:23:03.000
+And then in GitHub itself, you can easily just say use this template and it's going to clone that repository for you in your own space. And then from that point on, you are on your own and you have just a starting point.
+
+221
+00:23:03.000 --> 00:23:20.000
+And there are CLI tools like the Git, which basically does the same thing. It's just going to clone a repository for you and clean up all the Git artifacts, all the Git history. So you just have a clean slate starting from whatever it was published in a specific repository that you are starting from.
+
+222
+00:23:20.000 --> 00:23:35.000
+And one more alternative that I believe is worth mentioning is Terraform. One of our colleagues, Connor Meyer, did a very good demo. We will have the link in the show notes showing that you can use Terraform to also bootstrap projects and have some degree of consistency.
+
+223
+00:23:35.000 --> 00:23:48.000
+Because there are modules, for instance, for Git to create repositories, integrate with GitHub or other repository. And then from there, you can add a bunch of additional things. You can bootstrap scripts that, for instance, will install dependencies and so on.
+
+224
+00:23:48.000 --> 00:23:58.000
+So even a tool like Terraform can be used to do something like this. And it will be a little bit more general purpose because you can use it also to bootstrap other types of projects that don't have necessarily to be AWS specific.
+
+225
+00:23:59.000 --> 00:24:14.000
+Okay, nice. Yeah, I could see that looking at the list of existing tools like Yeoman and Cookie Cutter, I've used them and they're great for bootstrapping projects, but not so great at keeping them up to date and retrofitting upgrades into an existing project.
+
+226
+00:24:14.000 --> 00:24:37.000
+And I can see how PDK is trying to address that a little bit, but seems like there's a lot of complexity. Kind of makes me ask the question, do you want to use these tools at all? Or are you just better doing it by hand, trying to communicate within an organization and provide references and templates for people just to copy paste and then just use some other good hygiene or automation to keep things up to date? Do you need a project manager tool like PDK?
+
+227
+00:24:37.000 --> 00:24:52.000
+I think the answer as every good technical question is, it depends. And I will answer with another question, which is what is the value here? What are we trying to achieve? I think the most important thing is trying to reach that level of global consistency.
+
+228
+00:24:53.000 --> 00:25:03.000
+And by that, I mean that you probably want to get new projects started very quickly. You want to embed best practices in your templates. You want to reduce the amount of choices that developers have to face every time they are starting a new project.
+
+229
+00:25:03.000 --> 00:25:13.000
+And also you want to create projects that are similar enough that it should be easy for developers to cross collaborate, or maybe if they have to change team to make the transition as easy as possible.
+
+230
+00:25:13.000 --> 00:25:26.000
+So basically you want to have a tool that keeps people productive, and it makes people focus on the things that matter, which is probably the business logic and not all this layer of configuration that you are repeating over and over and changing maybe slightly enough to create surprises.
+
+231
+00:25:26.000 --> 00:25:42.000
+But the other question is, when do you really need all of this? Because if you are a small scale company, or maybe a company that just started, you probably don't need all of this. You actually really want to go through the trouble of building projects from scratch to really understand what is the setup that works best for you?
+
+232
+00:25:42.000 --> 00:25:52.000
+What are the technologies that you prefer to use for the specific domain you are in? And if you use this kind of boilerplate or starters, they will have their own opinions that maybe are not very suitable for your specific organization.
+
+233
+00:25:53.000 --> 00:26:03.000
+So you might be biased into using something that is not necessarily the best option for you. So that's kind of one of the risks that if you are a new organization, maybe is not the best option.
+
+234
+00:26:03.000 --> 00:26:08.000
+So you probably want to spend a little bit of time figuring out yourself what is the best way for you to build software.
+
+235
+00:26:08.000 --> 00:26:14.000
+But even for larger organizations, I think there is a little bit of a risk that you might end up stagnating in your technology choices.
+
+236
+00:26:14.000 --> 00:26:24.000
+You might end up just doing projects always in the same way. You might not embrace new technologies or new ways to build software. Or even worse, sometimes you need to build something very specific.
+
+237
+00:26:24.000 --> 00:26:30.000
+And just because you have a boilerplate to build an API in a certain way, you just go with that without even thinking what are the trade offs.
+
+238
+00:26:30.000 --> 00:26:37.000
+And sometimes you end up just using a hammer for everything, even though sometimes you don't necessarily need that hammer. You might need another tool.
+
+239
+00:26:37.000 --> 00:26:43.000
+So I think the risk with all these tools is just it's good when you need to do something very similar to avoid all the boilerplate and all the repetition.
+
+240
+00:26:43.000 --> 00:26:54.000
+But we know that software projects are always different and in subtle ways sometimes. So having a little bit of freedom and picking the technologies and the approach that can be more suitable for the specific domain you're working on.
+
+241
+00:26:54.000 --> 00:27:00.000
+I think it's something that you need to figure out how to guarantee anyway if you want to keep building high quality software.
+
+242
+00:27:00.000 --> 00:27:18.000
+And the final thing is that one good use case where this might be very valuable is when you have compliance obligations. Because in that case, I think it's actually important to have some kind of template where you are sure that all the best practices are built in and you don't have to go through a compliance review over and over every time you do something new.
+
+243
+00:27:18.000 --> 00:27:25.000
+That sounds like really good advice. And thanks for a very thorough overview of PDK this year. Is there anything we wanted to say to wrap up?
+
+244
+00:27:25.000 --> 00:27:40.000
+I think in general, this is a very, I guess, personal opinion space. I think it's easy to have people with very different opinions. Some people actually enjoy the process of starting a new project and picking up libraries and maybe checking out what are the new things and whether they are worth using.
+
+245
+00:27:40.000 --> 00:27:47.000
+I think there is actually a space there where you can be productive in ways that you generally cannot be productive when you're working on an existing project.
+
+246
+00:27:47.000 --> 00:28:03.000
+So some people might actually enjoy all of that work that might feel just as busy work, and there is value there for sure. So I'm really curious to hear people opinion and see, like, do you actually do all of that work or you'd rather just have a template that has made all of the decisions for you and just get over with and focus on the actual business logic that you're building.
+
+247
+00:28:03.000 --> 00:28:14.000
+And if you've used this tool or other tools, like, do you like them? What do you like? What you don't like? Maybe there is space for something else that we haven't covered today that can solve the problems we are discussing about.
+
+248
+00:28:14.000 --> 00:28:25.000
+So I think that brings us to the end of this episode. I hope that you enjoyed. As usual, if you enjoyed it, please give us a like, subscribe, share it with your friends and colleagues, and we hope to see you soon in the next episode.

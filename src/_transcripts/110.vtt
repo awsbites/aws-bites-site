@@ -1,0 +1,1109 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:03.680
+More people are getting into AI and running their own machine learning models.
+
+2
+00:00:03.680 --> 00:00:08.640
+Whether it's generative AI, image processing, recommendation, or text-to-speech,
+
+3
+00:00:08.640 --> 00:00:11.840
+the need for somewhere to run machine learning models is increasing.
+
+4
+00:00:11.840 --> 00:00:16.240
+For many, they'll use hosted services and pre-trained models using something like OpenAI
+
+5
+00:00:16.240 --> 00:00:21.600
+or AWS, but others want more control, improved data privacy, and might want to manage their
+
+6
+00:00:21.600 --> 00:00:24.480
+performance, scalability, and cost at a more fine-grained level.
+
+7
+00:00:24.480 --> 00:00:28.720
+Today, we wanted to cover a slightly controversial choice for running machine learning models,
+
+8
+00:00:28.720 --> 00:00:33.360
+and that's AWS Lambda. By the end of today's episode, you should have a clear idea of how
+
+9
+00:00:33.360 --> 00:00:38.080
+and when Lambda can be used to run machine learning predictions and when to go for something
+
+10
+00:00:38.080 --> 00:00:42.800
+a little bit more traditional. I'm Eoin, I'm joined by Luciano, and this is the AWS Bites podcast.
+
+11
+00:00:51.040 --> 00:00:56.320
+AWS Bites is sponsored by fourTheorem, an AWS partner with plenty of experience running machine
+
+12
+00:00:56.400 --> 00:01:00.800
+learning workloads in production. If you want to chat, reach out to Luciano or myself on social
+
+13
+00:01:00.800 --> 00:01:06.240
+media. All the links are in the show notes. Now, back in episode 46, which was, "How do you do
+
+14
+00:01:06.240 --> 00:01:11.440
+machine learning in AWS?", we talked about the various ways to run machine learning models in AWS,
+
+15
+00:01:11.440 --> 00:01:16.400
+and we briefly covered there the idea of using Lambda for inference, and this is the specific
+
+16
+00:01:16.400 --> 00:01:21.680
+topic we wanted to dive into in more detail today. As always, we should start with why.
+
+17
+00:01:21.680 --> 00:01:25.200
+What are the use cases? Why do you need to run machine learning models?
+
+18
+00:01:28.800 --> 00:01:34.400
+I think it's important to clarify that generally when we talk about machine learning infrastructure, there are two different categories of workloads. One is when you need somewhere to
+
+19
+00:01:34.400 --> 00:01:39.360
+train and test models, and the other one is where you are thinking about, you have a model, I need
+
+20
+00:01:39.360 --> 00:01:44.320
+to run this model somewhere. And when we say run models, we mean having some kind of infrastructure
+
+21
+00:01:44.320 --> 00:01:48.960
+that can take inputs and run predictions or inference. So today we're going to focus only
+
+22
+00:01:48.960 --> 00:01:55.040
+on the second category, which is inference. So for training is generally something a little bit
+
+23
+00:01:55.040 --> 00:01:59.600
+more complex. You need more specialized infrastructure like many GPUs most of the time,
+
+24
+00:01:59.600 --> 00:02:05.120
+and you can also do training with CPU, but it's generally much more limited.
+
+25
+00:02:05.120 --> 00:02:10.560
+It's going to take probably much longer, and depending on the type of model you are trying to build, it might limit you
+
+26
+00:02:10.560 --> 00:02:16.720
+to the size of that model itself. So generally GPU is kind of the way to go when you're thinking
+
+27
+00:02:16.720 --> 00:02:20.800
+about training, especially the more complex the model, the more you'll need to invest in
+
+28
+00:02:20.800 --> 00:02:26.240
+infrastructure with lots of GPUs. So we focus today instead on inference, and it's something
+
+29
+00:02:26.240 --> 00:02:31.600
+that can also benefit a lot from GPUs, but it doesn't always require using GPUs. You can also
+
+30
+00:02:31.600 --> 00:02:37.600
+use, for instance, CPU. But let's talk about some use cases. One common use case is medical imaging.
+
+31
+00:02:37.600 --> 00:02:44.400
+For instance, if you want to run an automated diagnosis of an X-ray scan on demand, and maybe
+
+32
+00:02:44.400 --> 00:02:50.400
+you have a few images every hour, maybe running a model on a CPU against a particular image may take
+
+33
+00:02:50.400 --> 00:02:54.720
+one minute, and I think one minute delay on having a response is probably acceptable in that particular
+
+34
+00:02:54.720 --> 00:02:59.520
+use case. You don't need an instantaneous answer with the diagnosis for that picture.
+
+35
+00:02:59.520 --> 00:03:05.040
+You can probably wait one minute. Another use case is audio transcription, for instance, for video calls. Maybe
+
+36
+00:03:05.040 --> 00:03:10.480
+you are using a system that records your video calls in your company, and you want to have a way
+
+37
+00:03:10.480 --> 00:03:16.320
+to have automated minutes like transcriptions and summaries of that meeting. And also in that case,
+
+38
+00:03:16.320 --> 00:03:21.920
+it's probably acceptable to have some delay. Maybe a process running on CPU takes like half an hour
+
+39
+00:03:21.920 --> 00:03:27.120
+to produce all of that summary and transcript. It's probably okay to receive an email half an hour
+
+40
+00:03:27.120 --> 00:03:31.520
+after the meeting with that document attached. Again, it's not a use case where you need an
+
+41
+00:03:31.520 --> 00:03:37.200
+immediate answer for that particular task. And finally, I have another example, which is,
+
+42
+00:03:37.200 --> 00:03:42.560
+for instance, you want to use word embedding models to index documents. Maybe you are building
+
+43
+00:03:42.560 --> 00:03:47.840
+a SaaS platform where users can attach different kinds of documents, and you want to make this
+
+44
+00:03:47.840 --> 00:03:53.040
+document searchable. And maybe you want to make it searchable through, for instance, like a chat
+
+45
+00:03:53.040 --> 00:03:57.360
+UI where you're using some kind of Gen AI capability. And of course, you need to index all
+
+46
+00:03:57.360 --> 00:04:01.200
+the documents in such a way that then the Gen AI can access it. So you're going to be using specific
+
+47
+00:04:01.200 --> 00:04:07.680
+models to do all of that. And that might take a time, sometimes like, again, half an hour, one hour.
+
+48
+00:04:07.680 --> 00:04:11.840
+So the documents will only be available for search after a little while. But for most use cases,
+
+49
+00:04:11.840 --> 00:04:16.160
+this is probably acceptable as well. By the way, I mentioned the word embeddings. It's one of the
+
+50
+00:04:16.160 --> 00:04:20.560
+new terms that comes around a lot when we talk about Gen AI. If you don't know what it is, don't
+
+51
+00:04:20.560 --> 00:04:24.880
+worry, we'll cover that during this episode. Now, I said that these applications generally
+
+52
+00:04:24.880 --> 00:04:29.760
+need specialized hardware, for instance, GPU. Should we spend a little bit more time clarifying
+
+53
+00:04:29.760 --> 00:04:34.240
+what is the advantage that a GPU brings when compared to CPU?
+
+54
+00:04:34.240 --> 00:04:39.760
+Yeah, the state of the art for most machine learning models uses deep learning. And deep learning is essentially employing deep
+
+55
+00:04:39.760 --> 00:04:44.080
+neural networks. Neural networks have been around as an idea since, I think, the 1950s.
+
+56
+00:04:44.640 --> 00:04:49.440
+And deep neural networks are kind of an evolution of that, that has become more popular in the last
+
+57
+00:04:49.440 --> 00:04:55.040
+decade or so. And the idea essentially is trying to model how we think humans' brains work, or
+
+58
+00:04:55.040 --> 00:05:00.640
+actually any other animal brains work, simulating the idea of neurons and synapses and connections
+
+59
+00:05:00.640 --> 00:05:05.040
+between nodes in our brains. So deep neural network architectures can have thousands or
+
+60
+00:05:05.040 --> 00:05:09.520
+even millions of nodes. And as they're trained, at least at a basic level, the connections
+
+61
+00:05:09.520 --> 00:05:16.000
+between nodes obtain weights, right? And it's those weights that are the most important and
+
+62
+00:05:16.000 --> 00:05:21.200
+the bulk of the parameters for a model. So when you hear people talking about model parameters,
+
+63
+00:05:21.200 --> 00:05:26.000
+weights are generally the biggest number of them. And they need to be stored in memory.
+
+64
+00:05:26.000 --> 00:05:31.680
+So large memory requirements are typical. And the storage format are generally multi-dimensional
+
+65
+00:05:31.680 --> 00:05:36.800
+vectors. You hear the term tensors a lot, and that's basically vectors of many different
+
+66
+00:05:36.800 --> 00:05:41.200
+dimensions. And these are used to represent those networks and their parameters. And the operations
+
+67
+00:05:41.200 --> 00:05:47.520
+that need to happen in the CPU or the GPU, these are generally fast floating point matrix mathematics
+
+68
+00:05:48.640 --> 00:05:54.160
+that you need to occur. And that's why GPUs came into play, because GPUs originally developed for
+
+69
+00:05:54.160 --> 00:06:00.960
+graphics. That's where the G comes from. We've all had GPUs in our desktop PCs and laptops over time,
+
+70
+00:06:00.960 --> 00:06:05.440
+particularly popular with gamers, then became popular with Bitcoin miners. Now the biggest
+
+71
+00:06:05.440 --> 00:06:11.120
+demand is coming from machine learning, because GPUs have thousands of cores optimized for this
+
+72
+00:06:11.120 --> 00:06:16.400
+kind of calculation and can run the many calculations in matrix operations and in
+
+73
+00:06:16.400 --> 00:06:21.520
+parallel as well. So they're highly optimized for this particular application. And they also have
+
+74
+00:06:21.520 --> 00:06:26.560
+higher memory bandwidth for loading large data sets, which is quite important for performance
+
+75
+00:06:26.560 --> 00:06:32.080
+in this space as well. We talk about GPUs, but of course, there are other AI chip technologies
+
+76
+00:06:32.080 --> 00:06:38.320
+evolving that are not GPUs. AWS has its NeuronCore and NeuronCore 2 architectures,
+
+77
+00:06:38.960 --> 00:06:45.680
+which you can utilize if you use the Tranium or the Inferencia instance types in EC2. And these
+
+78
+00:06:45.680 --> 00:06:52.160
+are not GPUs, but are basically designed for more cost-effective and more power consumption optimized
+
+79
+00:06:52.160 --> 00:06:56.480
+machine learning. So I think we might see a lot more of that. Google also has TPUs, the tensor
+
+80
+00:06:56.480 --> 00:07:02.640
+processing units. So we may see more adoption of those options instead of just pure GPUs,
+
+81
+00:07:02.640 --> 00:07:07.680
+as people are kind of making trade-offs and optimizing for the availability of hardware,
+
+82
+00:07:07.680 --> 00:07:13.600
+the cost and power consumption critically as well. So hopefully we've outlined why GPUs and
+
+83
+00:07:13.600 --> 00:07:18.560
+other special cores are really well suited for machine learning. So then why are we doing a
+
+84
+00:07:18.560 --> 00:07:24.800
+whole episode based around AWS Lambda and CPUs only? Why would you bother with CPUs?
+
+85
+00:07:28.960 --> 00:07:32.880
+Yeah, that's one of our current complaints about Lambda that doesn't support GPU, at least not yet. But that doesn't stop us from running machine learning inside Lambda,
+
+86
+00:07:32.880 --> 00:07:37.360
+which is what we are going to be covering for the rest of the day. But let's talk a little bit more
+
+87
+00:07:37.360 --> 00:07:44.560
+about what is the trade-off with CPU versus GPU, because CPU compared to GPU is generally widely
+
+88
+00:07:44.560 --> 00:07:49.600
+available and much cheaper. And when you run things in the cloud, you definitely have lots
+
+89
+00:07:49.600 --> 00:07:54.000
+more options when you think about CPU compared to GPU. You can run things locally as well,
+
+90
+00:07:54.000 --> 00:07:59.840
+and generally easier to run on many developer environments because CPUs are a lot more widely
+
+91
+00:07:59.840 --> 00:08:06.480
+available and standardized than GPUs. And it can scale much faster in a way that if you need to go
+
+92
+00:08:06.480 --> 00:08:11.600
+through levels of concurrency by spinning up multiple instances, like multiple machines or
+
+93
+00:08:11.600 --> 00:08:16.080
+Lambdas or whatever, it's generally easier to do that if you think just about CPU. Because when
+
+94
+00:08:16.080 --> 00:08:21.040
+you bring GPU into the matrix, generally either the cost becomes more prohibitive, or maybe you
+
+95
+00:08:21.040 --> 00:08:26.000
+have limits that will stop you from spinning up thousands of instances, or even the provisioning
+
+96
+00:08:26.000 --> 00:08:31.280
+time might just be much higher than it is with provisioning CPU-based instances. So, again,
+
+97
+00:08:31.280 --> 00:08:36.480
+this is kind of the trade-off. While with CPU you don't have the power of GPU for parallel matrix
+
+98
+00:08:36.480 --> 00:08:43.600
+math, there are other things that you can take and use with CPUs to still have decent levels
+
+99
+00:08:43.600 --> 00:08:48.480
+of performance. For instance, recent advancements in CPUs have brought us SIMD, single instruction
+
+100
+00:08:48.480 --> 00:08:54.000
+multiple data, which is a CPU extension that allows you to run vectorized operations. And
+
+101
+00:08:54.000 --> 00:08:59.280
+one example of that is AVX2, which is also available in Lambda. This is an Intel CPU
+
+102
+00:08:59.280 --> 00:09:05.520
+extension and has been in Lambda since 2020. So if you write software that can take advantage of this
+
+103
+00:09:05.520 --> 00:09:09.280
+kind of capabilities, you're still going to have pretty good performance on a CPU, and you don't
+
+104
+00:09:09.280 --> 00:09:13.600
+necessarily need to use a GPU. There are other examples. For instance, for ARM processors, you
+
+105
+00:09:13.600 --> 00:09:20.320
+have NEON, which is another extension that allows you to run SIMD. Now, even though you have a CPU
+
+106
+00:09:20.320 --> 00:09:25.920
+model execution, it's not always obvious to say that GPU is always going to be faster. I think
+
+107
+00:09:25.920 --> 00:09:30.160
+it really depends on the use case that you are trying to address and the amount of data that
+
+108
+00:09:30.160 --> 00:09:35.120
+you might want to process in terms of actual size of the single unit of data, but also in terms of
+
+109
+00:09:35.120 --> 00:09:39.360
+how much data can you actually parallelize in one go. And we can make an example. For instance,
+
+110
+00:09:39.360 --> 00:09:42.720
+let's say that we have a neural network that can process between
+
+111
+00:09:42.720 --> 00:09:48.160
+one and 100 images in parallel into a limited seconds having a GPU. Let's use this as a baseline.
+
+112
+00:09:48.160 --> 00:09:53.360
+Now, if you take the same thing and put it in a Lambda, maybe you can run one inference with that
+
+113
+00:09:53.360 --> 00:09:58.720
+Lambda in two seconds. So it is a little bit slower, but the advantage of Lambda is that then you can
+
+114
+00:09:58.720 --> 00:10:03.520
+much more easily run thousands of instances of that Lambda than it is of running, for instance,
+
+115
+00:10:04.320 --> 00:10:10.320
+SageMaker instance with a GPU. Also, if you run a SageMaker instance with a GPU, that instance is
+
+116
+00:10:10.320 --> 00:10:14.800
+going to take minutes to spin up, while when we think about spinning up a Lambda, that generally
+
+117
+00:10:14.800 --> 00:10:21.600
+takes seconds. So that gives you an idea that there might be cases where you can just take the
+
+118
+00:10:21.600 --> 00:10:26.800
+power of parallelization and fast bootstrap times of Lambda, and you might end up with something that
+
+119
+00:10:26.800 --> 00:10:32.000
+can be even more convenient than just having one or a few instances with a GPU that are going to be
+
+120
+00:10:32.000 --> 00:10:36.480
+much faster to do the single inference, but maybe all the bootstrapping time and the scalability
+
+121
+00:10:36.480 --> 00:10:41.360
+is going to be overall slower. So it's not always obvious to say that GPU is faster than CPU.
+
+122
+00:10:41.360 --> 00:10:46.800
+I think there are lots of use cases where you can make traders, and if you use Lambda with CPU,
+
+123
+00:10:46.800 --> 00:10:51.760
+you can still come up and win the race of this is actually going to be a better approach than
+
+124
+00:10:51.760 --> 00:10:58.080
+just spinning up GPUs. So what do you need to get up and running? Are we going to run,
+
+125
+00:10:58.080 --> 00:11:02.400
+are we going to think for instance about Python Lambda functions with PyTorch or Tensorflows or
+
+126
+00:11:02.400 --> 00:11:06.640
+something else?
+
+127
+00:11:06.640 --> 00:11:11.440
+Well, Python is supported by pretty much every model and framework out there, so it's probably your go-to when you're getting started. As we mentioned in a very recent episode,
+
+128
+00:11:11.440 --> 00:11:16.000
+a lot of the Python libraries are very heavy and can then lead to longer deployment times and
+
+129
+00:11:16.000 --> 00:11:21.120
+initial cold start times, so we'll have that link in the show notes. I would say that the space is
+
+130
+00:11:21.120 --> 00:11:25.280
+fast evolving. It's almost like the machine learning framework space is a little bit like
+
+131
+00:11:25.280 --> 00:11:29.440
+front-end frameworks about five years ago where it's just moving so fast and new ones are coming
+
+132
+00:11:29.440 --> 00:11:35.280
+out all the time. But maybe before we get into that tooling, we can talk about an extreme example
+
+133
+00:11:35.920 --> 00:11:41.680
+and kind of play with this idea a little bit. Since Gen AI is all the rage, can you actually
+
+134
+00:11:41.680 --> 00:11:47.200
+run large language models on AWS Lambda? I mean, surely not is probably the default response to
+
+135
+00:11:47.200 --> 00:11:51.760
+that, but there are lots of open source models out there and people might want to take advantage of
+
+136
+00:11:51.760 --> 00:11:56.800
+open source models to run things in a private way just for their own experimentation or to
+
+137
+00:11:56.800 --> 00:12:01.600
+really focus on data privacy and security, and they will be thinking about how to optimize the
+
+138
+00:12:01.600 --> 00:12:06.880
+infrastructure then. And we're talking about open source models like Llaama from Meta or Mistral or
+
+139
+00:12:06.880 --> 00:12:11.840
+the new Microsoft one, Phi2, or even stable diffusion for images. Yes, generally the
+
+140
+00:12:11.840 --> 00:12:17.760
+requirements for these models to run them are huge, but not always. And when we hear people
+
+141
+00:12:17.760 --> 00:12:21.680
+talking about these models, they generally talk about the number of parameters in their model.
+
+142
+00:12:22.320 --> 00:12:27.280
+When Meta released the Llaama2 model, this is an open source large language model comparable to
+
+143
+00:12:27.280 --> 00:12:33.520
+GPT 3.5, GPT 4 in some ways, it was released with three different parameter sizes, 7 billion,
+
+144
+00:12:33.520 --> 00:12:38.720
+13 billion and 70 billion. And there are models out there with hundreds of billions of parameters.
+
+145
+00:12:38.720 --> 00:12:43.680
+So what does that mean in terms of resources you need? Well, it depends on the numerical precision
+
+146
+00:12:43.680 --> 00:12:48.320
+of the model. So you might have a model that's using 32 bit floating point values. So that's
+
+147
+00:12:48.320 --> 00:12:52.480
+four bytes per parameter. So then your memory requirement is going to be the number of parameters
+
+148
+00:12:52.480 --> 00:12:56.800
+times four. So if you have that 70 billion parameter Lambda model with 32 bit precision,
+
+149
+00:12:56.800 --> 00:13:02.240
+that's 140 gigabytes of memory to run it. So you need a pretty high end GPU or you need to start
+
+150
+00:13:02.240 --> 00:13:07.760
+thinking about parallelizing over multiple GPUs. And for this, even for the 7 billion parameter
+
+151
+00:13:07.760 --> 00:13:12.160
+model, you're talking about 14 gigabytes. So it's quite a lot. But since resources are constrained,
+
+152
+00:13:12.720 --> 00:13:17.440
+and not everyone who's enthusiastic about this space has access to GPUs with that kind of memory,
+
+153
+00:13:17.520 --> 00:13:22.480
+the community is putting a lot of effort into getting pretty good results with fewer parameters
+
+154
+00:13:22.480 --> 00:13:28.720
+and lower precision parameters as well. So if you imagine using four bit integers instead of 32 bit
+
+155
+00:13:28.720 --> 00:13:32.880
+floating point, this is a process called quantization, where you can convert it into a
+
+156
+00:13:32.880 --> 00:13:39.920
+lower precision model, all of a sudden, you can take the 70 billion parameter model, or sorry,
+
+157
+00:13:39.920 --> 00:13:46.160
+a 4 billion parameter model and run it in two gigs of RAM. So by tweaking both of those factors down
+
+158
+00:13:46.160 --> 00:13:51.680
+by a significant amount, you can still get pretty good performance. And when I'm talking
+
+159
+00:13:51.680 --> 00:13:57.040
+about performance, I mean, accuracy of the models and the inference results. The just because you're
+
+160
+00:13:57.040 --> 00:14:01.920
+scaling down by a factor of 10 or more, it doesn't mean that you're scaling down accuracy linearly,
+
+161
+00:14:01.920 --> 00:14:06.720
+often you can get almost as good accuracy, depending on the use case and the model.
+
+162
+00:14:07.440 --> 00:14:13.520
+Since GPT and chat GPT came out, a lot of the most exciting developments in the whole LLM space has
+
+163
+00:14:13.520 --> 00:14:19.040
+been the development of these quantized models and the performance you're getting. Now, of course,
+
+164
+00:14:19.040 --> 00:14:24.080
+running it on CPU is rarely going to be as fast as GPU. There's a lot of factors that can affect
+
+165
+00:14:24.080 --> 00:14:28.880
+performance. So it's difficult to say with any certainty, but 100 times slower performance,
+
+166
+00:14:28.880 --> 00:14:33.120
+like in the example you gave Luciano on CPU, it's not unexpected. That's quite typical.
+
+167
+00:14:33.840 --> 00:14:38.160
+Back to the tooling then. So we talked about Python and we know about TensorFlow and PyTorch.
+
+168
+00:14:38.160 --> 00:14:42.160
+We talked a bit about those in the previous episode, but a lot of work now has been done
+
+169
+00:14:42.160 --> 00:14:47.840
+in creating native frameworks and implementations. So machine learning frameworks that don't need
+
+170
+00:14:47.840 --> 00:14:54.880
+all of the Python interface or a much lighter Python interface. And llama.cpp was one of the
+
+171
+00:14:54.880 --> 00:15:02.160
+first one of these, and this was started by Georgi Gerganov, who then also went on to create ggml,
+
+172
+00:15:02.160 --> 00:15:06.080
+which is a pure C machine learning library designed to make machine learning models
+
+173
+00:15:06.080 --> 00:15:11.120
+accessible on commodity hardware. So if you want to run machine learning models on your Apple Mac
+
+174
+00:15:11.120 --> 00:15:15.920
+ARM processor, like an M1 or an M2, you could really look into this because it's got really
+
+175
+00:15:15.920 --> 00:15:21.520
+good support as well as for just CPU execution, also good support for Apple silicon GPUs. And
+
+176
+00:15:21.520 --> 00:15:27.840
+the ggml framework is now a company, ggml.ai, and it has funding to develop it further, which is good
+
+177
+00:15:27.840 --> 00:15:31.920
+news for us, I think. And I think it seems like a pretty good fit for Lambda because you can build
+
+178
+00:15:31.920 --> 00:15:36.080
+really small package sites that are really fast to deploy, pretty good on cold start time as well.
+
+179
+00:15:36.080 --> 00:15:40.320
+And then there's bindings available for different languages. So you're not glued into the Python
+
+180
+00:15:40.320 --> 00:15:46.400
+ecosystem, if you don't want all that heaviness, or you're just not a Python fan. And this ggml
+
+181
+00:15:46.400 --> 00:15:50.720
+framework will adapt to different CPU and GPU architectures, depending on where you want to
+
+182
+00:15:50.720 --> 00:15:56.320
+run it. So it's easily portable from your local development environment into runtimes like
+
+183
+00:15:56.320 --> 00:16:01.360
+container runtimes or Lambda. And Georgi Gerganov has also created a lot of quantized versions of
+
+184
+00:16:01.360 --> 00:16:06.960
+the models in the format acquired by ggml. So you've, instead of having the 32 bit or 16 bit
+
+185
+00:16:06.960 --> 00:16:11.360
+for floating point versions, you have four or five or eight bit integer versions that you can
+
+186
+00:16:11.360 --> 00:16:15.840
+use to reduce your memory consumption. There are other alternatives apart from ggml, like the ONNX
+
+187
+00:16:15.840 --> 00:16:21.680
+runtime, but we haven't used it directly. We have been working with ggml and experimenting with it
+
+188
+00:16:21.680 --> 00:16:26.960
+over the past few months. And we found it pretty useful. And the results, while I wouldn't say
+
+189
+00:16:26.960 --> 00:16:31.520
+we're ready to deploy it at scale in production, we've had some pretty interesting results. So
+
+190
+00:16:31.520 --> 00:16:35.920
+Luciano, would you want to take us through some of the, I guess, examples of Lambda for
+
+191
+00:16:35.920 --> 00:16:41.440
+machine learning we've been doing, at least publicly citable ones over the past few years?
+
+192
+00:16:41.440 --> 00:16:47.040
+Yes.
+
+193
+00:16:47.040 --> 00:16:53.760
+One of that we mentioned before in this podcast is the way we create the transcripts for our podcast, which is basically using SageMaker. And the startup performance of
+
+194
+00:16:53.760 --> 00:16:58.000
+that is a little bit of a pain. It's not a deal breaker because again, we don't really need
+
+195
+00:16:58.000 --> 00:17:03.520
+instantaneous response, but we were a little bit curious of checking what is the difference? What
+
+196
+00:17:03.520 --> 00:17:08.400
+are the trade-offs if we try to run the same thing on Lambda? Can we do anything better? And
+
+197
+00:17:08.400 --> 00:17:12.880
+what are the results? It's going to be cheaper. So what we did was basically experimenting and
+
+198
+00:17:12.880 --> 00:17:16.880
+trying to figure out exactly what we could achieve and what kind of results we could get.
+
+199
+00:17:16.880 --> 00:17:24.080
+And we were very pleased to see that Gerganov also created a version of Whisper, which is the
+
+200
+00:17:24.880 --> 00:17:28.400
+model that we use from OpenAI to do the descriptions. And this version has been
+
+201
+00:17:28.480 --> 00:17:34.640
+important as well to C++ and with bindings for lots of languages, for instance, Node.js,
+
+202
+00:17:34.640 --> 00:17:41.120
+WebAssembly, Rust. There is actually an amazing demo that Gerg created of running this model on
+
+203
+00:17:41.120 --> 00:17:44.960
+the browser using WebAssembly and it's totally available online. We will have the link in the
+
+204
+00:17:44.960 --> 00:17:50.480
+show notes if you want to play with it. So that kind of shows that once you bring the model to
+
+205
+00:17:50.480 --> 00:17:56.560
+C++, it opens up a bunch of use cases that are not always so easy to access when you just have models
+
+206
+00:17:56.560 --> 00:18:02.880
+in Python. And this is a use case that we work with. And I think we were very pleased with the
+
+207
+00:18:02.880 --> 00:18:07.680
+results. Seems a good tradeoff of performance is a little bit slower to do the inference,
+
+208
+00:18:07.680 --> 00:18:12.720
+but of course, it's much faster to bootstrap the environment. And I think we might spend a little
+
+209
+00:18:12.720 --> 00:18:16.640
+bit more time in future episodes talking through the details of this experiment. This is still very
+
+210
+00:18:16.640 --> 00:18:21.280
+early on for us, so we're still trying to figure out exactly if the tradeoffs are convenient or not
+
+211
+00:18:21.280 --> 00:18:25.760
+for this particular use case. There are other use cases that are actually something interesting that
+
+212
+00:18:25.760 --> 00:18:33.040
+we have been playing with. For instance, you can use LLM models, for instance, Llama in Lambda.
+
+213
+00:18:33.040 --> 00:18:39.200
+And this is something that basically you can try to ask questions and it generally takes about 30
+
+214
+00:18:39.200 --> 00:18:44.560
+seconds to give you a response. So maybe it's not necessarily the best use cases because when you
+
+215
+00:18:44.560 --> 00:18:50.320
+use LLM and try to create kind of a chat-based interface, you want to have a more real-time type
+
+216
+00:18:50.320 --> 00:18:54.720
+of answer. And with Lambda, it tends to do everything kind of in a batch approach where
+
+217
+00:18:54.720 --> 00:18:58.640
+it processes everything, it creates that response objects, you get the response object that then you
+
+218
+00:18:58.640 --> 00:19:03.120
+can use in your frontend so you can see those 30 seconds of delay and it's a little bit painful
+
+219
+00:19:03.120 --> 00:19:08.160
+to use for that particular use case. And there are other use cases that we have been working with.
+
+220
+00:19:08.160 --> 00:19:13.760
+Actually, the oldest one was four years ago when Lambda container image support was announced.
+
+221
+00:19:13.760 --> 00:19:19.040
+We were able to create a demo where we were embedding one of these models to do x-ray analysis.
+
+222
+00:19:19.040 --> 00:19:25.600
+And we were able to run 120,000 x-ray images in about three minutes, which is pretty impressive.
+
+223
+00:19:25.600 --> 00:19:31.040
+We have a repository with all the examples and the code to run all of that and we will have a link
+
+224
+00:19:31.040 --> 00:19:36.160
+for that in the show notes. Is there any other use case that comes to mind, Eoin?
+
+225
+00:19:36.160 --> 00:19:41.840
+Something that we've been looking at recently a lot actually is within the Gen AI space, retrieval augmented generation,
+
+226
+00:19:41.840 --> 00:19:46.240
+or RAG, and it's becoming very common and it's one of the areas where Lambda might play a role.
+
+227
+00:19:46.240 --> 00:19:50.960
+Just a quick overview of what RAG is. We mentioned also the concept of text embeddings and promise
+
+228
+00:19:50.960 --> 00:19:57.520
+that we'd define it. So the reason RAG has become popular is that LLM models like ChatGPT,
+
+229
+00:19:57.520 --> 00:20:01.280
+they have a limited context window. So the input size you can put into a prompt.
+
+230
+00:20:01.840 --> 00:20:07.680
+So if you want to query all of your company data and get a factual response processed by an LLM,
+
+231
+00:20:07.680 --> 00:20:11.680
+so it's got good language in the response, you can't just put all your company data with a
+
+232
+00:20:11.680 --> 00:20:16.880
+question into a prompt. It's too much data. It's not going to work. So RAG is one of the solutions
+
+233
+00:20:16.880 --> 00:20:21.280
+to address this. Instead of putting all the data into the prompt, you retrieve relevant sections
+
+234
+00:20:21.280 --> 00:20:27.200
+of your company data from a knowledge base and then put those sections as context into your LLM
+
+235
+00:20:27.200 --> 00:20:32.000
+prompt, allowing you to get effective answers and summaries.
+
+236
+00:20:32.000 --> 00:20:37.280
+And because you're using a real knowledge base as your context, there should be a much lower chance of hallucination or fiction
+
+237
+00:20:37.280 --> 00:20:42.800
+in your response. Now, in order for this RAG to work, you generally need to index your documents
+
+238
+00:20:42.800 --> 00:20:46.960
+first and put them in a repository. So this could be a traditional lexical search like with Elastic
+
+239
+00:20:46.960 --> 00:20:53.360
+Search or similar, but a more common approach now is to use a word embeddings LLM model. And this is
+
+240
+00:20:53.360 --> 00:20:59.120
+similar to any other LLM model, but it's basically just creating a vector, multi-dimensional vector
+
+241
+00:20:59.120 --> 00:21:06.240
+representation of text in documents. And by having that multi-dimensional vector stored, you can then
+
+242
+00:21:06.240 --> 00:21:11.840
+do a semantic search on all of that textual data because it's a numerical format. You can do like a
+
+243
+00:21:11.840 --> 00:21:18.160
+KNN search just to find similar terms to the question in documents and then retrieve those
+
+244
+00:21:18.160 --> 00:21:22.720
+snippets of documents, then take them and put them into the context as part of the prompt. And that's
+
+245
+00:21:22.720 --> 00:21:30.160
+the whole idea of RAG or retrieval augmented generation. And now the OpenAI, Bedrock and many
+
+246
+00:21:30.160 --> 00:21:35.200
+more have text embedding models for you to do that, that you can then use with the other, like
+
+247
+00:21:35.200 --> 00:21:40.080
+with the chat models. And when you use a model to create a vector embedding, you'll then store it in
+
+248
+00:21:40.080 --> 00:21:46.320
+a vector store. Like you could use Postgres with the PG vector extension. You can use just S3 with
+
+249
+00:21:46.320 --> 00:21:53.280
+Meta's FAISS storage mechanism. Then there's other third-party solutions like Pinecone, Memento,
+
+250
+00:21:53.280 --> 00:21:59.040
+and then you can perform those semantic searches when you have a query. So the LLM chat part of
+
+251
+00:21:59.040 --> 00:22:03.840
+that is fairly straightforward, but you need to think about what do you do when you've got lots of
+
+252
+00:22:03.840 --> 00:22:08.160
+documents coming into your company's knowledge base and you need to asynchronously process them
+
+253
+00:22:08.160 --> 00:22:12.640
+and add them to your vector store. And so this is kind of a sporadic bursty activity that doesn't
+
+254
+00:22:12.640 --> 00:22:17.760
+really require real-time performance and a Lambda with a reasonably sized text embeddings model could
+
+255
+00:22:17.760 --> 00:22:22.560
+work pretty well for that. So I think this is one of the areas where you might find Lambda being
+
+256
+00:22:22.560 --> 00:22:27.920
+used, even though you might end up using a fleet of GPU instances or similar for the knowledge-based
+
+257
+00:22:27.920 --> 00:22:33.200
+search or for a chat interface for your company's knowledge base, you might end up being able to
+
+258
+00:22:33.280 --> 00:22:37.920
+offload all of the embeddings generation to a Lambda. Now of course this is a little bit of an
+
+259
+00:22:37.920 --> 00:22:44.080
+advanced optimization. Bedrock on AWS can do text embeddings and LLM predictions in a serverless
+
+260
+00:22:44.080 --> 00:22:48.640
+way. We talked about that in our Bedrock episode, but you're limited there, right, to available
+
+261
+00:22:48.640 --> 00:22:54.240
+models and the need to consider pricing and quotas. So if you want to use an open source model
+
+262
+00:22:54.240 --> 00:22:58.160
+it's a little bit more difficult and that's why you might go more of a custom route. So check out
+
+263
+00:22:58.160 --> 00:23:03.440
+that previous Bedrock episode if you want a similar solution.
+
+264
+00:23:03.440 --> 00:23:07.760
+We know I suppose that these Lambda experiments we're talking about are kind of specialist, they're quite experimental and not
+
+265
+00:23:07.760 --> 00:23:13.520
+necessarily ready for the prime time, but it's still really interesting and I definitely recommend
+
+266
+00:23:13.520 --> 00:23:20.400
+for people who are just interested in the space to check out those frameworks like ggml, llama.cpp,
+
+267
+00:23:20.400 --> 00:23:26.240
+whisper.cpp, if you're running stuff on a Mac especially or your laptop in general. If you
+
+268
+00:23:26.240 --> 00:23:30.880
+don't want to go put all your data in open API there's also other great frameworks on top of them
+
+269
+00:23:30.880 --> 00:23:38.080
+like private GPT and local GPT which can run pretty well on a Mac or similar hardware and give
+
+270
+00:23:38.080 --> 00:23:43.360
+you that chat GPT-like experience but all within the safety of your own development environment.
+
+271
+00:23:43.360 --> 00:23:48.000
+I think that's generally the conclusion time for this episode and while these experiments are
+
+272
+00:23:48.000 --> 00:23:52.000
+interesting and a little bit of fun it kind of remains to be seen whether Lambda can be
+
+273
+00:23:52.000 --> 00:23:57.200
+an important service in the Gen AI space but for other more tried and trusted ML applications
+
+274
+00:23:57.200 --> 00:24:01.280
+doing inference in Lambda can definitely simplify, save costs, give you great scalability and
+
+275
+00:24:01.280 --> 00:24:05.040
+performance as well. But let us know what you think as always. Are we losing the plot a little
+
+276
+00:24:05.040 --> 00:24:10.480
+bit going left of field with Lambda for ML or have you also had good results? Thank you for listening
+
+277
+00:24:10.480 --> 00:24:28.320
+and we will catch you in the next episode.

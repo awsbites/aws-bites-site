@@ -1,0 +1,1670 @@
+{
+  "speakers": {
+    "spk_0": "spk_0",
+    "spk_1": "spk_1"
+  },
+  "segments": [
+    {
+      "speakerLabel": "spk_0",
+      "start": 0,
+      "end": 3.68,
+      "text": " More people are getting into AI and running their own machine learning models."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 3.68,
+      "end": 8.64,
+      "text": " Whether it's generative AI, image processing, recommendation, or text-to-speech,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 8.64,
+      "end": 11.84,
+      "text": " the need for somewhere to run machine learning models is increasing."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 11.84,
+      "end": 16.240000000000002,
+      "text": " For many, they'll use hosted services and pre-trained models using something like OpenAI"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 16.240000000000002,
+      "end": 21.6,
+      "text": " or AWS, but others want more control, improved data privacy, and might want to manage their"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 21.6,
+      "end": 24.48,
+      "text": " performance, scalability, and cost at a more fine-grained level."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 24.48,
+      "end": 28.72,
+      "text": " Today, we wanted to cover a slightly controversial choice for running machine learning models,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 28.72,
+      "end": 33.36,
+      "text": " and that's AWS Lambda. By the end of today's episode, you should have a clear idea of how"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 33.36,
+      "end": 38.08,
+      "text": " and when Lambda can be used to run machine learning predictions and when to go for something"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 38.08,
+      "end": 42.8,
+      "text": " a little bit more traditional. I'm Eoin, I'm joined by Luciano, and this is the AWS Bites podcast."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 51.04,
+      "end": 56.32,
+      "text": " AWS Bites is sponsored by Fortheorum, an AWS partner with plenty of experience running machine"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 56.4,
+      "end": 60.8,
+      "text": " learning workloads in production. If you want to chat, reach out to Luciano or myself on social"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 60.8,
+      "end": 66.24,
+      "text": " media. All the links are in the show notes. Now, back in episode 46, which was how do you do"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 66.24,
+      "end": 71.44,
+      "text": " machine learning in AWS, we talked about the various ways to run machine learning models in AWS,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 71.44,
+      "end": 76.4,
+      "text": " and we briefly covered there the idea of using Lambda for inference, and this is the specific"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 76.4,
+      "end": 81.68,
+      "text": " topic we wanted to dive into in more detail today. As always, we should start with why."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 81.68,
+      "end": 85.2,
+      "text": " What are the use cases? Why do you need to run machine learning models?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 88.8,
+      "end": 94.4,
+      "text": " I think it's important to clarify that generally when we talk about machine learning infrastructure, there are two different categories of workloads. One is when you need somewhere to"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 94.4,
+      "end": 99.36,
+      "text": " train and test models, and the other one is where you are thinking about, you have a model, I need"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 99.36,
+      "end": 104.32000000000001,
+      "text": " to run this model somewhere. And when we say run models, we mean having some kind of infrastructure"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 104.32000000000001,
+      "end": 108.96000000000001,
+      "text": " that can take inputs and run predictions or inference. So today we're going to focus only"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 108.96000000000001,
+      "end": 115.04,
+      "text": " on the second category, which is inference. So for training is generally something a little bit"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 115.04,
+      "end": 119.60000000000001,
+      "text": " more complex. You need more specialized infrastructure like many GPUs most of the time,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 119.60000000000001,
+      "end": 125.12,
+      "text": " and you can also do training with CPU, but it's generally much more limited. It's going to take"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 125.12,
+      "end": 130.56,
+      "text": " probably much longer, and depending on the type of model you are trying to build, it might limit you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 130.56,
+      "end": 136.72,
+      "text": " to the size of that model itself. So generally GPU is kind of the way to go when you're thinking"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 136.72,
+      "end": 140.8,
+      "text": " about training, especially the more complex the model, the more you'll need to invest on"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 140.8,
+      "end": 146.24,
+      "text": " infrastructure with lots of GPUs. So we focus today instead on inference, and it's something"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 146.24,
+      "end": 151.60000000000002,
+      "text": " that can also benefit a lot from GPUs, but it doesn't always require using GPUs. You can also"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 151.60000000000002,
+      "end": 157.60000000000002,
+      "text": " use, for instance, CPU. But let's talk about some use cases. One common use case is medical imaging."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 157.60000000000002,
+      "end": 164.4,
+      "text": " For instance, if you want to run an automated diagnosis of an X-ray scan on demand, and maybe"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 164.4,
+      "end": 170.4,
+      "text": " you have a few images every hour, maybe running a model on a CPU against a particular image may take"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 170.4,
+      "end": 174.72,
+      "text": " one minute, and I think one minute delay on having a response is probably acceptable in that particular"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 174.72,
+      "end": 179.52,
+      "text": " use case. You don't need an instantaneous answer with the diagnosis for that picture. You can"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 179.52,
+      "end": 185.04000000000002,
+      "text": " probably wait one minute. Another use case is audio transcription, for instance, for video calls. Maybe"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 185.04000000000002,
+      "end": 190.48000000000002,
+      "text": " you are using a system that records your video calls in your company, and you want to have a way"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 190.48000000000002,
+      "end": 196.32,
+      "text": " to have automated minutes like transcriptions and summaries of that meeting. And also in that case,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 196.32,
+      "end": 201.92,
+      "text": " it's probably acceptable to have some delay. Maybe a process running on CPU takes like half an hour"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 201.92,
+      "end": 207.12,
+      "text": " to produce all of that summary and transcript. It's probably okay to receive an email half an hour"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 207.12,
+      "end": 211.51999999999998,
+      "text": " after the meeting with that document attached. Again, it's not a use case where you need an"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 211.51999999999998,
+      "end": 217.2,
+      "text": " immediate answer for that particular task. And finally, I have another example, which is,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 217.2,
+      "end": 222.56,
+      "text": " for instance, you want to use word embedding models to index documents. Maybe you are building"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 222.56,
+      "end": 227.84,
+      "text": " a SaaS platform where users can attach different kinds of documents, and you want to make this"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 227.84,
+      "end": 233.04,
+      "text": " document searchable. And maybe you want to make it searchable through, for instance, like a chat"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 233.04,
+      "end": 237.36,
+      "text": " UI where you're using some kind of Gen AI capability. And of course, you need to index all"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 237.36,
+      "end": 241.2,
+      "text": " the documents in such a way that then the Gen AI can access it. So you're going to be using specific"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 241.2,
+      "end": 247.68,
+      "text": " models to do all of that. And that might take a time, sometimes like, again, half an hour, one hour. So"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 247.68,
+      "end": 251.84,
+      "text": " the documents will only be available for search after a little while. But for most use cases,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 251.84,
+      "end": 256.16,
+      "text": " this is probably acceptable as well. By the way, I mentioned the word embeddings. It's one of the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 256.16,
+      "end": 260.56,
+      "text": " new terms that comes around a lot when we talk about Gen AI. If you don't know what it is, don't"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 260.56,
+      "end": 264.88,
+      "text": " worry, we'll cover that during this episode. Now, I said that these applications generally"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 264.88,
+      "end": 269.76,
+      "text": " need specialized hardware, for instance, GPU. Should we spend a little bit more time clarifying"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 269.76,
+      "end": 274.24,
+      "text": " what is the advantage that a GPU brings when compared to CPU?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 274.24,
+      "end": 279.76,
+      "text": " Yeah, the state of the art for most machine learning models uses deep learning. And deep learning is essentially employing deep"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 279.76,
+      "end": 284.08,
+      "text": " neural networks. Neural networks have been around as an idea since, I think, the 1950s."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 284.64,
+      "end": 289.44,
+      "text": " And deep neural networks are kind of an evolution of that, that has become more popular in the last"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 289.44,
+      "end": 295.03999999999996,
+      "text": " decade or so. And the idea essentially is trying to model how we think humans' brains work, or"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 295.03999999999996,
+      "end": 300.64,
+      "text": " actually any other animal brains work, simulating the idea of neurons and synapses and connections"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 300.64,
+      "end": 305.03999999999996,
+      "text": " between nodes in our brains. So deep neural network architectures can have thousands or"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 305.03999999999996,
+      "end": 309.52,
+      "text": " even millions of nodes. And as they're trained, at least at a basic level, the connections"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 309.52,
+      "end": 316,
+      "text": " between nodes obtain weights, right? And it's those weights that are the most important and"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 316,
+      "end": 321.2,
+      "text": " the bulk of the parameters for a model. So when you hear people talking about model parameters,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 321.2,
+      "end": 326,
+      "text": " weights are generally the biggest number of them. And they need to be stored in memory. So"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 326,
+      "end": 331.68,
+      "text": " large memory requirements are typical. And the storage format are generally multi-dimensional"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 331.68,
+      "end": 336.79999999999995,
+      "text": " vectors. You hear the term tensors a lot, and that's basically vectors of many different"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 336.8,
+      "end": 341.2,
+      "text": " dimensions. And these are used to represent those networks and their parameters. And the operations"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 341.2,
+      "end": 347.52000000000004,
+      "text": " that need to happen in the CPU or the GPU, these are generally fast floating point matrix mathematics"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 348.64,
+      "end": 354.16,
+      "text": " that you need to occur. And that's why GPUs came into play, because GPUs originally developed for"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 354.16,
+      "end": 360.96000000000004,
+      "text": " graphics. That's where the G comes from. We've all had GPUs in our desktop PCs and laptops over time,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 360.96000000000004,
+      "end": 365.44,
+      "text": " particularly popular with gamers, then became popular with Bitcoin miners. Now the biggest"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 365.44,
+      "end": 371.12,
+      "text": " demand is coming from machine learning, because GPUs have thousands of cores optimized for this"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 371.12,
+      "end": 376.4,
+      "text": " kind of calculation and can run the many calculations in matrix operations and in"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 376.4,
+      "end": 381.52,
+      "text": " parallel as well. So they're highly optimized for this particular application. And they also have"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 381.52,
+      "end": 386.56,
+      "text": " higher memory bandwidth for loading large data sets, which is quite important for performance"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 386.56,
+      "end": 392.08,
+      "text": " in this space as well. We talk about GPUs, but of course, there are other AI chip technologies"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 392.08,
+      "end": 398.32,
+      "text": " evolving that are not GPUs. AWS has its NeuronCore and NeuronCore 2 architectures,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 398.96,
+      "end": 405.68,
+      "text": " which you can utilize if you use the Tranium or the Inferencia instance types in EC2. And these"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 405.68,
+      "end": 412.15999999999997,
+      "text": " are not GPUs, but are basically designed for more cost-effective and more power consumption optimized"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 412.15999999999997,
+      "end": 416.47999999999996,
+      "text": " machine learning. So I think we might see a lot more of that. Google also has TPUs, the tensor"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 416.48,
+      "end": 422.64000000000004,
+      "text": " processing units. So we may see more adoption of those options instead of just pure GPUs,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 422.64000000000004,
+      "end": 427.68,
+      "text": " as people are kind of making trade-offs and optimizing for the availability of hardware,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 427.68,
+      "end": 433.6,
+      "text": " the cost and power consumption critically as well. So hopefully we've outlined why GPUs and"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 433.6,
+      "end": 438.56,
+      "text": " other special cores are really well suited for machine learning. So then why are we doing a"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 438.56,
+      "end": 444.8,
+      "text": " whole episode based around AWS Lambda and CPUs only? Why would you bother with CPUs?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 448.96000000000004,
+      "end": 452.88,
+      "text": " Yeah, that's one of our current complaints about Lambda that doesn't support GPU, at least not yet. But that doesn't stop us from running machine learning inside Lambda,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 452.88,
+      "end": 457.36,
+      "text": " which is what we are going to be covering for the rest of the day. But let's talk a little bit more"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 457.36,
+      "end": 464.56,
+      "text": " about what is the trade-off with CPU versus GPU, because CPU compared to GPU is generally widely"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 464.56,
+      "end": 469.6,
+      "text": " available and much cheaper. And when you run things in the cloud, you definitely have lots"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 469.6,
+      "end": 474,
+      "text": " more options when you think about CPU compared to GPU. You can run things locally as well,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 474,
+      "end": 479.84,
+      "text": " and generally easier to run on many developer environments because CPUs are a lot more widely"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 479.84,
+      "end": 486.48,
+      "text": " available and standardized than GPUs. And it can scale much faster in a way that if you need to go"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 486.48,
+      "end": 491.6,
+      "text": " through levels of concurrency by spinning up multiple instances, like multiple machines or"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 491.6,
+      "end": 496.08,
+      "text": " Lambdas or whatever, it's generally easier to do that if you think just about CPU. Because when"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 496.08,
+      "end": 501.04,
+      "text": " you bring GPU into the matrix, generally either the cost becomes more prohibitive, or maybe you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 501.04,
+      "end": 506,
+      "text": " have limits that will stop you from spinning up thousands of instances, or even the provisioning"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 506,
+      "end": 511.28000000000003,
+      "text": " time might just be much higher than it is with provisioning CPU-based instances. So, again,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 511.28000000000003,
+      "end": 516.48,
+      "text": " this is kind of the trade-off. While with CPU you don't have the power of GPU for parallel matrix"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 516.48,
+      "end": 523.6,
+      "text": " math, there are other things that you can take and use with CPUs to still have decent levels"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 523.6,
+      "end": 528.48,
+      "text": " of performance. For instance, recent advancements in CPUs have brought us SIMD, single instruction"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 528.48,
+      "end": 534,
+      "text": " multiple data, which is a CPU extension that allows you to run vectorized operations. And"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 534,
+      "end": 539.28,
+      "text": " one example of that is AVX2, which is also available in Lambda. This is an Intel CPU"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 539.28,
+      "end": 545.52,
+      "text": " extension and has been in Lambda since 2020. So if you write software that can take advantage of this"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 545.52,
+      "end": 549.28,
+      "text": " kind of capabilities, you're still going to have pretty good performance on a CPU, and you don't"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 549.28,
+      "end": 553.6,
+      "text": " necessarily need to use a GPU. There are other examples. For instance, for ARM processors, you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 553.6,
+      "end": 560.32,
+      "text": " have NEON, which is another extension that allows you to run SIMD. Now, even though you have a CPU"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 560.32,
+      "end": 565.9200000000001,
+      "text": " model execution, it's not always obvious to say that GPU is always going to be faster. I think"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 565.9200000000001,
+      "end": 570.16,
+      "text": " it really depends on the use case that you are trying to address and the amount of data that"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 570.16,
+      "end": 575.12,
+      "text": " you might want to process in terms of actual size of the single unit of data, but also in terms of"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 575.12,
+      "end": 579.36,
+      "text": " how much data can you actually parallelize in one go. And we can make an example. For instance,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 579.36,
+      "end": 582.72,
+      "text": " let's say that we have a neural network that can process between"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 582.72,
+      "end": 588.16,
+      "text": " one and 100 images in parallel into a limited seconds having a GPU. Let's use this as a baseline."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 588.16,
+      "end": 593.36,
+      "text": " Now, if you take the same thing and put it in a Lambda, maybe you can run one inference with that"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 593.36,
+      "end": 598.72,
+      "text": " Lambda in two seconds. So it is a little bit slower, but the advantage of Lambda is that then you can"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 598.72,
+      "end": 603.52,
+      "text": " much more easily run thousands of instances of that Lambda than it is of running, for instance,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 604.3199999999999,
+      "end": 610.3199999999999,
+      "text": " SageMaker instance with a GPU. Also, if you run a SageMaker instance with a GPU, that instance is"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 610.3199999999999,
+      "end": 614.8,
+      "text": " going to take minutes to spin up, while when we think about spinning up a Lambda, that generally"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 614.8,
+      "end": 621.6,
+      "text": " takes seconds. So that gives you an idea that there might be cases where you can just take the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 621.6,
+      "end": 626.8,
+      "text": " power of parallelization and fast bootstrap times of Lambda, and you might end up with something that"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 626.8,
+      "end": 632,
+      "text": " can be even more convenient than just having one or a few instances with a GPU that are going to be"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 632,
+      "end": 636.48,
+      "text": " much faster to do the single inference, but maybe all the bootstrapping time and the scalability"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 636.48,
+      "end": 641.36,
+      "text": " is going to be overall slower. So it's not always obvious to say that GPU is faster than CPU. I"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 641.36,
+      "end": 646.8,
+      "text": " think there are lots of use cases where you can make traders, and if you use Lambda with CPU,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 646.8,
+      "end": 651.76,
+      "text": " you can still come up and win the race of this is actually going to be a better approach than"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 651.76,
+      "end": 658.08,
+      "text": " just spinning up GPUs. So what do you need to get up and running? Are we going to run,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 658.08,
+      "end": 662.4000000000001,
+      "text": " are we going to think for instance about Python Lambda functions with PyTorch or Tensorflows or"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 662.4000000000001,
+      "end": 666.64,
+      "text": " something else?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 666.64,
+      "end": 671.44,
+      "text": " Well, Python is supported by pretty much every model and framework out there, so it's probably your go-to when you're getting started. As we mentioned in a very recent episode,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 671.44,
+      "end": 676,
+      "text": " a lot of the Python libraries are very heavy and can then lead to longer deployment times and"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 676,
+      "end": 681.12,
+      "text": " initial cold start times, so we'll have that link in the show notes. I would say that the space is"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 681.12,
+      "end": 685.2800000000001,
+      "text": " fast evolving. It's almost like the machine learning framework space is a little bit like"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 685.28,
+      "end": 689.4399999999999,
+      "text": " front-end frameworks about five years ago where it's just moving so fast and new ones are coming"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 689.4399999999999,
+      "end": 695.28,
+      "text": " out all the time. But maybe before we get into that tooling, we can talk about an extreme example"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 695.92,
+      "end": 701.68,
+      "text": " and kind of play with this idea a little bit. Since Gen AI is all the rage, can you actually"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 701.68,
+      "end": 707.1999999999999,
+      "text": " run large language models on AWS Lambda? I mean, surely not is probably the default response to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 707.1999999999999,
+      "end": 711.76,
+      "text": " that, but there are lots of open source models out there and people might want to take advantage of"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 711.76,
+      "end": 716.8,
+      "text": " open source models to run things in a private way just for their own experimentation or to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 716.8,
+      "end": 721.6,
+      "text": " really focus on data privacy and security, and they will be thinking about how to optimize the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 721.6,
+      "end": 726.88,
+      "text": " infrastructure then. And we're talking about open source models like Lambda from Meta or Mistral or"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 726.88,
+      "end": 731.84,
+      "text": " the new Microsoft one, Phi2, or even stable diffusion for images. Yes, generally the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 731.84,
+      "end": 737.76,
+      "text": " requirements for these models to run them are huge, but not always. And when we hear people"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 737.76,
+      "end": 741.68,
+      "text": " talking about these models, they generally talk about the number of parameters in their model."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 742.3199999999999,
+      "end": 747.28,
+      "text": " When Meta released the Lambda2 model, this is an open source large language model comparable to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 747.28,
+      "end": 753.52,
+      "text": " GPT 3.5, GPT 4 in some ways, it was released with three different parameter sizes, 7 billion,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 753.52,
+      "end": 758.7199999999999,
+      "text": " 13 billion and 70 billion. And there are models out there with hundreds of billions of parameters."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 758.7199999999999,
+      "end": 763.68,
+      "text": " So what does that mean in terms of resources you need? Well, it depends on the numerical precision"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 763.68,
+      "end": 768.3199999999999,
+      "text": " of the model. So you might have a model that's using 32 bit floating point values. So that's"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 768.32,
+      "end": 772.48,
+      "text": " four bytes per parameter. So then your memory requirement is going to be the number of parameters"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 772.48,
+      "end": 776.8000000000001,
+      "text": " times four. So if you have that 70 billion parameter Lambda model with 32 bit precision,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 776.8000000000001,
+      "end": 782.24,
+      "text": " that's 140 gigabytes of memory to run it. So you need a pretty high end GPU or you need to start"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 782.24,
+      "end": 787.7600000000001,
+      "text": " thinking about parallelizing over multiple GPUs. And for this, even for the 7 billion parameter"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 787.7600000000001,
+      "end": 792.1600000000001,
+      "text": " model, you're talking about 14 gigabytes. So it's quite a lot. But since resources are constrained,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 792.72,
+      "end": 797.44,
+      "text": " and not everyone who's enthusiastic about this space has access to GPUs with that kind of memory,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 797.5200000000001,
+      "end": 802.48,
+      "text": " the community is putting a lot of effort into getting pretty good results with fewer parameters"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 802.48,
+      "end": 808.72,
+      "text": " and lower precision parameters as well. So if you imagine using four bit integers instead of 32 bit"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 808.72,
+      "end": 812.8800000000001,
+      "text": " floating point, this is a process called quantization, where you can convert it into a"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 812.8800000000001,
+      "end": 819.9200000000001,
+      "text": " lower precision model, all of a sudden, you can take the 70 billion parameter model, or sorry,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 819.9200000000001,
+      "end": 826.1600000000001,
+      "text": " a 4 billion parameter model and run it in two gigs of RAM. So by tweaking both of those factors down"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 826.16,
+      "end": 831.68,
+      "text": " by a significant amount, you can still get pretty good performance. And when I'm talking"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 831.68,
+      "end": 837.04,
+      "text": " about performance, I mean, accuracy of the models and the inference results. The just because you're"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 837.04,
+      "end": 841.92,
+      "text": " scaling down by a factor of 10 or more, it doesn't mean that you're scaling down accuracy linearly,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 841.92,
+      "end": 846.7199999999999,
+      "text": " often you can get almost as good accuracy, depending on the use case and the model."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 847.4399999999999,
+      "end": 853.52,
+      "text": " Since GPT and chat GPT came out, a lot of the most exciting developments in the whole LLM space has"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 853.52,
+      "end": 859.04,
+      "text": " been the development of these quantized models and the performance you're getting. Now, of course,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 859.04,
+      "end": 864.0799999999999,
+      "text": " running it on CPU is rarely going to be as fast as GPU. There's a lot of factors that can affect"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 864.0799999999999,
+      "end": 868.88,
+      "text": " performance. So it's difficult to say with any certainty, but 100 times slower performance,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 868.88,
+      "end": 873.12,
+      "text": " like in the example you gave Luciano on CPU, it's not unexpected. That's quite typical."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 873.84,
+      "end": 878.16,
+      "text": " Back to the tooling then. So we talked about Python and we know about TensorFlow and PyTorch."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 878.16,
+      "end": 882.16,
+      "text": " We talked a bit about those in the previous episode, but a lot of work now has been done"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 882.16,
+      "end": 887.8399999999999,
+      "text": " in creating native frameworks and implementations. So machine learning frameworks that don't need"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 887.8399999999999,
+      "end": 894.88,
+      "text": " all of the Python interface or a much lighter Python interface. And llama.cpp was one of the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 894.88,
+      "end": 902.16,
+      "text": " first one of these, and this was started by Georg Gergunov, who then also went on to create ggml,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 902.16,
+      "end": 906.0799999999999,
+      "text": " which is a pure C machine learning library designed to make machine learning models"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 906.0799999999999,
+      "end": 911.12,
+      "text": " accessible on commodity hardware. So if you want to run machine learning models on your Apple Mac"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 911.12,
+      "end": 915.92,
+      "text": " ARM processor, like an M1 or an M2, you could really look into this because it's got really"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 915.92,
+      "end": 921.52,
+      "text": " good support as well as for just CPU execution, also good support for Apple silicon GPUs. And"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 921.52,
+      "end": 927.84,
+      "text": " the ggml framework is now a company, ggml.ai, and it has funding to develop it further, which is good"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 927.84,
+      "end": 931.92,
+      "text": " news for us, I think. And I think it seems like a pretty good fit for Lambda because you can build"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 931.92,
+      "end": 936.08,
+      "text": " really small package sites that are really fast to deploy, pretty good on cold start time as well."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 936.08,
+      "end": 940.32,
+      "text": " And then there's bindings available for different languages. So you're not glued into the Python"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 940.32,
+      "end": 946.4000000000001,
+      "text": " ecosystem, if you don't want all that heaviness, or you're just not a Python fan. And this ggml"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 946.4000000000001,
+      "end": 950.72,
+      "text": " framework will adapt to different CPU and GPU architectures, depending on where you want to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 950.72,
+      "end": 956.32,
+      "text": " run it. So it's easily portable from your local development environment into runtimes like"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 956.32,
+      "end": 961.36,
+      "text": " container runtimes or Lambda. And Georg Gergunov has also created a lot of quantized versions of"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 961.36,
+      "end": 966.96,
+      "text": " the models in the format acquired by ggml. So you've, instead of having the 32 bit or 16 bit"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 966.96,
+      "end": 971.36,
+      "text": " for floating point versions, you have four or five or eight bit integer versions that you can"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 971.36,
+      "end": 975.84,
+      "text": " use to reduce your memory consumption. There are other alternatives apart from ggml, like the ONNX"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 975.84,
+      "end": 981.6800000000001,
+      "text": " runtime, but we haven't used it directly. We have been working with ggml and experimenting with it"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 981.6800000000001,
+      "end": 986.96,
+      "text": " over the past few months. And we found it pretty useful. And the results, while I wouldn't say"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 986.96,
+      "end": 991.52,
+      "text": " we're ready to deploy it at scale in production, we've had some pretty interesting results. So"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 991.52,
+      "end": 995.9200000000001,
+      "text": " Liciano, would you want to take us through some of the, I guess, examples of Lambda for"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 995.92,
+      "end": 1001.4399999999999,
+      "text": " machine learning we've been doing, at least publicly siteable ones over the past few years?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1001.4399999999999,
+      "end": 1007.04,
+      "text": " Yes."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1007.04,
+      "end": 1013.76,
+      "text": " One of that we mentioned before in this podcast is the way we create the transcripts for our podcast, which is basically using SageMaker. And the startup performance of"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1013.76,
+      "end": 1018,
+      "text": " that is a little bit of a pain. It's not a deal breaker because again, we don't really need"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1018,
+      "end": 1023.52,
+      "text": " instantaneous response, but we were a little bit curious of checking what is the difference? What"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1023.52,
+      "end": 1028.4,
+      "text": " are the trade-offs if we try to run the same thing on Lambda? Can we do anything better? And"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1028.4,
+      "end": 1032.8799999999999,
+      "text": " what are the results? It's going to be cheaper. So what we did was basically experimenting and"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1032.8799999999999,
+      "end": 1036.8799999999999,
+      "text": " trying to figure out exactly what we could achieve and what kind of results we could get."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1036.8799999999999,
+      "end": 1044.08,
+      "text": " And we were very pleased to see that Gerganov also created a version of Whisper, which is the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1044.8799999999999,
+      "end": 1048.4,
+      "text": " model that we use from OpenAI to do the descriptions. And this version has been"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1048.48,
+      "end": 1054.64,
+      "text": " important as well to C++ and with bindings for lots of languages, for instance, Node.js,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1054.64,
+      "end": 1061.1200000000001,
+      "text": " WebAssembly, Rust. There is actually an amazing demo that Gerg created of running this model on"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1061.1200000000001,
+      "end": 1064.96,
+      "text": " the browser using WebAssembly and it's totally available online. We will have the link in the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1064.96,
+      "end": 1070.48,
+      "text": " show notes if you want to play with it. So that kind of shows that once you bring the model to"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1070.48,
+      "end": 1076.5600000000002,
+      "text": " C++, it opens up a bunch of use cases that are not always so easy to access when you just have models"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1076.56,
+      "end": 1082.8799999999999,
+      "text": " in Python. And this is a use case that we work with. And I think we were very pleased with the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1082.8799999999999,
+      "end": 1087.6799999999998,
+      "text": " results. Seems a good tradeoff of performance is a little bit slower to do the inference,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1087.6799999999998,
+      "end": 1092.72,
+      "text": " but of course, it's much faster to bootstrap the environment. And I think we might spend a little"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1092.72,
+      "end": 1096.6399999999999,
+      "text": " bit more time in future episodes talking through the details of this experiment. This is still very"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1096.6399999999999,
+      "end": 1101.28,
+      "text": " early on for us, so we're still trying to figure out exactly if the tradeoffs are convenient or not"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1101.28,
+      "end": 1105.76,
+      "text": " for this particular use case. There are other use cases that are actually something interesting that"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1105.76,
+      "end": 1113.04,
+      "text": " we have been playing with. For instance, you can use LLM models, for instance, Llama in Lambda."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1113.04,
+      "end": 1119.2,
+      "text": " And this is something that basically you can try to ask questions and it generally takes about 30"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1119.2,
+      "end": 1124.56,
+      "text": " seconds to give you a response. So maybe it's not necessarily the best use cases because when you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1124.56,
+      "end": 1130.32,
+      "text": " use LLM and try to create kind of a chat-based interface, you want to have a more real-time type"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1130.32,
+      "end": 1134.72,
+      "text": " of answer. And with Lambda, it tends to do everything kind of in a batch approach where"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1134.72,
+      "end": 1138.64,
+      "text": " it processes everything, it creates that response objects, you get the response object that then you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1138.64,
+      "end": 1143.1200000000001,
+      "text": " can use in your frontend so you can see those 30 seconds of delay and it's a little bit painful"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1143.1200000000001,
+      "end": 1148.16,
+      "text": " to use for that particular use case. And there are other use cases that we have been working with."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1148.16,
+      "end": 1153.76,
+      "text": " Actually, the oldest one was four years ago when Lambda container image support was announced."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1153.76,
+      "end": 1159.04,
+      "text": " We were able to create a demo where we were embedding one of these models to do x-ray analysis."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1159.04,
+      "end": 1165.6,
+      "text": " And we were able to run 120,000 x-ray images in about three minutes, which is pretty impressive."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1165.6,
+      "end": 1171.04,
+      "text": " We have a repository with all the examples and the code to run all of that and we will have a link"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1171.04,
+      "end": 1176.1599999999999,
+      "text": " for that in the show notes. Is there any other use case that comes to mind, Eoin?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1176.1599999999999,
+      "end": 1181.84,
+      "text": " Something that we've been looking at recently a lot actually is within the Gen AI space, retrieval augmented generation,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1181.84,
+      "end": 1186.24,
+      "text": " or RAG, and it's becoming very common and it's one of the areas where Lambda might play a role."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1186.24,
+      "end": 1190.96,
+      "text": " Just a quick overview of what RAG is. We mentioned also the concept of text embeddings and promise"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1190.96,
+      "end": 1197.52,
+      "text": " that we'd define it. So the reason RAG has become popular is that LLM models like ChatGPT,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1197.52,
+      "end": 1201.28,
+      "text": " they have a limited context window. So the input size you can put into a prompt."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1201.84,
+      "end": 1207.68,
+      "text": " So if you want to query all of your company data and get a factual response processed by an LLM,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1207.68,
+      "end": 1211.68,
+      "text": " so it's got good language in the response, you can't just put all your company data with a"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1211.68,
+      "end": 1216.88,
+      "text": " question into a prompt. It's too much data. It's not going to work. So RAG is one of the solutions"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1216.88,
+      "end": 1221.28,
+      "text": " to address this. Instead of putting all the data into the prompt, you retrieve relevant sections"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1221.28,
+      "end": 1227.2,
+      "text": " of your company data from a knowledge base and then put those sections as context into your LLM"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1227.2,
+      "end": 1232,
+      "text": " prompt, allowing you to get effective answers and summaries. And because you're using a real"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1232,
+      "end": 1237.28,
+      "text": " knowledge base as your context, there should be a much lower chance of hallucination or fiction"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1237.28,
+      "end": 1242.8,
+      "text": " in your response. Now, in order for this RAG to work, you generally need to index your documents"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1242.8,
+      "end": 1246.96,
+      "text": " first and put them in a repository. So this could be a traditional lexical search like with Elastic"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1246.96,
+      "end": 1253.36,
+      "text": " Search or similar, but a more common approach now is to use a word embeddings LLM model. And this is"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1253.36,
+      "end": 1259.12,
+      "text": " similar to any other LLM model, but it's basically just creating a vector, multi-dimensional vector"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1259.12,
+      "end": 1266.24,
+      "text": " representation of text in documents. And by having that multi-dimensional vector stored, you can then"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1266.24,
+      "end": 1271.84,
+      "text": " do a semantic search on all of that textual data because it's a numerical format. You can do like a"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1271.84,
+      "end": 1278.16,
+      "text": " KNN search just to find similar terms to the question in documents and then retrieve those"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1278.16,
+      "end": 1282.72,
+      "text": " snippets of documents, then take them and put them into the context as part of the prompt. And that's"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1282.72,
+      "end": 1290.16,
+      "text": " the whole idea of RAG or retrieval augmented generation. And now the OpenAI, Bedrock and many"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1290.16,
+      "end": 1295.2,
+      "text": " more have text embedding models for you to do that, that you can then use with the other, like"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1295.2,
+      "end": 1300.0800000000002,
+      "text": " with the chat models. And when you use a model to create a vector embedding, you'll then store it in"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1300.0800000000002,
+      "end": 1306.32,
+      "text": " a vector store. Like you could use Postgres with the PG vector extension. You can use just S3 with"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1306.32,
+      "end": 1313.28,
+      "text": " Meta's phase storage mechanism. Then there's other third-party solutions like Pinecone, Memento,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1313.28,
+      "end": 1319.04,
+      "text": " and then you can perform those semantic searches when you have a query. So the LLM chat part of"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1319.04,
+      "end": 1323.8400000000001,
+      "text": " that is fairly straightforward, but you need to think about what do you do when you've got lots of"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1323.84,
+      "end": 1328.1599999999999,
+      "text": " documents coming into your company's knowledge base and you need to asynchronously process them"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1328.1599999999999,
+      "end": 1332.6399999999999,
+      "text": " and add them to your vector store. And so this is kind of a sporadic bursty activity that doesn't"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1332.6399999999999,
+      "end": 1337.76,
+      "text": " really require real-time performance and a Lambda with a reasonably sized text embeddings model could"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1337.76,
+      "end": 1342.56,
+      "text": " work pretty well for that. So I think this is one of the areas where you might find Lambda being"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1342.56,
+      "end": 1347.9199999999998,
+      "text": " used, even though you might end up using a fleet of GPU instances or similar for the knowledge-based"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1347.9199999999998,
+      "end": 1353.1999999999998,
+      "text": " search or for a chat interface for your company's knowledge base, you might end up being able to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1353.28,
+      "end": 1357.92,
+      "text": " offload all of the embeddings generation to a Lambda. Now of course this is a little bit of an"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1357.92,
+      "end": 1364.0800000000002,
+      "text": " advanced optimization. Bedrock on AWS can do text embeddings and LLM predictions in a serverless"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1364.0800000000002,
+      "end": 1368.64,
+      "text": " way. We talked about that in our Bedrock episode, but you're limited there, right, to available"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1368.64,
+      "end": 1374.24,
+      "text": " models and the need to consider pricing and quotas. So if you want to use an open source model"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1374.24,
+      "end": 1378.16,
+      "text": " it's a little bit more difficult and that's why you might go more of a custom route. So check out"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1378.16,
+      "end": 1383.44,
+      "text": " that previous Bedrock episode if you want a similar solution. We know I suppose that these"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1383.44,
+      "end": 1387.76,
+      "text": " Lambda experiments we're talking about are kind of specialist, they're quite experimental and not"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1387.76,
+      "end": 1393.52,
+      "text": " necessarily ready for the prime time, but it's still really interesting and I definitely recommend"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1393.52,
+      "end": 1400.4,
+      "text": " for people who are just interested in the space to check out those frameworks like ggml, llama.cpp,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1400.4,
+      "end": 1406.24,
+      "text": " whisper.cpp, if you're running stuff on a Mac especially or your laptop in general. If you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1406.24,
+      "end": 1410.88,
+      "text": " don't want to go put all your data in open API there's also other great frameworks on top of them"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1410.88,
+      "end": 1418.08,
+      "text": " like private GPT and local GPT which can run pretty well on a Mac or similar hardware and give"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1418.08,
+      "end": 1423.36,
+      "text": " you that chat GPT-like experience but all within the safety of your own development environment."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1423.36,
+      "end": 1428,
+      "text": " I think that's generally the conclusion time for this episode and while these experiments are"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1428,
+      "end": 1432,
+      "text": " interesting and a little bit of fun it kind of remains to be seen whether Lambda can be"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1432,
+      "end": 1437.2,
+      "text": " an important service in the Gen AI space but for other more tried and trusted ML applications"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1437.2,
+      "end": 1441.28,
+      "text": " doing inference in Lambda can definitely simplify, save costs, give you great scalability and"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1441.28,
+      "end": 1445.04,
+      "text": " performance as well. But let us know what you think as always. Are we losing the plot a little"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1445.04,
+      "end": 1450.48,
+      "text": " bit going left of field with Lambda for ML or have you also had good results? Thank you for listening"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1450.48,
+      "end": 1468.32,
+      "text": " and we will catch you in the next episode."
+    }
+  ]
+}

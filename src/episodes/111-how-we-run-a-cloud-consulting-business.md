@@ -15,6 +15,7 @@ By the end of this episode, you will know what working with a cloud consulting c
 
 In this episode, we mentioned the following resources.
 
+- [Working with fourTheorem](https://fourtheorem.com/working-with-fourtheorem/)
 - [AI as a service](https://www.manning.com/books/ai-as-a-service), book by Peter Elger and Eoin Shanaghy
 - [Majority of developers spending half, or less, of their day coding, report finds](https://www.techrepublic.com/article/majority-of-developers-spending-half-or-less-of-their-day-coding-report-finds/) (TechRepublic article)
 - [2023 software.com Future of Work Report](https://www.software.com/reports/future-of-work) 

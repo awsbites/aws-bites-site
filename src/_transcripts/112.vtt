@@ -1,0 +1,1097 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:05.000
+Access control policies in AWS are one of the most difficult concepts to grasp.
+
+2
+00:00:05.000 --> 00:00:09.000
+And yet this is something that everyone has to deal with and understand at some level.
+
+3
+00:00:09.000 --> 00:00:12.600
+If you understand how all the different policy types work and how to troubleshoot them,
+
+4
+00:00:12.600 --> 00:00:16.200
+it's like having an AWS superpower. You'll be able to stay more secure,
+
+5
+00:00:16.200 --> 00:00:20.000
+you will save tons of time and you'll have a very sought after skill.
+
+6
+00:00:20.000 --> 00:00:22.300
+So how do you level up your skills in this area?
+
+7
+00:00:22.300 --> 00:00:29.800
+Well, today we're going to help you in some way by covering one of the least understood policy types in AWS.
+
+8
+00:00:29.800 --> 00:00:34.300
+SCPs or service control policies. By the end of this quick episode,
+
+9
+00:00:34.300 --> 00:00:37.500
+you should know what an SCP is, how and when to use them,
+
+10
+00:00:37.500 --> 00:00:41.300
+and you should be better equipped to troubleshoot access denied errors.
+
+11
+00:00:41.300 --> 00:00:45.200
+I'm Eoin, I'm here with Luciano for another AWS Bites.
+
+12
+00:00:53.400 --> 00:00:59.200
+AWS Bites is sponsored by fourTheorem. If setting up service control policies seems like too much hard work
+
+13
+00:00:59.200 --> 00:01:04.000
+and you'd rather let somebody else deal with it, give us a shout or check out fourtheorem.com.
+
+14
+00:01:04.000 --> 00:01:09.000
+Back in episode 40, we talked about identity and access management or IAM
+
+15
+00:01:09.000 --> 00:01:12.400
+and quickly covered the high level concepts around the different policy types.
+
+16
+00:01:12.400 --> 00:01:16.400
+There's lots of different policy types and if you've ever created an IAM role,
+
+17
+00:01:16.400 --> 00:01:21.600
+you'll be familiar with some of them. You might have used resource policies in the past as well,
+
+18
+00:01:21.600 --> 00:01:25.900
+like an S3 bucket policy. As an AWS developer or user,
+
+19
+00:01:25.900 --> 00:01:28.600
+you often have the rights to create those kinds of policies,
+
+20
+00:01:28.600 --> 00:01:32.200
+but there are other different types of policies that are usually taken care of by the people
+
+21
+00:01:32.200 --> 00:01:36.900
+who manage the AWS accounts and administer the whole organization structure.
+
+22
+00:01:36.900 --> 00:01:39.600
+And that includes permissions boundary policies
+
+23
+00:01:39.600 --> 00:01:42.900
+and these service control policies that we're talking about today.
+
+24
+00:01:42.900 --> 00:01:48.000
+And because they're maintained by administrators, usually they're less well understood,
+
+25
+00:01:48.000 --> 00:01:50.800
+probably for that reason. So to understand them,
+
+26
+00:01:50.800 --> 00:01:53.600
+we need to think a little bit about AWS organizations
+
+27
+00:01:53.600 --> 00:01:57.200
+because SCPs are actually a feature of organization service
+
+28
+00:01:57.200 --> 00:02:00.600
+rather than IAM as you might expect.
+
+29
+00:02:00.600 --> 00:02:05.600
+So let's maybe start Luciano with a quick run through of AWS organizations.
+
+30
+00:02:05.600 --> 00:02:09.300
+We covered it in more detail in episode 96,
+
+31
+00:02:09.300 --> 00:02:13.700
+but we should remind ourselves so that we could talk about SCPs with a bit more context.
+
+32
+00:02:13.700 --> 00:02:18.000
+Yeah, of course.
+
+33
+00:02:18.000 --> 00:02:21.200
+I think it's important to discuss what organizations are because it's something that is becoming more and more prevalent in the industry.
+
+34
+00:02:21.200 --> 00:02:24.900
+Most companies would have more than just one account.
+
+35
+00:02:24.900 --> 00:02:29.500
+And this is for two reasons mainly. One is security, which is probably the biggest reason
+
+36
+00:02:29.500 --> 00:02:31.800
+and we'll talk more about that during this episode.
+
+37
+00:02:31.800 --> 00:02:35.000
+But the other one is also quotas because with different accounts,
+
+38
+00:02:35.000 --> 00:02:38.500
+you are not going to have quotas in one account affecting the other.
+
+39
+00:02:38.500 --> 00:02:43.200
+For instance, an application running in, I don't know, a development account,
+
+40
+00:02:43.200 --> 00:02:47.300
+maybe where you're doing some load testing is not going to affect your production account
+
+41
+00:02:47.300 --> 00:02:52.100
+and maybe stop things from scaling up because you are running out on your quotas.
+
+42
+00:02:52.100 --> 00:02:57.400
+So having multiple AWS accounts is something that it's actually done a lot in the industry.
+
+43
+00:02:57.400 --> 00:03:02.100
+It's very important. You will see that more and more, especially going to bigger companies.
+
+44
+00:03:02.100 --> 00:03:09.300
+And the thing that is interesting is that AWS kind of recognized the need for seeing all this pattern,
+
+45
+00:03:09.300 --> 00:03:15.100
+the need for allowing companies to effectively manage multiple accounts inside an organization.
+
+46
+00:03:15.100 --> 00:03:17.700
+So they built a service called organization,
+
+47
+00:03:17.700 --> 00:03:21.500
+which should make it simpler to manage all of these accounts consistently.
+
+48
+00:03:21.500 --> 00:03:25.000
+So if you go to the organization panel,
+
+49
+00:03:25.000 --> 00:03:27.500
+you will see that there are a bunch of different features.
+
+50
+00:03:27.500 --> 00:03:30.600
+And if you start to read about what can you do with organization,
+
+51
+00:03:30.600 --> 00:03:32.900
+you'll see also a bunch of other interesting stuff.
+
+52
+00:03:32.900 --> 00:03:36.700
+The main one from an accounting perspective is that you can have consolidated billing,
+
+53
+00:03:36.700 --> 00:03:40.600
+which basically means that you can pay from one bank account
+
+54
+00:03:40.600 --> 00:03:45.500
+for all the different AWS accounts that you have enabled under your own organization.
+
+55
+00:03:45.500 --> 00:03:48.000
+Also, you have a hierarchical structure.
+
+56
+00:03:48.000 --> 00:03:53.000
+So you can imagine like you have a file system with folders and files,
+
+57
+00:03:53.000 --> 00:03:57.100
+where the files are kind of the actual accounts,
+
+58
+00:03:57.100 --> 00:04:00.700
+but you can also have folders which you can call organization units.
+
+59
+00:04:00.700 --> 00:04:03.900
+And the idea is that you can group accounts logically.
+
+60
+00:04:03.900 --> 00:04:08.500
+And you also can have centralized management of auditing and compliance.
+
+61
+00:04:08.500 --> 00:04:15.200
+For instance, you can have things like CloudTrail, AWS Config working at the organization unit level.
+
+62
+00:04:15.200 --> 00:04:18.900
+So you are kind of centralizing the management of all of that.
+
+63
+00:04:18.900 --> 00:04:21.900
+Also, you have resource sharing across the organization.
+
+64
+00:04:21.900 --> 00:04:24.900
+You have the ability to create new accounts within the organization
+
+65
+00:04:24.900 --> 00:04:27.400
+or invite other accounts into the organization.
+
+66
+00:04:27.400 --> 00:04:30.700
+You can do centralized access for identities,
+
+67
+00:04:30.700 --> 00:04:34.700
+so users using SSO, which is something called IAM Identity Center.
+
+68
+00:04:34.700 --> 00:04:37.600
+So the idea is that as a user of that organization,
+
+69
+00:04:37.600 --> 00:04:42.300
+you will have a dashboard that you can log in using your own company SSO,
+
+70
+00:04:42.300 --> 00:04:46.300
+and then it's going to show you all the different accounts and roles that you have access to.
+
+71
+00:04:46.300 --> 00:04:50.600
+And then you can easily jump from that to the specific account you need to work with.
+
+72
+00:04:50.600 --> 00:04:52.900
+And finally, we get into organization policies.
+
+73
+00:04:52.900 --> 00:04:57.800
+Organization policy also includes SCPs, which is the topic of this episode.
+
+74
+00:04:57.800 --> 00:05:03.300
+And these are policies that are applied to organization unit within an organization.
+
+75
+00:05:03.300 --> 00:05:08.500
+So in order to use SCPs, you need to select the enable all feature within your organization.
+
+76
+00:05:08.500 --> 00:05:11.500
+And the other option just gives you consolidated billing only.
+
+77
+00:05:11.500 --> 00:05:13.600
+So it's not a feature that you get out of the box.
+
+78
+00:05:13.600 --> 00:05:16.600
+It's something that you need to explicitly enable in your account,
+
+79
+00:05:16.600 --> 00:05:18.600
+well, in your organization.
+
+80
+00:05:18.600 --> 00:05:23.600
+Once you have enabled that, you will have the management account
+
+81
+00:05:23.600 --> 00:05:25.500
+and possible other accounts as well,
+
+82
+00:05:25.500 --> 00:05:29.600
+which are going to become part of your organization structure.
+
+83
+00:05:29.600 --> 00:05:32.500
+Just to give you an example, you have at the top,
+
+84
+00:05:32.500 --> 00:05:35.000
+you can imagine again, you have this kind of tree structure,
+
+85
+00:05:35.000 --> 00:05:37.200
+and at the top, you have the management account,
+
+86
+00:05:37.200 --> 00:05:39.500
+which you can also call the root account.
+
+87
+00:05:39.500 --> 00:05:43.300
+And then you can have organization units like security or workloads.
+
+88
+00:05:43.300 --> 00:05:46.600
+Inside security, you can have an account where you are storing,
+
+89
+00:05:46.600 --> 00:05:50.500
+where you are managing things like guard duty or other security services.
+
+90
+00:05:50.500 --> 00:05:52.500
+You can also manage accounts for auditing.
+
+91
+00:05:52.500 --> 00:05:55.600
+So maybe where you're going to store logs that you might need
+
+92
+00:05:55.600 --> 00:05:58.200
+in case that you need to perform some kind of auditing.
+
+93
+00:05:58.200 --> 00:06:01.400
+And then if we go back to the workload units,
+
+94
+00:06:01.400 --> 00:06:04.500
+these are going to be things where, for instance, you run applications
+
+95
+00:06:04.500 --> 00:06:07.600
+and you might have a production account, a development account,
+
+96
+00:06:07.600 --> 00:06:11.400
+you might have, I don't know, a testing account or maybe a QA account
+
+97
+00:06:11.400 --> 00:06:16.500
+that really depends on the way you ship software from maybe a development to production.
+
+98
+00:06:16.500 --> 00:06:20.000
+You can also choose to organize your accounts by department or project.
+
+99
+00:06:20.000 --> 00:06:26.200
+It's not uncommon to see that if in a big company you have kind of big applications
+
+100
+00:06:26.200 --> 00:06:29.400
+and they are all part maybe of a microservice architecture,
+
+101
+00:06:29.400 --> 00:06:32.700
+you might have different services running in dedicated accounts,
+
+102
+00:06:32.700 --> 00:06:38.300
+which makes it simpler to organize, for instance, the deployment pipelines,
+
+103
+00:06:38.300 --> 00:06:41.300
+avoid that again you have conflicting quotas
+
+104
+00:06:41.300 --> 00:06:44.500
+or even just make it simpler to have very specific policies
+
+105
+00:06:44.500 --> 00:06:48.600
+and control exactly what kind of accounts, what can they do account by account.
+
+106
+00:06:48.600 --> 00:06:52.900
+So the structure that you choose is highly influenced by the kind of company you work with
+
+107
+00:06:52.900 --> 00:06:56.300
+and the way that you actually ship things to production,
+
+108
+00:06:56.300 --> 00:06:59.800
+but also what kind of service control policies you want to have
+
+109
+00:06:59.800 --> 00:07:05.700
+because defining service control policies is going to affect what you can do in every single account.
+
+110
+00:07:05.700 --> 00:07:11.800
+So I guess at this point we should say what SCPs are and what they are good for.
+
+111
+00:07:11.800 --> 00:07:15.400
+If you've ever written a policy for an IAM user or a role,
+
+112
+00:07:15.400 --> 00:07:19.400
+you'll probably have written or created policy statements,
+
+113
+00:07:19.400 --> 00:07:23.900
+either doing this directly in JSON or YAML or with the AWS console.
+
+114
+00:07:23.900 --> 00:07:27.600
+And in a policy statement, you have things like an effect,
+
+115
+00:07:27.600 --> 00:07:30.900
+which says are we allowing or denying action
+
+116
+00:07:30.900 --> 00:07:37.400
+and then the properties of the statement that is often referred to as the PARC model, P-A-R-C
+
+117
+00:07:37.400 --> 00:07:40.900
+and PARC stands for principal, action, resource and condition.
+
+118
+00:07:40.900 --> 00:07:45.800
+So the principal part is the identity and this is an account or a user or a role
+
+119
+00:07:45.800 --> 00:07:48.600
+and you only normally have that in resource policies,
+
+120
+00:07:48.600 --> 00:07:55.200
+not in role or user, not in identity based policies because the identity is already implicit.
+
+121
+00:07:55.300 --> 00:08:01.400
+Then you have the action, like something like S3 list buckets or easy to start instances.
+
+122
+00:08:01.400 --> 00:08:03.500
+Then you have the resource or resources,
+
+123
+00:08:03.500 --> 00:08:08.400
+which are ARNs of the resources you're trying to allow or deny access to.
+
+124
+00:08:08.400 --> 00:08:11.700
+And then you have conditions, which is a bit of an advanced feature,
+
+125
+00:08:11.700 --> 00:08:16.800
+becoming more and more common where you're providing restrictions on the action,
+
+126
+00:08:16.800 --> 00:08:22.200
+the allow or deny based on attributes of either the identity or the resource.
+
+127
+00:08:22.200 --> 00:08:26.600
+Now, I think there's a few important things to know about service control policies
+
+128
+00:08:26.600 --> 00:08:31.900
+that are a little bit different to identity policies or resource policies you may have seen in the past.
+
+129
+00:08:31.900 --> 00:08:37.600
+The most important one is probably that service control policies never grant any permissions, ever.
+
+130
+00:08:37.600 --> 00:08:41.100
+So that might sound surprising for an access policy,
+
+131
+00:08:41.100 --> 00:08:46.700
+but a service control policy is really just a limit on the actions you can perform in an account.
+
+132
+00:08:46.700 --> 00:08:51.000
+You still need to have an identity based policy or a resource based policy
+
+133
+00:08:51.000 --> 00:08:54.600
+to do the actual granting to do the allow part.
+
+134
+00:08:54.600 --> 00:09:00.300
+So if you think about an identity policy and then a service control policy within the same account
+
+135
+00:09:00.300 --> 00:09:05.600
+and those two sets of permissions are in a Venn diagram with the identity policy in the SCP,
+
+136
+00:09:05.600 --> 00:09:10.500
+the action needs to be allowed by the intersection of the allows in those two policies.
+
+137
+00:09:10.500 --> 00:09:15.500
+And another important thing is that everything is denied by default in an SCP implicitly.
+
+138
+00:09:15.500 --> 00:09:19.900
+And for this reason, when you enable service control policies in your organization,
+
+139
+00:09:19.900 --> 00:09:24.700
+AWS will create a full access service control policy for you by default.
+
+140
+00:09:24.700 --> 00:09:28.100
+And this is basically action star, resource star, effect allow.
+
+141
+00:09:28.100 --> 00:09:34.200
+And that pattern is pretty familiar to anyone who's ever seen administrator access managed policy.
+
+142
+00:09:34.200 --> 00:09:35.800
+It looks exactly the same.
+
+143
+00:09:35.800 --> 00:09:39.900
+And this seems like a very permissive thing to have by default from AWS.
+
+144
+00:09:39.900 --> 00:09:42.500
+But of course it isn't permissive because as we just said,
+
+145
+00:09:42.500 --> 00:09:45.000
+SEPs don't actually grant any permissions.
+
+146
+00:09:45.000 --> 00:09:48.600
+They just set the boundary for all the permissions within an account.
+
+147
+00:09:48.600 --> 00:09:51.800
+See the idea here is that they give you everything by default
+
+148
+00:09:51.800 --> 00:09:55.000
+and it's up to you then to start creating service control policies
+
+149
+00:09:55.000 --> 00:10:00.900
+to scope down the boundary for all of the organization units or individual accounts
+
+150
+00:10:00.900 --> 00:10:05.600
+and refine it as you need for your organization structure.
+
+151
+00:10:05.600 --> 00:10:11.300
+And the last other important point about SEPs is that they don't affect the management account.
+
+152
+00:10:11.300 --> 00:10:14.400
+They only affect the member accounts within the organization.
+
+153
+00:10:14.400 --> 00:10:17.400
+So you talked about that hierarchy, Ushano.
+
+154
+00:10:17.400 --> 00:10:19.400
+We started with the management account at the root.
+
+155
+00:10:19.400 --> 00:10:22.200
+The SEPs are applied to OUs which are beneath that.
+
+156
+00:10:22.200 --> 00:10:24.200
+So that's important to realize.
+
+157
+00:10:24.200 --> 00:10:26.100
+And that's exactly how you apply them.
+
+158
+00:10:26.100 --> 00:10:31.300
+Once you create these policies, you attach them to organizational units within the organization.
+
+159
+00:10:31.300 --> 00:10:33.900
+Now you could do this at one level of the hierarchy
+
+160
+00:10:33.900 --> 00:10:36.900
+or every level of the hierarchy at OU level if you want.
+
+161
+00:10:36.900 --> 00:10:42.600
+And the effect of that then is that for an identity to have permissions in an account,
+
+162
+00:10:42.600 --> 00:10:47.200
+if there are multiple SEPs within the hierarchical structure all the way down to that account,
+
+163
+00:10:47.200 --> 00:10:52.300
+that the user is in, you have to explicitly allow the permission in all of the SEPs.
+
+164
+00:10:52.300 --> 00:10:55.400
+So because they're denied by default,
+
+165
+00:10:55.400 --> 00:10:59.100
+you have to make sure that the permission you're looking for is denied in each one of them.
+
+166
+00:10:59.100 --> 00:11:05.100
+There's no like trickle down from the top SEP down to OUs beneath that with additional SEPs.
+
+167
+00:11:05.100 --> 00:11:06.700
+It has to be allowed in all of them.
+
+168
+00:11:06.700 --> 00:11:10.800
+And if there isn't that explicit allow in all the applicable SEPs,
+
+169
+00:11:10.800 --> 00:11:14.000
+you'll get an error and the errors are getting a little bit better here,
+
+170
+00:11:14.000 --> 00:11:19.100
+but usually it says something like the identity is not authorized to perform an action
+
+171
+00:11:19.100 --> 00:11:22.600
+because no service control policy allows the action.
+
+172
+00:11:22.600 --> 00:11:24.700
+That's basically saying it's implicitly denied
+
+173
+00:11:24.700 --> 00:11:29.500
+or it'll say it has been denied because of an explicit deny in a service control policy.
+
+174
+00:11:29.500 --> 00:11:32.600
+And that basically tells you that there's a deny somewhere.
+
+175
+00:11:32.600 --> 00:11:38.800
+And if you've got a deny in a policy in the whole IAM service control policy evaluation logic,
+
+176
+00:11:38.800 --> 00:11:40.800
+an explicit deny beats everything.
+
+177
+00:11:40.800 --> 00:11:43.000
+So that's why it's denied.
+
+178
+00:11:43.000 --> 00:11:46.600
+And service control policies can be one of the more difficult ones to troubleshoot
+
+179
+00:11:46.600 --> 00:11:50.400
+because as a developer, an engineer in an AWS account,
+
+180
+00:11:50.400 --> 00:11:53.700
+you don't have visibility often into the service control policies.
+
+181
+00:11:53.700 --> 00:11:56.900
+So sometimes you just get a hint that it comes from the SEP.
+
+182
+00:11:56.900 --> 00:12:01.400
+Then you might have to go to somebody else or look in the infrastructure as code for those policies
+
+183
+00:12:01.400 --> 00:12:03.500
+to see where the error is coming from.
+
+184
+00:12:03.500 --> 00:12:06.400
+It's not as explicit as with other cases.
+
+185
+00:12:06.400 --> 00:12:09.800
+Now that we know how they work pretty much, what are they good for Luciana?
+
+186
+00:12:09.800 --> 00:12:15.300
+What are the use cases and why should people be interested in applying them to their organizations?
+
+187
+00:12:15.300 --> 00:12:21.500
+SEP are used as very broad set of controls on the maximum permissions as you very well explained.
+
+188
+00:12:21.500 --> 00:12:24.100
+So they are rarely very fine-grained.
+
+189
+00:12:24.100 --> 00:12:26.600
+So they're not going to really talk about specific resources,
+
+190
+00:12:26.600 --> 00:12:32.400
+it's more groups of things that will allow or deny certain specific actions.
+
+191
+00:12:32.400 --> 00:12:36.300
+So the idea is that you still should do fine-grained controls, of course,
+
+192
+00:12:36.300 --> 00:12:38.100
+but you should do them somewhere else.
+
+193
+00:12:38.100 --> 00:12:40.800
+So you should probably do them as you have done them before,
+
+194
+00:12:40.800 --> 00:12:47.600
+inside specific accounts, create specific types of policies and identity policies for specific resources.
+
+195
+00:12:47.600 --> 00:12:52.300
+So when you think about SEPs as kind of the macro level, then everything else,
+
+196
+00:12:52.300 --> 00:12:56.800
+all the other type of policies that you know well are probably more on the micro fine-grained level.
+
+197
+00:12:56.800 --> 00:12:59.600
+There are some typical use cases for SEPs.
+
+198
+00:12:59.600 --> 00:13:06.600
+For instance, one that we see a lot is specifying which regions can be used for a given account or sets of accounts.
+
+199
+00:13:06.600 --> 00:13:13.300
+And this can be important because you know that different regions might have different costs.
+
+200
+00:13:13.300 --> 00:13:17.500
+And generally, as an organization, you might be using a few regions,
+
+201
+00:13:17.500 --> 00:13:20.500
+you're not going to end up using all the regions most of the time.
+
+202
+00:13:20.500 --> 00:13:28.000
+So it makes sense to limit things that you can do only on the regions that you are actually really intending to do, to use.
+
+203
+00:13:28.000 --> 00:13:32.900
+There is a little bit of a gotcha there that certain services will require specific regions to work.
+
+204
+00:13:32.900 --> 00:13:35.500
+For instance, US East 1 for AEM.
+
+205
+00:13:35.500 --> 00:13:41.700
+So just be aware that you cannot just say I want to use one region, maybe you, Central 1,
+
+206
+00:13:41.700 --> 00:13:48.800
+because that's the closest to you, and forget about all the others, certain services will require specific regions to be enabled.
+
+207
+00:13:48.800 --> 00:13:55.600
+Another example is somewhat related where certain services are only available on a subset of regions.
+
+208
+00:13:55.600 --> 00:14:00.400
+So for instance, if you want to use Bedrock right now, it's limited only to a couple of regions, I believe.
+
+209
+00:14:00.400 --> 00:14:05.000
+So if this is something that you want to use, you still need to enable those regions as well.
+
+210
+00:14:05.000 --> 00:14:07.100
+Or at least one of the available regions as well.
+
+211
+00:14:07.100 --> 00:14:13.300
+Another good use case is prevent root user access, which is, I think, a very good practice to have.
+
+212
+00:14:13.300 --> 00:14:20.100
+You can also prevent accounts from leaving the organization if somebody might accidentally do that at the account level.
+
+213
+00:14:20.100 --> 00:14:22.200
+This is something you can prevent with an SCP.
+
+214
+00:14:22.200 --> 00:14:31.200
+You can also enforce data governance with S3, for instance, you can have specific SCPs that block public access at the global level,
+
+215
+00:14:31.300 --> 00:14:34.900
+so nobody can create a bucket that has public access.
+
+216
+00:14:34.900 --> 00:14:40.500
+Or you can prevent people from disabling something like S3 object questioning.
+
+217
+00:14:40.500 --> 00:14:44.200
+You can even force all the buckets to have encryption enabled.
+
+218
+00:14:44.200 --> 00:14:48.000
+So things like that will make sure that when you're using a service like S3,
+
+219
+00:14:48.000 --> 00:14:53.500
+you actually follow all the data governance rules that you might have within your company.
+
+220
+00:14:53.500 --> 00:14:58.700
+You can also limit services that people can use inside the organization.
+
+221
+00:14:58.700 --> 00:15:03.800
+For instance, as an administrator, you might say, okay, I don't want people to use Lambda,
+
+222
+00:15:03.800 --> 00:15:07.900
+because maybe you only really want to do easy to use, you are old school that way,
+
+223
+00:15:07.900 --> 00:15:10.100
+you can disable access to the Lambda service.
+
+224
+00:15:10.100 --> 00:15:11.400
+You shouldn't probably do that.
+
+225
+00:15:11.400 --> 00:15:14.100
+But if you really want to do it, it's something that you can do.
+
+226
+00:15:14.100 --> 00:15:19.100
+And another thing you can prevent people from deleting or modifying resources,
+
+227
+00:15:19.100 --> 00:15:22.800
+and you can have, in a way, those resources centrally managed.
+
+228
+00:15:22.800 --> 00:15:27.300
+For instance, you might have administrator access in development accounts,
+
+229
+00:15:27.300 --> 00:15:33.100
+but still, there are things that you can limit even to people that have administrator access in those accounts.
+
+230
+00:15:33.100 --> 00:15:37.100
+For instance, you don't want them to be able to delete organization managed roles,
+
+231
+00:15:37.100 --> 00:15:40.400
+or turn off config rules or crowd trail logging,
+
+232
+00:15:40.400 --> 00:15:45.600
+because you can guarantee that they won't be able to do this using specific SCTs.
+
+233
+00:15:45.600 --> 00:15:52.800
+Another use case that I've seen quite commonly is that you can limit the type of EC2 instances that can be launched.
+
+234
+00:15:52.800 --> 00:15:57.300
+And this is something that is done because there are some EC2 instances that are very expensive.
+
+235
+00:15:57.300 --> 00:16:01.500
+Imagine the ones with like tons of GPU, or the very advanced ones,
+
+236
+00:16:01.500 --> 00:16:08.200
+maybe for, I don't know, graphics use cases, or AI model training use cases.
+
+237
+00:16:08.200 --> 00:16:11.200
+Those are very expensive, and you rarely need them,
+
+238
+00:16:11.200 --> 00:16:14.000
+unless you're really trying to cover that particular use case.
+
+239
+00:16:14.000 --> 00:16:18.000
+So I think it's a good practice to try to disable those using an SCP,
+
+240
+00:16:18.000 --> 00:16:21.800
+because that's going to make sure that you're not accidentally going to spawn up
+
+241
+00:16:21.800 --> 00:16:25.000
+EC2 instances that might end up being very expensive.
+
+242
+00:16:25.000 --> 00:16:30.200
+So at this point, you should have a good idea of what SCPs are, what they're good for.
+
+243
+00:16:30.200 --> 00:16:32.600
+Now, how do you start creating them?
+
+244
+00:16:32.600 --> 00:16:37.000
+Well, you can create them in the organization section of the AWS Management Console.
+
+245
+00:16:37.000 --> 00:16:41.100
+Ideally, you should use some form of infrastructure as code.
+
+246
+00:16:41.100 --> 00:16:47.200
+AWS Control Tower will create default SCPs for you with some sensible first best practices.
+
+247
+00:16:47.200 --> 00:16:52.000
+So that's a good first option, and that's kind of, I suppose, a gateway for a lot of people in this area.
+
+248
+00:16:52.000 --> 00:16:57.800
+Terraform, again, we seem to be mentioning this repository almost every episode now,
+
+249
+00:16:57.800 --> 00:17:03.400
+but Conor Marr, our colleague, has some nice examples in his Terraform landing zone repo.
+
+250
+00:17:03.400 --> 00:17:04.800
+Link will be in the show notes.
+
+251
+00:17:04.800 --> 00:17:07.800
+And if you're using CloudFormation or OrgFormation as well,
+
+252
+00:17:07.800 --> 00:17:10.600
+the OrgFormation repo has some examples.
+
+253
+00:17:10.600 --> 00:17:15.400
+And this is all stuff that we covered in episode 96.
+
+254
+00:17:15.400 --> 00:17:19.300
+So we don't have to go into too much detail around how to create them.
+
+255
+00:17:19.300 --> 00:17:23.500
+Essentially, we're talking about infrastructure as code for organizations,
+
+256
+00:17:23.500 --> 00:17:27.300
+which was the exact topic we covered in episode 96.
+
+257
+00:17:27.300 --> 00:17:31.200
+So if that's of interest to you, feel free to go back and check out that episode.
+
+258
+00:17:31.200 --> 00:17:35.600
+Maybe before we finish, it's probably worth mentioning that troubleshooting SCPs,
+
+259
+00:17:35.600 --> 00:17:38.300
+as we alluded to, can be a bit difficult.
+
+260
+00:17:38.300 --> 00:17:42.000
+For other policy types, you can use the IAM policy simulator,
+
+261
+00:17:42.000 --> 00:17:48.900
+and usually it will be able to highlight the area that denied or didn't really allow access well.
+
+262
+00:17:48.900 --> 00:17:51.900
+So it can highlight denies and specific policies.
+
+263
+00:17:51.900 --> 00:17:56.500
+But with service control policies, you don't get to see in the IAM policy simulator
+
+264
+00:17:56.500 --> 00:17:59.800
+what is being explicitly or implicitly denied.
+
+265
+00:17:59.800 --> 00:18:03.700
+It just says denied by AWS organizations, which can be a bit frustrating.
+
+266
+00:18:03.700 --> 00:18:06.900
+So it's one of the areas where I think SCPs scare me a little bit,
+
+267
+00:18:06.900 --> 00:18:10.200
+even though in general they're really good practice and everybody should use them,
+
+268
+00:18:10.200 --> 00:18:13.700
+as long as they're pretty coarse grained and you don't go to town on them.
+
+269
+00:18:13.700 --> 00:18:15.600
+But maybe this is a general appeal.
+
+270
+00:18:15.600 --> 00:18:18.800
+If anybody has any great tips for troubleshooting SCPs,
+
+271
+00:18:18.800 --> 00:18:20.400
+we're pretty interested to hear about them.
+
+272
+00:18:20.400 --> 00:18:21.700
+So please share them with us.
+
+273
+00:18:21.700 --> 00:18:26.500
+And let us know as well if you have any other neat use cases for service control policies.
+
+274
+00:18:26.500 --> 00:18:31.100
+And with that, thanks again for joining us, and we'll see you in the next AWS Bites.

@@ -1,0 +1,758 @@
+{
+  "speakers": {
+    "spk_0": "Luciano",
+    "spk_1": "Eoin"
+  },
+  "segments": [
+    {
+      "speakerLabel": "spk_0",
+      "start": 0,
+      "end": 5,
+      "text": " Imagine this scenario. You were live streaming your AWS application build on Twitch,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 5,
+      "end": 9.28,
+      "text": " and because you are amazing and people love you, you have thousands of people that are watching you,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 9.28,
+      "end": 11,
+      "text": " and everything is going great."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 11,
+      "end": 15.68,
+      "text": " Then for a split second, you accidentally show your audience your environment variables,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 15.68,
+      "end": 19.88,
+      "text": " and that includes amazing things like your temporary AWS role credentials,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 19.88,
+      "end": 26.16,
+      "text": " like access key, AD, secret access key, and session token, which is basically everything, right?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 26.32,
+      "end": 31.240000000000002,
+      "text": " And you start to be worried, your heart is racing, and you are sweating, and you are wondering,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 31.240000000000002,
+      "end": 35.519999999999996,
+      "text": " okay, what do I do now? Because in a matter of minutes or seconds,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 35.519999999999996,
+      "end": 40.96,
+      "text": " people are going to actually try to use these credentials to do something nasty with my AWS account."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 40.96,
+      "end": 46.480000000000004,
+      "text": " So what do you do now? Fear not, because today we're going to give you a super quick tip"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 46.480000000000004,
+      "end": 52.36,
+      "text": " on how to revoke AWS credentials. And by the way, if you're thinking that you want to get the AWS Solution"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 52.4,
+      "end": 56.2,
+      "text": " and you want to get an architect certification exam, this is one of the questions that might come up."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 56.2,
+      "end": 62.8,
+      "text": " So be ready to take notes. My name is Luciano, and I'm here with Eoin for another AWS Bites podcast episode."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 71,
+      "end": 76,
+      "text": " AWS Bites is brought to you by fourTheorem, an AWS consulting partner that doesn't suck,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 76,
+      "end": 81.36,
+      "text": " or rarely suck at least. So if you want to check us out, go to fourTheorem.com,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 81.36,
+      "end": 85.84,
+      "text": " and also feel free to reach out to us. We have all the links in the show notes."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 85.84,
+      "end": 90.24,
+      "text": " Okay, let's talk this through. Maybe you have been following our 100-plus episodes,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 90.24,
+      "end": 92.92,
+      "text": " so you know that you shouldn't be using hardcoded credentials."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 92.92,
+      "end": 97.16,
+      "text": " You should be using temporary credentials. Still, you can make a simple mistake,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 97.16,
+      "end": 101.92,
+      "text": " and you can still accidentally commit them to Git, or maybe if you're doing a screen share"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 101.92,
+      "end": 107.76,
+      "text": " during a video call, you can still leak them. So what is the problem here, right?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 107.76,
+      "end": 111.88000000000001,
+      "text": " Is that a big deal? Because temporary credentials, as the name suggests,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 111.88000000000001,
+      "end": 115.28,
+      "text": " is something that's going to be temporary, but how long are they going to last?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 115.28,
+      "end": 119.52000000000001,
+      "text": " They might last hours, right? So is that going to be a problem?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 119.52000000000001,
+      "end": 123.64,
+      "text": " Well, probably yes, right? Because if you have hours, there is still a lot of damage"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 123.64,
+      "end": 129.72,
+      "text": " that you can do in a few hours, especially if that role is something that has very broad credentials."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 129.72,
+      "end": 134.08,
+      "text": " Maybe, I don't know, it's an administrative credential, probably is the worst use case,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 134.08,
+      "end": 137.24,
+      "text": " but you might have a role, for instance, that you use for deployment reasons,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 137.24,
+      "end": 142.4,
+      "text": " so you might be able to provision new Lambdas or EC2s or create VPCs,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 142.4,
+      "end": 147.24,
+      "text": " all things that can lead to actually giving pretty broad permissions to an attacker"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 147.24,
+      "end": 150.04000000000002,
+      "text": " that might be able to get those credentials."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 150.04000000000002,
+      "end": 156.04000000000002,
+      "text": " So what do you do in this case? Because the first worry that you have is that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 156.04000000000002,
+      "end": 159.92000000000002,
+      "text": " you might have a massive AWS bill if somebody tries to use these credentials,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 159.92000000000002,
+      "end": 164.92000000000002,
+      "text": " and they can do other kinds of damage that might affect the reputation of a company"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 164.92,
+      "end": 168.55999999999997,
+      "text": " or might destroy some of your environments that you use for work."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 168.55999999999997,
+      "end": 171.76,
+      "text": " So yes, what do we do here now, right?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 171.76,
+      "end": 177.23999999999998,
+      "text": " And the first thing that you might realize is that this kind of credentials cannot be invalidated."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 177.23999999999998,
+      "end": 183.32,
+      "text": " You don't really have an API or a panel where you can say, well, invalidate this particular set of credentials,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 183.32,
+      "end": 185.64,
+      "text": " as you can do with the un-coded ones."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 185.64,
+      "end": 190.88,
+      "text": " So the only thing it seems that we have at end is the expiration time,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 190.88,
+      "end": 194.39999999999998,
+      "text": " but we don't want to trust that because it's still pretty open."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 194.4,
+      "end": 196.96,
+      "text": " So what do we do now, Eoin? Any idea?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 198.56,
+      "end": 202.36,
+      "text": " Yeah, like you say, you can't invalidate them, they exist until they expire."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 202.36,
+      "end": 208.44,
+      "text": " So you need to think about what permissions really these credentials are granting"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 208.44,
+      "end": 210.96,
+      "text": " and how can you change the permissions level."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 210.96,
+      "end": 214.72,
+      "text": " And still, the valid credentials will still be usable,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 214.72,
+      "end": 221.52,
+      "text": " but maybe just prevent what they can do with those credentials in the time until the expiration occurs."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 221.52,
+      "end": 225.08,
+      "text": " So the only thing you can do really is change the role and the policies within it."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 225.08,
+      "end": 229.64000000000001,
+      "text": " I suppose you could delete the role, that would be a brute force way of dealing with the problem."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 229.64000000000001,
+      "end": 233.76000000000002,
+      "text": " Or you can also update the role and maybe just remove all of its permission,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 233.76000000000002,
+      "end": 236.16000000000003,
+      "text": " so it doesn't have any permissions then."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 236.16000000000003,
+      "end": 241.76000000000002,
+      "text": " This would have the immediate effect of blocking out anyone with the temporary credentials."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 241.76000000000002,
+      "end": 247.60000000000002,
+      "text": " Actually, I say immediate effect, you should also be aware that IAM is eventually consistent."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 247.6,
+      "end": 252.88,
+      "text": " So it might take seconds or even minutes sometimes for the effect of your changes to occur."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 252.88,
+      "end": 259.88,
+      "text": " That's something you don't really control, because IAM has to be reflected out in all of the regions"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 259.88,
+      "end": 264.8,
+      "text": " and all of the nodes it's distributed across all of AWS's massive infrastructure."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 264.8,
+      "end": 268.68,
+      "text": " And that doesn't happen in the blink of an eye."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 269.68,
+      "end": 275.12,
+      "text": " So by doing that, you've blocked out your attacker, but it also has side effects,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 275.12,
+      "end": 279.6,
+      "text": " you might not want any valid holders of credentials are also blocked out,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 279.6,
+      "end": 284.36,
+      "text": " including anyone who just gets new credentials for the role after you've made that change."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 284.36,
+      "end": 286.28000000000003,
+      "text": " So it's not ideal."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 286.28000000000003,
+      "end": 289.68,
+      "text": " You could also attach a policy with an explicit deny."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 289.68,
+      "end": 294.36,
+      "text": " So you could say, deny everything on every resource, and just attach that to the policy."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 294.36,
+      "end": 299.96,
+      "text": " And we know that an explicit deny always wins in these policies, it will trump everything."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 299.96,
+      "end": 302.76,
+      "text": " And it's better because you don't have to remove all the other permissions,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 302.76,
+      "end": 309.15999999999997,
+      "text": " you don't have to delete the role, but it still has that problem that it blocks out valid identities too."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 309.15999999999997,
+      "end": 314.84,
+      "text": " So the solution to this really is to attach a policy with a conditional deny."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 314.84,
+      "end": 319.76,
+      "text": " And there's a special clever condition that you can use that denies access to identities"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 319.76,
+      "end": 323.52,
+      "text": " that assume the role before a specific timestamp."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 323.52,
+      "end": 331.71999999999997,
+      "text": " And this is basically a way of saying, deny everybody who assumed this role before the current timestamp right now."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 331.72,
+      "end": 337.28000000000003,
+      "text": " And there's a condition key called date less than the condition predicate."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 337.28000000000003,
+      "end": 342.52000000000004,
+      "text": " And then the attribute you're putting into that predicate is the AWS token issue time."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 342.52000000000004,
+      "end": 347.88000000000005,
+      "text": " So if the token issue time is less than the current timestamp, then deny them everything."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 347.88000000000005,
+      "end": 357.32000000000005,
+      "text": " What that means is that valid and invalid, like spurious attackers have no permissions for all sessions until the current time."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 357.32,
+      "end": 360.8,
+      "text": " But it does allow valid users to get a new session."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 360.8,
+      "end": 364.28,
+      "text": " And the new session will be valid and will continue to work."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 364.28,
+      "end": 367,
+      "text": " And business will operate as normal."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 367,
+      "end": 373.48,
+      "text": " Or if it's a service linked, a service role, then the service can get a new role as well."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 373.48,
+      "end": 375.76,
+      "text": " And the session will be valid."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 375.76,
+      "end": 377.68,
+      "text": " But anyone with the leaked credentials is locked out."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 377.68,
+      "end": 379.68,
+      "text": " So that's your problem solved."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 379.68,
+      "end": 383.44,
+      "text": " Yeah, all of this, the way we've described it, it sounds a bit complicated."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 383.44,
+      "end": 388.08,
+      "text": " And if you're in a situation where you're panicked, it's difficult to remember it all and do it correctly."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 388.08,
+      "end": 393.08,
+      "text": " So how do we simplify this process so we don't have to remember everything in that real situation?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 393.08,
+      "end": 395.8,
+      "text": " So you described already that the policy very well."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 395.8,
+      "end": 398.56,
+      "text": " Anyway, we're going to make that policy available in a gist."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 398.56,
+      "end": 403.8,
+      "text": " And you will find the link in the show notes just if you want to have a more easy to follow reference."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 403.8,
+      "end": 407.04,
+      "text": " And also if you need to copy paste the structure of it."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 407.04,
+      "end": 412.08,
+      "text": " But of course, if you need to remember it from scratch, from the top of your mind, and you're panicking,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 412.08,
+      "end": 414.56,
+      "text": " it might not be the easiest thing to do ever."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 414.56,
+      "end": 418.4,
+      "text": " But luckily, there is a feature which is built in the AWS console."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 418.4,
+      "end": 430.44,
+      "text": " And basically, if you go to your role in IAM, in the page for that specific role, you can select the there is an item called revoke session."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 430.44,
+      "end": 435.56,
+      "text": " And that revoke session will give you something like revoke active sessions."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 435.56,
+      "end": 443.84,
+      "text": " And this will actually do something very similar to what we described, because it's going to create an inline policy called AWS revoke all the sessions,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 443.84,
+      "end": 447.64,
+      "text": " and it's going to inject the current time into that condition."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 447.64,
+      "end": 453.4,
+      "text": " And we also going to have a link in the show notes that basically document this particular feature."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 453.4,
+      "end": 457.32,
+      "text": " But it pretty much works in a similar way to what we described."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 457.32,
+      "end": 467.15999999999997,
+      "text": " So while this is something that is good to have available in the AWS console, is it's good to know how it works under the wood."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 467.15999999999997,
+      "end": 477.32,
+      "text": " So it's something that if you ever want to automate with your own script, or maybe you want to add, I don't know, something that you can easily do from a CLI or a lambda,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 477.32,
+      "end": 483.24,
+      "text": " because it's maybe easier for you to trigger it that way, you can recreate that feature by yourself."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 484.24,
+      "end": 490.84000000000003,
+      "text": " Now, that was the answer for temporary credentials. What about if you have long lived credentials? What do we do?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 490.84000000000003,
+      "end": 498.72,
+      "text": " Do we try not to use them? But we know that the reality they are often something that exists in companies and deployments."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 498.72,
+      "end": 500.56,
+      "text": " So what can we do in those cases?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 501.92,
+      "end": 507.88,
+      "text": " The fact that it's harder to do this with long lived credentials is one of the reasons why you should avoid them all together."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 508.12,
+      "end": 514.6,
+      "text": " Because your only option is to just deactivate that access key and create a new one."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 514.6,
+      "end": 523.6,
+      "text": " So it's like a revocation, but if you have long lived credentials, by their nature, that probably means that they're hard coded in multiple places,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 523.6,
+      "end": 533.88,
+      "text": " then you have to go updating those places. And that might mean you're updating an application, there might be some downtime involved or a period where the application isn't working fully."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 533.88,
+      "end": 543.68,
+      "text": " So I would say avoid them if possible. But basically, your only option is to delete the access key, and recreate a new one and update any references to it."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 543.68,
+      "end": 553.68,
+      "text": " That would go for IAM user access keys, but also dreaded root user access keys as well, which hopefully you shouldn't have."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 554.68,
+      "end": 560.56,
+      "text": " There are some organizations that are still using HashiCorp Vault to manage AWS secrets."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 560.56,
+      "end": 568.68,
+      "text": " And I suppose it's worth mentioning because it sometimes uses long lived secrets under the hood, but they're not really long lived in the same sense,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 568.68,
+      "end": 577.28,
+      "text": " because Vault is managing the lifecycle of those secrets for you, and is able to rotate them and revoke them automatically."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 577.28,
+      "end": 584.1999999999999,
+      "text": " So it's not much of an issue there, you're just relying on Vault to deliver that feature for you and manage your security."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 584.2,
+      "end": 593.5200000000001,
+      "text": " So if you're worried about us complaining about long lived credentials, but you're using Vault, don't worry, as long as you're following the best practices. I don't think there's much of an issue there."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 593.5200000000001,
+      "end": 601.1600000000001,
+      "text": " This brings us to the end of this short episode, I hope that now you have a little bit more peace of mind that even if you accidentally leak your credentials,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 601.1600000000001,
+      "end": 607.96,
+      "text": " at least you know what to do and where you can find some kind of solutions to remediate quickly for that particular issue."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 608,
+      "end": 619.72,
+      "text": " It's important, of course, to think about if those credentials are part of an application, if you can guarantee zero downtime to that application while you are revoking the credentials."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 619.72,
+      "end": 625.48,
+      "text": " It's, of course, something you should be doing, but it's not always possible if you're using long lived credentials."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 625.48,
+      "end": 634.84,
+      "text": " So just keep that in mind. And maybe one more reason to think, am I using long lived credentials? Do I really need to use them? Maybe I can transition to temporary credentials."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 634.88,
+      "end": 643.76,
+      "text": " That's probably going to be a good thing to do anyway. So if you have other tips about how to rotate credentials, or if you have any horror story that happened to you,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 643.76,
+      "end": 650.2,
+      "text": " maybe you leaked credentials and something funny or not so funny happened to you after that, it might be interesting to know."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 650.2,
+      "end": 659.9200000000001,
+      "text": " It might be a nice story, might teach us something that we didn't know about. So please share all of that stuff either in the comments or if you don't feel like particularly happy to share this stuff publicly,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 659.92,
+      "end": 665.76,
+      "text": " you can always reach out in private and we can have a nice conversation about that and maybe learn from each other."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 665.76,
+      "end": 675.04,
+      "text": " So that's all we have for today. Thank you very much for following along. If you found value, always remember to share or like. This stuff always helps a little bit."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 675.04,
+      "end": 678.52,
+      "text": " So thank you for that and we'll see you in the next episode."
+    }
+  ]
+}

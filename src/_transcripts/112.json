@@ -1,0 +1,1652 @@
+{
+  "speakers": {
+    "spk_0": "Eoin",
+    "spk_1": "Luciano"
+  },
+  "segments": [
+    {
+      "speakerLabel": "spk_0",
+      "start": 0,
+      "end": 5,
+      "text": " Access control policies in AWS are one of the most difficult concepts to grasp."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 5,
+      "end": 9,
+      "text": " And yet this is something that everyone has to deal with and understand at some level."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 9,
+      "end": 12.6,
+      "text": " If you understand how all the different policy types work and how to troubleshoot them,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 12.6,
+      "end": 16.2,
+      "text": " it's like having an AWS superpower. You'll be able to stay more secure,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 16.2,
+      "end": 20,
+      "text": " you will save tons of time and you'll have a very sought after skill."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 20,
+      "end": 22.3,
+      "text": " So how do you level up your skills in this area?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 22.3,
+      "end": 29.8,
+      "text": " Well, today we're going to help you in some way by covering one of the least understood policy types in AWS."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 29.8,
+      "end": 34.3,
+      "text": " SCPs or service control policies. By the end of this quick episode,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 34.3,
+      "end": 37.5,
+      "text": " you should know what an SCP is, how and when to use them,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 37.5,
+      "end": 41.3,
+      "text": " and you should be better equipped to troubleshoot access denied errors."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 41.3,
+      "end": 45.2,
+      "text": " I'm Eoin, I'm here with Luciano for another AWS Bites."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 53.400000000000006,
+      "end": 59.2,
+      "text": " AWS Bites is sponsored by fourTheorem. If setting up service control policies seems like too much hard work"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 59.2,
+      "end": 64,
+      "text": " and you'd rather let somebody else deal with it, give us a shout or check out fourtheorem.com."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 64,
+      "end": 69,
+      "text": " Back in episode 40, we talked about identity and access management or IAM"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 69,
+      "end": 72.4,
+      "text": " and quickly covered the high level concepts around the different policy types."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 72.4,
+      "end": 76.4,
+      "text": " There's lots of different policy types and if you've ever created an IAM role,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 76.4,
+      "end": 81.60000000000001,
+      "text": " you'll be familiar with some of them. You might have used resource policies in the past as well,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 81.60000000000001,
+      "end": 85.9,
+      "text": " like an S3 bucket policy. As an AWS developer or user,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 85.9,
+      "end": 88.60000000000001,
+      "text": " you often have the rights to create those kinds of policies,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 88.6,
+      "end": 92.19999999999999,
+      "text": " but there are other different types of policies that are usually taken care of by the people"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 92.19999999999999,
+      "end": 96.89999999999999,
+      "text": " who manage the AWS accounts and administer the whole organization structure."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 96.89999999999999,
+      "end": 99.6,
+      "text": " And that includes permissions boundary policies"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 99.6,
+      "end": 102.89999999999999,
+      "text": " and these service control policies that we're talking about today."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 102.89999999999999,
+      "end": 108,
+      "text": " And because they're maintained by administrators, usually they're less well understood,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 108,
+      "end": 110.8,
+      "text": " probably for that reason. So to understand them,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 110.8,
+      "end": 113.6,
+      "text": " we need to think a little bit about AWS organizations"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 113.6,
+      "end": 117.19999999999999,
+      "text": " because SCPs are actually a feature of organization service"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 117.2,
+      "end": 120.60000000000001,
+      "text": " rather than IAM as you might expect."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 120.60000000000001,
+      "end": 125.60000000000001,
+      "text": " So let's maybe start Luciano with a quick run through of AWS organizations."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 125.60000000000001,
+      "end": 129.3,
+      "text": " We covered it in more detail in episode 96,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 129.3,
+      "end": 133.7,
+      "text": " but we should remind ourselves so that we could talk about SCPs with a bit more context."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 133.7,
+      "end": 138,
+      "text": " Yeah, of course."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 138,
+      "end": 141.2,
+      "text": " I think it's important to discuss what organizations are because it's something that is becoming more and more prevalent in the industry."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 141.2,
+      "end": 144.9,
+      "text": " Most companies would have more than just one account."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 144.9,
+      "end": 149.5,
+      "text": " And this is for two reasons mainly. One is security, which is probably the biggest reason"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 149.5,
+      "end": 151.8,
+      "text": " and we'll talk more about that during this episode."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 151.8,
+      "end": 155,
+      "text": " But the other one is also quotas because with different accounts,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 155,
+      "end": 158.5,
+      "text": " you are not going to have quotas in one account affecting the other."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 158.5,
+      "end": 163.20000000000002,
+      "text": " For instance, an application running in, I don't know, a development account,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 163.20000000000002,
+      "end": 167.3,
+      "text": " maybe where you're doing some load testing is not going to affect your production account"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 167.3,
+      "end": 172.1,
+      "text": " and maybe stop things from scaling up because you are running out on your quotas."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 172.1,
+      "end": 177.4,
+      "text": " So having multiple AWS accounts is something that it's actually done a lot in the industry."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 177.4,
+      "end": 182.1,
+      "text": " It's very important. You will see that more and more, especially going to bigger companies."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 182.1,
+      "end": 189.29999999999998,
+      "text": " And the thing that is interesting is that AWS kind of recognized the need for seeing all this pattern,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 189.29999999999998,
+      "end": 195.1,
+      "text": " the need for allowing companies to effectively manage multiple accounts inside an organization."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 195.1,
+      "end": 197.7,
+      "text": " So they built a service called organization,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 197.7,
+      "end": 201.5,
+      "text": " which should make it simpler to manage all of these accounts consistently."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 201.5,
+      "end": 205,
+      "text": " So if you go to the organization panel,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 205,
+      "end": 207.5,
+      "text": " you will see that there are a bunch of different features."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 207.5,
+      "end": 210.6,
+      "text": " And if you start to read about what can you do with organization,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 210.6,
+      "end": 212.9,
+      "text": " you'll see also a bunch of other interesting stuff."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 212.9,
+      "end": 216.7,
+      "text": " The main one from an accounting perspective is that you can have consolidated billing,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 216.7,
+      "end": 220.6,
+      "text": " which basically means that you can pay from one bank account"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 220.6,
+      "end": 225.5,
+      "text": " for all the different AWS accounts that you have enabled under your own organization."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 225.5,
+      "end": 228,
+      "text": " Also, you have a hierarchical structure."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 228,
+      "end": 233,
+      "text": " So you can imagine like you have a file system with folders and files,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 233,
+      "end": 237.1,
+      "text": " where the files are kind of the actual accounts,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 237.1,
+      "end": 240.7,
+      "text": " but you can also have folders which you can call organization units."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 240.7,
+      "end": 243.9,
+      "text": " And the idea is that you can group accounts logically."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 243.9,
+      "end": 248.5,
+      "text": " And you also can have centralized management of auditing and compliance."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 248.5,
+      "end": 255.2,
+      "text": " For instance, you can have things like CloudTrail, AWS Config working at the organization unit level."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 255.2,
+      "end": 258.9,
+      "text": " So you are kind of centralizing the management of all of that."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 258.9,
+      "end": 261.9,
+      "text": " Also, you have resource sharing across the organization."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 261.9,
+      "end": 264.9,
+      "text": " You have the ability to create new accounts within the organization"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 264.9,
+      "end": 267.4,
+      "text": " or invite other accounts into the organization."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 267.4,
+      "end": 270.7,
+      "text": " You can do centralized access for identities,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 270.7,
+      "end": 274.7,
+      "text": " so users using SSO, which is something called IAM Identity Center."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 274.7,
+      "end": 277.59999999999997,
+      "text": " So the idea is that as a user of that organization,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 277.59999999999997,
+      "end": 282.3,
+      "text": " you will have a dashboard that you can log in using your own company SSO,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 282.3,
+      "end": 286.3,
+      "text": " and then it's going to show you all the different accounts and roles that you have access to."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 286.3,
+      "end": 290.6,
+      "text": " And then you can easily jump from that to the specific account you need to work with."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 290.6,
+      "end": 292.90000000000003,
+      "text": " And finally, we get into organization policies."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 292.90000000000003,
+      "end": 297.8,
+      "text": " Organization policy also includes SCPs, which is the topic of this episode."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 297.8,
+      "end": 303.3,
+      "text": " And these are policies that are applied to organization unit within an organization."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 303.3,
+      "end": 308.5,
+      "text": " So in order to use SCPs, you need to select the enable all feature within your organization."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 308.5,
+      "end": 311.5,
+      "text": " And the other option just gives you consolidated billing only."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 311.5,
+      "end": 313.6,
+      "text": " So it's not a feature that you get out of the box."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 313.6,
+      "end": 316.6,
+      "text": " It's something that you need to explicitly enable in your account,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 316.6,
+      "end": 318.6,
+      "text": " well, in your organization."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 318.6,
+      "end": 323.6,
+      "text": " Once you have enabled that, you will have the management account"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 323.6,
+      "end": 325.5,
+      "text": " and possible other accounts as well,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 325.5,
+      "end": 329.6,
+      "text": " which are going to become part of your organization structure."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 329.6,
+      "end": 332.5,
+      "text": " Just to give you an example, you have at the top,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 332.5,
+      "end": 335,
+      "text": " you can imagine again, you have this kind of tree structure,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 335,
+      "end": 337.2,
+      "text": " and at the top, you have the management account,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 337.2,
+      "end": 339.5,
+      "text": " which you can also call the root account."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 339.5,
+      "end": 343.3,
+      "text": " And then you can have organization units like security or workloads."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 343.3,
+      "end": 346.6,
+      "text": " Inside security, you can have an account where you are storing,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 346.6,
+      "end": 350.5,
+      "text": " where you are managing things like guard duty or other security services."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 350.5,
+      "end": 352.5,
+      "text": " You can also manage accounts for auditing."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 352.5,
+      "end": 355.6,
+      "text": " So maybe where you're going to store logs that you might need"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 355.6,
+      "end": 358.2,
+      "text": " in case that you need to perform some kind of auditing."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 358.2,
+      "end": 361.4,
+      "text": " And then if we go back to the workload units,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 361.4,
+      "end": 364.5,
+      "text": " these are going to be things where, for instance, you run applications"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 364.5,
+      "end": 367.6,
+      "text": " and you might have a production account, a development account,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 367.6,
+      "end": 371.40000000000003,
+      "text": " you might have, I don't know, a testing account or maybe a QA account"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 371.40000000000003,
+      "end": 376.5,
+      "text": " that really depends on the way you ship software from maybe a development to production."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 376.5,
+      "end": 380,
+      "text": " You can also choose to organize your accounts by department or project."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 380,
+      "end": 386.20000000000005,
+      "text": " It's not uncommon to see that if in a big company you have kind of big applications"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 386.20000000000005,
+      "end": 389.40000000000003,
+      "text": " and they are all part maybe of a microservice architecture,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 389.40000000000003,
+      "end": 392.70000000000005,
+      "text": " you might have different services running in dedicated accounts,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 392.7,
+      "end": 398.3,
+      "text": " which makes it simpler to organize, for instance, the deployment pipelines,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 398.3,
+      "end": 401.3,
+      "text": " avoid that again you have conflicting quotas"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 401.3,
+      "end": 404.5,
+      "text": " or even just make it simpler to have very specific policies"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 404.5,
+      "end": 408.59999999999997,
+      "text": " and control exactly what kind of accounts, what can they do account by account."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 408.59999999999997,
+      "end": 412.9,
+      "text": " So the structure that you choose is highly influenced by the kind of company you work with"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 412.9,
+      "end": 416.3,
+      "text": " and the way that you actually ship things to production,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 416.3,
+      "end": 419.8,
+      "text": " but also what kind of service control policies you want to have"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 419.8,
+      "end": 425.7,
+      "text": " because defining service control policies is going to affect what you can do in every single account."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 425.7,
+      "end": 431.8,
+      "text": " So I guess at this point we should say what SCPs are and what they are good for."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 431.8,
+      "end": 435.40000000000003,
+      "text": " If you've ever written a policy for an IAM user or a role,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 435.40000000000003,
+      "end": 439.40000000000003,
+      "text": " you'll probably have written or created policy statements,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 439.40000000000003,
+      "end": 443.90000000000003,
+      "text": " either doing this directly in JSON or YAML or with the AWS console."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 443.90000000000003,
+      "end": 447.6,
+      "text": " And in a policy statement, you have things like an effect,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 447.6,
+      "end": 450.90000000000003,
+      "text": " which says are we allowing or denying action"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 450.90000000000003,
+      "end": 457.40000000000003,
+      "text": " and then the properties of the statement that is often referred to as the PARC model, P-A-R-C"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 457.40000000000003,
+      "end": 460.90000000000003,
+      "text": " and PARC stands for principal, action, resource and condition."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 460.90000000000003,
+      "end": 465.8,
+      "text": " So the principal part is the identity and this is an account or a user or a role"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 465.8,
+      "end": 468.6,
+      "text": " and you only normally have that in resource policies,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 468.6,
+      "end": 475.20000000000005,
+      "text": " not in role or user, not in identity based policies because the identity is already implicit."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 475.3,
+      "end": 481.4,
+      "text": " Then you have the action, like something like S3 list buckets or easy to start instances."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 481.4,
+      "end": 483.5,
+      "text": " Then you have the resource or resources,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 483.5,
+      "end": 488.4,
+      "text": " which are ARNs of the resources you're trying to allow or deny access to."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 488.4,
+      "end": 491.7,
+      "text": " And then you have conditions, which is a bit of an advanced feature,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 491.7,
+      "end": 496.8,
+      "text": " becoming more and more common where you're providing restrictions on the action,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 496.8,
+      "end": 502.2,
+      "text": " the allow or deny based on attributes of either the identity or the resource."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 502.2,
+      "end": 506.59999999999997,
+      "text": " Now, I think there's a few important things to know about service control policies"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 506.59999999999997,
+      "end": 511.9,
+      "text": " that are a little bit different to identity policies or resource policies you may have seen in the past."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 511.9,
+      "end": 517.6,
+      "text": " The most important one is probably that service control policies never grant any permissions, ever."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 517.6,
+      "end": 521.1,
+      "text": " So that might sound surprising for an access policy,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 521.1,
+      "end": 526.7,
+      "text": " but a service control policy is really just a limit on the actions you can perform in an account."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 526.7,
+      "end": 531,
+      "text": " You still need to have an identity based policy or a resource based policy"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 531,
+      "end": 534.6,
+      "text": " to do the actual granting to do the allow part."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 534.6,
+      "end": 540.3,
+      "text": " So if you think about an identity policy and then a service control policy within the same account"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 540.3,
+      "end": 545.6,
+      "text": " and those two sets of permissions are in a Venn diagram with the identity policy in the SCP,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 545.6,
+      "end": 550.5,
+      "text": " the action needs to be allowed by the intersection of the allows in those two policies."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 550.5,
+      "end": 555.5,
+      "text": " And another important thing is that everything is denied by default in an SCP implicitly."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 555.5,
+      "end": 559.9,
+      "text": " And for this reason, when you enable service control policies in your organization,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 559.9,
+      "end": 564.6999999999999,
+      "text": " AWS will create a full access service control policy for you by default."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 564.6999999999999,
+      "end": 568.1,
+      "text": " And this is basically action star, resource star, effect allow."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 568.1,
+      "end": 574.1999999999999,
+      "text": " And that pattern is pretty familiar to anyone who's ever seen administrator access managed policy."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 574.1999999999999,
+      "end": 575.8,
+      "text": " It looks exactly the same."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 575.8,
+      "end": 579.9,
+      "text": " And this seems like a very permissive thing to have by default from AWS."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 579.9,
+      "end": 582.5,
+      "text": " But of course it isn't permissive because as we just said,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 582.5,
+      "end": 585,
+      "text": " SEPs don't actually grant any permissions."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 585,
+      "end": 588.6,
+      "text": " They just set the boundary for all the permissions within an account."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 588.6,
+      "end": 591.8000000000001,
+      "text": " See the idea here is that they give you everything by default"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 591.8000000000001,
+      "end": 595,
+      "text": " and it's up to you then to start creating service control policies"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 595,
+      "end": 600.9,
+      "text": " to scope down the boundary for all of the organization units or individual accounts"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 600.9,
+      "end": 605.6,
+      "text": " and refine it as you need for your organization structure."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 605.6,
+      "end": 611.3000000000001,
+      "text": " And the last other important point about SEPs is that they don't affect the management account."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 611.3000000000001,
+      "end": 614.4,
+      "text": " They only affect the member accounts within the organization."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 614.4,
+      "end": 617.4,
+      "text": " So you talked about that hierarchy, Ushano."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 617.4,
+      "end": 619.4,
+      "text": " We started with the management account at the root."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 619.4,
+      "end": 622.1999999999999,
+      "text": " The SEPs are applied to OUs which are beneath that."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 622.1999999999999,
+      "end": 624.1999999999999,
+      "text": " So that's important to realize."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 624.1999999999999,
+      "end": 626.1,
+      "text": " And that's exactly how you apply them."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 626.1,
+      "end": 631.3,
+      "text": " Once you create these policies, you attach them to organizational units within the organization."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 631.3,
+      "end": 633.9,
+      "text": " Now you could do this at one level of the hierarchy"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 633.9,
+      "end": 636.9,
+      "text": " or every level of the hierarchy at OU level if you want."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 636.9,
+      "end": 642.6,
+      "text": " And the effect of that then is that for an identity to have permissions in an account,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 642.6,
+      "end": 647.1999999999999,
+      "text": " if there are multiple SEPs within the hierarchical structure all the way down to that account,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 647.2,
+      "end": 652.3000000000001,
+      "text": " that the user is in, you have to explicitly allow the permission in all of the SEPs."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 652.3000000000001,
+      "end": 655.4000000000001,
+      "text": " So because they're denied by default,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 655.4000000000001,
+      "end": 659.1,
+      "text": " you have to make sure that the permission you're looking for is denied in each one of them."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 659.1,
+      "end": 665.1,
+      "text": " There's no like trickle down from the top SEP down to OUs beneath that with additional SEPs."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 665.1,
+      "end": 666.7,
+      "text": " It has to be allowed in all of them."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 666.7,
+      "end": 670.8000000000001,
+      "text": " And if there isn't that explicit allow in all the applicable SEPs,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 670.8000000000001,
+      "end": 674,
+      "text": " you'll get an error and the errors are getting a little bit better here,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 674,
+      "end": 679.1,
+      "text": " but usually it says something like the identity is not authorized to perform an action"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 679.1,
+      "end": 682.6,
+      "text": " because no service control policy allows the action."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 682.6,
+      "end": 684.7,
+      "text": " That's basically saying it's implicitly denied"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 684.7,
+      "end": 689.5,
+      "text": " or it'll say it has been denied because of an explicit deny in a service control policy."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 689.5,
+      "end": 692.6,
+      "text": " And that basically tells you that there's a deny somewhere."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 692.6,
+      "end": 698.8,
+      "text": " And if you've got a deny in a policy in the whole IAM service control policy evaluation logic,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 698.8,
+      "end": 700.8,
+      "text": " an explicit deny beats everything."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 700.8,
+      "end": 703,
+      "text": " So that's why it's denied."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 703,
+      "end": 706.6,
+      "text": " And service control policies can be one of the more difficult ones to troubleshoot"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 706.6,
+      "end": 710.4,
+      "text": " because as a developer, an engineer in an AWS account,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 710.4,
+      "end": 713.7,
+      "text": " you don't have visibility often into the service control policies."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 713.7,
+      "end": 716.9,
+      "text": " So sometimes you just get a hint that it comes from the SEP."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 716.9,
+      "end": 721.4,
+      "text": " Then you might have to go to somebody else or look in the infrastructure as code for those policies"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 721.4,
+      "end": 723.5,
+      "text": " to see where the error is coming from."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 723.5,
+      "end": 726.4,
+      "text": " It's not as explicit as with other cases."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 726.4,
+      "end": 729.8,
+      "text": " Now that we know how they work pretty much, what are they good for Luciana?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 729.8,
+      "end": 735.3,
+      "text": " What are the use cases and why should people be interested in applying them to their organizations?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 735.3,
+      "end": 741.5,
+      "text": " SEP are used as very broad set of controls on the maximum permissions as you very well explained."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 741.5,
+      "end": 744.0999999999999,
+      "text": " So they are rarely very fine-grained."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 744.0999999999999,
+      "end": 746.5999999999999,
+      "text": " So they're not going to really talk about specific resources,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 746.5999999999999,
+      "end": 752.4,
+      "text": " it's more groups of things that will allow or deny certain specific actions."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 752.4,
+      "end": 756.3,
+      "text": " So the idea is that you still should do fine-grained controls, of course,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 756.3,
+      "end": 758.0999999999999,
+      "text": " but you should do them somewhere else."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 758.1,
+      "end": 760.8000000000001,
+      "text": " So you should probably do them as you have done them before,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 760.8000000000001,
+      "end": 767.6,
+      "text": " inside specific accounts, create specific types of policies and identity policies for specific resources."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 767.6,
+      "end": 772.3000000000001,
+      "text": " So when you think about SEPs as kind of the macro level, then everything else,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 772.3000000000001,
+      "end": 776.8000000000001,
+      "text": " all the other type of policies that you know well are probably more on the micro fine-grained level."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 776.8000000000001,
+      "end": 779.6,
+      "text": " There are some typical use cases for SEPs."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 779.6,
+      "end": 786.6,
+      "text": " For instance, one that we see a lot is specifying which regions can be used for a given account or sets of accounts."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 786.6,
+      "end": 793.3000000000001,
+      "text": " And this can be important because you know that different regions might have different costs."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 793.3000000000001,
+      "end": 797.5,
+      "text": " And generally, as an organization, you might be using a few regions,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 797.5,
+      "end": 800.5,
+      "text": " you're not going to end up using all the regions most of the time."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 800.5,
+      "end": 808,
+      "text": " So it makes sense to limit things that you can do only on the regions that you are actually really intending to do, to use."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 808,
+      "end": 812.9,
+      "text": " There is a little bit of a gotcha there that certain services will require specific regions to work."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 812.9,
+      "end": 815.5,
+      "text": " For instance, US East 1 for AEM."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 815.5,
+      "end": 821.7,
+      "text": " So just be aware that you cannot just say I want to use one region, maybe you, Central 1,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 821.7,
+      "end": 828.8,
+      "text": " because that's the closest to you, and forget about all the others, certain services will require specific regions to be enabled."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 828.8,
+      "end": 835.6,
+      "text": " Another example is somewhat related where certain services are only available on a subset of regions."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 835.6,
+      "end": 840.4,
+      "text": " So for instance, if you want to use Bedrock right now, it's limited only to a couple of regions, I believe."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 840.4,
+      "end": 845,
+      "text": " So if this is something that you want to use, you still need to enable those regions as well."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 845,
+      "end": 847.1,
+      "text": " Or at least one of the available regions as well."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 847.1,
+      "end": 853.3,
+      "text": " Another good use case is prevent root user access, which is, I think, a very good practice to have."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 853.3,
+      "end": 860.1,
+      "text": " You can also prevent accounts from leaving the organization if somebody might accidentally do that at the account level."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 860.1,
+      "end": 862.2,
+      "text": " This is something you can prevent with an SCP."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 862.2,
+      "end": 871.2,
+      "text": " You can also enforce data governance with S3, for instance, you can have specific SCPs that block public access at the global level,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 871.3000000000001,
+      "end": 874.9000000000001,
+      "text": " so nobody can create a bucket that has public access."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 874.9000000000001,
+      "end": 880.5,
+      "text": " Or you can prevent people from disabling something like S3 object questioning."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 880.5,
+      "end": 884.2,
+      "text": " You can even force all the buckets to have encryption enabled."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 884.2,
+      "end": 888,
+      "text": " So things like that will make sure that when you're using a service like S3,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 888,
+      "end": 893.5,
+      "text": " you actually follow all the data governance rules that you might have within your company."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 893.5,
+      "end": 898.7,
+      "text": " You can also limit services that people can use inside the organization."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 898.7,
+      "end": 903.8000000000001,
+      "text": " For instance, as an administrator, you might say, okay, I don't want people to use Lambda,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 903.8000000000001,
+      "end": 907.9000000000001,
+      "text": " because maybe you only really want to do easy to use, you are old school that way,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 907.9000000000001,
+      "end": 910.1,
+      "text": " you can disable access to the Lambda service."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 910.1,
+      "end": 911.4000000000001,
+      "text": " You shouldn't probably do that."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 911.4000000000001,
+      "end": 914.1,
+      "text": " But if you really want to do it, it's something that you can do."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 914.1,
+      "end": 919.1,
+      "text": " And another thing you can prevent people from deleting or modifying resources,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 919.1,
+      "end": 922.8000000000001,
+      "text": " and you can have, in a way, those resources centrally managed."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 922.8000000000001,
+      "end": 927.3000000000001,
+      "text": " For instance, you might have administrator access in development accounts,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 927.3,
+      "end": 933.0999999999999,
+      "text": " but still, there are things that you can limit even to people that have administrator access in those accounts."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 933.0999999999999,
+      "end": 937.0999999999999,
+      "text": " For instance, you don't want them to be able to delete organization managed roles,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 937.0999999999999,
+      "end": 940.4,
+      "text": " or turn off config rules or crowd trail logging,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 940.4,
+      "end": 945.5999999999999,
+      "text": " because you can guarantee that they won't be able to do this using specific SCTs."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 945.5999999999999,
+      "end": 952.8,
+      "text": " Another use case that I've seen quite commonly is that you can limit the type of EC2 instances that can be launched."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 952.8,
+      "end": 957.3,
+      "text": " And this is something that is done because there are some EC2 instances that are very expensive."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 957.3,
+      "end": 961.5,
+      "text": " Imagine the ones with like tons of GPU, or the very advanced ones,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 961.5,
+      "end": 968.1999999999999,
+      "text": " maybe for, I don't know, graphics use cases, or AI model training use cases."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 968.1999999999999,
+      "end": 971.1999999999999,
+      "text": " Those are very expensive, and you rarely need them,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 971.1999999999999,
+      "end": 974,
+      "text": " unless you're really trying to cover that particular use case."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 974,
+      "end": 978,
+      "text": " So I think it's a good practice to try to disable those using an SCP,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 978,
+      "end": 981.8,
+      "text": " because that's going to make sure that you're not accidentally going to spawn up"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 981.8,
+      "end": 985,
+      "text": " EC2 instances that might end up being very expensive."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 985,
+      "end": 990.1999999999999,
+      "text": " So at this point, you should have a good idea of what SCPs are, what they're good for."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 990.1999999999999,
+      "end": 992.5999999999999,
+      "text": " Now, how do you start creating them?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 992.5999999999999,
+      "end": 997,
+      "text": " Well, you can create them in the organization section of the AWS Management Console."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 997,
+      "end": 1001.0999999999999,
+      "text": " Ideally, you should use some form of infrastructure as code."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1001.0999999999999,
+      "end": 1007.1999999999999,
+      "text": " AWS Control Tower will create default SCPs for you with some sensible first best practices."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1007.2,
+      "end": 1012,
+      "text": " So that's a good first option, and that's kind of, I suppose, a gateway for a lot of people in this area."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1012,
+      "end": 1017.8000000000001,
+      "text": " Terraform, again, we seem to be mentioning this repository almost every episode now,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1017.8000000000001,
+      "end": 1023.4000000000001,
+      "text": " but Conor Marr, our colleague, has some nice examples in his Terraform landing zone repo."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1023.4000000000001,
+      "end": 1024.8,
+      "text": " Link will be in the show notes."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1024.8,
+      "end": 1027.8,
+      "text": " And if you're using CloudFormation or OrgFormation as well,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1027.8,
+      "end": 1030.6000000000001,
+      "text": " the OrgFormation repo has some examples."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1030.6000000000001,
+      "end": 1035.4,
+      "text": " And this is all stuff that we covered in episode 96."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1035.4,
+      "end": 1039.3000000000002,
+      "text": " So we don't have to go into too much detail around how to create them."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1039.3000000000002,
+      "end": 1043.5,
+      "text": " Essentially, we're talking about infrastructure as code for organizations,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1043.5,
+      "end": 1047.3000000000002,
+      "text": " which was the exact topic we covered in episode 96."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1047.3000000000002,
+      "end": 1051.2,
+      "text": " So if that's of interest to you, feel free to go back and check out that episode."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1051.2,
+      "end": 1055.6000000000001,
+      "text": " Maybe before we finish, it's probably worth mentioning that troubleshooting SCPs,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1055.6000000000001,
+      "end": 1058.3000000000002,
+      "text": " as we alluded to, can be a bit difficult."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1058.3000000000002,
+      "end": 1062,
+      "text": " For other policy types, you can use the IAM policy simulator,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1062,
+      "end": 1068.9,
+      "text": " and usually it will be able to highlight the area that denied or didn't really allow access well."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1068.9,
+      "end": 1071.9,
+      "text": " So it can highlight denies and specific policies."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1071.9,
+      "end": 1076.5,
+      "text": " But with service control policies, you don't get to see in the IAM policy simulator"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1076.5,
+      "end": 1079.8,
+      "text": " what is being explicitly or implicitly denied."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1079.8,
+      "end": 1083.7,
+      "text": " It just says denied by AWS organizations, which can be a bit frustrating."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1083.7,
+      "end": 1086.9,
+      "text": " So it's one of the areas where I think SCPs scare me a little bit,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1086.9,
+      "end": 1090.2,
+      "text": " even though in general they're really good practice and everybody should use them,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1090.2,
+      "end": 1093.7,
+      "text": " as long as they're pretty coarse grained and you don't go to town on them."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1093.7,
+      "end": 1095.6000000000001,
+      "text": " But maybe this is a general appeal."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1095.6000000000001,
+      "end": 1098.8,
+      "text": " If anybody has any great tips for troubleshooting SCPs,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1098.8,
+      "end": 1100.4,
+      "text": " we're pretty interested to hear about them."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1100.4,
+      "end": 1101.7,
+      "text": " So please share them with us."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1101.7,
+      "end": 1106.5,
+      "text": " And let us know as well if you have any other neat use cases for service control policies."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1106.5,
+      "end": 1111.1000000000001,
+      "text": " And with that, thanks again for joining us, and we'll see you in the next AWS Bites."
+    }
+  ]
+}

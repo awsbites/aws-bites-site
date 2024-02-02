@@ -39,7 +39,7 @@
         </ul>
       </div>
     {% endif %}
-    <div id="description" class="my-8 px-4 prose prose-sm md:prose-lg lg:prose-xl dark:prose-dark mx-auto">
+    <div id="description" class="tab-content my-8 px-4 prose prose-sm md:prose-lg lg:prose-xl dark:prose-dark mx-auto">
       {{ content | safe }}
 
       <div class="py-12">
@@ -52,7 +52,7 @@
 </div>
 
 {% if transcripts[episode] %}
-  <div id="transcript" class="my-8 px-4 prose prose-sm md:prose-lg lg:prose-xl dark:prose-dark mx-auto font-serif">
+  <div id="transcript" class="tab-content my-8 px-4 prose prose-sm md:prose-lg lg:prose-xl dark:prose-dark mx-auto font-serif">
     <div class="font-sans text-sm text-center p-4 bg-slate-300 dark:bg-slate-900">Help us to make this transcription better! If you find an error, please <a href="https://github.com/awsbites/aws-bites-site/edit/main/src/_transcripts/{{ episode }}.json">submit a PR</a> with your corrections.</div>
 
     {% set currentSpeakerLabel = '' %}
@@ -122,46 +122,43 @@
   {% block scripts %}
     {{ super() }}
     <script>
-      const tabClasses = 'inline-block p-4 rounded-t-lg border-b-2 border-transparent hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300'
-      const activeTabClasses = 'inline-block p-4 text-blue-600 rounded-t-lg border-b-2 border-blue-600 active dark:text-blue-500 dark:border-blue-500'
-      const tabbtns = document.querySelectorAll('.tab-button')
-      const allPanels = [...tabbtns].map(item => item.getAttribute('href'))
-      const initialTab = tabbtns[0].getAttribute('href')
+      document.addEventListener('DOMContentLoaded', function () {
+        const tabClasses = 'inline-block p-4 rounded-t-lg border-b-2 border-transparent hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300'
+        const activeTabClasses = 'inline-block p-4 text-blue-600 rounded-t-lg border-b-2 border-blue-600 active dark:text-blue-500 dark:border-blue-500'
+        const tabBtns = document.querySelectorAll('.tab-button')
 
-      function showTab(toShowSelector) {
-        const activeTabButton = [...tabbtns].find(item => item.getAttribute('href') === toShowSelector)
-        activeTabButton.setAttribute('class', activeTabClasses);
+        function showTab(tabId) {
+          const anchorHash = `#${tabId}`
+          let activeTabButton = [...tabBtns].find(item => item.getAttribute('href') === anchorHash) || tabBtns[0]
+          const resolvedTabId = activeTabButton.getAttribute('href').substring(1)
+          activeTabButton.setAttribute('class', activeTabClasses);
+          ([...tabBtns]).forEach(item => {
+            if (item !== activeTabButton) {
+              item.setAttribute('class', tabClasses)
+            }
+          })
 
-        ([...tabbtns]).forEach(item => {
-          if (item !== activeTabButton) {
-            item.setAttribute('class', tabClasses)
-          }
-        })
+          document.querySelectorAll('.tab-content').forEach(item => {
+            item.style.display = item.id === resolvedTabId ? 'block' : 'none'
+          })
 
-        const toHideSelectors = allPanels.filter(item => item !== toShowSelector)
+          // Update the URL hash to reflect the current tab
+          history.replaceState(null, '', `${window.location.pathname}#${resolvedTabId}`);
+        }
 
-        toHideSelectors.forEach(item => {
-          document
-            .querySelector(item)
-            .style
-            .display = 'none'
-        })
+        // Show the tab corresponding to the URL hash
+        showTab(window.location.hash.substring(1))
 
-        document
-          .querySelector(toShowSelector)
-          .style
-          .display = 'block'
-      }
-      showTab(initialTab)
+        tabBtns.forEach((item) => item.addEventListener('click', evt => {
+          evt.preventDefault()
+          const tabId = evt.currentTarget.getAttribute('href').substring(1)
+          showTab(tabId)
+        }))
 
-      tabbtns.forEach((item) => item.addEventListener('click', evt => {
-        evt.preventDefault()
-
-        const toShowSelector = evt
-          .currentTarget
-          .getAttribute('href')
-
-        showTab(toShowSelector)
-      }))
+        // Handle hash changes without a page reload
+        window.addEventListener('hashchange', function() {
+          showTab(window.location.hash.substring(1))
+        }, false);
+      })
     </script>
   {% endblock %}

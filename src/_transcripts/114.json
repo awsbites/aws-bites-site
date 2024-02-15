@@ -1,0 +1,3992 @@
+{
+  "speakers": {
+    "spk_0": "Eoin",
+    "spk_1": "Luciano"
+  },
+  "segments": [
+    {
+      "speakerLabel": "spk_0",
+      "start": 0,
+      "end": 4.4,
+      "text": " AWS has recently launched LLRT, the low latency runtime,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 4.54,
+      "end": 7.3,
+      "text": " a new experimental Lambda runtime for JavaScript."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 7.44,
+      "end": 9,
+      "text": " Now, you might be thinking one of two things,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 9.14,
+      "end": 11.98,
+      "text": " either this is amazing, we've got a new runtime for JavaScript,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 12.1,
+      "end": 14.280000000000001,
+      "text": " it's going to be faster and cheaper than the existing ones,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 14.4,
+      "end": 16.9,
+      "text": " I'm going to rewrite all of my Lambda functions right now."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 17.04,
+      "end": 18.7,
+      "text": " On the other hand, you might be thinking, oh, no,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 18.84,
+      "end": 22.54,
+      "text": " didn't we just stop publishing new JavaScript frameworks every week,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 23.14,
+      "end": 25.900000000000002,
+      "text": " only to start publishing new JavaScript runtimes every week?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 26.04,
+      "end": 27.68,
+      "text": " Or maybe you're just somewhere in between."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 28.32,
+      "end": 30.32,
+      "text": " So if you're curious today, we're going to give you our perspective"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 30.46,
+      "end": 31.56,
+      "text": " about LLRT."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 31.68,
+      "end": 33.92,
+      "text": " There's a lot to talk about with LLRT."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 34.06,
+      "end": 35.12,
+      "text": " There's a lot to love about it."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 35.26,
+      "end": 37.66,
+      "text": " But there are also some concerns that are worth highlighting."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 37.78,
+      "end": 39.88,
+      "text": " And we'll try to describe these in more detail"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 40.019999999999996,
+      "end": 43.06,
+      "text": " and talk about what LLRT is, how it works,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 43.18,
+      "end": 46.019999999999996,
+      "text": " and what the specific problem is that it's trying to solve."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 46.16,
+      "end": 47.86,
+      "text": " So let's get into it. My name is Eoin,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 47.980000000000004,
+      "end": 51.379999999999995,
+      "text": " and I'm here with Luciano for another episode of the AWS Bites podcast."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 51.38,
+      "end": 54.38,
+      "text": " AWS Bites is brought to you by fourTheorem,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 54.52,
+      "end": 56.56,
+      "text": " the AWS consulting partner with lots of experience"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 56.68,
+      "end": 58.480000000000004,
+      "text": " with AWS, serverless and Lambda."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 58.620000000000005,
+      "end": 60.68000000000001,
+      "text": " If you're looking for a partner that can help you deliver"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 60.82,
+      "end": 63.72,
+      "text": " your next serverless workload successfully, look no more"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 63.86,
+      "end": 65.76,
+      "text": " and reach out to us at fourtheorem.com."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 65.88,
+      "end": 69.36,
+      "text": " Just to set the stage, let's just do a quick overview"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 69.48,
+      "end": 73.18,
+      "text": " of the AWS Lambda service and talk again about what a runtime is."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 73.32000000000001,
+      "end": 74.96000000000001,
+      "text": " Lambda is a serverless service,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 75.08,
+      "end": 77.96000000000001,
+      "text": " and it's a service that's built on the AWS Lambda platform."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 77.96,
+      "end": 81.5,
+      "text": " So let's go back to the service and talk again about what a runtime is."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 81.64,
+      "end": 83.63999999999999,
+      "text": " Lambda is a serverless compute service"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 83.75999999999999,
+      "end": 85.96,
+      "text": " in the category of functions as a service."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 86.1,
+      "end": 87.66,
+      "text": " You can write your code in the form of a function"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 87.8,
+      "end": 89.8,
+      "text": " that can respond to specific events,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 89.94,
+      "end": 91.55999999999999,
+      "text": " and AWS will take care of provisioning"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 91.69999999999999,
+      "end": 94.25999999999999,
+      "text": " all the necessary infrastructure to run that function"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 94.39999999999999,
+      "end": 95.63999999999999,
+      "text": " for when the event happens."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 95.75999999999999,
+      "end": 97.75999999999999,
+      "text": " Lambda supports a lot of different programming languages,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 97.89999999999999,
+      "end": 100.06,
+      "text": " and it does that using the concept of runtimes."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 100.75999999999999,
+      "end": 104.44,
+      "text": " And every language and language version has a dedicated runtime."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 104.56,
+      "end": 107.94,
+      "text": " And this is logic that AWS maintains for specific languages,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 108.05999999999999,
+      "end": 111.46,
+      "text": " strap your Lambda function, orchestrate events and responses,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 111.6,
+      "end": 113.39999999999999,
+      "text": " and call your code in between."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 113.53999999999999,
+      "end": 117.25999999999999,
+      "text": " A Lambda runtime also includes the specific runtime binary,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 117.39999999999999,
+      "end": 119,
+      "text": " Node.js, Python, et cetera."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 119.75999999999999,
+      "end": 123.16,
+      "text": " For example, with the Node.js one, you'll get the Node.js binary"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 123.3,
+      "end": 125.36,
+      "text": " and all the system libraries it needs as well."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 125.5,
+      "end": 127.16,
+      "text": " Now, it is possible to build custom runtimes,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 127.3,
+      "end": 130.26,
+      "text": " for instance, to support more esoteric languages"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 130.4,
+      "end": 133.06,
+      "text": " or specific language versions that are not officially supported."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 133.2,
+      "end": 135.95999999999998,
+      "text": " AWS itself uses custom runtimes to provide support"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 136,
+      "end": 139.70000000000002,
+      "text": " for compiled languages such as C++, Go, and Rust."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 140.5,
+      "end": 142.36,
+      "text": " So this should give you a reasonable base"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 142.5,
+      "end": 145.70000000000002,
+      "text": " to understand more about LLRT as we go on and have this discussion."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 145.84,
+      "end": 147.9,
+      "text": " But if you're curious to know more about Lambda runtimes"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 148.04000000000002,
+      "end": 151,
+      "text": " and how they work, and even how to build your own custom runtime,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 151.14000000000001,
+      "end": 154.94,
+      "text": " we have a dedicated episode for that, and that's episode 104."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 155.06,
+      "end": 156.4,
+      "text": " The link will be in the show notes."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 156.54000000000002,
+      "end": 160.14000000000001,
+      "text": " So given our context, we've talked about Lambda runtimes as you know,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 160.26000000000002,
+      "end": 162.76000000000002,
+      "text": " you've been looking into LLRT in some more detail."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 162.9,
+      "end": 164,
+      "text": " What have you found out?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 164.1,
+      "end": 167.84,
+      "text": " Yeah, I think a great place to start is the LLRT repository,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 167.98,
+      "end": 169.68,
+      "text": " and we'll have the link in the show notes,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 169.8,
+      "end": 171.74,
+      "text": " because it gives, I think, a very good introduction"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 175.58,
+      "end": 176.68,
+      "text": " to what this runtime is about, why it exists, and a bunch of other interesting things"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 176.8,
+      "end": 178.34,
+      "text": " that we are going to try to cover today."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 178.48,
+      "end": 181.34,
+      "text": " So first thing is that this is a JavaScript runtime"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 181.48,
+      "end": 183.6,
+      "text": " that is built specifically for Lambda."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 183.74,
+      "end": 186.34,
+      "text": " So it doesn't try to compete with the likes of Node.js,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 186.48,
+      "end": 189.5,
+      "text": " DIN, or BAN, which are much more generic purpose."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 189.64,
+      "end": 191.18,
+      "text": " So this is kind of a very important leader"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 191.3,
+      "end": 193.4,
+      "text": " because some of the design trade-offs"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 193.5,
+      "end": 196.74,
+      "text": " make a lot of sense looking at it from this perspective,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 196.88,
+      "end": 198.98000000000002,
+      "text": " that it's not competing with all the other ones."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 199.1,
+      "end": 202.70000000000002,
+      "text": " It's something very, very specific that makes sense in the context of Lambda."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 202.84,
+      "end": 205.9,
+      "text": " So the first trade-off is that it tries to be very lightweight,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 206.04000000000002,
+      "end": 208.4,
+      "text": " which means that the final runtime package that you get"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 208.54000000000002,
+      "end": 211.24,
+      "text": " should be as small as possible,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 211.38,
+      "end": 212.84,
+      "text": " generally in the order of kilobytes"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 212.98000000000002,
+      "end": 214.8,
+      "text": " rather than in the order of megabytes,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 214.94,
+      "end": 218.24,
+      "text": " which is what you get, for instance, with Node.js, DIN, or BAN,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 218.34,
+      "end": 223.72,
+      "text": " you will have 20, 30, 60, 80 megabytes of runtime itself"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 223.84,
+      "end": 225.08,
+      "text": " rather than a few kilobytes,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 225.22,
+      "end": 227.92000000000002,
+      "text": " which is the case, for instance, with LRRT."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 228.04000000000002,
+      "end": 230.24,
+      "text": " Now, why is this important in the context of Lambda?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 230.38,
+      "end": 233.22,
+      "text": " I think we need to remember that Lambda is a very dynamic environment."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 233.34,
+      "end": 234.62,
+      "text": " As you described very well,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 234.74,
+      "end": 238.92000000000002,
+      "text": " instances are started only on demand and shut down when not needed anymore."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 239.04000000000002,
+      "end": 242.22,
+      "text": " So AWS is going to be provisioning all these necessary resources"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 242.34,
+      "end": 244.82000000000002,
+      "text": " all the time, bootstrapping and killing those,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 244.94,
+      "end": 247.54000000000002,
+      "text": " depending on requests arriving into our account."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 247.64,
+      "end": 251.04,
+      "text": " So it is very important that AWS can do all of that as quick as possible,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 251.17999999999998,
+      "end": 254.84,
+      "text": " because every time that you are starting a new instance of a Lambda,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 254.98,
+      "end": 258.58,
+      "text": " the whole process of bootstrapping the infrastructure is called cold start,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 258.71999999999997,
+      "end": 262.68,
+      "text": " and it's something that's going to affect the latency of your application."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 262.82,
+      "end": 265.44,
+      "text": " So the choice of runtime is something that is very relevant"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 265.58,
+      "end": 268.32,
+      "text": " when we discuss about how to improve cold start."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 268.44,
+      "end": 270.08,
+      "text": " And the bigger the runtime package, of course,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 270.21999999999997,
+      "end": 271.84,
+      "text": " the more time is required for AWS"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 271.98,
+      "end": 275.02,
+      "text": " to download all the necessary files and load them into memory."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 275.26,
+      "end": 278.65999999999997,
+      "text": " So the bigger the runtime, most likely, the longer is going to be the cold start."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 278.79999999999995,
+      "end": 282.02,
+      "text": " So the choice of trying to make the runtime as small as possible,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 282.15999999999997,
+      "end": 284.21999999999997,
+      "text": " of course, is something that tries to reduce the cold start,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 284.35999999999996,
+      "end": 287.26,
+      "text": " which is one of the biggest problems that people always talk about"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 287.4,
+      "end": 290.71999999999997,
+      "text": " when we talk about problems with Lambda and serverless in general."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 290.85999999999996,
+      "end": 293.46,
+      "text": " So this is definitely a step in the right direction in that sense,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 293.59999999999997,
+      "end": 295.76,
+      "text": " and it's a trade-off that makes a lot of sense."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 295.9,
+      "end": 299.65999999999997,
+      "text": " Another interesting aspect is that it is built using Rust and QuickJS"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 299.79999999999995,
+      "end": 302.52,
+      "text": " as the JavaScript engine, and these are two very interesting choices."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 302.62,
+      "end": 305.82,
+      "text": " So I'm going to try to give you a little bit more detail about both of them."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 305.96,
+      "end": 307.35999999999996,
+      "text": " Rust is actually not too unusual,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 307.5,
+      "end": 310.35999999999996,
+      "text": " because if we look, for instance, at Deno, it's also built in Rust,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 310.5,
+      "end": 313.59999999999997,
+      "text": " but if we also look at Node.js, it's written in C++,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 313.71999999999997,
+      "end": 315.5,
+      "text": " which is somewhat similar to Rust"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 315.62,
+      "end": 318.5,
+      "text": " in terms of most of the trade-offs that the language takes."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 318.62,
+      "end": 320.85999999999996,
+      "text": " And very similarly, if we look at BUN, it's written in ZIG,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 321,
+      "end": 323.12,
+      "text": " which is another alternative to C++ and Rust."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 323.26,
+      "end": 326.4,
+      "text": " So in that sense, it's nothing special, I guess,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 326.52,
+      "end": 327.9,
+      "text": " but it's still important to try to understand"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 328.02,
+      "end": 331.32,
+      "text": " what Rust brings to the table in this particular case."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 331.9,
+      "end": 333.86,
+      "text": " And the first one is that Rust is a language"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 334,
+      "end": 336.56,
+      "text": " that is built for performance and memory efficiency,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 336.7,
+      "end": 340.65999999999997,
+      "text": " and these two dimensions are very, very important in the context of Lambda,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 340.8,
+      "end": 342.86,
+      "text": " because, yes, on one side, you might argue"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 343,
+      "end": 346.21999999999997,
+      "text": " that nobody likes memory-hungry software or slow software,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 346.36,
+      "end": 348.52,
+      "text": " but in the context of Lambda, this is even more important,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 348.65999999999997,
+      "end": 351.26,
+      "text": " because these are the two dimensions that are going to affect price."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 351.4,
+      "end": 353.26,
+      "text": " And it's worth remembering that with Lambda,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 353.4,
+      "end": 356.3,
+      "text": " you pay a unit amount that depends on how much memory"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 356.42,
+      "end": 358.06,
+      "text": " you allocate for your Lambda function,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 358.2,
+      "end": 360.26,
+      "text": " and then you have to multiply that unit amount"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 360.36,
+      "end": 363.26,
+      "text": " to the number of milliseconds that are used by your Lambda"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 363.4,
+      "end": 364.5,
+      "text": " whilst doing something useful."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 364.64,
+      "end": 367.26,
+      "text": " So while your Lambda is running, you take the number of milliseconds"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 367.4,
+      "end": 369.14,
+      "text": " and multiply for the amount of memory"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 369.26,
+      "end": 371.2,
+      "text": " that you have pre-allocated for that Lambda."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 371.34,
+      "end": 373.94,
+      "text": " So of course, if you can keep the memory footprint very low,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 374.06,
+      "end": 377.24,
+      "text": " and you can be still very, very fast at doing the execution,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 377.36,
+      "end": 379.86,
+      "text": " that means that you are going to be using Lambda"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 380,
+      "end": 382.46,
+      "text": " in the most effective way from a pricing perspective."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 382.59999999999997,
+      "end": 384.86,
+      "text": " So your CFO is probably going to be very thankful,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 385,
+      "end": 387.03999999999996,
+      "text": " looking at the bill and checking that there was maybe"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 387.15999999999997,
+      "end": 389.14,
+      "text": " a quite significant reduction in cost"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 389.24,
+      "end": 391.94,
+      "text": " when it comes to the Lambda item in the bill."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 392.08,
+      "end": 395.71999999999997,
+      "text": " So faster startup, by the way, is not only to be seen"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 395.84,
+      "end": 398.82,
+      "text": " from the perspective of price, which is important,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 398.94,
+      "end": 401.41999999999996,
+      "text": " but I think there is another very important aspect"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 401.53999999999996,
+      "end": 402.58,
+      "text": " that is power consumption."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 402.71999999999997,
+      "end": 405.47999999999996,
+      "text": " This is something we are becoming more and more aware in the industry."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 405.62,
+      "end": 406.71999999999997,
+      "text": " Probably we should do even more."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 406.84,
+      "end": 409.62,
+      "text": " We are still at the very beginning of the conversations."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 409.74,
+      "end": 413.68,
+      "text": " But I think it's important to realize that everything we run in the cloud"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 413.82,
+      "end": 416.18,
+      "text": " has a cost not just from an economic perspective,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 416.32,
+      "end": 418.64,
+      "text": " but also in terms of environment and sustainability."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 418.74,
+      "end": 421.88,
+      "text": " So we need to be very mindful that we might be able to do something"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 422.02,
+      "end": 423.71999999999997,
+      "text": " to reduce that kind of footprint."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 423.84,
+      "end": 426.64,
+      "text": " And every time we have the chance, we should probably take the chance"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 426.78,
+      "end": 429.74,
+      "text": " because it's something that we will need to eventually care"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 429.88,
+      "end": 430.94,
+      "text": " and be more responsible."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 431.08,
+      "end": 433.28,
+      "text": " So it's important to see that perspective as well."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 433.41999999999996,
+      "end": 437.12,
+      "text": " And having a runtime that can give us very, very efficient compute,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 437.24,
+      "end": 440.14,
+      "text": " it's something that goes in the right direction in that sense."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 440.28,
+      "end": 444.02,
+      "text": " And to be fair, serverless is also a very sustainable technology in general."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 444.14,
+      "end": 446.21999999999997,
+      "text": " So if we can make it even more sustainable,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 446.46000000000004,
+      "end": 450.36,
+      "text": " it's another win that we take from this particular set of trade-offs."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 450.90000000000003,
+      "end": 455.46000000000004,
+      "text": " Now, it's also worth mentioning that the idea of using Rust or C"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 455.6,
+      "end": 458.42,
+      "text": " in order to make code more sustainable"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 458.56,
+      "end": 460.86,
+      "text": " is generally kind of a double-edged sword."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 461,
+      "end": 464.20000000000005,
+      "text": " On one side, you get that effect that you become more sustainable."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 464.32000000000005,
+      "end": 466.3,
+      "text": " But on the other side, there is a huge investment"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 466.42,
+      "end": 469.1,
+      "text": " in terms of teams having to learn these technologies,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 469.22,
+      "end": 471.62,
+      "text": " especially if you have teams that are more versed with technology"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 471.76000000000005,
+      "end": 473.26000000000005,
+      "text": " such as Python or JavaScript."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 473.40000000000003,
+      "end": 475.82000000000005,
+      "text": " That's going to become a very big investment to do."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 476,
+      "end": 478.3,
+      "text": " So here, there is an even more interesting trade-off"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 478.42,
+      "end": 480.62,
+      "text": " because the promise is that you don't need to learn"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 480.76,
+      "end": 484.7,
+      "text": " a new low-level language like C, C++, Rust, or Go."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 484.82,
+      "end": 485.82,
+      "text": " You can stick with JavaScript,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 485.96,
+      "end": 488.46,
+      "text": " which is probably something much more well-known in the industry,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 488.6,
+      "end": 490.62,
+      "text": " and still get very good trade-off"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 490.76,
+      "end": 493.06,
+      "text": " and very good performance and energy efficiency."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 493.2,
+      "end": 495.96,
+      "text": " So this is definitely one of the areas"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 496.1,
+      "end": 500.3,
+      "text": " why LLRT shines in terms of a very interesting approach."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 500.82,
+      "end": 502.2,
+      "text": " Now, speaking about QuickJS,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 502.32,
+      "end": 505.4,
+      "text": " this is quite of a novelty in the JavaScript runtime space."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 505.5,
+      "end": 507.2,
+      "text": " We have a link to the QuickJS website"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 507.34,
+      "end": 509.14,
+      "text": " where you can find a bunch of details."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 509.28,
+      "end": 511.23999999999995,
+      "text": " And it's probably worth looking into it"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 511.38,
+      "end": 513.24,
+      "text": " if you've never heard about QuickJS."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 513.38,
+      "end": 515.18,
+      "text": " But I'm going to try to explain very quickly what it is"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 515.3,
+      "end": 517.18,
+      "text": " and what kind of trade-offs it provides."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 517.3,
+      "end": 520.14,
+      "text": " So QuickJS basically implements JavaScript,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 520.28,
+      "end": 524.3,
+      "text": " meaning that it's able to interpret and execute JavaScript code,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 524.4399999999999,
+      "end": 527.18,
+      "text": " and it does it in such a way that it's almost like a library"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 527.3,
+      "end": 529.68,
+      "text": " that you can take and embed in other programs."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 529.8,
+      "end": 533.24,
+      "text": " So it doesn't really give you any core library, so to speak."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 533.24,
+      "end": 535.94,
+      "text": " It's just able to understand the JavaScript syntax"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 536.08,
+      "end": 537.24,
+      "text": " and execute it correctly."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 537.38,
+      "end": 540.04,
+      "text": " And this is something that every JavaScript runtime needs"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 540.1800000000001,
+      "end": 543.74,
+      "text": " in a way or another, but the big ones, Node.js,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 543.88,
+      "end": 546.34,
+      "text": " Deno, and BUN, none of them use QuickJS."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 546.48,
+      "end": 549.1800000000001,
+      "text": " In fact, Node.js and Deno both use V8,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 549.32,
+      "end": 552.64,
+      "text": " which is the Google Chrome JavaScript engine,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 552.78,
+      "end": 555.94,
+      "text": " while BUN uses JavaScript Core, which comes out from WebKit,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 556.08,
+      "end": 559.84,
+      "text": " which is the project that's by Apple that is used in Safari."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 559.98,
+      "end": 562.72,
+      "text": " So QuickJS is somewhat novel in the space"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 562.82,
+      "end": 564.5,
+      "text": " of JavaScript runtimes,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 564.62,
+      "end": 568.2,
+      "text": " and the reason why I believe it's being used here is, again,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 568.32,
+      "end": 571.0600000000001,
+      "text": " because it tries to fulfill that promise that it needs to be"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 571.2,
+      "end": 573.4200000000001,
+      "text": " as small as possible in terms of inventability"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 573.5600000000001,
+      "end": 576.96,
+      "text": " and as easy as possible to embed in an application."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 577.1,
+      "end": 578.7,
+      "text": " It's also quite modern and feature complete."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 578.82,
+      "end": 581.6,
+      "text": " In fact, already supports ECMAScript 2023,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 581.72,
+      "end": 584.76,
+      "text": " including ECMAScript modules, including other advanced features"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 584.9,
+      "end": 589.12,
+      "text": " like async generators, proxy, begin, there are even extensions to have,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 589.26,
+      "end": 592.2,
+      "text": " things that are not even in the ECMAScript specification yet."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 592.3000000000001,
+      "end": 595.7,
+      "text": " Another interesting trade-off is it doesn't have a just-in-time compiler,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 595.84,
+      "end": 598.58,
+      "text": " and this might seem like a negative thing"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 598.7,
+      "end": 601.0400000000001,
+      "text": " because I think all the modern runtimes are expected"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 601.1800000000001,
+      "end": 602.6800000000001,
+      "text": " to have a just-in-time compiler,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 602.8000000000001,
+      "end": 605.08,
+      "text": " and generally something that helps a lot with performance,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 605.2,
+      "end": 607,
+      "text": " but I think it's important here to understand the trade-off."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 607.1400000000001,
+      "end": 610.38,
+      "text": " So let's try to explain quickly what a just-in-time compiler is."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 610.5,
+      "end": 612.08,
+      "text": " Generally, with interpreted languages,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 612.2,
+      "end": 615.44,
+      "text": " what you do is as you scan the code, you try to evaluate it,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 615.58,
+      "end": 616.98,
+      "text": " and that's basically run in the program."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 617.1,
+      "end": 619.2800000000001,
+      "text": " And of course, this is not going to be extremely efficient"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 619.38,
+      "end": 622.28,
+      "text": " because most of the trade-offs that dynamic languages have"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 622.42,
+      "end": 624.66,
+      "text": " is that you don't necessarily have strict typing,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 624.78,
+      "end": 627.66,
+      "text": " so the runtime needs to make a lot of assumptions"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 627.78,
+      "end": 629.12,
+      "text": " to be as generic as possible"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 629.26,
+      "end": 632.3199999999999,
+      "text": " and to support a lot of dynamic range of functionalities."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 633.02,
+      "end": 636.36,
+      "text": " So generally speaking, the interpreted languages will at some point"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 636.48,
+      "end": 638.66,
+      "text": " introduce a just-in-time compiler that tries to,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 638.78,
+      "end": 640.3199999999999,
+      "text": " as you read the code and process the code,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 640.4599999999999,
+      "end": 643.48,
+      "text": " figure out what are the patterns and try to generate machine code"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 643.62,
+      "end": 646.02,
+      "text": " which is much more optimized on the fly"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 646.22,
+      "end": 649.72,
+      "text": " and start to swap out part of your scripting language"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 649.86,
+      "end": 652.22,
+      "text": " with actual compiled code"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 652.36,
+      "end": 654.76,
+      "text": " that can run much faster on your specific architecture."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 654.9,
+      "end": 656.9,
+      "text": " Now, while this is very good in the long term,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 657.02,
+      "end": 659.36,
+      "text": " so if you have computation that needs to run for a long time,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 659.5,
+      "end": 661.66,
+      "text": " if you have a computation like in the context of servers"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 661.8,
+      "end": 665.76,
+      "text": " where you're trying to optimize for small event-driven pieces of computation,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 665.9,
+      "end": 668.76,
+      "text": " sometimes it's a little bit of a waste to do all of this optimization"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 668.9,
+      "end": 671.72,
+      "text": " just to shut down your computation after a few seconds"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 671.86,
+      "end": 673.66,
+      "text": " or even milliseconds in most of the cases."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 673.8,
+      "end": 675.3199999999999,
+      "text": " So here it's a very interesting trade-off"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 675.4200000000001,
+      "end": 678.32,
+      "text": " because we are giving up on that just-in-time capability"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 678.46,
+      "end": 680.46,
+      "text": " because we know that most of the time we are going to prefer"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 680.6,
+      "end": 682.96,
+      "text": " to have very small and fast lambdas"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 683.1,
+      "end": 686.32,
+      "text": " that are going to do something very quickly, mostly glue logic,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 686.46,
+      "end": 689.86,
+      "text": " and therefore we don't necessarily need that level of optimization,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 690,
+      "end": 692.5600000000001,
+      "text": " which comes with a little bit of upstart price"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 692.7,
+      "end": 695.2,
+      "text": " that you have to pay to do all of that compilation up front."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 695.32,
+      "end": 697.9200000000001,
+      "text": " So I think this is something that makes a lot of sense"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 698.0600000000001,
+      "end": 700.8000000000001,
+      "text": " in the context of all LRT,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 700.9200000000001,
+      "end": 704,
+      "text": " but I guess we can start to discuss about"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 704.2,
+      "end": 706.24,
+      "text": " how much performance are we really talking about?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 706.38,
+      "end": 708.2,
+      "text": " Can we figure out what are some numbers"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 708.34,
+      "end": 710.04,
+      "text": " or maybe some comparison with Node.js?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 710.94,
+      "end": 714.38,
+      "text": " Well, we haven't had the chance to try it ourselves in any great detail,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 714.5,
+      "end": 718.24,
+      "text": " but there is an interesting benchmark on the LLRT repository,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 718.38,
+      "end": 721,
+      "text": " and it's based on a fairly simple lambda function"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 721.14,
+      "end": 723.1,
+      "text": " that puts a record into a DynamoDB table."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 723.24,
+      "end": 726.18,
+      "text": " So even though it's minimal, there's a bit more realism to it"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 726.3,
+      "end": 729.38,
+      "text": " than the usual hello world style benchmarks,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 729.5,
+      "end": 731.58,
+      "text": " and it compares the performance of running this function"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 731.6800000000001,
+      "end": 734.76,
+      "text": " on an ARM architecture, so graviton-based lambda"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 734.88,
+      "end": 737.26,
+      "text": " with 128 megabytes of allocated memory,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 737.38,
+      "end": 741.76,
+      "text": " and the other side of the comparison is Node 20."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 741.88,
+      "end": 744.98,
+      "text": " So LLRT results, if we look at the..."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 745.6800000000001,
+      "end": 749.9200000000001,
+      "text": " The results are kind of presented with, you know, P100, P99,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 753.88,
+      "end": 756.96,
+      "text": " so you can see the maximum cold start time and the maximum run time, as well as like P50, so the 50th percentile,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 757.08,
+      "end": 760.6600000000001,
+      "text": " and we can see that for the 95th percentile with LLRT,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 760.76,
+      "end": 764.4399999999999,
+      "text": " you're getting 76 millisecond cold starts, which is pretty good."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 765.66,
+      "end": 769.76,
+      "text": " On Node.js 20, they're reporting 1600 milliseconds of cold start time"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 770.9399999999999,
+      "end": 773.6,
+      "text": " for 95% of the cases, the maximum,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 773.74,
+      "end": 778.24,
+      "text": " and then warm start executions are looking at 33 milliseconds"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 778.36,
+      "end": 780.74,
+      "text": " for this function with LLRT compared to 100,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 780.86,
+      "end": 782.9,
+      "text": " just over 100 milliseconds with Node 20."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 784.64,
+      "end": 787.3399999999999,
+      "text": " So the full tables and set of benchmarks is available on the website."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 788.14,
+      "end": 790.84,
+      "text": " It's kind of interesting that it's only comparing ARM,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 791.88,
+      "end": 793.1800000000001,
+      "text": " and it's only using Node 20."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 793.32,
+      "end": 796.22,
+      "text": " I think it would be great to have a more comprehensive set of benchmarks,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 796.34,
+      "end": 799.0400000000001,
+      "text": " but in general, what this is showing is that in this permutation,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 799.1800000000001,
+      "end": 802.6800000000001,
+      "text": " at least LLRT is noticeably faster than Node 20,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 802.82,
+      "end": 804.72,
+      "text": " particularly when it comes to cold starts."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 805.58,
+      "end": 807.2800000000001,
+      "text": " There's another very well-known benchmark,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 807.4200000000001,
+      "end": 809.98,
+      "text": " which we've mentioned, I think, before on a few episodes,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 810.12,
+      "end": 812.5400000000001,
+      "text": " that tries to compare the cold start memory footprint"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 812.6800000000001,
+      "end": 815.4200000000001,
+      "text": " and the execution latency of different runtimes,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 815.5999999999999,
+      "end": 819.66,
+      "text": " and they recently added support for LLRT in their test suite."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 819.8,
+      "end": 822.2199999999999,
+      "text": " LLRT scores very well in most configurations there,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 822.36,
+      "end": 826.9599999999999,
+      "text": " and it's generally the third fastest runtime behind C++ and Rust."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 827.0999999999999,
+      "end": 829.9,
+      "text": " It's even faster than Golang in this case."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 830.02,
+      "end": 833.6999999999999,
+      "text": " Of course, you have to bear in mind that C++ and Rust"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 833.8199999999999,
+      "end": 837.9,
+      "text": " are very mature ecosystems, comparatively go as well,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 838.02,
+      "end": 840.16,
+      "text": " and this is still an experimental beta product."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 841.0999999999999,
+      "end": 844.3199999999999,
+      "text": " In the benchmark, we can also see the difference in memory usage,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 844.4200000000001,
+      "end": 847.3000000000001,
+      "text": " and if we compare LLRT to Node 20,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 847.4200000000001,
+      "end": 850,
+      "text": " we have 24 megabytes versus 63 megabytes,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 850.12,
+      "end": 852.9200000000001,
+      "text": " so it's about a third of the memory needed for the same Lambda function."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 853.86,
+      "end": 855.3000000000001,
+      "text": " If the performance is the same, it might mean"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 855.4200000000001,
+      "end": 857.46,
+      "text": " that you can reduce your memory allocation"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 857.6,
+      "end": 859.2,
+      "text": " and save cost even further."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 859.32,
+      "end": 860.9200000000001,
+      "text": " So this seems pretty exciting,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 861.0600000000001,
+      "end": 865,
+      "text": " and I've been using Node.js for a long time,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 865.5200000000001,
+      "end": 868.8000000000001,
+      "text": " so the idea of this kind of explosion in runtimes"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 868.9200000000001,
+      "end": 871.5600000000001,
+      "text": " is a little bit exhausting to think about, to be honest,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 871.66,
+      "end": 875.3,
+      "text": " because so much investment has gone into Node.js,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 875.4399999999999,
+      "end": 877.66,
+      "text": " into JITs, into optimizing."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 877.8,
+      "end": 880.9399999999999,
+      "text": " I mean, whenever I hear people from V8 team or the Node team"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 881.06,
+      "end": 883.7399999999999,
+      "text": " talking about the amount of effort they put into optimization"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 883.8599999999999,
+      "end": 885.8,
+      "text": " of single functions and single libraries,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 885.9399999999999,
+      "end": 889.04,
+      "text": " I think, how can these runtimes ever get that same level of maturity?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 889.16,
+      "end": 891.5999999999999,
+      "text": " But maybe if they focus on a specific problem,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 891.7399999999999,
+      "end": 893.8,
+      "text": " maybe there is a use case where we should be thinking about them."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 893.9399999999999,
+      "end": 897.06,
+      "text": " So, Luciano, you're a Node.js aficionado."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 897.1999999999999,
+      "end": 898.8,
+      "text": " How does this make you feel?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 898.9399999999999,
+      "end": 900.9,
+      "text": " Does it make you think that you should use LLRT"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 901.0799999999999,
+      "end": 903.98,
+      "text": " for every single Lambda function now, or where do you stand?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 904.1,
+      "end": 905.48,
+      "text": " Yeah, I think that's a great question,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 905.6,
+      "end": 911.28,
+      "text": " and it's a bit difficult to give you a 100% answer."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 911.4,
+      "end": 914.74,
+      "text": " I think we will see as we go what happens to the project,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 914.88,
+      "end": 916.1999999999999,
+      "text": " but as it stands today,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 916.34,
+      "end": 919.54,
+      "text": " there are a few things to be a little bit concerned about."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 919.68,
+      "end": 923.9,
+      "text": " First of all is that the project itself is labeled as experimental,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 924.04,
+      "end": 926.5,
+      "text": " and we don't know exactly what that really means,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 926.64,
+      "end": 929.48,
+      "text": " but we can make some assumption and also try to interpret"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 929.58,
+      "end": 931.46,
+      "text": " what we can see in the repository."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 931.58,
+      "end": 933.98,
+      "text": " So the repository marks the release as beta."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 934.12,
+      "end": 938.16,
+      "text": " So, again, not really indicative of any kind of promise,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 938.28,
+      "end": 941.0600000000001,
+      "text": " but it gives us a first idea that is not something"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 941.1800000000001,
+      "end": 943.26,
+      "text": " that we can consider stable right now."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 943.38,
+      "end": 946.58,
+      "text": " So maybe let's not use it for everything we have in production just now."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 946.72,
+      "end": 949.98,
+      "text": " Maybe let's wait to see when it becomes a little bit more stable in that sense."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 950.12,
+      "end": 952.46,
+      "text": " Also, the repo says that it is subject to change,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 953.0600000000001,
+      "end": 955.48,
+      "text": " and it is intended only for evaluation purposes."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 955.62,
+      "end": 958.82,
+      "text": " So, again, don't use it for your most important production workload."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 958.9200000000001,
+      "end": 960.82,
+      "text": " Maybe if you have a very secondary workload"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 960.96,
+      "end": 963.6600000000001,
+      "text": " and you want to use it with something that is a little bit more relevant"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 963.8000000000001,
+      "end": 966.2,
+      "text": " to your business, that could be one way of approaching it,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 966.32,
+      "end": 969.62,
+      "text": " but definitely use it for the most sensible business case that you have"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 969.7600000000001,
+      "end": 971.5600000000001,
+      "text": " because you might have unexpected surprises."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 971.7,
+      "end": 975,
+      "text": " And I think there is, in general, no guarantee that AWS"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 975.12,
+      "end": 978.36,
+      "text": " or the current maintainers are going to invest more on this project"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 978.5,
+      "end": 980.72,
+      "text": " as it stands today, and even if they do,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 980.86,
+      "end": 982.5600000000001,
+      "text": " maybe they will change everything,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 982.7,
+      "end": 985.5200000000001,
+      "text": " or they will change a significant amount of the code base"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 985.6600000000001,
+      "end": 988.5600000000001,
+      "text": " that might require you to do a significant amount of change on your side."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 988.56,
+      "end": 990.4,
+      "text": " If you want to keep using the project."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 990.54,
+      "end": 993.5,
+      "text": " So that's definitely something to keep in mind as a starting point."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 993.64,
+      "end": 996.06,
+      "text": " There is another problem that is also very important,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 996.1999999999999,
+      "end": 998.06,
+      "text": " that this project is not Node.js."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 998.1999999999999,
+      "end": 1001.4399999999999,
+      "text": " So it's not packaging Node.js in a smarter way."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1001.56,
+      "end": 1004.7399999999999,
+      "text": " It's just a totally different implementation of a JavaScript runtime."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1004.8599999999999,
+      "end": 1007.9599999999999,
+      "text": " And the reason why this is important is that on one side,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1008.0999999999999,
+      "end": 1009.9599999999999,
+      "text": " it doesn't come with all the baggage of Node.js,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1010.0999999999999,
+      "end": 1014.26,
+      "text": " and this is why it can be very fast and very performant, as we described,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1014.4,
+      "end": 1017.0999999999999,
+      "text": " but on the other end, it doesn't have all the ecosystem of libraries"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1017.3000000000001,
+      "end": 1020.7,
+      "text": " that Node.js has, and that has been for over,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1020.84,
+      "end": 1022.84,
+      "text": " I think, almost 15 years at this point."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1022.98,
+      "end": 1025.58,
+      "text": " So what that means is that you don't have"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1025.7,
+      "end": 1028.48,
+      "text": " the full Node.js standard library at your disposal,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1028.6,
+      "end": 1032.14,
+      "text": " and that means that you might have problems with some of your code."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1032.28,
+      "end": 1033.84,
+      "text": " Even if you're using third-party libraries,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1033.98,
+      "end": 1036.48,
+      "text": " those third-party libraries might rely on some functionality"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1036.6,
+      "end": 1038.88,
+      "text": " that exists in the standard library of Node.js"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1039,
+      "end": 1041.74,
+      "text": " that doesn't exist in LLRT yet."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1042.28,
+      "end": 1046.1,
+      "text": " And when I say yet, it doesn't mean that there is a promise"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1046.1999999999998,
+      "end": 1049.8,
+      "text": " that eventually LLRT is going to have future parity with Node.js."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1049.9399999999998,
+      "end": 1052.5,
+      "text": " Actually, if you look at the readme, they state very clearly"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1052.6399999999999,
+      "end": 1055.08,
+      "text": " that this is not a goal. They are not going to try to compete"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1055.1999999999998,
+      "end": 1057.1399999999999,
+      "text": " for future parity with Node.js."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1057.28,
+      "end": 1059.54,
+      "text": " They have some degree of support,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1059.6799999999998,
+      "end": 1062.24,
+      "text": " but there is no promise that they will try to improve"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1062.3799999999999,
+      "end": 1064.9399999999998,
+      "text": " the percentage of coverage in that sense."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1065.08,
+      "end": 1066.8,
+      "text": " So I guess for the foreseeable future,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1066.9399999999998,
+      "end": 1069.6999999999998,
+      "text": " we only have a partial implementation of the Node.js standard library,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1069.84,
+      "end": 1073.58,
+      "text": " and another thing to keep in mind is that even that implementation,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1073.76,
+      "end": 1076.52,
+      "text": " there is no guarantee that it's matching 100%"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1076.6599999999999,
+      "end": 1080.96,
+      "text": " the same level of functionality that we have in Node.js."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1081.08,
+      "end": 1082.36,
+      "text": " You might have surprises, for instance,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1082.48,
+      "end": 1086.86,
+      "text": " subtle differences on how certain APIs actually work in certain edge cases,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1086.98,
+      "end": 1089.46,
+      "text": " and that means that all the code you write,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1089.58,
+      "end": 1094.62,
+      "text": " you need to be very careful testing it specifically in the context of LLRT"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1094.76,
+      "end": 1097.22,
+      "text": " and not just run Node.js tests with Node.js"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1097.36,
+      "end": 1099.78,
+      "text": " and assume that everything is going to work as expected"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1099.9199999999998,
+      "end": 1102.32,
+      "text": " when you package it into LLRT."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1102.4199999999998,
+      "end": 1104.26,
+      "text": " Now, speaking of libraries, you might think,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1104.3999999999999,
+      "end": 1105.82,
+      "text": " what about the AWS SDK, right?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1105.96,
+      "end": 1107.8,
+      "text": " Because most likely, this is the main library"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1107.9199999999998,
+      "end": 1109.52,
+      "text": " that you will need to use in a Lambda."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1109.6599999999999,
+      "end": 1113.8999999999999,
+      "text": " And actually, interesting enough, this runtime comes with many AWS"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1114.02,
+      "end": 1117.3,
+      "text": " SDK clients already baked into the runtime."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1117.4199999999998,
+      "end": 1119.06,
+      "text": " There is a list on the repository."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1119.2,
+      "end": 1122.36,
+      "text": " Last time we counted was 19 clients supported,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1122.5,
+      "end": 1124.86,
+      "text": " plus the Smt library from AWS."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1125,
+      "end": 1128.96,
+      "text": " So if you need to use one of these 19 clients or the Smt library,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1129.1,
+      "end": 1130.3999999999999,
+      "text": " you don't need to install it yourself."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1130.5,
+      "end": 1132.5,
+      "text": " Those are already prepackaged in the runtime."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1132.64,
+      "end": 1134.88,
+      "text": " And actually, the repository goes as far as saying"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1135,
+      "end": 1137.38,
+      "text": " that it's not the standard package itself,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1137.5,
+      "end": 1138.8000000000002,
+      "text": " the one that you would get from npm,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1138.94,
+      "end": 1143.44,
+      "text": " because there are extra optimizations that the authors have put in place,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1143.5800000000002,
+      "end": 1145.44,
+      "text": " replacing some of the JavaScript code"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1145.5800000000002,
+      "end": 1147.9,
+      "text": " that exists in the standard version of the library"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1148.0400000000002,
+      "end": 1150.98,
+      "text": " with some native code, supposedly Rust, I imagine."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1151.1000000000001,
+      "end": 1154.18,
+      "text": " So I guess that could give you an extra boost in performance"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1154.3000000000002,
+      "end": 1155.64,
+      "text": " when you use these libraries."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1155.7800000000002,
+      "end": 1158.3000000000002,
+      "text": " Now, they also say that not all the methods are supported."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1158.5,
+      "end": 1161.24,
+      "text": " For instance, if you try to get a stream from a response"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1161.3799999999999,
+      "end": 1163.24,
+      "text": " coming from the SDK, maybe..."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1163.3799999999999,
+      "end": 1164.74,
+      "text": " I haven't tested this very thoroughly,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1164.8799999999999,
+      "end": 1167.54,
+      "text": " but I imagine if you're trying to read a big file from S3,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1167.68,
+      "end": 1169.04,
+      "text": " that might be a little bit of a problem"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1169.18,
+      "end": 1172.1399999999999,
+      "text": " if you cannot really stream that output into your program"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1172.28,
+      "end": 1174.94,
+      "text": " and you need to patch all the data into memory"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1175.08,
+      "end": 1176.74,
+      "text": " before you can actually access to it."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1176.8799999999999,
+      "end": 1179.54,
+      "text": " I'm not really sure if this use case is supported or not,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1179.68,
+      "end": 1181.6399999999999,
+      "text": " but there might be similar cases like that"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1181.78,
+      "end": 1185.24,
+      "text": " where not being able to stream the response coming from the SDK"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1185.34,
+      "end": 1188.24,
+      "text": " might become a limitation in terms of the memory usage,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1188.38,
+      "end": 1189.78,
+      "text": " depending on your use cases."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1189.92,
+      "end": 1191.64,
+      "text": " So again, it might work in most cases."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1191.78,
+      "end": 1194.14,
+      "text": " It might actually be even faster in some cases,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1194.28,
+      "end": 1195.54,
+      "text": " but you have to be really careful"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1195.68,
+      "end": 1198.68,
+      "text": " testing all the use cases that you have in production."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1198.82,
+      "end": 1200.34,
+      "text": " Now, last thing, what about tooling?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1200.48,
+      "end": 1203.18,
+      "text": " Because this is always the main thing"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1203.32,
+      "end": 1205.64,
+      "text": " when it comes to new programming ecosystems."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1205.78,
+      "end": 1209.08,
+      "text": " It takes a while before the tooling is good enough for you as a developer"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1209.22,
+      "end": 1211.24,
+      "text": " to have a very good experience and be productive."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1211.38,
+      "end": 1213.28,
+      "text": " So what is the starting point that we get here?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1213.42,
+      "end": 1214.64,
+      "text": " It's actually not too bad,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1214.74,
+      "end": 1216.68,
+      "text": " even though we haven't played enough with it"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1216.8200000000002,
+      "end": 1218.48,
+      "text": " to be confident in saying that."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1218.6200000000001,
+      "end": 1221.24,
+      "text": " But just looking at it and just playing with it a little bit,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1221.38,
+      "end": 1224.1200000000001,
+      "text": " there are a few things in place that are already quite useful."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1224.24,
+      "end": 1225.74,
+      "text": " For instance, there is a Lambda emulator"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1225.88,
+      "end": 1228.3400000000001,
+      "text": " that you can use to actually test the runtime locally."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1228.48,
+      "end": 1231.5800000000002,
+      "text": " So all the code that you write, you can immediately execute it locally"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1231.72,
+      "end": 1235.3200000000002,
+      "text": " and see if it's performing and be adding exactly as you expect,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1235.44,
+      "end": 1238.24,
+      "text": " which is great because it kind of reduces the feedback cycle"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1238.38,
+      "end": 1240.0800000000002,
+      "text": " of always having to ship to AWS"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1240.22,
+      "end": 1243.18,
+      "text": " to be sure that your code is actually working as expected."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1243.38,
+      "end": 1246.0800000000002,
+      "text": " There is also a tool that allows you to package all your code"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1246.22,
+      "end": 1248.52,
+      "text": " together with the runtime into a single binary."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1248.66,
+      "end": 1251.48,
+      "text": " So you are effectively building a custom runtime"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1251.6200000000001,
+      "end": 1255.38,
+      "text": " that includes not just the runtime, but also all your code into one binary."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1255.52,
+      "end": 1258.02,
+      "text": " And this is actually the preferred and recommended approach"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1258.16,
+      "end": 1261.3200000000002,
+      "text": " to deploy Lambdas written using this runtime."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1261.46,
+      "end": 1264.5800000000002,
+      "text": " And the reason why this is convenient is because that's going to more likely"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1264.72,
+      "end": 1268.16,
+      "text": " impact performance positively because it needs to load only one file"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1268.28,
+      "end": 1270.96,
+      "text": " and then everything is already in place and ready to start."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1271.06,
+      "end": 1273.2,
+      "text": " And finally, there is also a Lambda layer available."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1273.3400000000001,
+      "end": 1276.06,
+      "text": " If you prefer to take a little bit of a more experimental approach"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1276.2,
+      "end": 1279.24,
+      "text": " where you say, okay, I'm just going to put this layer into the web console"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1279.3600000000001,
+      "end": 1281.2,
+      "text": " and just going to play around with it this way,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1281.3400000000001,
+      "end": 1284.24,
+      "text": " that could be another approach to start using OLRT"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1284.3600000000001,
+      "end": 1285.6000000000001,
+      "text": " and see what that looks like."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1285.74,
+      "end": 1289.56,
+      "text": " Now, again, it's worth remembering that this is not an officially supported"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1289.7,
+      "end": 1291.5,
+      "text": " Lambda runtime, it's a custom runtime."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1291.64,
+      "end": 1294.64,
+      "text": " So what you deploy is effectively a custom runtime"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1294.76,
+      "end": 1296.26,
+      "text": " and you are responsible for it,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1296.4,
+      "end": 1300.74,
+      "text": " meaning that if there is a new update or if there is a security concern"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1300.74,
+      "end": 1304.68,
+      "text": " and maybe you need to install something to patch a security issue,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1304.82,
+      "end": 1306.34,
+      "text": " doing all of that work is on you."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1306.48,
+      "end": 1310.02,
+      "text": " So you need to be ready to take over that additional burden"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1310.14,
+      "end": 1313.54,
+      "text": " that you don't have, for instance, when you use the official Node.js runtime."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1313.68,
+      "end": 1315.58,
+      "text": " So what is our recommendation again?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1315.72,
+      "end": 1317.42,
+      "text": " Just to try to summarize all of that."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1317.54,
+      "end": 1319.28,
+      "text": " I think this is a great initiative,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1319.42,
+      "end": 1323.38,
+      "text": " so it is definitely worth playing with it and see what it looks like."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1323.52,
+      "end": 1324.84,
+      "text": " And for your specific use case,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1324.98,
+      "end": 1327.24,
+      "text": " how much performance can you squeeze out of them?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1327.38,
+      "end": 1329.74,
+      "text": " But again, because it's so early and experimental"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1329.84,
+      "end": 1333.08,
+      "text": " and it's not really clear what is going to be the future of this project,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1333.22,
+      "end": 1335.92,
+      "text": " use it with cautious, use it with the idea"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1336.04,
+      "end": 1339.28,
+      "text": " that you're not going to re-implement everything with this runtime."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1339.42,
+      "end": 1342.48,
+      "text": " Maybe you're just going to implement a few functions that you use a lot,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1342.6200000000001,
+      "end": 1345.08,
+      "text": " but they're not the main ones for your business."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1345.22,
+      "end": 1346.92,
+      "text": " So I guess if all goes well,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1347.04,
+      "end": 1349.18,
+      "text": " we would have gained major performance benefits"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1349.32,
+      "end": 1351.42,
+      "text": " without having to switch to C++ or Rust,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1351.54,
+      "end": 1355.28,
+      "text": " which would be a big win for the serverless and the JavaScript community."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1355.42,
+      "end": 1358.1200000000001,
+      "text": " But again, we have to be seeing exactly what is going to happen."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1358.2199999999998,
+      "end": 1359.3999999999999,
+      "text": " It's also an open source project,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1359.52,
+      "end": 1362.62,
+      "text": " so if you are really excited about this kind of initiatives,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1362.76,
+      "end": 1364.02,
+      "text": " you can contribute to it."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1364.1599999999999,
+      "end": 1366.9199999999998,
+      "text": " And at that point, you are also a little bit responsible"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1367.06,
+      "end": 1368.82,
+      "text": " for the success of this initiative."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1368.9599999999998,
+      "end": 1370.86,
+      "text": " So this is always a good call to action to people"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1371,
+      "end": 1373.4199999999998,
+      "text": " that if you feel like you want to contribute,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1373.56,
+      "end": 1375.1599999999999,
+      "text": " you want to see this project successful,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1375.3,
+      "end": 1377.56,
+      "text": " your contribution is definitely going to be useful"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1377.6999999999998,
+      "end": 1379.32,
+      "text": " to achieve that larger goal."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1379.4599999999998,
+      "end": 1382.3999999999999,
+      "text": " Now, what other concerns do we have, Eoin?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1382.52,
+      "end": 1384.3999999999999,
+      "text": " Well, we already mentioned that it's experimental,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1384.52,
+      "end": 1387.76,
+      "text": " and I think that's fair enough because they state that explicitly."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1387.86,
+      "end": 1390.4,
+      "text": " As well, if you look at the contributions,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1390.54,
+      "end": 1392.34,
+      "text": " it's built mostly by one person."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1392.46,
+      "end": 1394.94,
+      "text": " And I think we have to credit the amazing engineering effort here."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1395.06,
+      "end": 1397.7,
+      "text": " But Richard Davidson is the amazing developer"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1397.84,
+      "end": 1399.4,
+      "text": " who has done an incredible job here."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1399.54,
+      "end": 1400.9,
+      "text": " But there's obviously a risk associated"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1401.04,
+      "end": 1403.3,
+      "text": " with having only one main person behind the project."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1403.44,
+      "end": 1406.54,
+      "text": " So let's see if AWS decides to invest more on the project"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1406.66,
+      "end": 1410,
+      "text": " and form more of a cohesive internal team as the project evolves."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1410.14,
+      "end": 1412.96,
+      "text": " It's good to see that in a few weeks since its public release,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1413.1,
+      "end": 1414.86,
+      "text": " there have already been contributions"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1415,
+      "end": 1417.2,
+      "text": " from open source members of the community."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1417.38,
+      "end": 1420.1000000000001,
+      "text": " So we can expect to see that grow, and that will be a healthy thing."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1420.24,
+      "end": 1421.8,
+      "text": " The lack of feature parity with Node.js"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1421.94,
+      "end": 1424.18,
+      "text": " and other runtimes is going to be a concern."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1424.3,
+      "end": 1427.2,
+      "text": " And there isn't really an intention to reach parity,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1427.3400000000001,
+      "end": 1428.9,
+      "text": " so you just have to be aware of that."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1429.04,
+      "end": 1432.5,
+      "text": " You mentioned as well, Luciano, there is some AWS SDK support."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1432.64,
+      "end": 1435.4,
+      "text": " I kind of wonder, since there's already the C-based common runtime"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1435.54,
+      "end": 1439.64,
+      "text": " from AWS that's highly optimized, as well as the C AWS SDK,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1439.78,
+      "end": 1442,
+      "text": " I wonder why LLRT wasn't able to leverage those"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1442.14,
+      "end": 1444.0800000000002,
+      "text": " to get complete service support."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1444.2,
+      "end": 1445.68,
+      "text": " I suppose as well, QuickJS,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1445.78,
+      "end": 1448.72,
+      "text": " being one of the main dependencies, may also be a bit concerning."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1448.8600000000001,
+      "end": 1450.6200000000001,
+      "text": " It has an interesting history as a project."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1450.76,
+      "end": 1453.96,
+      "text": " It was mostly written and maintained by another outstanding engineer,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1454.0800000000002,
+      "end": 1457.52,
+      "text": " Fabrice Bellard, and Fabrice is also the same author"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1457.66,
+      "end": 1460.92,
+      "text": " of other great projects like QEMU and FFmpeg."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1461.0600000000002,
+      "end": 1462.92,
+      "text": " Again, same problem with single owner projects."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1463.0600000000002,
+      "end": 1466.6200000000001,
+      "text": " There's a risk with it. In fact, the Qix.js project hasn't received,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1469.8600000000001,
+      "end": 1471.92,
+      "text": " well, it didn't receive any great updates in the last few years, and the project really looked to be stagnant"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1472.0600000000002,
+      "end": 1474.68,
+      "text": " with a lot of forks emerging in the open source community,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1474.8600000000001,
+      "end": 1478.3600000000001,
+      "text": " most notably Qix.js NG. There has been some activity of late,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1478.48,
+      "end": 1481.1200000000001,
+      "text": " but there is an interesting community conversation on,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1481.26,
+      "end": 1483.66,
+      "text": " I suppose, whether this project is alive or dead,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1483.78,
+      "end": 1487.42,
+      "text": " and we can link to that conversation on GitHub in the show notes."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1487.5600000000002,
+      "end": 1488.96,
+      "text": " So there has been a recent spark of activity,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1489.0800000000002,
+      "end": 1490.18,
+      "text": " as I mentioned, in the repository,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1490.3200000000002,
+      "end": 1492.8600000000001,
+      "text": " and Fabrice has introduced some significant new features,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1492.98,
+      "end": 1494.78,
+      "text": " such as support for top level of weight,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1494.92,
+      "end": 1497.26,
+      "text": " and a couple of new releases have been published."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1497.38,
+      "end": 1499.96,
+      "text": " So hopefully, a larger community will form around the project,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1500.0800000000002,
+      "end": 1502.78,
+      "text": " and that will help to guarantee long-term support,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1502.92,
+      "end": 1504.42,
+      "text": " because I think it's interesting."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1504.42,
+      "end": 1508.46,
+      "text": " Previously, there were various different JavaScript runtimes."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1508.6000000000001,
+      "end": 1510.42,
+      "text": " There was JavaScript Core, you had V8."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1510.5600000000002,
+      "end": 1513.8600000000001,
+      "text": " Microsoft had their brave effort for a while with the Chakra Core,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1514,
+      "end": 1517.3200000000002,
+      "text": " but the idea was that Node.js could use any of these runtimes,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1517.46,
+      "end": 1518.66,
+      "text": " these JavaScript runtimes."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1518.8000000000002,
+      "end": 1521.3600000000001,
+      "text": " That seemed like a healthy thing with good competition,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1521.5,
+      "end": 1523.26,
+      "text": " but it seems like everything has kind of converged"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1523.4,
+      "end": 1524.72,
+      "text": " on the Chromium ecosystem,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1524.8600000000001,
+      "end": 1528.92,
+      "text": " and that's not a great thing for the future of JavaScript, I feel."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1529.0600000000002,
+      "end": 1530.8600000000001,
+      "text": " Luciano, you've kind of given your recommendations,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1531,
+      "end": 1532.3600000000001,
+      "text": " but what's your final assessment?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1532.4599999999998,
+      "end": 1534.4599999999998,
+      "text": " I think, in general, I'm very happy to see"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1534.6,
+      "end": 1536.84,
+      "text": " these kind of initiatives coming out from AWS,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1536.9599999999998,
+      "end": 1539.86,
+      "text": " because everything that can make Lambda more efficient and powerful"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1540,
+      "end": 1542.1,
+      "text": " for JavaScript developers is absolutely welcome."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1542.24,
+      "end": 1544.5,
+      "text": " I think everyone should be happy about that."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1544.6399999999999,
+      "end": 1548,
+      "text": " It is a very ambitious project, and if it becomes stable,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1548.1399999999999,
+      "end": 1550.1999999999998,
+      "text": " and there is a team maintaining it consistently,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1550.34,
+      "end": 1553.4399999999998,
+      "text": " it's going to be a win, definitely, for the server landscape as a whole."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1553.56,
+      "end": 1557.1999999999998,
+      "text": " But I think we need to talk about another problem,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1557.34,
+      "end": 1559.56,
+      "text": " which is the JavaScript ecosystem fragmentation."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1559.6599999999999,
+      "end": 1561.8,
+      "text": " It's something that we have been seeing a lot"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1561.94,
+      "end": 1565.34,
+      "text": " in the JavaScript community for I don't know how many years at this point,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1565.46,
+      "end": 1568.74,
+      "text": " and it seems like it's getting worse and worse rather than getting better."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1568.86,
+      "end": 1570.96,
+      "text": " So this..."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1571.1,
+      "end": 1572.6,
+      "text": " Sometimes it's called the JavaScript fatigue."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1572.74,
+      "end": 1575.6,
+      "text": " It's definitely real, and it was associated"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1575.74,
+      "end": 1577.5,
+      "text": " with the idea of frameworks and libraries."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1577.6399999999999,
+      "end": 1580.04,
+      "text": " Now it's being associated even with runtimes,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1580.1599999999999,
+      "end": 1581.76,
+      "text": " which only makes things worse."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1581.8999999999999,
+      "end": 1585.1,
+      "text": " It's already hard to pick and learn a single runtime like Node.js."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1585.24,
+      "end": 1587.6399999999999,
+      "text": " Imagine if you also have to learn Dino or BUN"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1587.74,
+      "end": 1591.0800000000002,
+      "text": " with all the different core libraries and characteristics,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1591.22,
+      "end": 1593.74,
+      "text": " and now there is also another Lambda-specific runtime,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1593.88,
+      "end": 1596.3400000000001,
+      "text": " which will have its own characteristics and things to learn"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1596.48,
+      "end": 1598.38,
+      "text": " and mistakes and patterns."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1598.5200000000002,
+      "end": 1601.18,
+      "text": " But even imagine that now you are a JavaScript library author,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1601.3200000000002,
+      "end": 1603.1200000000001,
+      "text": " and you want to build a general-purpose library"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1603.24,
+      "end": 1606.42,
+      "text": " that you might want to make available across all of these runtimes."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1606.98,
+      "end": 1611.44,
+      "text": " Node.js, Dino, BUN, the browser, and maybe now even OLL or T, right?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1611.5800000000002,
+      "end": 1614.0800000000002,
+      "text": " Because why not allowing people to even use your library"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1614.22,
+      "end": 1615.2800000000002,
+      "text": " in the context of a Lambda?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1615.48,
+      "end": 1617.76,
+      "text": " How much work there is involved in just testing"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1617.8799999999999,
+      "end": 1621.76,
+      "text": " that everything works with F3, just fine-tuning all the edge cases,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1621.8799999999999,
+      "end": 1623.8799999999999,
+      "text": " maybe patching for all the missing libraries"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1624.02,
+      "end": 1627.46,
+      "text": " and different behaviors that exist across different runtimes."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1627.58,
+      "end": 1630.18,
+      "text": " So this is a problem that's just going to keep getting bigger and bigger"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1630.32,
+      "end": 1634.92,
+      "text": " if the ecosystem doesn't converge into kind of a more comprehensive standard"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1635.06,
+      "end": 1637.22,
+      "text": " that all the different runtimes will adopt."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1637.36,
+      "end": 1638.98,
+      "text": " There are some efforts in that direction."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1639.12,
+      "end": 1641.86,
+      "text": " For instance, the Winter CG that we can link in the show notes"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1641.98,
+      "end": 1644.42,
+      "text": " is an initiative that tries to figure out exactly"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1644.5,
+      "end": 1647.46,
+      "text": " what is a common set of APIs that every runtime needs to have,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1647.6000000000001,
+      "end": 1649.96,
+      "text": " especially the ones running in the cloud and on the edge."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1650.1000000000001,
+      "end": 1652.52,
+      "text": " So there might be, I guess, a bright future there"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1652.66,
+      "end": 1654.5600000000002,
+      "text": " if this kind of initiative is successful."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1654.7,
+      "end": 1656.6200000000001,
+      "text": " But as it stands right now, as a developer,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1656.76,
+      "end": 1658.3600000000001,
+      "text": " it's just a very confusing landscape,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1658.5,
+      "end": 1661.26,
+      "text": " and there's a lot to learn and so many edge cases."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1661.4,
+      "end": 1662.92,
+      "text": " So that's definitely a problem."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1663.0600000000002,
+      "end": 1666.76,
+      "text": " Another point that I have, and this is more directed to AWS,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1666.9,
+      "end": 1669.6200000000001,
+      "text": " it's great to see this kind of initiative emerging from AWS,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1669.76,
+      "end": 1671.76,
+      "text": " but at the same time, I would love to see AWS"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1671.96,
+      "end": 1674.56,
+      "text": " investing more on the larger Node.js ecosystem."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1674.7,
+      "end": 1677.54,
+      "text": " We know these things that are not super nice to see."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1677.66,
+      "end": 1680.36,
+      "text": " For instance, if you look at the performance of the Node.js"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1680.5,
+      "end": 1683.8,
+      "text": " 16 runtime and compare it with the Node.js 20 runtime,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1683.94,
+      "end": 1686.7,
+      "text": " even though Node.js itself is generally considered faster"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1686.84,
+      "end": 1689.1,
+      "text": " in the Node 20 version, when it comes to Lambda,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1689.24,
+      "end": 1692.36,
+      "text": " somehow the runtime is a little bit slower than Node 16,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1692.5,
+      "end": 1695.6,
+      "text": " which is very disappointing because it looks like they didn't take advantage"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1695.74,
+      "end": 1697.9,
+      "text": " of the new advancements in Node.js,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1698.04,
+      "end": 1700.3,
+      "text": " and maybe they did something suboptimal on their side."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1700.3999999999999,
+      "end": 1702.04,
+      "text": " Now, I'm not really sure what's going on there,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1702.18,
+      "end": 1703.8999999999999,
+      "text": " so I'm not going to comment too much in detail,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1704.04,
+      "end": 1707.94,
+      "text": " but I think the message there is that I wish that AWS would invest more"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1708.08,
+      "end": 1710.78,
+      "text": " in making sure that Node.js has a bright future ahead"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1710.8999999999999,
+      "end": 1713.34,
+      "text": " because it's effectively one of the most used languages"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1713.48,
+      "end": 1714.58,
+      "text": " when it comes to Lambda,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1714.7,
+      "end": 1717.04,
+      "text": " so definitely a big revenue stream for AWS,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1717.18,
+      "end": 1718.44,
+      "text": " and it would be nice to see AWS"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1718.58,
+      "end": 1721.6,
+      "text": " reinvesting some of that revenue into the project itself."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1721.74,
+      "end": 1725,
+      "text": " And it's not just something that relates to Lambda itself"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1725.1399999999999,
+      "end": 1728.54,
+      "text": " because Node.js gets used a lot even in other kinds of applications,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1728.54,
+      "end": 1731.78,
+      "text": " not just serverless, it will be used in containers,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1731.92,
+      "end": 1736.32,
+      "text": " so something like that in ECS, Fargate, but also in EC2 or AppRunner."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1736.44,
+      "end": 1738.18,
+      "text": " So if Node.js gets better,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1738.32,
+      "end": 1740.24,
+      "text": " I think AWS is still going to benefit from it."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1740.3799999999999,
+      "end": 1743.8799999999999,
+      "text": " So this is kind of a final call for consideration to AWS"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1744.02,
+      "end": 1746.82,
+      "text": " if somebody's listening there to think about this problem"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1746.94,
+      "end": 1750.74,
+      "text": " and maybe decide to invest a little bit more into the Node.js community."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1750.8799999999999,
+      "end": 1752.34,
+      "text": " Yeah, we're seeing lots and lots of different ways"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1752.48,
+      "end": 1754.92,
+      "text": " to optimize code starts and runtime performance."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1755.04,
+      "end": 1757.92,
+      "text": " I'm thinking of Snap Start, currently available in Java,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1758.16,
+      "end": 1760.1200000000001,
+      "text": " and it might come to more runtimes,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1760.26,
+      "end": 1761.66,
+      "text": " and then we see like with .NET,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1761.8000000000002,
+      "end": 1763.3000000000002,
+      "text": " you've got the new ahead-of-time compiler,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1763.42,
+      "end": 1765.3600000000001,
+      "text": " which is essentially compiling it to native code."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1765.5,
+      "end": 1768.22,
+      "text": " I wonder if the AWS Lambda team are thinking about how Snap Start"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1768.3600000000001,
+      "end": 1771.3600000000001,
+      "text": " could be used to optimize existing Node.js runtimes"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1771.5,
+      "end": 1774.22,
+      "text": " and give us the kind of amazing code start times"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1774.3600000000001,
+      "end": 1776.3000000000002,
+      "text": " we've seen with LLRT or even better,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1776.42,
+      "end": 1779.52,
+      "text": " just with existing Node.js and all the compatibility it offers."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1779.66,
+      "end": 1782.46,
+      "text": " So it's definitely a space to watch, and regardless of what happens next,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1782.6000000000001,
+      "end": 1784.8200000000002,
+      "text": " I think we can agree that LLRT is already"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1784.96,
+      "end": 1786.76,
+      "text": " an amazing software engineering achievement,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1786.94,
+      "end": 1788.4,
+      "text": " and a lot of credit has to go to Richard"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1788.54,
+      "end": 1792,
+      "text": " and also to Fabrice, the QuickJS author, too."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1792.14,
+      "end": 1795.1,
+      "text": " So if you're a JS developer interested in LLRT,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1795.24,
+      "end": 1796.8,
+      "text": " it is important to check compatibility"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1796.94,
+      "end": 1799.7,
+      "text": " and measure performance with meaningful workloads."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1799.84,
+      "end": 1802.26,
+      "text": " We're just seeing, I think, the first set of benchmarks here."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1802.4,
+      "end": 1805.14,
+      "text": " But if you have seen some results and you've got some success"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1805.26,
+      "end": 1808.56,
+      "text": " or you've decided to abandon it for now, let us know what you think,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1808.7,
+      "end": 1810.66,
+      "text": " because we're really curious to learn more ourselves."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1810.8,
+      "end": 1813.16,
+      "text": " So thanks very much for watching or listening."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1813.3,
+      "end": 1816.14,
+      "text": " Please share with your friends, like and subscribe,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1816.14,
+      "end": 1818.0400000000002,
+      "text": " and we'll see you in the next episode."
+    }
+  ]
+}

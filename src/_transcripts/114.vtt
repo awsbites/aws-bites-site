@@ -1,0 +1,2657 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:04.400
+AWS has recently launched LLRT, the low latency runtime,
+
+2
+00:00:04.540 --> 00:00:07.300
+a new experimental Lambda runtime for JavaScript.
+
+3
+00:00:07.440 --> 00:00:09.000
+Now, you might be thinking one of two things,
+
+4
+00:00:09.140 --> 00:00:11.980
+either this is amazing, we've got a new runtime for JavaScript,
+
+5
+00:00:12.100 --> 00:00:14.280
+it's going to be faster and cheaper than the existing ones,
+
+6
+00:00:14.400 --> 00:00:16.900
+I'm going to rewrite all of my Lambda functions right now.
+
+7
+00:00:17.040 --> 00:00:18.700
+On the other hand, you might be thinking, oh, no,
+
+8
+00:00:18.840 --> 00:00:22.540
+didn't we just stop publishing new JavaScript frameworks every week,
+
+9
+00:00:23.140 --> 00:00:25.900
+only to start publishing new JavaScript runtimes every week?
+
+10
+00:00:26.040 --> 00:00:27.680
+Or maybe you're just somewhere in between.
+
+11
+00:00:28.320 --> 00:00:30.320
+So if you're curious today, we're going to give you our perspective
+
+12
+00:00:30.460 --> 00:00:31.560
+about LLRT.
+
+13
+00:00:31.680 --> 00:00:33.920
+There's a lot to talk about with LLRT.
+
+14
+00:00:34.060 --> 00:00:35.120
+There's a lot to love about it.
+
+15
+00:00:35.260 --> 00:00:37.660
+But there are also some concerns that are worth highlighting.
+
+16
+00:00:37.780 --> 00:00:39.880
+And we'll try to describe these in more detail
+
+17
+00:00:40.020 --> 00:00:43.060
+and talk about what LLRT is, how it works,
+
+18
+00:00:43.180 --> 00:00:46.020
+and what the specific problem is that it's trying to solve.
+
+19
+00:00:46.160 --> 00:00:47.860
+So let's get into it. My name is Eoin,
+
+20
+00:00:47.980 --> 00:00:51.380
+and I'm here with Luciano for another episode of the AWS Bites podcast.
+
+21
+00:00:51.380 --> 00:00:54.380
+AWS Bites is brought to you by fourTheorem,
+
+22
+00:00:54.520 --> 00:00:56.560
+the AWS consulting partner with lots of experience
+
+23
+00:00:56.680 --> 00:00:58.480
+with AWS, serverless and Lambda.
+
+24
+00:00:58.620 --> 00:01:00.680
+If you're looking for a partner that can help you deliver
+
+25
+00:01:00.820 --> 00:01:03.720
+your next serverless workload successfully, look no more
+
+26
+00:01:03.860 --> 00:01:05.760
+and reach out to us at fourtheorem.com.
+
+27
+00:01:05.880 --> 00:01:09.360
+Just to set the stage, let's just do a quick overview
+
+28
+00:01:09.480 --> 00:01:13.180
+of the AWS Lambda service and talk again about what a runtime is.
+
+29
+00:01:13.320 --> 00:01:14.960
+Lambda is a serverless service,
+
+30
+00:01:15.080 --> 00:01:17.960
+and it's a service that's built on the AWS Lambda platform.
+
+31
+00:01:17.960 --> 00:01:21.500
+So let's go back to the service and talk again about what a runtime is.
+
+32
+00:01:21.640 --> 00:01:23.640
+Lambda is a serverless compute service
+
+33
+00:01:23.760 --> 00:01:25.960
+in the category of functions as a service.
+
+34
+00:01:26.100 --> 00:01:27.660
+You can write your code in the form of a function
+
+35
+00:01:27.800 --> 00:01:29.800
+that can respond to specific events,
+
+36
+00:01:29.940 --> 00:01:31.560
+and AWS will take care of provisioning
+
+37
+00:01:31.700 --> 00:01:34.260
+all the necessary infrastructure to run that function
+
+38
+00:01:34.400 --> 00:01:35.640
+for when the event happens.
+
+39
+00:01:35.760 --> 00:01:37.760
+Lambda supports a lot of different programming languages,
+
+40
+00:01:37.900 --> 00:01:40.060
+and it does that using the concept of runtimes.
+
+41
+00:01:40.760 --> 00:01:44.440
+And every language and language version has a dedicated runtime.
+
+42
+00:01:44.560 --> 00:01:47.940
+And this is logic that AWS maintains for specific languages,
+
+43
+00:01:48.060 --> 00:01:51.460
+strap your Lambda function, orchestrate events and responses,
+
+44
+00:01:51.600 --> 00:01:53.400
+and call your code in between.
+
+45
+00:01:53.540 --> 00:01:57.260
+A Lambda runtime also includes the specific runtime binary,
+
+46
+00:01:57.400 --> 00:01:59.000
+Node.js, Python, et cetera.
+
+47
+00:01:59.760 --> 00:02:03.160
+For example, with the Node.js one, you'll get the Node.js binary
+
+48
+00:02:03.300 --> 00:02:05.360
+and all the system libraries it needs as well.
+
+49
+00:02:05.500 --> 00:02:07.160
+Now, it is possible to build custom runtimes,
+
+50
+00:02:07.300 --> 00:02:10.260
+for instance, to support more esoteric languages
+
+51
+00:02:10.400 --> 00:02:13.060
+or specific language versions that are not officially supported.
+
+52
+00:02:13.200 --> 00:02:15.960
+AWS itself uses custom runtimes to provide support
+
+53
+00:02:16.000 --> 00:02:19.700
+for compiled languages such as C++, Go, and Rust.
+
+54
+00:02:20.500 --> 00:02:22.360
+So this should give you a reasonable base
+
+55
+00:02:22.500 --> 00:02:25.700
+to understand more about LLRT as we go on and have this discussion.
+
+56
+00:02:25.840 --> 00:02:27.900
+But if you're curious to know more about Lambda runtimes
+
+57
+00:02:28.040 --> 00:02:31.000
+and how they work, and even how to build your own custom runtime,
+
+58
+00:02:31.140 --> 00:02:34.940
+we have a dedicated episode for that, and that's episode 104.
+
+59
+00:02:35.060 --> 00:02:36.400
+The link will be in the show notes.
+
+60
+00:02:36.540 --> 00:02:40.140
+So given our context, we've talked about Lambda runtimes as you know,
+
+61
+00:02:40.260 --> 00:02:42.760
+you've been looking into LLRT in some more detail.
+
+62
+00:02:42.900 --> 00:02:44.000
+What have you found out?
+
+63
+00:02:44.100 --> 00:02:47.840
+Yeah, I think a great place to start is the LLRT repository,
+
+64
+00:02:47.980 --> 00:02:49.680
+and we'll have the link in the show notes,
+
+65
+00:02:49.800 --> 00:02:51.740
+because it gives, I think, a very good introduction
+
+66
+00:02:55.580 --> 00:02:56.680
+to what this runtime is about, why it exists, and a bunch of other interesting things
+
+67
+00:02:56.800 --> 00:02:58.340
+that we are going to try to cover today.
+
+68
+00:02:58.480 --> 00:03:01.340
+So first thing is that this is a JavaScript runtime
+
+69
+00:03:01.480 --> 00:03:03.600
+that is built specifically for Lambda.
+
+70
+00:03:03.740 --> 00:03:06.340
+So it doesn't try to compete with the likes of Node.js,
+
+71
+00:03:06.480 --> 00:03:09.500
+DIN, or BAN, which are much more generic purpose.
+
+72
+00:03:09.640 --> 00:03:11.180
+So this is kind of a very important leader
+
+73
+00:03:11.300 --> 00:03:13.400
+because some of the design trade-offs
+
+74
+00:03:13.500 --> 00:03:16.740
+make a lot of sense looking at it from this perspective,
+
+75
+00:03:16.880 --> 00:03:18.980
+that it's not competing with all the other ones.
+
+76
+00:03:19.100 --> 00:03:22.700
+It's something very, very specific that makes sense in the context of Lambda.
+
+77
+00:03:22.840 --> 00:03:25.900
+So the first trade-off is that it tries to be very lightweight,
+
+78
+00:03:26.040 --> 00:03:28.400
+which means that the final runtime package that you get
+
+79
+00:03:28.540 --> 00:03:31.240
+should be as small as possible,
+
+80
+00:03:31.380 --> 00:03:32.840
+generally in the order of kilobytes
+
+81
+00:03:32.980 --> 00:03:34.800
+rather than in the order of megabytes,
+
+82
+00:03:34.940 --> 00:03:38.240
+which is what you get, for instance, with Node.js, DIN, or BAN,
+
+83
+00:03:38.340 --> 00:03:43.720
+you will have 20, 30, 60, 80 megabytes of runtime itself
+
+84
+00:03:43.840 --> 00:03:45.080
+rather than a few kilobytes,
+
+85
+00:03:45.220 --> 00:03:47.920
+which is the case, for instance, with LRRT.
+
+86
+00:03:48.040 --> 00:03:50.240
+Now, why is this important in the context of Lambda?
+
+87
+00:03:50.380 --> 00:03:53.220
+I think we need to remember that Lambda is a very dynamic environment.
+
+88
+00:03:53.340 --> 00:03:54.620
+As you described very well,
+
+89
+00:03:54.740 --> 00:03:58.920
+instances are started only on demand and shut down when not needed anymore.
+
+90
+00:03:59.040 --> 00:04:02.220
+So AWS is going to be provisioning all these necessary resources
+
+91
+00:04:02.340 --> 00:04:04.820
+all the time, bootstrapping and killing those,
+
+92
+00:04:04.940 --> 00:04:07.540
+depending on requests arriving into our account.
+
+93
+00:04:07.640 --> 00:04:11.040
+So it is very important that AWS can do all of that as quick as possible,
+
+94
+00:04:11.180 --> 00:04:14.840
+because every time that you are starting a new instance of a Lambda,
+
+95
+00:04:14.980 --> 00:04:18.580
+the whole process of bootstrapping the infrastructure is called cold start,
+
+96
+00:04:18.720 --> 00:04:22.680
+and it's something that's going to affect the latency of your application.
+
+97
+00:04:22.820 --> 00:04:25.440
+So the choice of runtime is something that is very relevant
+
+98
+00:04:25.580 --> 00:04:28.320
+when we discuss about how to improve cold start.
+
+99
+00:04:28.440 --> 00:04:30.080
+And the bigger the runtime package, of course,
+
+100
+00:04:30.220 --> 00:04:31.840
+the more time is required for AWS
+
+101
+00:04:31.980 --> 00:04:35.020
+to download all the necessary files and load them into memory.
+
+102
+00:04:35.260 --> 00:04:38.660
+So the bigger the runtime, most likely, the longer is going to be the cold start.
+
+103
+00:04:38.800 --> 00:04:42.020
+So the choice of trying to make the runtime as small as possible,
+
+104
+00:04:42.160 --> 00:04:44.220
+of course, is something that tries to reduce the cold start,
+
+105
+00:04:44.360 --> 00:04:47.260
+which is one of the biggest problems that people always talk about
+
+106
+00:04:47.400 --> 00:04:50.720
+when we talk about problems with Lambda and serverless in general.
+
+107
+00:04:50.860 --> 00:04:53.460
+So this is definitely a step in the right direction in that sense,
+
+108
+00:04:53.600 --> 00:04:55.760
+and it's a trade-off that makes a lot of sense.
+
+109
+00:04:55.900 --> 00:04:59.660
+Another interesting aspect is that it is built using Rust and QuickJS
+
+110
+00:04:59.800 --> 00:05:02.520
+as the JavaScript engine, and these are two very interesting choices.
+
+111
+00:05:02.620 --> 00:05:05.820
+So I'm going to try to give you a little bit more detail about both of them.
+
+112
+00:05:05.960 --> 00:05:07.360
+Rust is actually not too unusual,
+
+113
+00:05:07.500 --> 00:05:10.360
+because if we look, for instance, at Deno, it's also built in Rust,
+
+114
+00:05:10.500 --> 00:05:13.600
+but if we also look at Node.js, it's written in C++,
+
+115
+00:05:13.720 --> 00:05:15.500
+which is somewhat similar to Rust
+
+116
+00:05:15.620 --> 00:05:18.500
+in terms of most of the trade-offs that the language takes.
+
+117
+00:05:18.620 --> 00:05:20.860
+And very similarly, if we look at BUN, it's written in ZIG,
+
+118
+00:05:21.000 --> 00:05:23.120
+which is another alternative to C++ and Rust.
+
+119
+00:05:23.260 --> 00:05:26.400
+So in that sense, it's nothing special, I guess,
+
+120
+00:05:26.520 --> 00:05:27.900
+but it's still important to try to understand
+
+121
+00:05:28.020 --> 00:05:31.320
+what Rust brings to the table in this particular case.
+
+122
+00:05:31.900 --> 00:05:33.860
+And the first one is that Rust is a language
+
+123
+00:05:34.000 --> 00:05:36.560
+that is built for performance and memory efficiency,
+
+124
+00:05:36.700 --> 00:05:40.660
+and these two dimensions are very, very important in the context of Lambda,
+
+125
+00:05:40.800 --> 00:05:42.860
+because, yes, on one side, you might argue
+
+126
+00:05:43.000 --> 00:05:46.220
+that nobody likes memory-hungry software or slow software,
+
+127
+00:05:46.360 --> 00:05:48.520
+but in the context of Lambda, this is even more important,
+
+128
+00:05:48.660 --> 00:05:51.260
+because these are the two dimensions that are going to affect price.
+
+129
+00:05:51.400 --> 00:05:53.260
+And it's worth remembering that with Lambda,
+
+130
+00:05:53.400 --> 00:05:56.300
+you pay a unit amount that depends on how much memory
+
+131
+00:05:56.420 --> 00:05:58.060
+you allocate for your Lambda function,
+
+132
+00:05:58.200 --> 00:06:00.260
+and then you have to multiply that unit amount
+
+133
+00:06:00.360 --> 00:06:03.260
+to the number of milliseconds that are used by your Lambda
+
+134
+00:06:03.400 --> 00:06:04.500
+whilst doing something useful.
+
+135
+00:06:04.640 --> 00:06:07.260
+So while your Lambda is running, you take the number of milliseconds
+
+136
+00:06:07.400 --> 00:06:09.140
+and multiply for the amount of memory
+
+137
+00:06:09.260 --> 00:06:11.200
+that you have pre-allocated for that Lambda.
+
+138
+00:06:11.340 --> 00:06:13.940
+So of course, if you can keep the memory footprint very low,
+
+139
+00:06:14.060 --> 00:06:17.240
+and you can be still very, very fast at doing the execution,
+
+140
+00:06:17.360 --> 00:06:19.860
+that means that you are going to be using Lambda
+
+141
+00:06:20.000 --> 00:06:22.460
+in the most effective way from a pricing perspective.
+
+142
+00:06:22.600 --> 00:06:24.860
+So your CFO is probably going to be very thankful,
+
+143
+00:06:25.000 --> 00:06:27.040
+looking at the bill and checking that there was maybe
+
+144
+00:06:27.160 --> 00:06:29.140
+a quite significant reduction in cost
+
+145
+00:06:29.240 --> 00:06:31.940
+when it comes to the Lambda item in the bill.
+
+146
+00:06:32.080 --> 00:06:35.720
+So faster startup, by the way, is not only to be seen
+
+147
+00:06:35.840 --> 00:06:38.820
+from the perspective of price, which is important,
+
+148
+00:06:38.940 --> 00:06:41.420
+but I think there is another very important aspect
+
+149
+00:06:41.540 --> 00:06:42.580
+that is power consumption.
+
+150
+00:06:42.720 --> 00:06:45.480
+This is something we are becoming more and more aware in the industry.
+
+151
+00:06:45.620 --> 00:06:46.720
+Probably we should do even more.
+
+152
+00:06:46.840 --> 00:06:49.620
+We are still at the very beginning of the conversations.
+
+153
+00:06:49.740 --> 00:06:53.680
+But I think it's important to realize that everything we run in the cloud
+
+154
+00:06:53.820 --> 00:06:56.180
+has a cost not just from an economic perspective,
+
+155
+00:06:56.320 --> 00:06:58.640
+but also in terms of environment and sustainability.
+
+156
+00:06:58.740 --> 00:07:01.880
+So we need to be very mindful that we might be able to do something
+
+157
+00:07:02.020 --> 00:07:03.720
+to reduce that kind of footprint.
+
+158
+00:07:03.840 --> 00:07:06.640
+And every time we have the chance, we should probably take the chance
+
+159
+00:07:06.780 --> 00:07:09.740
+because it's something that we will need to eventually care
+
+160
+00:07:09.880 --> 00:07:10.940
+and be more responsible.
+
+161
+00:07:11.080 --> 00:07:13.280
+So it's important to see that perspective as well.
+
+162
+00:07:13.420 --> 00:07:17.120
+And having a runtime that can give us very, very efficient compute,
+
+163
+00:07:17.240 --> 00:07:20.140
+it's something that goes in the right direction in that sense.
+
+164
+00:07:20.280 --> 00:07:24.020
+And to be fair, serverless is also a very sustainable technology in general.
+
+165
+00:07:24.140 --> 00:07:26.220
+So if we can make it even more sustainable,
+
+166
+00:07:26.460 --> 00:07:30.360
+it's another win that we take from this particular set of trade-offs.
+
+167
+00:07:30.900 --> 00:07:35.460
+Now, it's also worth mentioning that the idea of using Rust or C
+
+168
+00:07:35.600 --> 00:07:38.420
+in order to make code more sustainable
+
+169
+00:07:38.560 --> 00:07:40.860
+is generally kind of a double-edged sword.
+
+170
+00:07:41.000 --> 00:07:44.200
+On one side, you get that effect that you become more sustainable.
+
+171
+00:07:44.320 --> 00:07:46.300
+But on the other side, there is a huge investment
+
+172
+00:07:46.420 --> 00:07:49.100
+in terms of teams having to learn these technologies,
+
+173
+00:07:49.220 --> 00:07:51.620
+especially if you have teams that are more versed with technology
+
+174
+00:07:51.760 --> 00:07:53.260
+such as Python or JavaScript.
+
+175
+00:07:53.400 --> 00:07:55.820
+That's going to become a very big investment to do.
+
+176
+00:07:56.000 --> 00:07:58.300
+So here, there is an even more interesting trade-off
+
+177
+00:07:58.420 --> 00:08:00.620
+because the promise is that you don't need to learn
+
+178
+00:08:00.760 --> 00:08:04.700
+a new low-level language like C, C++, Rust, or Go.
+
+179
+00:08:04.820 --> 00:08:05.820
+You can stick with JavaScript,
+
+180
+00:08:05.960 --> 00:08:08.460
+which is probably something much more well-known in the industry,
+
+181
+00:08:08.600 --> 00:08:10.620
+and still get very good trade-off
+
+182
+00:08:10.760 --> 00:08:13.060
+and very good performance and energy efficiency.
+
+183
+00:08:13.200 --> 00:08:15.960
+So this is definitely one of the areas
+
+184
+00:08:16.100 --> 00:08:20.300
+why LLRT shines in terms of a very interesting approach.
+
+185
+00:08:20.820 --> 00:08:22.200
+Now, speaking about QuickJS,
+
+186
+00:08:22.320 --> 00:08:25.400
+this is quite of a novelty in the JavaScript runtime space.
+
+187
+00:08:25.500 --> 00:08:27.200
+We have a link to the QuickJS website
+
+188
+00:08:27.340 --> 00:08:29.140
+where you can find a bunch of details.
+
+189
+00:08:29.280 --> 00:08:31.240
+And it's probably worth looking into it
+
+190
+00:08:31.380 --> 00:08:33.240
+if you've never heard about QuickJS.
+
+191
+00:08:33.380 --> 00:08:35.180
+But I'm going to try to explain very quickly what it is
+
+192
+00:08:35.300 --> 00:08:37.180
+and what kind of trade-offs it provides.
+
+193
+00:08:37.300 --> 00:08:40.140
+So QuickJS basically implements JavaScript,
+
+194
+00:08:40.280 --> 00:08:44.300
+meaning that it's able to interpret and execute JavaScript code,
+
+195
+00:08:44.440 --> 00:08:47.180
+and it does it in such a way that it's almost like a library
+
+196
+00:08:47.300 --> 00:08:49.680
+that you can take and embed in other programs.
+
+197
+00:08:49.800 --> 00:08:53.240
+So it doesn't really give you any core library, so to speak.
+
+198
+00:08:53.240 --> 00:08:55.940
+It's just able to understand the JavaScript syntax
+
+199
+00:08:56.080 --> 00:08:57.240
+and execute it correctly.
+
+200
+00:08:57.380 --> 00:09:00.040
+And this is something that every JavaScript runtime needs
+
+201
+00:09:00.180 --> 00:09:03.740
+in a way or another, but the big ones, Node.js,
+
+202
+00:09:03.880 --> 00:09:06.340
+Deno, and BUN, none of them use QuickJS.
+
+203
+00:09:06.480 --> 00:09:09.180
+In fact, Node.js and Deno both use V8,
+
+204
+00:09:09.320 --> 00:09:12.640
+which is the Google Chrome JavaScript engine,
+
+205
+00:09:12.780 --> 00:09:15.940
+while BUN uses JavaScript Core, which comes out from WebKit,
+
+206
+00:09:16.080 --> 00:09:19.840
+which is the project that's by Apple that is used in Safari.
+
+207
+00:09:19.980 --> 00:09:22.720
+So QuickJS is somewhat novel in the space
+
+208
+00:09:22.820 --> 00:09:24.500
+of JavaScript runtimes,
+
+209
+00:09:24.620 --> 00:09:28.200
+and the reason why I believe it's being used here is, again,
+
+210
+00:09:28.320 --> 00:09:31.060
+because it tries to fulfill that promise that it needs to be
+
+211
+00:09:31.200 --> 00:09:33.420
+as small as possible in terms of inventability
+
+212
+00:09:33.560 --> 00:09:36.960
+and as easy as possible to embed in an application.
+
+213
+00:09:37.100 --> 00:09:38.700
+It's also quite modern and feature complete.
+
+214
+00:09:38.820 --> 00:09:41.600
+In fact, already supports ECMAScript 2023,
+
+215
+00:09:41.720 --> 00:09:44.760
+including ECMAScript modules, including other advanced features
+
+216
+00:09:44.900 --> 00:09:49.120
+like async generators, proxy, begin, there are even extensions to have,
+
+217
+00:09:49.260 --> 00:09:52.200
+things that are not even in the ECMAScript specification yet.
+
+218
+00:09:52.300 --> 00:09:55.700
+Another interesting trade-off is it doesn't have a just-in-time compiler,
+
+219
+00:09:55.840 --> 00:09:58.580
+and this might seem like a negative thing
+
+220
+00:09:58.700 --> 00:10:01.040
+because I think all the modern runtimes are expected
+
+221
+00:10:01.180 --> 00:10:02.680
+to have a just-in-time compiler,
+
+222
+00:10:02.800 --> 00:10:05.080
+and generally something that helps a lot with performance,
+
+223
+00:10:05.200 --> 00:10:07.000
+but I think it's important here to understand the trade-off.
+
+224
+00:10:07.140 --> 00:10:10.380
+So let's try to explain quickly what a just-in-time compiler is.
+
+225
+00:10:10.500 --> 00:10:12.080
+Generally, with interpreted languages,
+
+226
+00:10:12.200 --> 00:10:15.440
+what you do is as you scan the code, you try to evaluate it,
+
+227
+00:10:15.580 --> 00:10:16.980
+and that's basically run in the program.
+
+228
+00:10:17.100 --> 00:10:19.280
+And of course, this is not going to be extremely efficient
+
+229
+00:10:19.380 --> 00:10:22.280
+because most of the trade-offs that dynamic languages have
+
+230
+00:10:22.420 --> 00:10:24.660
+is that you don't necessarily have strict typing,
+
+231
+00:10:24.780 --> 00:10:27.660
+so the runtime needs to make a lot of assumptions
+
+232
+00:10:27.780 --> 00:10:29.120
+to be as generic as possible
+
+233
+00:10:29.260 --> 00:10:32.320
+and to support a lot of dynamic range of functionalities.
+
+234
+00:10:33.020 --> 00:10:36.360
+So generally speaking, the interpreted languages will at some point
+
+235
+00:10:36.480 --> 00:10:38.660
+introduce a just-in-time compiler that tries to,
+
+236
+00:10:38.780 --> 00:10:40.320
+as you read the code and process the code,
+
+237
+00:10:40.460 --> 00:10:43.480
+figure out what are the patterns and try to generate machine code
+
+238
+00:10:43.620 --> 00:10:46.020
+which is much more optimized on the fly
+
+239
+00:10:46.220 --> 00:10:49.720
+and start to swap out part of your scripting language
+
+240
+00:10:49.860 --> 00:10:52.220
+with actual compiled code
+
+241
+00:10:52.360 --> 00:10:54.760
+that can run much faster on your specific architecture.
+
+242
+00:10:54.900 --> 00:10:56.900
+Now, while this is very good in the long term,
+
+243
+00:10:57.020 --> 00:10:59.360
+so if you have computation that needs to run for a long time,
+
+244
+00:10:59.500 --> 00:11:01.660
+if you have a computation like in the context of servers
+
+245
+00:11:01.800 --> 00:11:05.760
+where you're trying to optimize for small event-driven pieces of computation,
+
+246
+00:11:05.900 --> 00:11:08.760
+sometimes it's a little bit of a waste to do all of this optimization
+
+247
+00:11:08.900 --> 00:11:11.720
+just to shut down your computation after a few seconds
+
+248
+00:11:11.860 --> 00:11:13.660
+or even milliseconds in most of the cases.
+
+249
+00:11:13.800 --> 00:11:15.320
+So here it's a very interesting trade-off
+
+250
+00:11:15.420 --> 00:11:18.320
+because we are giving up on that just-in-time capability
+
+251
+00:11:18.460 --> 00:11:20.460
+because we know that most of the time we are going to prefer
+
+252
+00:11:20.600 --> 00:11:22.960
+to have very small and fast lambdas
+
+253
+00:11:23.100 --> 00:11:26.320
+that are going to do something very quickly, mostly glue logic,
+
+254
+00:11:26.460 --> 00:11:29.860
+and therefore we don't necessarily need that level of optimization,
+
+255
+00:11:30.000 --> 00:11:32.560
+which comes with a little bit of upstart price
+
+256
+00:11:32.700 --> 00:11:35.200
+that you have to pay to do all of that compilation up front.
+
+257
+00:11:35.320 --> 00:11:37.920
+So I think this is something that makes a lot of sense
+
+258
+00:11:38.060 --> 00:11:40.800
+in the context of all LRT,
+
+259
+00:11:40.920 --> 00:11:44.000
+but I guess we can start to discuss about
+
+260
+00:11:44.200 --> 00:11:46.240
+how much performance are we really talking about?
+
+261
+00:11:46.380 --> 00:11:48.200
+Can we figure out what are some numbers
+
+262
+00:11:48.340 --> 00:11:50.040
+or maybe some comparison with Node.js?
+
+263
+00:11:50.940 --> 00:11:54.380
+Well, we haven't had the chance to try it ourselves in any great detail,
+
+264
+00:11:54.500 --> 00:11:58.240
+but there is an interesting benchmark on the LLRT repository,
+
+265
+00:11:58.380 --> 00:12:01.000
+and it's based on a fairly simple lambda function
+
+266
+00:12:01.140 --> 00:12:03.100
+that puts a record into a DynamoDB table.
+
+267
+00:12:03.240 --> 00:12:06.180
+So even though it's minimal, there's a bit more realism to it
+
+268
+00:12:06.300 --> 00:12:09.380
+than the usual hello world style benchmarks,
+
+269
+00:12:09.500 --> 00:12:11.580
+and it compares the performance of running this function
+
+270
+00:12:11.680 --> 00:12:14.760
+on an ARM architecture, so graviton-based lambda
+
+271
+00:12:14.880 --> 00:12:17.260
+with 128 megabytes of allocated memory,
+
+272
+00:12:17.380 --> 00:12:21.760
+and the other side of the comparison is Node 20.
+
+273
+00:12:21.880 --> 00:12:24.980
+So LLRT results, if we look at the...
+
+274
+00:12:25.680 --> 00:12:29.920
+The results are kind of presented with, you know, P100, P99,
+
+275
+00:12:33.880 --> 00:12:36.960
+so you can see the maximum cold start time and the maximum run time, as well as like P50, so the 50th percentile,
+
+276
+00:12:37.080 --> 00:12:40.660
+and we can see that for the 95th percentile with LLRT,
+
+277
+00:12:40.760 --> 00:12:44.440
+you're getting 76 millisecond cold starts, which is pretty good.
+
+278
+00:12:45.660 --> 00:12:49.760
+On Node.js 20, they're reporting 1600 milliseconds of cold start time
+
+279
+00:12:50.940 --> 00:12:53.600
+for 95% of the cases, the maximum,
+
+280
+00:12:53.740 --> 00:12:58.240
+and then warm start executions are looking at 33 milliseconds
+
+281
+00:12:58.360 --> 00:13:00.740
+for this function with LLRT compared to 100,
+
+282
+00:13:00.860 --> 00:13:02.900
+just over 100 milliseconds with Node 20.
+
+283
+00:13:04.640 --> 00:13:07.340
+So the full tables and set of benchmarks is available on the website.
+
+284
+00:13:08.140 --> 00:13:10.840
+It's kind of interesting that it's only comparing ARM,
+
+285
+00:13:11.880 --> 00:13:13.180
+and it's only using Node 20.
+
+286
+00:13:13.320 --> 00:13:16.220
+I think it would be great to have a more comprehensive set of benchmarks,
+
+287
+00:13:16.340 --> 00:13:19.040
+but in general, what this is showing is that in this permutation,
+
+288
+00:13:19.180 --> 00:13:22.680
+at least LLRT is noticeably faster than Node 20,
+
+289
+00:13:22.820 --> 00:13:24.720
+particularly when it comes to cold starts.
+
+290
+00:13:25.580 --> 00:13:27.280
+There's another very well-known benchmark,
+
+291
+00:13:27.420 --> 00:13:29.980
+which we've mentioned, I think, before on a few episodes,
+
+292
+00:13:30.120 --> 00:13:32.540
+that tries to compare the cold start memory footprint
+
+293
+00:13:32.680 --> 00:13:35.420
+and the execution latency of different runtimes,
+
+294
+00:13:35.600 --> 00:13:39.660
+and they recently added support for LLRT in their test suite.
+
+295
+00:13:39.800 --> 00:13:42.220
+LLRT scores very well in most configurations there,
+
+296
+00:13:42.360 --> 00:13:46.960
+and it's generally the third fastest runtime behind C++ and Rust.
+
+297
+00:13:47.100 --> 00:13:49.900
+It's even faster than Golang in this case.
+
+298
+00:13:50.020 --> 00:13:53.700
+Of course, you have to bear in mind that C++ and Rust
+
+299
+00:13:53.820 --> 00:13:57.900
+are very mature ecosystems, comparatively go as well,
+
+300
+00:13:58.020 --> 00:14:00.160
+and this is still an experimental beta product.
+
+301
+00:14:01.100 --> 00:14:04.320
+In the benchmark, we can also see the difference in memory usage,
+
+302
+00:14:04.420 --> 00:14:07.300
+and if we compare LLRT to Node 20,
+
+303
+00:14:07.420 --> 00:14:10.000
+we have 24 megabytes versus 63 megabytes,
+
+304
+00:14:10.120 --> 00:14:12.920
+so it's about a third of the memory needed for the same Lambda function.
+
+305
+00:14:13.860 --> 00:14:15.300
+If the performance is the same, it might mean
+
+306
+00:14:15.420 --> 00:14:17.460
+that you can reduce your memory allocation
+
+307
+00:14:17.600 --> 00:14:19.200
+and save cost even further.
+
+308
+00:14:19.320 --> 00:14:20.920
+So this seems pretty exciting,
+
+309
+00:14:21.060 --> 00:14:25.000
+and I've been using Node.js for a long time,
+
+310
+00:14:25.520 --> 00:14:28.800
+so the idea of this kind of explosion in runtimes
+
+311
+00:14:28.920 --> 00:14:31.560
+is a little bit exhausting to think about, to be honest,
+
+312
+00:14:31.660 --> 00:14:35.300
+because so much investment has gone into Node.js,
+
+313
+00:14:35.440 --> 00:14:37.660
+into JITs, into optimizing.
+
+314
+00:14:37.800 --> 00:14:40.940
+I mean, whenever I hear people from V8 team or the Node team
+
+315
+00:14:41.060 --> 00:14:43.740
+talking about the amount of effort they put into optimization
+
+316
+00:14:43.860 --> 00:14:45.800
+of single functions and single libraries,
+
+317
+00:14:45.940 --> 00:14:49.040
+I think, how can these runtimes ever get that same level of maturity?
+
+318
+00:14:49.160 --> 00:14:51.600
+But maybe if they focus on a specific problem,
+
+319
+00:14:51.740 --> 00:14:53.800
+maybe there is a use case where we should be thinking about them.
+
+320
+00:14:53.940 --> 00:14:57.060
+So, Luciano, you're a Node.js aficionado.
+
+321
+00:14:57.200 --> 00:14:58.800
+How does this make you feel?
+
+322
+00:14:58.940 --> 00:15:00.900
+Does it make you think that you should use LLRT
+
+323
+00:15:01.080 --> 00:15:03.980
+for every single Lambda function now, or where do you stand?
+
+324
+00:15:04.100 --> 00:15:05.480
+Yeah, I think that's a great question,
+
+325
+00:15:05.600 --> 00:15:11.280
+and it's a bit difficult to give you a 100% answer.
+
+326
+00:15:11.400 --> 00:15:14.740
+I think we will see as we go what happens to the project,
+
+327
+00:15:14.880 --> 00:15:16.200
+but as it stands today,
+
+328
+00:15:16.340 --> 00:15:19.540
+there are a few things to be a little bit concerned about.
+
+329
+00:15:19.680 --> 00:15:23.900
+First of all is that the project itself is labeled as experimental,
+
+330
+00:15:24.040 --> 00:15:26.500
+and we don't know exactly what that really means,
+
+331
+00:15:26.640 --> 00:15:29.480
+but we can make some assumption and also try to interpret
+
+332
+00:15:29.580 --> 00:15:31.460
+what we can see in the repository.
+
+333
+00:15:31.580 --> 00:15:33.980
+So the repository marks the release as beta.
+
+334
+00:15:34.120 --> 00:15:38.160
+So, again, not really indicative of any kind of promise,
+
+335
+00:15:38.280 --> 00:15:41.060
+but it gives us a first idea that is not something
+
+336
+00:15:41.180 --> 00:15:43.260
+that we can consider stable right now.
+
+337
+00:15:43.380 --> 00:15:46.580
+So maybe let's not use it for everything we have in production just now.
+
+338
+00:15:46.720 --> 00:15:49.980
+Maybe let's wait to see when it becomes a little bit more stable in that sense.
+
+339
+00:15:50.120 --> 00:15:52.460
+Also, the repo says that it is subject to change,
+
+340
+00:15:53.060 --> 00:15:55.480
+and it is intended only for evaluation purposes.
+
+341
+00:15:55.620 --> 00:15:58.820
+So, again, don't use it for your most important production workload.
+
+342
+00:15:58.920 --> 00:16:00.820
+Maybe if you have a very secondary workload
+
+343
+00:16:00.960 --> 00:16:03.660
+and you want to use it with something that is a little bit more relevant
+
+344
+00:16:03.800 --> 00:16:06.200
+to your business, that could be one way of approaching it,
+
+345
+00:16:06.320 --> 00:16:09.620
+but definitely use it for the most sensible business case that you have
+
+346
+00:16:09.760 --> 00:16:11.560
+because you might have unexpected surprises.
+
+347
+00:16:11.700 --> 00:16:15.000
+And I think there is, in general, no guarantee that AWS
+
+348
+00:16:15.120 --> 00:16:18.360
+or the current maintainers are going to invest more on this project
+
+349
+00:16:18.500 --> 00:16:20.720
+as it stands today, and even if they do,
+
+350
+00:16:20.860 --> 00:16:22.560
+maybe they will change everything,
+
+351
+00:16:22.700 --> 00:16:25.520
+or they will change a significant amount of the code base
+
+352
+00:16:25.660 --> 00:16:28.560
+that might require you to do a significant amount of change on your side.
+
+353
+00:16:28.560 --> 00:16:30.400
+If you want to keep using the project.
+
+354
+00:16:30.540 --> 00:16:33.500
+So that's definitely something to keep in mind as a starting point.
+
+355
+00:16:33.640 --> 00:16:36.060
+There is another problem that is also very important,
+
+356
+00:16:36.200 --> 00:16:38.060
+that this project is not Node.js.
+
+357
+00:16:38.200 --> 00:16:41.440
+So it's not packaging Node.js in a smarter way.
+
+358
+00:16:41.560 --> 00:16:44.740
+It's just a totally different implementation of a JavaScript runtime.
+
+359
+00:16:44.860 --> 00:16:47.960
+And the reason why this is important is that on one side,
+
+360
+00:16:48.100 --> 00:16:49.960
+it doesn't come with all the baggage of Node.js,
+
+361
+00:16:50.100 --> 00:16:54.260
+and this is why it can be very fast and very performant, as we described,
+
+362
+00:16:54.400 --> 00:16:57.100
+but on the other end, it doesn't have all the ecosystem of libraries
+
+363
+00:16:57.300 --> 00:17:00.700
+that Node.js has, and that has been for over,
+
+364
+00:17:00.840 --> 00:17:02.840
+I think, almost 15 years at this point.
+
+365
+00:17:02.980 --> 00:17:05.580
+So what that means is that you don't have
+
+366
+00:17:05.700 --> 00:17:08.480
+the full Node.js standard library at your disposal,
+
+367
+00:17:08.600 --> 00:17:12.140
+and that means that you might have problems with some of your code.
+
+368
+00:17:12.280 --> 00:17:13.840
+Even if you're using third-party libraries,
+
+369
+00:17:13.980 --> 00:17:16.480
+those third-party libraries might rely on some functionality
+
+370
+00:17:16.600 --> 00:17:18.880
+that exists in the standard library of Node.js
+
+371
+00:17:19.000 --> 00:17:21.740
+that doesn't exist in LLRT yet.
+
+372
+00:17:22.280 --> 00:17:26.100
+And when I say yet, it doesn't mean that there is a promise
+
+373
+00:17:26.200 --> 00:17:29.800
+that eventually LLRT is going to have future parity with Node.js.
+
+374
+00:17:29.940 --> 00:17:32.500
+Actually, if you look at the readme, they state very clearly
+
+375
+00:17:32.640 --> 00:17:35.080
+that this is not a goal. They are not going to try to compete
+
+376
+00:17:35.200 --> 00:17:37.140
+for future parity with Node.js.
+
+377
+00:17:37.280 --> 00:17:39.540
+They have some degree of support,
+
+378
+00:17:39.680 --> 00:17:42.240
+but there is no promise that they will try to improve
+
+379
+00:17:42.380 --> 00:17:44.940
+the percentage of coverage in that sense.
+
+380
+00:17:45.080 --> 00:17:46.800
+So I guess for the foreseeable future,
+
+381
+00:17:46.940 --> 00:17:49.700
+we only have a partial implementation of the Node.js standard library,
+
+382
+00:17:49.840 --> 00:17:53.580
+and another thing to keep in mind is that even that implementation,
+
+383
+00:17:53.760 --> 00:17:56.520
+there is no guarantee that it's matching 100%
+
+384
+00:17:56.660 --> 00:18:00.960
+the same level of functionality that we have in Node.js.
+
+385
+00:18:01.080 --> 00:18:02.360
+You might have surprises, for instance,
+
+386
+00:18:02.480 --> 00:18:06.860
+subtle differences on how certain APIs actually work in certain edge cases,
+
+387
+00:18:06.980 --> 00:18:09.460
+and that means that all the code you write,
+
+388
+00:18:09.580 --> 00:18:14.620
+you need to be very careful testing it specifically in the context of LLRT
+
+389
+00:18:14.760 --> 00:18:17.220
+and not just run Node.js tests with Node.js
+
+390
+00:18:17.360 --> 00:18:19.780
+and assume that everything is going to work as expected
+
+391
+00:18:19.920 --> 00:18:22.320
+when you package it into LLRT.
+
+392
+00:18:22.420 --> 00:18:24.260
+Now, speaking of libraries, you might think,
+
+393
+00:18:24.400 --> 00:18:25.820
+what about the AWS SDK, right?
+
+394
+00:18:25.960 --> 00:18:27.800
+Because most likely, this is the main library
+
+395
+00:18:27.920 --> 00:18:29.520
+that you will need to use in a Lambda.
+
+396
+00:18:29.660 --> 00:18:33.900
+And actually, interesting enough, this runtime comes with many AWS
+
+397
+00:18:34.020 --> 00:18:37.300
+SDK clients already baked into the runtime.
+
+398
+00:18:37.420 --> 00:18:39.060
+There is a list on the repository.
+
+399
+00:18:39.200 --> 00:18:42.360
+Last time we counted was 19 clients supported,
+
+400
+00:18:42.500 --> 00:18:44.860
+plus the Smt library from AWS.
+
+401
+00:18:45.000 --> 00:18:48.960
+So if you need to use one of these 19 clients or the Smt library,
+
+402
+00:18:49.100 --> 00:18:50.400
+you don't need to install it yourself.
+
+403
+00:18:50.500 --> 00:18:52.500
+Those are already prepackaged in the runtime.
+
+404
+00:18:52.640 --> 00:18:54.880
+And actually, the repository goes as far as saying
+
+405
+00:18:55.000 --> 00:18:57.380
+that it's not the standard package itself,
+
+406
+00:18:57.500 --> 00:18:58.800
+the one that you would get from npm,
+
+407
+00:18:58.940 --> 00:19:03.440
+because there are extra optimizations that the authors have put in place,
+
+408
+00:19:03.580 --> 00:19:05.440
+replacing some of the JavaScript code
+
+409
+00:19:05.580 --> 00:19:07.900
+that exists in the standard version of the library
+
+410
+00:19:08.040 --> 00:19:10.980
+with some native code, supposedly Rust, I imagine.
+
+411
+00:19:11.100 --> 00:19:14.180
+So I guess that could give you an extra boost in performance
+
+412
+00:19:14.300 --> 00:19:15.640
+when you use these libraries.
+
+413
+00:19:15.780 --> 00:19:18.300
+Now, they also say that not all the methods are supported.
+
+414
+00:19:18.500 --> 00:19:21.240
+For instance, if you try to get a stream from a response
+
+415
+00:19:21.380 --> 00:19:23.240
+coming from the SDK, maybe...
+
+416
+00:19:23.380 --> 00:19:24.740
+I haven't tested this very thoroughly,
+
+417
+00:19:24.880 --> 00:19:27.540
+but I imagine if you're trying to read a big file from S3,
+
+418
+00:19:27.680 --> 00:19:29.040
+that might be a little bit of a problem
+
+419
+00:19:29.180 --> 00:19:32.140
+if you cannot really stream that output into your program
+
+420
+00:19:32.280 --> 00:19:34.940
+and you need to patch all the data into memory
+
+421
+00:19:35.080 --> 00:19:36.740
+before you can actually access to it.
+
+422
+00:19:36.880 --> 00:19:39.540
+I'm not really sure if this use case is supported or not,
+
+423
+00:19:39.680 --> 00:19:41.640
+but there might be similar cases like that
+
+424
+00:19:41.780 --> 00:19:45.240
+where not being able to stream the response coming from the SDK
+
+425
+00:19:45.340 --> 00:19:48.240
+might become a limitation in terms of the memory usage,
+
+426
+00:19:48.380 --> 00:19:49.780
+depending on your use cases.
+
+427
+00:19:49.920 --> 00:19:51.640
+So again, it might work in most cases.
+
+428
+00:19:51.780 --> 00:19:54.140
+It might actually be even faster in some cases,
+
+429
+00:19:54.280 --> 00:19:55.540
+but you have to be really careful
+
+430
+00:19:55.680 --> 00:19:58.680
+testing all the use cases that you have in production.
+
+431
+00:19:58.820 --> 00:20:00.340
+Now, last thing, what about tooling?
+
+432
+00:20:00.480 --> 00:20:03.180
+Because this is always the main thing
+
+433
+00:20:03.320 --> 00:20:05.640
+when it comes to new programming ecosystems.
+
+434
+00:20:05.780 --> 00:20:09.080
+It takes a while before the tooling is good enough for you as a developer
+
+435
+00:20:09.220 --> 00:20:11.240
+to have a very good experience and be productive.
+
+436
+00:20:11.380 --> 00:20:13.280
+So what is the starting point that we get here?
+
+437
+00:20:13.420 --> 00:20:14.640
+It's actually not too bad,
+
+438
+00:20:14.740 --> 00:20:16.680
+even though we haven't played enough with it
+
+439
+00:20:16.820 --> 00:20:18.480
+to be confident in saying that.
+
+440
+00:20:18.620 --> 00:20:21.240
+But just looking at it and just playing with it a little bit,
+
+441
+00:20:21.380 --> 00:20:24.120
+there are a few things in place that are already quite useful.
+
+442
+00:20:24.240 --> 00:20:25.740
+For instance, there is a Lambda emulator
+
+443
+00:20:25.880 --> 00:20:28.340
+that you can use to actually test the runtime locally.
+
+444
+00:20:28.480 --> 00:20:31.580
+So all the code that you write, you can immediately execute it locally
+
+445
+00:20:31.720 --> 00:20:35.320
+and see if it's performing and be adding exactly as you expect,
+
+446
+00:20:35.440 --> 00:20:38.240
+which is great because it kind of reduces the feedback cycle
+
+447
+00:20:38.380 --> 00:20:40.080
+of always having to ship to AWS
+
+448
+00:20:40.220 --> 00:20:43.180
+to be sure that your code is actually working as expected.
+
+449
+00:20:43.380 --> 00:20:46.080
+There is also a tool that allows you to package all your code
+
+450
+00:20:46.220 --> 00:20:48.520
+together with the runtime into a single binary.
+
+451
+00:20:48.660 --> 00:20:51.480
+So you are effectively building a custom runtime
+
+452
+00:20:51.620 --> 00:20:55.380
+that includes not just the runtime, but also all your code into one binary.
+
+453
+00:20:55.520 --> 00:20:58.020
+And this is actually the preferred and recommended approach
+
+454
+00:20:58.160 --> 00:21:01.320
+to deploy Lambdas written using this runtime.
+
+455
+00:21:01.460 --> 00:21:04.580
+And the reason why this is convenient is because that's going to more likely
+
+456
+00:21:04.720 --> 00:21:08.160
+impact performance positively because it needs to load only one file
+
+457
+00:21:08.280 --> 00:21:10.960
+and then everything is already in place and ready to start.
+
+458
+00:21:11.060 --> 00:21:13.200
+And finally, there is also a Lambda layer available.
+
+459
+00:21:13.340 --> 00:21:16.060
+If you prefer to take a little bit of a more experimental approach
+
+460
+00:21:16.200 --> 00:21:19.240
+where you say, okay, I'm just going to put this layer into the web console
+
+461
+00:21:19.360 --> 00:21:21.200
+and just going to play around with it this way,
+
+462
+00:21:21.340 --> 00:21:24.240
+that could be another approach to start using OLRT
+
+463
+00:21:24.360 --> 00:21:25.600
+and see what that looks like.
+
+464
+00:21:25.740 --> 00:21:29.560
+Now, again, it's worth remembering that this is not an officially supported
+
+465
+00:21:29.700 --> 00:21:31.500
+Lambda runtime, it's a custom runtime.
+
+466
+00:21:31.640 --> 00:21:34.640
+So what you deploy is effectively a custom runtime
+
+467
+00:21:34.760 --> 00:21:36.260
+and you are responsible for it,
+
+468
+00:21:36.400 --> 00:21:40.740
+meaning that if there is a new update or if there is a security concern
+
+469
+00:21:40.740 --> 00:21:44.680
+and maybe you need to install something to patch a security issue,
+
+470
+00:21:44.820 --> 00:21:46.340
+doing all of that work is on you.
+
+471
+00:21:46.480 --> 00:21:50.020
+So you need to be ready to take over that additional burden
+
+472
+00:21:50.140 --> 00:21:53.540
+that you don't have, for instance, when you use the official Node.js runtime.
+
+473
+00:21:53.680 --> 00:21:55.580
+So what is our recommendation again?
+
+474
+00:21:55.720 --> 00:21:57.420
+Just to try to summarize all of that.
+
+475
+00:21:57.540 --> 00:21:59.280
+I think this is a great initiative,
+
+476
+00:21:59.420 --> 00:22:03.380
+so it is definitely worth playing with it and see what it looks like.
+
+477
+00:22:03.520 --> 00:22:04.840
+And for your specific use case,
+
+478
+00:22:04.980 --> 00:22:07.240
+how much performance can you squeeze out of them?
+
+479
+00:22:07.380 --> 00:22:09.740
+But again, because it's so early and experimental
+
+480
+00:22:09.840 --> 00:22:13.080
+and it's not really clear what is going to be the future of this project,
+
+481
+00:22:13.220 --> 00:22:15.920
+use it with cautious, use it with the idea
+
+482
+00:22:16.040 --> 00:22:19.280
+that you're not going to re-implement everything with this runtime.
+
+483
+00:22:19.420 --> 00:22:22.480
+Maybe you're just going to implement a few functions that you use a lot,
+
+484
+00:22:22.620 --> 00:22:25.080
+but they're not the main ones for your business.
+
+485
+00:22:25.220 --> 00:22:26.920
+So I guess if all goes well,
+
+486
+00:22:27.040 --> 00:22:29.180
+we would have gained major performance benefits
+
+487
+00:22:29.320 --> 00:22:31.420
+without having to switch to C++ or Rust,
+
+488
+00:22:31.540 --> 00:22:35.280
+which would be a big win for the serverless and the JavaScript community.
+
+489
+00:22:35.420 --> 00:22:38.120
+But again, we have to be seeing exactly what is going to happen.
+
+490
+00:22:38.220 --> 00:22:39.400
+It's also an open source project,
+
+491
+00:22:39.520 --> 00:22:42.620
+so if you are really excited about this kind of initiatives,
+
+492
+00:22:42.760 --> 00:22:44.020
+you can contribute to it.
+
+493
+00:22:44.160 --> 00:22:46.920
+And at that point, you are also a little bit responsible
+
+494
+00:22:47.060 --> 00:22:48.820
+for the success of this initiative.
+
+495
+00:22:48.960 --> 00:22:50.860
+So this is always a good call to action to people
+
+496
+00:22:51.000 --> 00:22:53.420
+that if you feel like you want to contribute,
+
+497
+00:22:53.560 --> 00:22:55.160
+you want to see this project successful,
+
+498
+00:22:55.300 --> 00:22:57.560
+your contribution is definitely going to be useful
+
+499
+00:22:57.700 --> 00:22:59.320
+to achieve that larger goal.
+
+500
+00:22:59.460 --> 00:23:02.400
+Now, what other concerns do we have, Eoin?
+
+501
+00:23:02.520 --> 00:23:04.400
+Well, we already mentioned that it's experimental,
+
+502
+00:23:04.520 --> 00:23:07.760
+and I think that's fair enough because they state that explicitly.
+
+503
+00:23:07.860 --> 00:23:10.400
+As well, if you look at the contributions,
+
+504
+00:23:10.540 --> 00:23:12.340
+it's built mostly by one person.
+
+505
+00:23:12.460 --> 00:23:14.940
+And I think we have to credit the amazing engineering effort here.
+
+506
+00:23:15.060 --> 00:23:17.700
+But Richard Davidson is the amazing developer
+
+507
+00:23:17.840 --> 00:23:19.400
+who has done an incredible job here.
+
+508
+00:23:19.540 --> 00:23:20.900
+But there's obviously a risk associated
+
+509
+00:23:21.040 --> 00:23:23.300
+with having only one main person behind the project.
+
+510
+00:23:23.440 --> 00:23:26.540
+So let's see if AWS decides to invest more on the project
+
+511
+00:23:26.660 --> 00:23:30.000
+and form more of a cohesive internal team as the project evolves.
+
+512
+00:23:30.140 --> 00:23:32.960
+It's good to see that in a few weeks since its public release,
+
+513
+00:23:33.100 --> 00:23:34.860
+there have already been contributions
+
+514
+00:23:35.000 --> 00:23:37.200
+from open source members of the community.
+
+515
+00:23:37.380 --> 00:23:40.100
+So we can expect to see that grow, and that will be a healthy thing.
+
+516
+00:23:40.240 --> 00:23:41.800
+The lack of feature parity with Node.js
+
+517
+00:23:41.940 --> 00:23:44.180
+and other runtimes is going to be a concern.
+
+518
+00:23:44.300 --> 00:23:47.200
+And there isn't really an intention to reach parity,
+
+519
+00:23:47.340 --> 00:23:48.900
+so you just have to be aware of that.
+
+520
+00:23:49.040 --> 00:23:52.500
+You mentioned as well, Luciano, there is some AWS SDK support.
+
+521
+00:23:52.640 --> 00:23:55.400
+I kind of wonder, since there's already the C-based common runtime
+
+522
+00:23:55.540 --> 00:23:59.640
+from AWS that's highly optimized, as well as the C AWS SDK,
+
+523
+00:23:59.780 --> 00:24:02.000
+I wonder why LLRT wasn't able to leverage those
+
+524
+00:24:02.140 --> 00:24:04.080
+to get complete service support.
+
+525
+00:24:04.200 --> 00:24:05.680
+I suppose as well, QuickJS,
+
+526
+00:24:05.780 --> 00:24:08.720
+being one of the main dependencies, may also be a bit concerning.
+
+527
+00:24:08.860 --> 00:24:10.620
+It has an interesting history as a project.
+
+528
+00:24:10.760 --> 00:24:13.960
+It was mostly written and maintained by another outstanding engineer,
+
+529
+00:24:14.080 --> 00:24:17.520
+Fabrice Bellard, and Fabrice is also the same author
+
+530
+00:24:17.660 --> 00:24:20.920
+of other great projects like QEMU and FFmpeg.
+
+531
+00:24:21.060 --> 00:24:22.920
+Again, same problem with single owner projects.
+
+532
+00:24:23.060 --> 00:24:26.620
+There's a risk with it. In fact, the Qix.js project hasn't received,
+
+533
+00:24:29.860 --> 00:24:31.920
+well, it didn't receive any great updates in the last few years, and the project really looked to be stagnant
+
+534
+00:24:32.060 --> 00:24:34.680
+with a lot of forks emerging in the open source community,
+
+535
+00:24:34.860 --> 00:24:38.360
+most notably Qix.js NG. There has been some activity of late,
+
+536
+00:24:38.480 --> 00:24:41.120
+but there is an interesting community conversation on,
+
+537
+00:24:41.260 --> 00:24:43.660
+I suppose, whether this project is alive or dead,
+
+538
+00:24:43.780 --> 00:24:47.420
+and we can link to that conversation on GitHub in the show notes.
+
+539
+00:24:47.560 --> 00:24:48.960
+So there has been a recent spark of activity,
+
+540
+00:24:49.080 --> 00:24:50.180
+as I mentioned, in the repository,
+
+541
+00:24:50.320 --> 00:24:52.860
+and Fabrice has introduced some significant new features,
+
+542
+00:24:52.980 --> 00:24:54.780
+such as support for top level of weight,
+
+543
+00:24:54.920 --> 00:24:57.260
+and a couple of new releases have been published.
+
+544
+00:24:57.380 --> 00:24:59.960
+So hopefully, a larger community will form around the project,
+
+545
+00:25:00.080 --> 00:25:02.780
+and that will help to guarantee long-term support,
+
+546
+00:25:02.920 --> 00:25:04.420
+because I think it's interesting.
+
+547
+00:25:04.420 --> 00:25:08.460
+Previously, there were various different JavaScript runtimes.
+
+548
+00:25:08.600 --> 00:25:10.420
+There was JavaScript Core, you had V8.
+
+549
+00:25:10.560 --> 00:25:13.860
+Microsoft had their brave effort for a while with the Chakra Core,
+
+550
+00:25:14.000 --> 00:25:17.320
+but the idea was that Node.js could use any of these runtimes,
+
+551
+00:25:17.460 --> 00:25:18.660
+these JavaScript runtimes.
+
+552
+00:25:18.800 --> 00:25:21.360
+That seemed like a healthy thing with good competition,
+
+553
+00:25:21.500 --> 00:25:23.260
+but it seems like everything has kind of converged
+
+554
+00:25:23.400 --> 00:25:24.720
+on the Chromium ecosystem,
+
+555
+00:25:24.860 --> 00:25:28.920
+and that's not a great thing for the future of JavaScript, I feel.
+
+556
+00:25:29.060 --> 00:25:30.860
+Luciano, you've kind of given your recommendations,
+
+557
+00:25:31.000 --> 00:25:32.360
+but what's your final assessment?
+
+558
+00:25:32.460 --> 00:25:34.460
+I think, in general, I'm very happy to see
+
+559
+00:25:34.600 --> 00:25:36.840
+these kind of initiatives coming out from AWS,
+
+560
+00:25:36.960 --> 00:25:39.860
+because everything that can make Lambda more efficient and powerful
+
+561
+00:25:40.000 --> 00:25:42.100
+for JavaScript developers is absolutely welcome.
+
+562
+00:25:42.240 --> 00:25:44.500
+I think everyone should be happy about that.
+
+563
+00:25:44.640 --> 00:25:48.000
+It is a very ambitious project, and if it becomes stable,
+
+564
+00:25:48.140 --> 00:25:50.200
+and there is a team maintaining it consistently,
+
+565
+00:25:50.340 --> 00:25:53.440
+it's going to be a win, definitely, for the server landscape as a whole.
+
+566
+00:25:53.560 --> 00:25:57.200
+But I think we need to talk about another problem,
+
+567
+00:25:57.340 --> 00:25:59.560
+which is the JavaScript ecosystem fragmentation.
+
+568
+00:25:59.660 --> 00:26:01.800
+It's something that we have been seeing a lot
+
+569
+00:26:01.940 --> 00:26:05.340
+in the JavaScript community for I don't know how many years at this point,
+
+570
+00:26:05.460 --> 00:26:08.740
+and it seems like it's getting worse and worse rather than getting better.
+
+571
+00:26:08.860 --> 00:26:10.960
+So this...
+
+572
+00:26:11.100 --> 00:26:12.600
+Sometimes it's called the JavaScript fatigue.
+
+573
+00:26:12.740 --> 00:26:15.600
+It's definitely real, and it was associated
+
+574
+00:26:15.740 --> 00:26:17.500
+with the idea of frameworks and libraries.
+
+575
+00:26:17.640 --> 00:26:20.040
+Now it's being associated even with runtimes,
+
+576
+00:26:20.160 --> 00:26:21.760
+which only makes things worse.
+
+577
+00:26:21.900 --> 00:26:25.100
+It's already hard to pick and learn a single runtime like Node.js.
+
+578
+00:26:25.240 --> 00:26:27.640
+Imagine if you also have to learn Dino or BUN
+
+579
+00:26:27.740 --> 00:26:31.080
+with all the different core libraries and characteristics,
+
+580
+00:26:31.220 --> 00:26:33.740
+and now there is also another Lambda-specific runtime,
+
+581
+00:26:33.880 --> 00:26:36.340
+which will have its own characteristics and things to learn
+
+582
+00:26:36.480 --> 00:26:38.380
+and mistakes and patterns.
+
+583
+00:26:38.520 --> 00:26:41.180
+But even imagine that now you are a JavaScript library author,
+
+584
+00:26:41.320 --> 00:26:43.120
+and you want to build a general-purpose library
+
+585
+00:26:43.240 --> 00:26:46.420
+that you might want to make available across all of these runtimes.
+
+586
+00:26:46.980 --> 00:26:51.440
+Node.js, Dino, BUN, the browser, and maybe now even OLL or T, right?
+
+587
+00:26:51.580 --> 00:26:54.080
+Because why not allowing people to even use your library
+
+588
+00:26:54.220 --> 00:26:55.280
+in the context of a Lambda?
+
+589
+00:26:55.480 --> 00:26:57.760
+How much work there is involved in just testing
+
+590
+00:26:57.880 --> 00:27:01.760
+that everything works with F3, just fine-tuning all the edge cases,
+
+591
+00:27:01.880 --> 00:27:03.880
+maybe patching for all the missing libraries
+
+592
+00:27:04.020 --> 00:27:07.460
+and different behaviors that exist across different runtimes.
+
+593
+00:27:07.580 --> 00:27:10.180
+So this is a problem that's just going to keep getting bigger and bigger
+
+594
+00:27:10.320 --> 00:27:14.920
+if the ecosystem doesn't converge into kind of a more comprehensive standard
+
+595
+00:27:15.060 --> 00:27:17.220
+that all the different runtimes will adopt.
+
+596
+00:27:17.360 --> 00:27:18.980
+There are some efforts in that direction.
+
+597
+00:27:19.120 --> 00:27:21.860
+For instance, the Winter CG that we can link in the show notes
+
+598
+00:27:21.980 --> 00:27:24.420
+is an initiative that tries to figure out exactly
+
+599
+00:27:24.500 --> 00:27:27.460
+what is a common set of APIs that every runtime needs to have,
+
+600
+00:27:27.600 --> 00:27:29.960
+especially the ones running in the cloud and on the edge.
+
+601
+00:27:30.100 --> 00:27:32.520
+So there might be, I guess, a bright future there
+
+602
+00:27:32.660 --> 00:27:34.560
+if this kind of initiative is successful.
+
+603
+00:27:34.700 --> 00:27:36.620
+But as it stands right now, as a developer,
+
+604
+00:27:36.760 --> 00:27:38.360
+it's just a very confusing landscape,
+
+605
+00:27:38.500 --> 00:27:41.260
+and there's a lot to learn and so many edge cases.
+
+606
+00:27:41.400 --> 00:27:42.920
+So that's definitely a problem.
+
+607
+00:27:43.060 --> 00:27:46.760
+Another point that I have, and this is more directed to AWS,
+
+608
+00:27:46.900 --> 00:27:49.620
+it's great to see this kind of initiative emerging from AWS,
+
+609
+00:27:49.760 --> 00:27:51.760
+but at the same time, I would love to see AWS
+
+610
+00:27:51.960 --> 00:27:54.560
+investing more on the larger Node.js ecosystem.
+
+611
+00:27:54.700 --> 00:27:57.540
+We know these things that are not super nice to see.
+
+612
+00:27:57.660 --> 00:28:00.360
+For instance, if you look at the performance of the Node.js
+
+613
+00:28:00.500 --> 00:28:03.800
+16 runtime and compare it with the Node.js 20 runtime,
+
+614
+00:28:03.940 --> 00:28:06.700
+even though Node.js itself is generally considered faster
+
+615
+00:28:06.840 --> 00:28:09.100
+in the Node 20 version, when it comes to Lambda,
+
+616
+00:28:09.240 --> 00:28:12.360
+somehow the runtime is a little bit slower than Node 16,
+
+617
+00:28:12.500 --> 00:28:15.600
+which is very disappointing because it looks like they didn't take advantage
+
+618
+00:28:15.740 --> 00:28:17.900
+of the new advancements in Node.js,
+
+619
+00:28:18.040 --> 00:28:20.300
+and maybe they did something suboptimal on their side.
+
+620
+00:28:20.400 --> 00:28:22.040
+Now, I'm not really sure what's going on there,
+
+621
+00:28:22.180 --> 00:28:23.900
+so I'm not going to comment too much in detail,
+
+622
+00:28:24.040 --> 00:28:27.940
+but I think the message there is that I wish that AWS would invest more
+
+623
+00:28:28.080 --> 00:28:30.780
+in making sure that Node.js has a bright future ahead
+
+624
+00:28:30.900 --> 00:28:33.340
+because it's effectively one of the most used languages
+
+625
+00:28:33.480 --> 00:28:34.580
+when it comes to Lambda,
+
+626
+00:28:34.700 --> 00:28:37.040
+so definitely a big revenue stream for AWS,
+
+627
+00:28:37.180 --> 00:28:38.440
+and it would be nice to see AWS
+
+628
+00:28:38.580 --> 00:28:41.600
+reinvesting some of that revenue into the project itself.
+
+629
+00:28:41.740 --> 00:28:45.000
+And it's not just something that relates to Lambda itself
+
+630
+00:28:45.140 --> 00:28:48.540
+because Node.js gets used a lot even in other kinds of applications,
+
+631
+00:28:48.540 --> 00:28:51.780
+not just serverless, it will be used in containers,
+
+632
+00:28:51.920 --> 00:28:56.320
+so something like that in ECS, Fargate, but also in EC2 or AppRunner.
+
+633
+00:28:56.440 --> 00:28:58.180
+So if Node.js gets better,
+
+634
+00:28:58.320 --> 00:29:00.240
+I think AWS is still going to benefit from it.
+
+635
+00:29:00.380 --> 00:29:03.880
+So this is kind of a final call for consideration to AWS
+
+636
+00:29:04.020 --> 00:29:06.820
+if somebody's listening there to think about this problem
+
+637
+00:29:06.940 --> 00:29:10.740
+and maybe decide to invest a little bit more into the Node.js community.
+
+638
+00:29:10.880 --> 00:29:12.340
+Yeah, we're seeing lots and lots of different ways
+
+639
+00:29:12.480 --> 00:29:14.920
+to optimize code starts and runtime performance.
+
+640
+00:29:15.040 --> 00:29:17.920
+I'm thinking of Snap Start, currently available in Java,
+
+641
+00:29:18.160 --> 00:29:20.120
+and it might come to more runtimes,
+
+642
+00:29:20.260 --> 00:29:21.660
+and then we see like with .NET,
+
+643
+00:29:21.800 --> 00:29:23.300
+you've got the new ahead-of-time compiler,
+
+644
+00:29:23.420 --> 00:29:25.360
+which is essentially compiling it to native code.
+
+645
+00:29:25.500 --> 00:29:28.220
+I wonder if the AWS Lambda team are thinking about how Snap Start
+
+646
+00:29:28.360 --> 00:29:31.360
+could be used to optimize existing Node.js runtimes
+
+647
+00:29:31.500 --> 00:29:34.220
+and give us the kind of amazing code start times
+
+648
+00:29:34.360 --> 00:29:36.300
+we've seen with LLRT or even better,
+
+649
+00:29:36.420 --> 00:29:39.520
+just with existing Node.js and all the compatibility it offers.
+
+650
+00:29:39.660 --> 00:29:42.460
+So it's definitely a space to watch, and regardless of what happens next,
+
+651
+00:29:42.600 --> 00:29:44.820
+I think we can agree that LLRT is already
+
+652
+00:29:44.960 --> 00:29:46.760
+an amazing software engineering achievement,
+
+653
+00:29:46.940 --> 00:29:48.400
+and a lot of credit has to go to Richard
+
+654
+00:29:48.540 --> 00:29:52.000
+and also to Fabrice, the QuickJS author, too.
+
+655
+00:29:52.140 --> 00:29:55.100
+So if you're a JS developer interested in LLRT,
+
+656
+00:29:55.240 --> 00:29:56.800
+it is important to check compatibility
+
+657
+00:29:56.940 --> 00:29:59.700
+and measure performance with meaningful workloads.
+
+658
+00:29:59.840 --> 00:30:02.260
+We're just seeing, I think, the first set of benchmarks here.
+
+659
+00:30:02.400 --> 00:30:05.140
+But if you have seen some results and you've got some success
+
+660
+00:30:05.260 --> 00:30:08.560
+or you've decided to abandon it for now, let us know what you think,
+
+661
+00:30:08.700 --> 00:30:10.660
+because we're really curious to learn more ourselves.
+
+662
+00:30:10.800 --> 00:30:13.160
+So thanks very much for watching or listening.
+
+663
+00:30:13.300 --> 00:30:16.140
+Please share with your friends, like and subscribe,
+
+664
+00:30:16.140 --> 00:30:18.040
+and we'll see you in the next episode.

@@ -22,7 +22,6 @@ module.exports = async function transcripts () {
     let currentSpeakerLabel = ''
     for (const segment of fileContent.segments) {
       segment.formattedTime = new Date(segment.start * 1000).toISOString().substring(11, 19)
-      console.log(segment.start, segment.formattedTime)
       if (segment.speakerLabel !== currentSpeakerLabel) {
         currentSlot = { textLength: 0, segments: [] }
         speakerSlots.push(currentSlot)

@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+  pull_request: {}
   schedule:
     - cron: "1 0 * * FRI" # every FRI at 00:01
   workflow_dispatch: {} # manual release
@@ -29,11 +30,35 @@ jobs:
           restore-keys: |
             nodeModules-
 
+      - name: Set Branch Name
+        id: branch_name
+        uses: nelonoel/branch-name@v1.0.1
+
+      - name: Setup Deployment Condition
+        id: deploy_setup
+        run: |
+          if [ "${{ steps.branch_name.outputs.BRANCH_NAME }}" == "main" ]; then
+            echo "DEPLOY_TO_PROD=true" >> $GITHUB_ENV
+          else
+            echo "DEPLOY_TO_PROD=false" >> $GITHUB_ENV
+            echo "DEPLOY_ALIAS=${{ steps.branch_name.outputs.BRANCH_NAME }}" >> $GITHUB_ENV
+          fi
+
       - name: Publish site to Netlify
         uses: jsmrcaga/action-netlify-deploy@v2.1.0
         with:
-          NETLIFY_DEPLOY_TO_PROD: true
+          NETLIFY_DEPLOY_TO_PROD: ${{ env.DEPLOY_TO_PROD }}
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
           NETLIFY_DEPLOY_MESSAGE: "Deployment from GitHub Actions ${{ steps.vars.outputs.sha_short }} (${{ steps.vars.outputs.branch }})"
+          deploy_alias: ${{ env.DEPLOY_ALIAS }}
           build_directory: dist
+
+      # Creates a status check with link to preview
+      - name: Status check
+        uses: Sibz/github-status-action@v1.1.1
+        with:
+          authToken: ${{ secrets.GITHUB_TOKEN }}
+          context: Netlify preview
+          state: success
+          target_url: ${{ env.NETLIFY_PREVIEW_URL }}

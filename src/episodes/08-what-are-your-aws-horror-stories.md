@@ -15,5 +15,3 @@ In this episode we mentioned the following resources:
   - [AWS NAT Gateway](https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway.html)
   - [AWS High Performance Block Storage](https://aws.amazon.com/ebs/)
   - [Cloudformation UPDATE_ROLLBACK_FAILED state](https://aws.amazon.com/premiumsupport/knowledge-center/cloudformation-update-rollback-failed/)
-
-  

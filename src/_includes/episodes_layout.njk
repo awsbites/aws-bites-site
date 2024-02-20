@@ -22,8 +22,12 @@
           Published {{ publish_date | formatDate }} -
           <a href="{{ spotify_link }}" class="text-primary-100 dark:text-secondary-100 hover:underline">Listen on your favourite podcast player</a>
         </p>
+        <div class="lg:mx-32 md:mx-20">
+          <iframe id="youtubePlayer" width="100%" height="100%" class="aspect-[16/9]" rel="0"
+            src="https://www.youtube.com/embed/{{ youtube_id }}?enablejsapi=1" title="YouTube video player" frameborder="0" 
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        </div>
       </div>
-      <p>{{ youtube_id | youtubeLink }}</p>
     </div>
   </div>
   <main>
@@ -64,11 +68,11 @@
             {% set currentSpeakerLabel = segment.speakerLabel %}
             <p data-start-time="{{ segment.start }}">
               <span class="speaker-label font-bold text-primary-300 dark:text-secondary-200">{{ transcripts[episode].speakers[currentSpeakerLabel] }}</span>: 
-        {% endif %}
-            <span data-start-time="{{ segment.start }}">{{ segment.text }}</span>
-          {% endfor %}
-        </p>
-      {% endfor %}
+          {% endif %}
+            <span class="transcript-segment" data-start-time="{{ segment.start }}" title="⏭️ skip to {{ segment.formattedTime }}">{{ segment.text }}</span>
+        {% endfor %}
+      </p>
+    {% endfor %}
     </div>
   {% endif %}
 
@@ -122,6 +126,25 @@
   {% block scripts %}
     {{ super() }}
     <script>
+      let player
+      function onYouTubeIframeAPIReady() {
+        player = new YT.Player('youtubePlayer', {
+          events: {
+            'onReady': onPlayerReady,
+          }
+        });
+      }
+
+      function onPlayerReady(event) {
+        const transcriptSegments = document.querySelectorAll('span[data-start-time]');
+        transcriptSegments.forEach(segment => {
+          segment.addEventListener('click', function() {
+            const startTime = parseFloat(this.getAttribute('data-start-time'));
+            player.seekTo(startTime);
+          });
+        });
+      }
+
       document.addEventListener('DOMContentLoaded', function () {
         const tabClasses = 'inline-block p-4 rounded-t-lg border-b-2 border-transparent hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300'
         const activeTabClasses = 'inline-block p-4 text-blue-600 rounded-t-lg border-b-2 border-blue-600 active dark:text-blue-500 dark:border-blue-500'
@@ -159,6 +182,12 @@
         window.addEventListener('hashchange', function() {
           showTab(window.location.hash.substring(1))
         }, false);
+
+        // Load the YouTube IFrame Player API asynchronously
+        const tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        const firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
       })
     </script>
   {% endblock %}

@@ -1,0 +1,788 @@
+{
+  "speakers": {
+    "spk_0": "Luciano",
+    "spk_1": "Eoin"
+  },
+  "segments": [
+    {
+      "speakerLabel": "spk_0",
+      "start": 0,
+      "end": 4.9,
+      "text": " In episode 112, we talked about SCPs, or Service Control Policies."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 4.9,
+      "end": 11.8,
+      "text": " SCPs are about setting a maximum boundary for permissions in an account or in an organization unit within an organization."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 11.8,
+      "end": 16.740000000000002,
+      "text": " There is another kind of policy that is important to understand, and this is the Permission Boundary Policy."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 16.740000000000002,
+      "end": 20.7,
+      "text": " If you don't fully know how this works yet, you can run into all kinds of problems."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 20.7,
+      "end": 26.8,
+      "text": " But once you know, you have a tool that allows you to enforce further security, prevent something called privilege escalation,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 26.8,
+      "end": 29.6,
+      "text": " and overall will let you sleep a little bit better at night."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 29.6,
+      "end": 34.5,
+      "text": " Today, we will try our best to give you an effective introduction to the Permissions Boundary Policy."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 34.5,
+      "end": 38.6,
+      "text": " My name is Luciano and I'm joined by Eoin for another episode of AWS Bites podcast."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 45.900000000000006,
+      "end": 50.2,
+      "text": " AWS Bites is sponsored by fourTheorem. fourTheorem is an AWS consulting partner."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 50.2,
+      "end": 57.7,
+      "text": " So if you need help to start your journey on AWS or build ambitious projects on AWS, check us out at fourtheorem.com."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 57.7,
+      "end": 64.8,
+      "text": " Okay, back to the topic of Permission Boundary Policy, what it is, let's try to give a little bit of an overview."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 64.8,
+      "end": 68.7,
+      "text": " There are additional policies that can be attached assigned to identity policies."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 68.7,
+      "end": 76,
+      "text": " So what do we really mean by this? That means that we can attach them to IAM users, we can assign them to IAM users,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 76,
+      "end": 82.7,
+      "text": " we can assign to IAM roles, we can assign them to IAM Identity Center Permission Sets, which are still roles under the hood."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 82.7,
+      "end": 88.3,
+      "text": " But the idea that we need to clarify is that they don't really have an effect on resource based policies."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 88.3,
+      "end": 95.10000000000001,
+      "text": " So like SEPs, they never grant any permission, it's just another mechanism that allows you to set a maximum boundary"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 95.10000000000001,
+      "end": 99.2,
+      "text": " around all the possible permissions that you can have in a given account."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 99.2,
+      "end": 104.60000000000001,
+      "text": " So the question might be, if we already have SEPs, why do we have another thing in place?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 104.60000000000001,
+      "end": 108.30000000000001,
+      "text": " Why do they really exist? What is the use case for other kinds of policies?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 108.3,
+      "end": 116.1,
+      "text": " You might say that the reason for these permissions boundaries to exist is all to do with the whole idea of security shifting left."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 116.1,
+      "end": 122.5,
+      "text": " So what does that mean? Well, I suppose IT security used to be an area exclusively for operations teams to worry about."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 122.5,
+      "end": 130.6,
+      "text": " But the trend in recent years has been to shift left the responsibility so that development teams and architects are part of the approach to operations and security"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 130.6,
+      "end": 133.2,
+      "text": " and it becomes a collective responsibility."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 133.29999999999998,
+      "end": 139.6,
+      "text": " There's an understanding that in order to be productive now teams need more control over infrastructure and security"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 139.6,
+      "end": 142.39999999999998,
+      "text": " and don't just throw stuff over the wall to another team."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 142.39999999999998,
+      "end": 145.7,
+      "text": " This is really what the DevOps movement was all about."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 145.7,
+      "end": 149.7,
+      "text": " The approach really has the benefit of removing barriers and blockers to innovation."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 149.7,
+      "end": 156.6,
+      "text": " The other benefit of it is that you have greater awareness of security requirements and practices throughout the whole organization."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 156.6,
+      "end": 165.4,
+      "text": " So to shift security left you need to give teams power to administer things like IAM roles and maybe even users within their domain."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 165.4,
+      "end": 167.9,
+      "text": " But you also have to limit the potential risk, right?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 167.9,
+      "end": 174.29999999999998,
+      "text": " Before the introduction of permissions boundaries, if you gave a developer role the permission to create other roles,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 174.29999999999998,
+      "end": 178.9,
+      "text": " they could actually use that privilege to create a role with more permissions than they had themselves."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 178.9,
+      "end": 182.4,
+      "text": " And then they could just assume that role and become like a super user."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 182.4,
+      "end": 189.20000000000002,
+      "text": " That is what we call privilege escalation and it's something security admins would be very careful to avoid."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 189.20000000000002,
+      "end": 197.20000000000002,
+      "text": " So it's not just about escalation for developers, but obviously any attacker that might gain access to the developers credentials could do that as well."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 197.20000000000002,
+      "end": 203.5,
+      "text": " So then to explain how we prevent privilege escalation by using permissions boundaries, we might think of an example."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 203.5,
+      "end": 209.5,
+      "text": " So let's say Bob is a forward-thinking but security conscious AWS account administrator"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 209.5,
+      "end": 216.8,
+      "text": " and Bob wants to delegate IAM administration within a development account to Alice, Alice the developer,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 216.8,
+      "end": 219.7,
+      "text": " and giving Alice permissions to create roles within that account."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 219.7,
+      "end": 224.7,
+      "text": " And I think a lot of people hopefully have the experience of doing that as AWS developers."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 224.7,
+      "end": 232.4,
+      "text": " Ideally Bob would like to be able to give Alice the permissions to create, edit and remove roles and users within that account."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 232.4,
+      "end": 238.2,
+      "text": " But there are a couple of things you would prefer that Alice is not able to do either intentionally or accidentally."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 238.2,
+      "end": 245.6,
+      "text": " And those are things like Alice should not be able to update or delete her own role and its policies because that's managed by somebody else."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 245.6,
+      "end": 249.29999999999998,
+      "text": " Alice should not be able to update or delete roles that are created by the administrators"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 249.29999999999998,
+      "end": 254.1,
+      "text": " or be able to assume a role with greater privileges than Alice's own role."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 254.1,
+      "end": 260.7,
+      "text": " And Alice should also not be able to pass a role with elevated permissions to an AWS service."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 260.7,
+      "end": 269,
+      "text": " And if you think of an example, let's say you have a role exists and EC2 is a trusted service in its trust policy"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 269,
+      "end": 272.3,
+      "text": " and has the administrator access permissions policy attached."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 272.3,
+      "end": 278.7,
+      "text": " Alice might have permissions to start EC2 instances and could then specify this role as the instance's instance profile."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 278.7,
+      "end": 286.4,
+      "text": " And then Alice could then log on to that EC2 instance and perform actions that are not permitted by the role Alice has herself."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 286.4,
+      "end": 294.9,
+      "text": " So this pass role idea here with EC2 is also something you need to be careful of with privilege escalation."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 294.9,
+      "end": 300.09999999999997,
+      "text": " And this whole area is something that permissions boundaries are designed really specifically to help."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 300.09999999999997,
+      "end": 305.59999999999997,
+      "text": " So Luciano, would you like to describe how permissions boundaries are the solution to privilege escalation?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 305.59999999999997,
+      "end": 309.9,
+      "text": " Yeah, let's say that Bob now needs to fix this problem, right? What can I do?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 309.9,
+      "end": 316.09999999999997,
+      "text": " And the idea is that Bob can create a permission boundary policy, which is just a normal policy in AM."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 316.1,
+      "end": 325.70000000000005,
+      "text": " But it will allow him to restrict specific actions like create a role, but make sure that Alice must assign a permission boundary to it."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 325.70000000000005,
+      "end": 333.40000000000003,
+      "text": " So the idea again is that Alice will have a policy that permits her to create a role, but that role cannot be unconstrained."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 333.40000000000003,
+      "end": 341.3,
+      "text": " It needs to have a very specific constraint, which is it needs to allow to assign specifically this particular permission boundary to that role that was created."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 341.3,
+      "end": 348,
+      "text": " Then, of course, it denies the ability to update or delete role when that particular role is managed by the administrator."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 348,
+      "end": 353.40000000000003,
+      "text": " So it's kind of sealing the role in that way. It denies changes to the boundary policy itself."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 353.40000000000003,
+      "end": 359.5,
+      "text": " So it's also sealing the boundary policy. And then it denies the deletion of centrally managed policies."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 359.5,
+      "end": 366.5,
+      "text": " Finally, also prevents IAM pass role with a role that doesn't have the same permission boundary."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 366.5,
+      "end": 373.8,
+      "text": " So again, it's just trying to make sure that the permission boundary is kind of a common denominator in all the roles that are managed this way."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 373.8,
+      "end": 381,
+      "text": " And pass role is what mentioned that is a special IAM action that doesn't have any specific API call associated to it in the SDK."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 381,
+      "end": 388.5,
+      "text": " It's just another way to prevent privilege escalation by basically defining or controlling who can pass a specific role to an AWS service."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 388.5,
+      "end": 397.5,
+      "text": " So you have a way to express this concept of an entity passing a role to another AWS service, and therefore create restrictions around that particular action."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 397.5,
+      "end": 403.9,
+      "text": " Now, when Alice creates a role, she can basically give it whatever permission makes sense for the particular context."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 403.9,
+      "end": 414.8,
+      "text": " She also has to set the permission boundary on this role to the REN of the boundary policy set by Bob, which basically means that the policy itself will follow whatever the boundary policy is limiting."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 415.3,
+      "end": 418.3,
+      "text": " And this will restrict the action that the role can perform."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 418.3,
+      "end": 421.90000000000003,
+      "text": " So Bob at this point can say you cannot spin up an EC2 instance."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 421.90000000000003,
+      "end": 427.3,
+      "text": " And at that point, this way, the new role is in editing that limit action."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 427.3,
+      "end": 434.90000000000003,
+      "text": " And this is also going to prevent elevation of permissions or messing up with the roles in ways that were not intended for."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 434.90000000000003,
+      "end": 437.40000000000003,
+      "text": " Now, what are the disadvantages of boundary policies?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 437.4,
+      "end": 446.9,
+      "text": " Because it seems like they solve a very interesting problem that might happen, and it might be very tricky to even realize that you might have this vulnerability in your AWS architecture."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 446.9,
+      "end": 451.7,
+      "text": " But is there anything else that we would need to be concerned when it comes to boundary policies?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 459.29999999999995,
+      "end": 466.59999999999997,
+      "text": " Yeah, they're quite a nice thing to be able to allow somebody the freedom to create a role with a policy like administrator access attached, and then worry that you still got some boundary that would prevent them from doing really serious things like privilege escalation."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 466.6,
+      "end": 468.70000000000005,
+      "text": " But there are, like you say, some disadvantages."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 468.70000000000005,
+      "end": 475.6,
+      "text": " And really, it comes down to the fact that you have to attach them everywhere you create a role or a user if you want to use them effectively."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 475.6,
+      "end": 477.20000000000005,
+      "text": " And that can become a little bit of friction."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 477.20000000000005,
+      "end": 485.1,
+      "text": " It's just an extra step when you create that role and you have to remember, oh, what is the ARN of this permissions boundary I'm supposed to attach everywhere now."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 485.1,
+      "end": 490.20000000000005,
+      "text": " It's easy enough to do in the AWS console, or with CloudFormation and Terraform."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 490.20000000000005,
+      "end": 494,
+      "text": " Some tools, however, make it a bit of a pain."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 494,
+      "end": 499.4,
+      "text": " There are a lot of serverless framework plugins that create roles implicitly, just for convenience."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 499.4,
+      "end": 506.9,
+      "text": " But a lot of them don't really have good support for permissions boundaries, or they've got inconsistent support for attaching boundary policies."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 506.9,
+      "end": 514.8,
+      "text": " And I've had the case in the past where I was working in an environment where I was explicitly forced to use permissions boundary policies."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 514.8,
+      "end": 522.1,
+      "text": " But I ended up having to define that in like three or four different configuration formats in the one serverless YAML file just to get it working."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 522.1,
+      "end": 526.6,
+      "text": " And in other cases, you might have to do some hacky stuff if it doesn't support the boundary policy."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 526.6,
+      "end": 530.8000000000001,
+      "text": " So I think most tools are getting better at it, but it can be inconvenient."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 530.8000000000001,
+      "end": 531.8000000000001,
+      "text": " So just watch out for that."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 531.8000000000001,
+      "end": 538,
+      "text": " Another thing is that having multiple policy types in your organization, like we talked about SEPs, now we're talking about boundary policies."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 538,
+      "end": 547.6,
+      "text": " You've got resource based policies and endpoint policies, as well as the principal policies, and having permissions defined in all these different places can make troubleshooting more complicated."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 547.6,
+      "end": 551.1,
+      "text": " Luckily, the IAM policy simulator can help with this."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 551.1,
+      "end": 557.4,
+      "text": " I think we mentioned in the SCP episode is that we mentioned the fact that the policy simulator wasn't great for SCP errors,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 557.4,
+      "end": 563.8000000000001,
+      "text": " but it is good at pointing out where permissions boundary policies are restricting you from performing an action."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 563.8000000000001,
+      "end": 567,
+      "text": " Boundary policies can be abused as well, have become too fine grained."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 567,
+      "end": 574.1,
+      "text": " Like service control policies, they should really only be used for broad permissions and really not much more than privilege escalation."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 574.1,
+      "end": 579.8000000000001,
+      "text": " Otherwise, they'll become very maintainable and really slow productivity down, which is not what you want."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 579.8,
+      "end": 583.0999999999999,
+      "text": " But maybe as a quick aside, Luciano, we keep talking about Bob and Alice."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 583.0999999999999,
+      "end": 587.6999999999999,
+      "text": " Can you explain to the audience and to us who are Bob and Alice in the first place?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 587.6999999999999,
+      "end": 595.9,
+      "text": " Yeah, I think if you have done any cryptography at college or in general, because maybe you like to read this kind of stuff, you might have come across Bob and Alice."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 595.9,
+      "end": 600.5999999999999,
+      "text": " But there is an interesting story behind it, and I think it might be nice to just mention it."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 600.6,
+      "end": 610,
+      "text": " And basically the idea is that when people were trying to describe cryptographic algorithms, you generally have at least two entities and they were called A and B."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 610,
+      "end": 613.1,
+      "text": " So Alice and Bob are kind of an evolution of that."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 613.1,
+      "end": 619.3000000000001,
+      "text": " That was introduced by Rivest, Shamir and Adleman when they wrote the famous RSA encryption paper."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 619.3000000000001,
+      "end": 622.4,
+      "text": " Rather than just using A and B, they introduced Alice and Bob."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 622.4,
+      "end": 629.1,
+      "text": " So they kind of created characters, which was, I guess, something interesting to do in a scientific paper."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 629.1,
+      "end": 634,
+      "text": " But it was well received by the community to the point that everyone is doing that now."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 634,
+      "end": 639.1,
+      "text": " And there are also interesting side stories that gets created around the life of Alice and Bob."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 639.1,
+      "end": 643.6,
+      "text": " And we will have a link in the show notes if you're curious to look more into that."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 643.6,
+      "end": 651.2,
+      "text": " So these papers can be fascinating because sometimes you have this kind of Easter eggs that end up becoming kind of a standard across the entire literature."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 651.2,
+      "end": 652.9,
+      "text": " OK, what is the summary for today?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 652.9,
+      "end": 662.6,
+      "text": " So today we try to give developers a way to control IAM to some degree while still retaining administrative permission."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 662.6,
+      "end": 667.5,
+      "text": " So we want to give freedom to developers to be able to set the permissions that make sense to them."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 667.5,
+      "end": 674.1999999999999,
+      "text": " But of course, there needs to be a boundary somewhere so we can use these new tools that we talked about today."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 674.1999999999999,
+      "end": 677.1999999999999,
+      "text": " And this also allows us to prevent privileged escalation."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 677.2,
+      "end": 685.3000000000001,
+      "text": " So if you set them up correctly, they will help you to make sure that as a user, while you still have all the freedom that you need to do your job as a developer,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 685.3000000000001,
+      "end": 693.8000000000001,
+      "text": " then you still are not going to be able to do something nasty and escalate permission and suddenly become an administrator or delete things that you were not supposed to delete."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 693.8000000000001,
+      "end": 697,
+      "text": " So permission boundaries are the way to achieve all of this."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 697,
+      "end": 705.5,
+      "text": " And also the concept of IAM pass role is very important to understand to really master how to craft permission boundaries and how to use them."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 705.5,
+      "end": 712.2,
+      "text": " The idea again is don't abuse them, keep them at very high level and mostly focus on the privileged escalation use case."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 712.2,
+      "end": 715.9,
+      "text": " If you try to be over specific, it's going to become very, very hard to maintain them."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 715.9,
+      "end": 723.4,
+      "text": " And you will always have tickets opened against you as an administrator because somebody needs to do something and suddenly they don't have the right permission to do it."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 723.4,
+      "end": 726.1,
+      "text": " And that will slow down the entire development chain."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 726.1,
+      "end": 728.6,
+      "text": " So just be very aware of all of that."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 728.6,
+      "end": 731,
+      "text": " And this brings to the end of this episode."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 731,
+      "end": 737.5,
+      "text": " I hope you found it interesting and I hope that complements all the other episodes that cover permissions and IAM and policies."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 737.5,
+      "end": 750.6,
+      "text": " And hopefully we are giving you over time a good overview of what are the best practices or the tools that you need to use to really put your AWS accounts under control and make sure you have proper security and power permissions set up."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 750.6,
+      "end": 755.8,
+      "text": " If you have any other suggestions on topics that we might cover, just let us know."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 755.8,
+      "end": 762.6999999999999,
+      "text": " Or if you have any interesting story around SCPs or boundary policies, also something we'd like to know and maybe talk about."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 762.6999999999999,
+      "end": 765.3,
+      "text": " Thank you very much and we'll see you in the next episode."
+    }
+  ]
+}

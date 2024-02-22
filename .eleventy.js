@@ -85,7 +85,6 @@ module.exports = function (eleventyConfig) {
 
   eleventyConfig.addNunjucksAsyncFilter('youtubePreview', function (id, episodeUrl, cb) {
     (async () => {
-      console.log('youtubePreview', id, episodeUrl)
       const folderDest = path.join('dist', episodeUrl)
       const dest = path.join('dist', episodeUrl, 'og_image.jpg')
       const exists = await fs.stat(dest).then(() => true).catch(() => false)

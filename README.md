@@ -4,7 +4,7 @@
 [![Netlify Status](https://api.netlify.com/api/v1/badges/8a203404-ec39-4d29-902f-83a51705af00/deploy-status)](https://app.netlify.com/sites/boring-bohr-998eda/deploys)
 
 
-Static website source code for [awsbites.com](https://awsbites.com).
+Static website source code for [awsbites.com](https://awsbites.com). 
 
 ## Requirements
 

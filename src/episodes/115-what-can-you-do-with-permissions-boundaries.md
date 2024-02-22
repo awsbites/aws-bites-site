@@ -3,7 +3,7 @@ episode: 115
 title: "What can you do with Permissions Boundaries?"
 youtube_id: "wqrjjdJBiDo"
 spotify_link: "https://podcasters.spotify.com/pod/show/aws-bites/episodes/115--What-can-you-do-with-Permissions-Boundaries-e2g20kj"
-publish_date: 2024-02-22
+publish_date: 2024-02-23
 ---
 
 In this episode, we discuss Permission Boundary policies in AWS IAM. A permissions boundary is an advanced feature in which you set the maximum permissions that an identity-based policy can grant to an IAM entity. When you set a permissions boundary for an entity, the entity can perform only the actions allowed by its identity-based policies and its permissions boundaries.

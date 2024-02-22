@@ -83,10 +83,10 @@ module.exports = function (eleventyConfig) {
     return now
   })
 
-  eleventyConfig.addNunjucksAsyncFilter('youtubePreview', function (id, cb) {
+  eleventyConfig.addNunjucksAsyncFilter('youtubePreview', function (id, episodeUrl, cb) {
     (async () => {
-      const folderDest = path.join('dist', this.ctx.page.url)
-      const dest = path.join('dist', this.ctx.page.url, 'og_image.jpg')
+      const folderDest = path.join('dist', episodeUrl)
+      const dest = path.join('dist', episodeUrl, 'og_image.jpg')
       const exists = await fs.stat(dest).then(() => true).catch(() => false)
 
       if (!exists) {
@@ -99,8 +99,8 @@ module.exports = function (eleventyConfig) {
         let imageStream = createReadStream(path.join(__dirname, 'src', '_includes', 'static', 'awsbites-og.png'))
 
         try {
-          // trying to dowload this image from youtube before the video is actually published will give us
-          // a 404. If that's the case we don't want to break the build, in this case we will use a default image
+          // trying to download this image from YouTube before the video is actually published will give us
+          // a 404. If that's the case, we don't want to break the build, so we will use a default image
           const url = `https://i.ytimg.com/vi/${id}/maxresdefault.jpg`
           const response = await axios.get(url, { responseType: 'stream' })
           imageStream = response.data
@@ -111,8 +111,7 @@ module.exports = function (eleventyConfig) {
         await pipeline(imageStream, transform, destFile)
         console.log(`Created ${dest}`)
       }
-
-      return `https://awsbites.com${path.join(this.ctx.page.url, 'og_image.jpg')}`
+      return `https://awsbites.com${path.join(episodeUrl, 'og_image.jpg')}`
     })().then((url) => cb(null, url)).catch(cb)
   })
 

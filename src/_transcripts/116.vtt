@@ -1,0 +1,581 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:04.720
+Sharing is caring and if you are following the current best practices of using multiple AWS
+
+2
+00:00:04.720 --> 00:00:09.200
+accounts, you'll end up having to share resources between accounts. For some things, you might be
+
+3
+00:00:09.200 --> 00:00:14.640
+able to use resource-based policies to grant access or assume a role in the target account.
+
+4
+00:00:14.640 --> 00:00:19.920
+This isn't suitable for everything, however, but luckily there is another way. Today, we are going
+
+5
+00:00:19.920 --> 00:00:24.960
+to chat about Resource Access Manager and by the end of the episode, you should know what it does
+
+6
+00:00:25.040 --> 00:00:30.160
+and how to use it. I'm Eoin, as always, I'm here with Luciano and this is AWS Bites.
+
+7
+00:00:38.240 --> 00:00:43.680
+AWS Bites is brought to you by fourTheorem, the AWS partner who works with you to build successful
+
+8
+00:00:43.680 --> 00:00:49.920
+projects in the cloud. Check us out at fourtherem.com. Luciano, maybe you can start and tell us all
+
+9
+00:00:50.480 --> 00:00:53.840
+what kind of problems is Resource Access Manager designed to solve?
+
+10
+00:00:53.840 --> 00:01:00.480
+Yes.
+
+11
+00:01:00.480 --> 00:01:05.520
+So AWS Resource Access Manager or RAM, which is not to be confused with random access memory, by the way, it's the same acronym. So this is a tool that is designed to solve the problem of
+
+12
+00:01:05.520 --> 00:01:11.920
+securely sharing AWS resources across different AWS accounts within an organization or even with
+
+13
+00:01:11.920 --> 00:01:18.320
+external organizations. It is basically designed to do this while it tries to reduce the cost
+
+14
+00:01:18.320 --> 00:01:23.360
+by eliminating, for instance, resource duplications. You can simplify centralized
+
+15
+00:01:23.360 --> 00:01:28.320
+access to resources and it can achieve security and compliance. So RAM allows you to share
+
+16
+00:01:28.320 --> 00:01:34.880
+resources with, as I said, AWS accounts, including the ones outside or inside the organization.
+
+17
+00:01:34.880 --> 00:01:39.120
+It can also share resources with accounts in a specific organization. So depending on the resource
+
+18
+00:01:39.120 --> 00:01:44.960
+type, you can share things with, for instance, the organization itself and organization units with
+
+19
+00:01:44.960 --> 00:01:50.480
+all the accounts inside of it or specific accounts. And you can also share resources with
+
+20
+00:01:50.480 --> 00:01:55.920
+identities like users, roles. The pricing is interesting because effectively there is no
+
+21
+00:01:55.920 --> 00:02:01.600
+additional costs. You only pay for the services that you are actually sharing. So you are creating
+
+22
+00:02:01.600 --> 00:02:07.360
+resources that you share and you're going to be paying for those resources. Now, what are some of
+
+23
+00:02:07.360 --> 00:02:13.680
+the use cases? The most common one you're likely to come across with RAM is VPC subnet sharing.
+
+24
+00:02:13.680 --> 00:02:19.600
+Now, before Resource Access Manager, VPCs in different accounts, if you wanted to share them,
+
+25
+00:02:19.600 --> 00:02:25.120
+it generally meant using something like VPC peering or transit gateway. If you share subnets
+
+26
+00:02:25.120 --> 00:02:32.240
+in a VPC with RAM accounts, then get access to implicit routing in that VPC. So if you have a
+
+27
+00:02:32.240 --> 00:02:37.440
+VPC in the owner account, you share it with participants and participating accounts, then
+
+28
+00:02:37.440 --> 00:02:43.360
+they can use that subnet and it allows them to implicitly route within other resources already
+
+29
+00:02:43.360 --> 00:02:48.800
+in that VPC. The IP address allocation then within the centrally managed subnets
+
+30
+00:02:48.800 --> 00:02:55.360
+can be managed by a network team. So that's one of the advantages of this shared services VPC model.
+
+31
+00:02:55.360 --> 00:03:01.200
+Accounts with access to the shared resource then can access databases or VPC endpoints or other
+
+32
+00:03:01.200 --> 00:03:07.440
+servers running in the subnets. So how does it work? Well, if you've got this shared services
+
+33
+00:03:07.440 --> 00:03:13.040
+account, you create your VPCs and subnets in it, then you share the subnets with other accounts.
+
+34
+00:03:13.360 --> 00:03:18.720
+Within an organization and participants can then see those shared subnets in their account.
+
+35
+00:03:18.720 --> 00:03:25.040
+Now let's go back to the resource owner account. If they start an EC2 instance in the shared VPC,
+
+36
+00:03:25.040 --> 00:03:29.360
+only they can see it. You're not sharing all of the things in the subnet per se.
+
+37
+00:03:30.080 --> 00:03:35.280
+Participants can't make networking changes. So only the owner can make changes to the subnets,
+
+38
+00:03:35.840 --> 00:03:41.520
+but participants can provision resources they own into shared subnets. Like they can start
+
+39
+00:03:41.520 --> 00:03:47.520
+their own EC2 instances in the account in the shared subnet. The participant will then own the
+
+40
+00:03:47.520 --> 00:03:54.880
+EC2 instance, even though the shared owner account owns the subnet. I suppose it's worth saying that
+
+41
+00:03:54.880 --> 00:03:59.440
+sharing subnets is very different solution to using VPC peering and Transit Gateway.
+
+42
+00:03:59.440 --> 00:04:04.560
+And you might use them in combination actually, because sharing with RAM means that you have
+
+43
+00:04:04.560 --> 00:04:09.680
+access to an existing subnet. It doesn't really provide any additional routing. It just allows
+
+44
+00:04:09.680 --> 00:04:15.040
+you to launch resources into existing subnets. If you wanted to have routing into this shared
+
+45
+00:04:15.040 --> 00:04:21.360
+services VPC, you still need to do something like VPC peering or use Transit Gateway to route from
+
+46
+00:04:21.360 --> 00:04:27.360
+one VPC to another, just like you do between any two VPCs. So RAM is not a routing solution,
+
+47
+00:04:28.400 --> 00:04:33.040
+and that's something to be aware of, but you can combine it with things like Transit Gateway and
+
+48
+00:04:33.040 --> 00:04:38.720
+peering. So that's the most common use case, I think, VPC sharing. Apart from networking,
+
+49
+00:04:38.720 --> 00:04:43.440
+there are many other things you can share with RAM. AppSync APIs are one thing. There's code
+
+50
+00:04:43.440 --> 00:04:48.480
+build projects. You can share capacity reservations, which is interesting for
+
+51
+00:04:48.480 --> 00:04:55.120
+optimizing compute capacity costs. You can share FSX volumes. You can share GLUE catalogs, tables,
+
+52
+00:04:55.120 --> 00:05:02.960
+and databases. So if you've got these catalogs in GLUE for access to data on S3, you can share it
+
+53
+00:05:02.960 --> 00:05:07.680
+this way rather than having to duplicate those resources in many accounts. If you have a private
+
+54
+00:05:07.680 --> 00:05:13.360
+certificate authority with the AWS Private CA, you can share that too. One of the things that
+
+55
+00:05:13.360 --> 00:05:19.040
+one of our colleagues, Connor, wrote an article about was using RAM to share Aurora databases.
+
+56
+00:05:19.040 --> 00:05:22.720
+So he has a really good blog post on that. We're going to link that in the show notes.
+
+57
+00:05:22.720 --> 00:05:29.520
+Another topic for where we wrote a blog was VPC lattice. And VPC lattice is a really cool topic.
+
+58
+00:05:29.520 --> 00:05:33.920
+And if you haven't discovered it or haven't seen our previous episode, I'd recommend you check it
+
+59
+00:05:33.920 --> 00:05:40.400
+out because it leverages RAM highly to share services and service networks. We have the episode
+
+60
+00:05:40.400 --> 00:05:44.560
+on that. We have a blog post, and we have a sample application code. And the links for all three will
+
+61
+00:05:44.560 --> 00:05:50.000
+be in the show notes. Transit gateways themselves are things you can share with RAM. And hot off the
+
+62
+00:05:50.000 --> 00:05:56.320
+press, there is a new resource since last week only, I believe, which is sharing Systems Manager
+
+63
+00:05:56.320 --> 00:06:02.160
+Parameter Store parameters, otherwise known as SSM parameters. This is something which people have
+
+64
+00:06:02.160 --> 00:06:06.400
+been very excited about to hear because previously, you would really have to replicate those
+
+65
+00:06:06.400 --> 00:06:11.200
+parameters. And there wasn't any way to share them across account. Now, if you've got parameters,
+
+66
+00:06:11.200 --> 00:06:18.000
+let's say for custom AMI for an EC2 instance, and you want to share that across multiple accounts,
+
+67
+00:06:18.000 --> 00:06:23.520
+everybody can discover the latest version of the AMI. You can now do that with parameter store.
+
+68
+00:06:23.520 --> 00:06:28.720
+There's a couple of gotchas to know with SSM parameter sharing. It only works for advanced
+
+69
+00:06:28.720 --> 00:06:33.600
+tier ones. So those are, I'm afraid, the more expensive ones, about $0.05 a month each.
+
+70
+00:06:34.160 --> 00:06:39.040
+It doesn't work for the standard tier, which is the free option. So it definitely seems like AWS
+
+71
+00:06:39.040 --> 00:06:42.640
+slipped up in allowing that standard tier to be free. And they're just trying to push all
+
+72
+00:06:42.640 --> 00:06:46.800
+of the features into the advanced tier from now on as a correction measure.
+
+73
+00:06:47.920 --> 00:06:51.120
+Luciano, those are some of the use cases. There are other services you can share with
+
+74
+00:06:51.120 --> 00:06:55.120
+RAM. You can check out the full list in the link in the show notes. But let's say people
+
+75
+00:06:55.200 --> 00:06:59.440
+want to use it. How do you get started?
+
+76
+00:06:59.440 --> 00:07:05.920
+Yes. So there are a few steps that you need to follow. So first of all, you need to create a resource share in Resource Access Manager.
+
+77
+00:07:05.920 --> 00:07:12.320
+And by default, every account you share with, so you share something with an account, that account
+
+78
+00:07:12.320 --> 00:07:17.120
+receives an invitation. And to avoid this, you can also enable sharing with the entire AWS
+
+79
+00:07:17.120 --> 00:07:23.200
+organization in the AWS Management Console. Normally, owner accounts have full access control
+
+80
+00:07:23.840 --> 00:07:28.720
+and the shared principles have limited subset of permission. So again, it's still the idea that
+
+81
+00:07:28.720 --> 00:07:35.200
+you are not giving up ownership. You are just allowing another account to see those resources
+
+82
+00:07:35.200 --> 00:07:39.120
+and use them in different ways, depending on the type of resource. When you create a share,
+
+83
+00:07:39.120 --> 00:07:43.760
+you need to specify a few different things. First of all, the resource type, for instance,
+
+84
+00:07:43.760 --> 00:07:50.240
+is it a subnet? Is it a blue catalog? Is it an SSM parameter or something else? Then you see the
+
+85
+00:07:50.240 --> 00:07:55.920
+list of the resources of that type and you can pick the specific resources that you want to share
+
+86
+00:07:55.920 --> 00:08:02.320
+on that list. And then you need to define the permissions that the recipients will get on the
+
+87
+00:08:02.320 --> 00:08:07.760
+resources you have selected. And this will be either AWS Managed Permission or for some resources,
+
+88
+00:08:07.760 --> 00:08:13.200
+you can even create your own custom managed permissions. Each resource type has different
+
+89
+00:08:13.200 --> 00:08:18.480
+options for sharing within RAM and the supported options vary depending on the resource type.
+
+90
+00:08:18.480 --> 00:08:24.080
+Options can be things like whether you can share with an account outside the organization or you
+
+91
+00:08:24.080 --> 00:08:29.040
+are maybe limited only to the account inside the specific organization. Whether you can share with
+
+92
+00:08:29.040 --> 00:08:34.800
+IAM users and roles, whether you can share with AWS Service Principles or whether you can use
+
+93
+00:08:34.800 --> 00:08:40.400
+custom managed permissions. So again, there is a guided process if you use the AWS Console and as
+
+94
+00:08:40.400 --> 00:08:45.200
+you go through, you will see different screens and different options depending on the resources that
+
+95
+00:08:45.200 --> 00:08:50.720
+you have selected. We will link to the documentation for more details just to get a better overview of
+
+96
+00:08:50.720 --> 00:08:55.440
+what's possible, which resources can be shared and what options are available for every resource.
+
+97
+00:08:55.440 --> 00:08:59.680
+But just to give you an example, if you want to share a subnet, all of the options that we
+
+98
+00:08:59.680 --> 00:09:04.480
+mentioned are not available for this particular resource. What you cannot do, for instance, you
+
+99
+00:09:04.480 --> 00:09:09.760
+cannot share with accounts outside the organization. So if you're sharing a subnet, that's going to be
+
+100
+00:09:09.760 --> 00:09:14.240
+available only for the accounts inside your organization. You cannot share a subnet with
+
+101
+00:09:14.240 --> 00:09:20.000
+specific IAM users and roles, and you cannot share it with Service Principles. And you have to use
+
+102
+00:09:20.000 --> 00:09:27.200
+default AWS Managed Permissions. So effectively, you can allow participants to launch instances
+
+103
+00:09:27.200 --> 00:09:33.120
+within the subnet, create EIPs and things like that that are predefined in AWS. You cannot really
+
+104
+00:09:33.120 --> 00:09:40.720
+just create your own set of permissions and decide in a fine-grained way what people can do with that subnet.
+
+105
+00:09:40.720 --> 00:09:45.680
+I guess you could, if you wanted to restrict that, use a Service Control Policy. One of the things we
+
+106
+00:09:45.680 --> 00:09:49.840
+talked about recently, if you wanted to narrow down those permissions, but I don't know what
+
+107
+00:09:49.840 --> 00:09:54.800
+your reason for that might be, maybe people can give some suggestions.
+
+108
+00:09:54.800 --> 00:10:01.600
+Yeah, that's a really good point. But I guess the next question would be, once you share something from the ownership side,
+
+109
+00:10:01.600 --> 00:10:06.800
+so you are sharing from a specific account, what would that look like from the participant side?
+
+110
+00:10:06.800 --> 00:10:12.400
+So whoever is receiving access to that particular resource or set of resources.
+
+111
+00:10:12.400 --> 00:10:17.920
+Yeah, so from the participant side, then if you go into RAM, you'll get a complete overview of all the shares and the
+
+112
+00:10:17.920 --> 00:10:22.640
+resources shared within your account. So you can see what people have shared with you. And then
+
+113
+00:10:22.640 --> 00:10:29.040
+when you go to see specific resources, like if you go into the VPC console, select a subnet, you will
+
+114
+00:10:29.040 --> 00:10:33.440
+see the owner account column in the table. And you can see that the owner account is a different
+
+115
+00:10:33.440 --> 00:10:39.280
+identifier than your account. And that's how you know it's an externally managed resource. If you
+
+116
+00:10:39.280 --> 00:10:45.120
+share subnets, you can also see the associated VPC in the VPC console, which is maybe a little
+
+117
+00:10:45.120 --> 00:10:51.040
+bit unexpected, because you haven't explicitly shared the VPC itself. The VPC as a thing is not
+
+118
+00:10:51.040 --> 00:10:58.400
+a shareable resource with RAM. And participants can tag resources with separate tags to the shared
+
+119
+00:10:58.400 --> 00:11:03.200
+resource, which is also probably unexpected, because you might expect that tags are an
+
+120
+00:11:03.200 --> 00:11:08.720
+implicit part of the resource. But tags are almost like a separate resource that's linked to the
+
+121
+00:11:08.720 --> 00:11:15.280
+subnet itself. So when you share a subnet, you don't share the tags, you can give us new tags in
+
+122
+00:11:15.280 --> 00:11:21.200
+the participant account. Another unexpected thing you might see when you start sharing subnets
+
+123
+00:11:21.200 --> 00:11:29.840
+across accounts is that you might share a subnet in us-east-1a, right, availability zone. And when
+
+124
+00:11:29.840 --> 00:11:35.440
+you look at it in the participant account, you might see that it's called us-east-1b. And you
+
+125
+00:11:35.440 --> 00:11:40.240
+will wonder what that's all about, and how they seem to have moved from a different data center
+
+126
+00:11:40.240 --> 00:11:45.200
+to one 30 miles away. And the reason for that, you may know, but in case you don't, it's worth
+
+127
+00:11:45.200 --> 00:11:52.320
+stating it. When you create a new AWS account, AWS randomly assigns these availability zone labels
+
+128
+00:11:52.880 --> 00:12:00.000
+to you in a just in a randomized way. So everybody's US East 1A may be different. And if you
+
+129
+00:12:00.000 --> 00:12:05.920
+want to see if they're actually in the same AZ, there's another identifier called the AZ ID. And
+
+130
+00:12:05.920 --> 00:12:14.560
+this has a format like EUW1-AZ2. And these are physical AZ identifiers, and they do not change
+
+131
+00:12:14.560 --> 00:12:19.280
+per account. So the whole idea with randomizing them is they don't want everybody to just pick
+
+132
+00:12:19.280 --> 00:12:24.080
+the first AZ when they're launching something, and then have unbalanced load across their
+
+133
+00:12:24.080 --> 00:12:30.240
+availability zones. So that's why to randomize them. If you are using availability zones names,
+
+134
+00:12:30.240 --> 00:12:34.640
+then remember, they don't necessarily line up from account to account. I think one thing you
+
+135
+00:12:34.640 --> 00:12:39.840
+mentioned as well Luciano, which is worth highlighting again, is that sharing within an
+
+136
+00:12:39.840 --> 00:12:44.320
+organization, if you want to make it easier, in fact, for some resources, you have to do this
+
+137
+00:12:44.320 --> 00:12:50.240
+anyway. So it's probably worthwhile doing it, you just go into RAM in the management account,
+
+138
+00:12:50.240 --> 00:12:55.200
+and enable sharing inside the organization. And then when you share resources, the acceptance is
+
+139
+00:12:55.200 --> 00:13:00.640
+automatic, the participating accounts don't have to accept an invitation. So I think RAM is pretty
+
+140
+00:13:00.640 --> 00:13:06.960
+powerful. It's probably a lot less complex than using resource policies or assume role for a lot
+
+141
+00:13:06.960 --> 00:13:12.320
+of different services. And it avoids you having to duplicate resources and change identity as you
+
+142
+00:13:12.320 --> 00:13:17.200
+have to with assume role. And I think that's all we have for today on Resource X as Manager.
+
+143
+00:13:17.200 --> 00:13:21.600
+Let us know what you think. If you have any other neat uses for it. Apart from that, don't forget
+
+144
+00:13:21.600 --> 00:13:26.240
+to share the podcast or the YouTube channel with your friends and colleagues. So thanks very much
+
+145
+00:13:26.240 --> 00:13:34.880
+for listening again, and we'll catch you in the next episode.

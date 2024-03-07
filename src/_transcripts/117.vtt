@@ -1,0 +1,997 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:04.800
+If you have run an EC2 instance on AWS, you are very likely to have used EBS storage.
+
+2
+00:00:04.800 --> 00:00:09.280
+Storage may be a dual topic, but if you scratch under the surface, EBS is actually a bit of a
+
+3
+00:00:09.280 --> 00:00:13.840
+technical partner. Its design is even based on the Portuguese Man O' War, (not the metal band),
+
+4
+00:00:13.840 --> 00:00:20.240
+but a stinging jellyfish-like sea animal. We'll try and explain why and explain why EBS
+
+5
+00:00:20.240 --> 00:00:26.080
+is an understated genius amongst AWS offering. This is AWS Bites and Luciano, joined today by Eoin.
+
+6
+00:00:30.000 --> 00:00:38.960
+AWS Bites is brought to you by fourTheorem, an AWS partner that does cloud stuff in a really,
+
+7
+00:00:38.960 --> 00:00:44.080
+really good way. Go to fourtheorem.com to read about our case studies and feel free to reach out to us.
+
+8
+00:00:44.080 --> 00:00:49.120
+So if you use EC2, you're going to need some sort of storage, something like a disk drive or a
+
+9
+00:00:49.120 --> 00:00:54.320
+remote storage, and you would use some kind of physical server that needs to store information,
+
+10
+00:00:54.320 --> 00:01:00.320
+of course. Some instances support what they call instance store, which is something that is
+
+11
+00:01:00.320 --> 00:01:05.200
+physically attached to the instance itself, which is also really fast, but they are also ephemeral,
+
+12
+00:01:05.200 --> 00:01:09.840
+which means it's temporary storage. So if your instance gets stopped, terminated or hibernated,
+
+13
+00:01:09.840 --> 00:01:15.040
+all the data gets lost. So for these reasons, they are very good for cases where you need fast access
+
+14
+00:01:15.040 --> 00:01:20.160
+but not persistent data like caches or temporary storage. But for almost everything else, imagine
+
+15
+00:01:20.160 --> 00:01:25.840
+you have databases or files that you need to keep around, there is something that's called EBS,
+
+16
+00:01:25.840 --> 00:01:30.800
+Elastic Block Storage. So what is really EBS? Eoin, do you want to try to take a stab at it?
+
+17
+00:01:30.800 --> 00:01:34.720
+It might be worthwhile starting with block storage. What is block storage? It's used by
+
+18
+00:01:34.720 --> 00:01:40.800
+physical disks as well as SANs, so storage area networks. And with a block store, data is stored
+
+19
+00:01:40.800 --> 00:01:46.000
+in fixed sized blocks. That's how it gets its name. If you imagine old school traditional spinning
+
+20
+00:01:46.000 --> 00:01:51.040
+disks, these blocks related to physical sectors, and then with software or network-based storage,
+
+21
+00:01:51.040 --> 00:01:55.280
+dividing a storage volume into blocks can actually be used to achieve resilience and performance if
+
+22
+00:01:55.280 --> 00:01:59.920
+you optimize how those blocks are read and written. So when you create a file system on top of a block
+
+23
+00:01:59.920 --> 00:02:03.840
+storage device, file reads and writes are translated to reads and writes of individual
+
+24
+00:02:03.840 --> 00:02:09.440
+blocks. And the volume might also have some form of caching built in. So what about EBS then? Well,
+
+25
+00:02:09.440 --> 00:02:13.680
+EBS is a kind of block store, hence the name, and it's a service that allows you to create
+
+26
+00:02:13.680 --> 00:02:19.840
+storage volumes in AWS that can be attached to EC2 instances. And now actually ECS containers. So
+
+27
+00:02:19.840 --> 00:02:23.520
+we'll talk a little bit about that later. The volumes themselves exist independently of the
+
+28
+00:02:23.520 --> 00:02:29.200
+EC2 instances. So they can be detached and reattached to other instances. And they give you
+
+29
+00:02:29.200 --> 00:02:33.920
+a really good performance. They also give you different options so you can balance the cost and
+
+30
+00:02:33.920 --> 00:02:40.000
+performance factors. In terms of size, they can go from one gigabyte all the way up to 64 terabytes.
+
+31
+00:02:40.000 --> 00:02:44.080
+And that's just for a single volume. So you can also have multiple volumes and you can even use
+
+32
+00:02:44.080 --> 00:02:49.040
+things like RAID to create arrays of volumes. You can also easily change volume types. So you've
+
+33
+00:02:49.040 --> 00:02:54.160
+got elastic options with EBS as well. You can change the type, the size, as well as other
+
+34
+00:02:54.160 --> 00:02:59.840
+features. Volumes can even be resized dynamically without any downtime on attached instances,
+
+35
+00:02:59.840 --> 00:03:04.080
+which is pretty cool. Now they're encrypted. And one of the amazing things about them is that
+
+36
+00:03:04.080 --> 00:03:08.560
+they're encrypted without that encryption incurring any performance impact. Because of
+
+37
+00:03:08.560 --> 00:03:13.680
+their design, they also have a reduced failure rate when compared to physical disk drives,
+
+38
+00:03:13.680 --> 00:03:19.120
+typically, which is something that is really an advantage when it comes to choosing EBS over
+
+39
+00:03:19.120 --> 00:03:23.920
+a traditional physical medium in a data center. And they're highly available within an AZ. And
+
+40
+00:03:23.920 --> 00:03:27.680
+I think that's one of the important things to understand about EBS volumes. They are related to
+
+41
+00:03:28.320 --> 00:03:33.200
+availability zone. Within that AZ, there is redundancy when it comes to the storage and
+
+42
+00:03:33.200 --> 00:03:38.160
+failure of components of the EBS volume, but they're still within one availability zone. So
+
+43
+00:03:38.160 --> 00:03:43.440
+if you want to make them more resilient, you can do that by taking EBS snapshots. And these
+
+44
+00:03:43.440 --> 00:03:48.480
+are backed by S3. So then they're stored in multiple AZs. Another point to mention is that
+
+45
+00:03:48.480 --> 00:03:53.680
+we're talking about EC2. EBS volumes are of course also used by RDS for storage. So when you're
+
+46
+00:03:53.680 --> 00:03:59.200
+creating databases in RDS, you will choose EBS volume types when you're creating them. It doesn't
+
+47
+00:03:59.200 --> 00:04:03.280
+apply to Aurora because Aurora has its own very special storage mechanism, which we might talk
+
+48
+00:04:03.280 --> 00:04:07.840
+about in another future episode. One of the neat features of EBS is snapshots. And we just
+
+49
+00:04:07.840 --> 00:04:11.440
+referred to them there, but it's worthwhile going into them in a bit more detail. What do you think?
+
+50
+00:04:11.440 --> 00:04:18.160
+Yes.
+
+51
+00:04:18.160 --> 00:04:23.360
+So snapshots are point in time backups, and that backup will contain the entirety of your EBS volume. And they will be stored in S3. So that means that by default, you just get the 11 nines
+
+52
+00:04:23.360 --> 00:04:27.920
+of durability that S3 gives you. It needs to be monitored for cost because of course, if you have
+
+53
+00:04:27.920 --> 00:04:33.760
+large volumes, you are effectively replicating all of that data into S3 and that comes with a cost.
+
+54
+00:04:33.760 --> 00:04:37.600
+And if you are not careful, that cost is going to build up, right? But there is actually an
+
+55
+00:04:37.600 --> 00:04:42.480
+interesting feature there because these backups are incremental. So only the data that has changed
+
+56
+00:04:42.480 --> 00:04:47.440
+from the previous snapshot is actually stored. So that can make them more efficient. And you still
+
+57
+00:04:47.440 --> 00:04:51.440
+need to be careful of course, but generally speaking, the incremental approach will make
+
+58
+00:04:51.440 --> 00:04:56.080
+so that you are not replicating all the data all the time, but just the first snapshot and then
+
+59
+00:04:56.080 --> 00:05:01.040
+the changes layer on top of that. You can create new volumes starting from a snapshot.
+
+60
+00:05:01.040 --> 00:05:06.800
+So the idea is that basically you might snapshot a volume from a machine. From that snapshot, you can maybe
+
+61
+00:05:06.800 --> 00:05:12.080
+bootstrap another machine. And other things that are relevant are that you can create copies of the
+
+62
+00:05:12.080 --> 00:05:16.800
+snapshot within or across regions. So maybe you can use this approach for instance to spin up
+
+63
+00:05:16.800 --> 00:05:21.200
+a new machine in another region. And you can also share snapshots with other accounts. So you can
+
+64
+00:05:21.200 --> 00:05:26.080
+even use this approach to share data across different accounts, or even you can create
+
+65
+00:05:26.080 --> 00:05:30.960
+snapshots that are publicly accessible. So if you have information that somehow needs to be
+
+66
+00:05:30.960 --> 00:05:35.760
+shared across pretty much everyone that might need that information, maybe it's like a large
+
+67
+00:05:35.760 --> 00:05:40.720
+data set that you want to make public, and people might need to spin up an EC2 and load that
+
+68
+00:05:40.720 --> 00:05:45.680
+information easily into the EC2 instance, you can use this approach as well.
+
+69
+00:05:45.680 --> 00:05:50.160
+Snapshots can also be archived, which is something that can be convenient when you don't expect to necessarily access that
+
+70
+00:05:50.160 --> 00:05:56.640
+snapshot frequently, maybe just for extra peace of mind. That will help you to reduce the cost.
+
+71
+00:05:56.640 --> 00:06:02.560
+So you just take the snapshot, archive it, and it's going to be there for 90 days or more, for example.
+
+72
+00:06:02.560 --> 00:06:07.440
+So apart from attaching an EBS volume, is there any other way to access the data? You might be
+
+73
+00:06:07.440 --> 00:06:13.600
+wondering, okay, is that the only use case? There is actually a very interesting API that is something
+
+74
+00:06:13.600 --> 00:06:17.600
+that I came across only very recently. So it's a little bit of something that is not necessarily
+
+75
+00:06:17.600 --> 00:06:22.000
+well known to everybody, and it's what is called the direct API. We will have a link in the show
+
+76
+00:06:22.000 --> 00:06:27.440
+notes with all the documentation, some examples, but generally speaking, it's kind of a lower level
+
+77
+00:06:27.440 --> 00:06:34.240
+API that allows you to access directly the EBS snapshot data, so without having to mount a volume
+
+78
+00:06:34.240 --> 00:06:39.840
+into an EC2 instance. And this is probably a bit of a niche use case that is used maybe if you are
+
+79
+00:06:39.840 --> 00:06:45.280
+a vendor that wants to provide some kind of backup, DR kind of extra facility, they can use this
+
+80
+00:06:45.280 --> 00:06:50.880
+approach to be very efficient in the way they can access the data and read and write data directly
+
+81
+00:06:50.880 --> 00:06:55.280
+into EBS snapshot data. You don't necessarily have to create volumes. That's kind of the idea.
+
+82
+00:06:55.280 --> 00:06:59.920
+So if you have a use case where you want to control the data directly and you might do that at large
+
+83
+00:06:59.920 --> 00:07:04.160
+volumes, this might be an API worth exploring a little bit more. It will come at a lower price.
+
+84
+00:07:05.280 --> 00:07:10.800
+That's kind of the idea. We mentioned that EBS itself is a bit of a technical wonder in AWS. So
+
+85
+00:07:10.800 --> 00:07:15.040
+what is this magic? How does it work under the hood?
+
+86
+00:07:15.840 --> 00:07:19.760
+Well, I can't explain all the details because the details and if I did, I probably wouldn't understand them. But one of the interesting
+
+87
+00:07:19.760 --> 00:07:23.760
+things I suppose fundamentally is that it's not directly attached to physical storage.
+
+88
+00:07:23.760 --> 00:07:29.120
+It's accessed by instances over a network, but it appears to the operating system like a physical
+
+89
+00:07:29.120 --> 00:07:35.200
+disk. Now there is a paper, there is an academic paper published by AWS on how they evolve their
+
+90
+00:07:35.200 --> 00:07:39.920
+internal configuration management system. And the paper is called "Millions of Tiny Databases",
+
+91
+00:07:39.920 --> 00:07:43.840
+which gives you a hint as to how that's architected. The idea is that in the
+
+92
+00:07:43.840 --> 00:07:49.680
+configuration management system for EBS, it uses cells, which are full tolerant units that manage
+
+93
+00:07:49.680 --> 00:07:54.800
+a small portion of EBS data. And these little cells are replicated across the storage nodes
+
+94
+00:07:54.800 --> 00:07:59.600
+to give durability and availability. And each cell is actually a seven node Paxos cluster.
+
+95
+00:07:59.600 --> 00:08:05.280
+This cellular database design is known as Physalia after the Latin name for the Portuguese
+
+96
+00:08:05.280 --> 00:08:09.120
+Man o' War. So the Portuguese Man o' War is, it looks like a jellyfish, but it's not technically
+
+97
+00:08:09.120 --> 00:08:15.440
+a jellyfish because it's not a single animal, but a colony of millions of individual organisms.
+
+98
+00:08:15.440 --> 00:08:19.680
+So I guess the team thought that this was a good fit for the Physalia EBS architecture,
+
+99
+00:08:19.680 --> 00:08:24.640
+which is built basically on a colony of individual distributed database cells. So it's
+
+100
+00:08:25.200 --> 00:08:29.520
+difficult to really wrap your head around the idea that this high performance storage system is
+
+101
+00:08:29.520 --> 00:08:35.200
+actually backed by millions of tiny distributed databases that give you durability, high
+
+102
+00:08:35.200 --> 00:08:39.600
+availability and consistency that you need. And if you have a look at that paper, like a lot of
+
+103
+00:08:39.600 --> 00:08:44.000
+distributed systems papers, it'll talk about the CAP theorem, which is the famous theorem that it
+
+104
+00:08:44.000 --> 00:08:48.880
+describes in a distributed system, you can have two out of the three when it comes to consistency,
+
+105
+00:08:48.880 --> 00:08:55.840
+availability, and partitioning. Now consistency and partitioning are non negotiable in the context
+
+106
+00:08:55.840 --> 00:09:01.520
+of EBS, you have to have consistency when it comes to block storage. And the architecture basically
+
+107
+00:09:01.520 --> 00:09:06.640
+just optimizes to achieve the maximum possible value of the third one, which is availability.
+
+108
+00:09:06.640 --> 00:09:10.480
+So it's they're just essentially achieving availability with a very high probability,
+
+109
+00:09:10.480 --> 00:09:15.760
+which is the best trade off you can achieve for a system like this. Now you often hear AWS people
+
+110
+00:09:15.760 --> 00:09:21.680
+talking about the nitro system, which is their custom, very extensive hardware that underpins
+
+111
+00:09:21.680 --> 00:09:26.800
+a lot of the modern AWS infrastructure. And this the nitro system actually has specific
+
+112
+00:09:26.800 --> 00:09:32.640
+features built into it to facilitate EBS volumes. And to enable this encryption, we talked about
+
+113
+00:09:32.640 --> 00:09:38.800
+without having any performance overhead, you might also have heard of EBS optimized easy to instances,
+
+114
+00:09:38.800 --> 00:09:43.040
+because it's a network based file system, these instances actually have dedicated bandwidth,
+
+115
+00:09:43.040 --> 00:09:48.640
+so they give you more guarantees around the bandwidth you have when accessing EBS. So that's
+
+116
+00:09:48.640 --> 00:09:54.320
+as much I think, as I can say about the internals of EBS, feel free to check out the paper if that
+
+117
+00:09:54.320 --> 00:09:58.160
+kind of thing floats your boat. When it comes to actually using them as an end user, though,
+
+118
+00:09:58.160 --> 00:10:03.840
+one of the things I find is that if you're not used to EBS, suddenly, all you want is a disk,
+
+119
+00:10:03.840 --> 00:10:08.480
+but you're confronted by all these different terms that seem very confusing. And there's a lot of
+
+120
+00:10:08.480 --> 00:10:12.480
+different options. And people talk about IOPS, and it's very easy to get lost and confused.
+
+121
+00:10:12.480 --> 00:10:17.360
+So should we try and do our best to explain these concepts at least at a high level without boring
+
+122
+00:10:17.360 --> 00:10:22.000
+everybody to death?
+
+123
+00:10:22.080 --> 00:10:26.480
+I agree. And it's something that to be honest, I still get confused about every once in a while. So it's definitely good for me to also go over all of it again and try
+
+124
+00:10:26.480 --> 00:10:31.280
+to finally memorize all of these different concepts. So we have at least three different
+
+125
+00:10:31.280 --> 00:10:35.520
+pieces of terminology that can be confusing and something that we need to know. And we are talking
+
+126
+00:10:35.520 --> 00:10:40.400
+about volume types, throughput, and IOPS. And those are really important, not just because you
+
+127
+00:10:40.400 --> 00:10:45.120
+need to make the choice, right? As you said, you just need a disk, but you don't just get to pick
+
+128
+00:10:45.120 --> 00:10:50.320
+a random disk, you need to decide based on these options. So definitely, you need to be aware.
+
+129
+00:10:50.320 --> 00:10:55.840
+But the other element is that it has a massive correlation with the cost. So cost is definitely
+
+130
+00:10:55.840 --> 00:11:00.080
+based on the different values that you pick when it comes to these options. So it's important to
+
+131
+00:11:00.080 --> 00:11:05.440
+understand the meaning and the associated pricing so that you can avoid some kind of random bill
+
+132
+00:11:05.440 --> 00:11:09.200
+shock just because you provision a disk and you didn't know what you picked. So let's start with
+
+133
+00:11:09.200 --> 00:11:14.640
+IOPS. What is an IOPS? It basically means IO, input output per second. And it identifies the
+
+134
+00:11:14.640 --> 00:11:20.160
+number of IO operations that you can perform every second. So what is an IO operation, you might ask?
+
+135
+00:11:21.040 --> 00:11:26.960
+And this is basically either a read or a write of either 16 kilobytes, 64 kilobytes, or one megabyte,
+
+136
+00:11:26.960 --> 00:11:31.520
+depending on the EBS volume type. So you are effectively reading or writing a certain amount
+
+137
+00:11:31.520 --> 00:11:36.400
+of data. That's an operation. If you have any meaningful production workload, it's generally
+
+138
+00:11:36.400 --> 00:11:42.320
+a good idea to really understand how IOPS can become kind of a bottleneck and make sure that
+
+139
+00:11:42.320 --> 00:11:47.360
+you fine tune the number of IOPS to make sure it matches your needs for that particular workload.
+
+140
+00:11:47.360 --> 00:11:51.520
+Just always be aware of cost. Don't just push that to the maximum because you might end up
+
+141
+00:11:51.520 --> 00:11:56.720
+just paying a lot of money for something that you don't really need to use. So instead, what are
+
+142
+00:11:56.720 --> 00:12:01.840
+volume types? This can be a little bit confusing because there are many different options, but
+
+143
+00:12:01.840 --> 00:12:06.800
+let's try to cover the broad categories and how to think about them so that you can choose somewhat
+
+144
+00:12:06.800 --> 00:12:12.400
+consciously. So you have one category of volume type, which is basically SSD, so solid states,
+
+145
+00:12:12.400 --> 00:12:16.480
+like, I don't know, the flash memory that you have in your phone, or probably if you have a very
+
+146
+00:12:16.480 --> 00:12:22.480
+modern laptop, they will have some kind of SSD inside. Then the other option is HDD, so the old
+
+147
+00:12:22.480 --> 00:12:26.720
+school spinning mechanical disks. It's another option and there are slightly different trade-offs
+
+148
+00:12:26.720 --> 00:12:31.840
+in terms of performance and cost, but you can make this option. With SSD, you have general
+
+149
+00:12:31.840 --> 00:12:37.840
+purpose SSD and provision IOPS types. So this is a kind of a subcategory when you pick SSD.
+
+150
+00:12:37.840 --> 00:12:43.280
+Then if you go with HDD, you can pick either throughput optimized or called
+
+151
+00:12:43.280 --> 00:12:49.280
+HDD. Now again, we might kind of deep dive a lot more, but let's just try to keep it high level.
+
+152
+00:12:49.280 --> 00:12:54.320
+And we will put a link in the show notes about some pricing examples that are part of the
+
+153
+00:12:54.320 --> 00:12:58.560
+official documentation when it comes to pricing to really understand how these different choices
+
+154
+00:12:58.560 --> 00:13:03.520
+will affect pricing. Again, the pricing model as sometimes happens with AWS is not very linear.
+
+155
+00:13:03.520 --> 00:13:08.400
+Depending on the choices, it changes the formula. So I think the examples are a very good way to try
+
+156
+00:13:08.400 --> 00:13:13.040
+to figure out some common use cases and how to think about pricing for those specific use cases.
+
+157
+00:13:13.600 --> 00:13:18.400
+Eoin, do you want to try to give us a little bit of a more complete overview on what the types are and how to think about them?
+
+158
+00:13:18.400 --> 00:13:23.120
+Yeah, it's probably worth starting with the default option.
+
+159
+00:13:23.120 --> 00:13:27.520
+So I think the default option, if you don't listen to anything else in this section, it's probably worth listening
+
+160
+00:13:27.520 --> 00:13:33.680
+to the fact that GP3, so the general purpose SSD type known as GP3 is probably the default option.
+
+161
+00:13:33.680 --> 00:13:36.960
+And if you're not sure or you can't be bothered learning the rest of them, I would say go with
+
+162
+00:13:36.960 --> 00:13:42.400
+that one. This one is the one that measures IOPS with 64 kilobyte I O units. So when we talk about
+
+163
+00:13:42.400 --> 00:13:47.040
+IOPS, the different types can have different I O unit size. So you need to think about two things,
+
+164
+00:13:47.040 --> 00:13:51.120
+the number of I O operations you might want to perform per second, but also the throughput.
+
+165
+00:13:51.120 --> 00:13:54.720
+And these things are two different dimensions. They're slightly related, but you need to think
+
+166
+00:13:54.720 --> 00:14:00.080
+about them separately. Now the GP3 is relatively new and it gives you a decent balance between cost
+
+167
+00:14:00.080 --> 00:14:05.120
+and the ability to control IOPS throughput and size independently. So there's a lot of flexibility
+
+168
+00:14:05.120 --> 00:14:09.120
+there too. That's why I think it's a good default choice. The cost is generally good as well
+
+169
+00:14:09.120 --> 00:14:14.880
+compared to the other options. And by default, the baseline is that you get 3000 IOPS and 125
+
+170
+00:14:14.880 --> 00:14:18.400
+megabytes a second of throughput. So this is different to the older type, which we'll talk
+
+171
+00:14:18.400 --> 00:14:22.560
+about in a second, but the fact that you get that baseline, which is pretty good in its own right,
+
+172
+00:14:22.560 --> 00:14:27.520
+but then if you need more, you can adjust those levers. That's nice to know. And it's reassuring,
+
+173
+00:14:27.520 --> 00:14:33.360
+I think the GP2 one was the default for a long time. It uses smaller 16K I/O units,
+
+174
+00:14:33.360 --> 00:14:37.520
+but the baseline is very variable. It depends on your volume size. So they give you three IOPS per
+
+175
+00:14:37.520 --> 00:14:41.600
+gigabyte. So it makes it a little bit more difficult to calculate, but the unique thing
+
+176
+00:14:41.600 --> 00:14:46.080
+about GP2 is that it also gave you first of all IOPS so that it was pretty good.
+
+177
+00:14:46.080 --> 00:14:49.920
+If you didn't know what you were doing, you had something that generally didn't need that much IO, but from time
+
+178
+00:14:49.920 --> 00:14:55.280
+to time, like even on boot, it would need a burst of IO or for variable workloads. But then again,
+
+179
+00:14:55.280 --> 00:14:59.680
+you could also exhaust that first of all limits and you needed to be careful to watch out and
+
+180
+00:14:59.680 --> 00:15:05.760
+monitor for that. I think it's still a good side issue there just to recommend to monitor your IO
+
+181
+00:15:05.760 --> 00:15:12.320
+consumption against your allocation for any type. So GP3 is generally cheaper on the order of 20%
+
+182
+00:15:13.040 --> 00:15:18.000
+in most cases. So that's why we'd say if you're going for general purpose SSD, go with GP3 and
+
+183
+00:15:18.000 --> 00:15:21.840
+you should be pretty safe with that option. And there's a calculator to indicate what savings
+
+184
+00:15:21.840 --> 00:15:26.800
+you'll get. And we'll give a link to that in the show notes. You can by the way, upgrade GP2 volumes
+
+185
+00:15:26.800 --> 00:15:31.600
+to GP3 and you don't need to restart the attached instances, which is pretty cool.
+
+186
+00:15:31.600 --> 00:15:36.960
+Now, if you're a performance hungry workload, then you can go for the provisioned IOPS. So you can imagine that
+
+187
+00:15:36.960 --> 00:15:39.920
+you've got something like you're running a database. That's the typical example that you
+
+188
+00:15:39.920 --> 00:15:43.840
+get, or you've got something else that's just really read and write heavy in terms of IO. Then
+
+189
+00:15:43.840 --> 00:15:49.760
+you've got a few options there. They used to be IO1 and IO2. IO1 would give you up to 64,000 IOPS,
+
+190
+00:15:49.760 --> 00:15:56.400
+which was pretty good. IO2 was available up until the end of last year. And it's actually been
+
+191
+00:15:56.400 --> 00:16:02.000
+replaced now by a new one called IO2 Block Express. IO2 is essentially legacy. Now IO2
+
+192
+00:16:02.000 --> 00:16:06.720
+Block Express has a whole bunch of additional features, but basically compared to IO1, it
+
+193
+00:16:06.720 --> 00:16:12.720
+allows you to get up to as many as 256,000 IOPS. Now that'll depend on the instance side, because
+
+194
+00:16:12.720 --> 00:16:16.560
+that needs specific instance characteristics to support it, but it'll give you four times
+
+195
+00:16:16.560 --> 00:16:23.200
+higher throughput than IO1 as well. Other benefits of the IO2 Block Express are higher durability.
+
+196
+00:16:23.200 --> 00:16:27.520
+So you get five nines instead of three nines, and you get lower latency as well. Again,
+
+197
+00:16:27.520 --> 00:16:33.040
+GP3 is probably your go-to. If you know you need more IO, you can always move to one of the
+
+198
+00:16:33.040 --> 00:16:37.520
+provisioned IOPS options. Worth quickly talking about the HDD types, but these are more niche
+
+199
+00:16:37.520 --> 00:16:43.520
+these days. Generally much, much slower. The IO size is one megabyte, so it's completely different
+
+200
+00:16:43.520 --> 00:16:49.680
+physical architecture. If you need sequential access, people who have used hard disks and SSD
+
+201
+00:16:49.680 --> 00:16:54.800
+disks and physical machines in the past may know that SSD is good for random access, because you
+
+202
+00:16:54.800 --> 00:16:59.760
+can read at a consistent speed anywhere on the device, but physical disks that have a robotic arm
+
+203
+00:16:59.760 --> 00:17:03.600
+need to actually move to the location you're reading from. So they're always much better for
+
+204
+00:17:03.600 --> 00:17:09.680
+linear sequential access. So that can be workloads like big data, things like MapReduce, Kafka,
+
+205
+00:17:09.680 --> 00:17:14.640
+where you've got streams that are sequential and logs. You're only going to get 500 megabytes max
+
+206
+00:17:14.640 --> 00:17:19.920
+throughput, even on throughput optimized ones, and 500 IOPS. Now those are one megabyte IOPS,
+
+207
+00:17:19.920 --> 00:17:26.000
+but you won't use it for a lot of individual read or write operations. Cold HDD, the last one we
+
+208
+00:17:26.000 --> 00:17:31.120
+have to mention, it's really slow, 250 megabytes a second, but that's something you'd only use for
+
+209
+00:17:31.120 --> 00:17:35.360
+cold storage. So things you aren't going to read and write option. And that's the cheapest of them
+
+210
+00:17:35.360 --> 00:17:40.160
+all. Luciano, what do you think? How would you decide?
+
+211
+00:17:40.160 --> 00:17:44.720
+Yeah, I think I can give a very high level decision framework. So a bit of a shortcut that doesn't really take into account maybe all the
+
+212
+00:17:44.720 --> 00:17:50.240
+intricacies of different workloads, but it might be just a good reference framework if you either
+
+213
+00:17:50.240 --> 00:17:55.360
+don't want to spend too much time investigating all the possible options, or maybe as a sanity
+
+214
+00:17:55.360 --> 00:17:59.520
+check just to make sure that your investigation makes sense at the high level. So the idea is that
+
+215
+00:17:59.520 --> 00:18:06.240
+if the throughput is more important than IOPS, you should probably go for an SD1 HDD type.
+
+216
+00:18:06.240 --> 00:18:12.480
+If it's a really cold storage that you are looking for, then SC1 is the one to go for. Instead,
+
+217
+00:18:12.480 --> 00:18:17.360
+if IOPS is more important, and this is in my experience, in most cases, that's what it is,
+
+218
+00:18:17.360 --> 00:18:22.000
+right? You care more about IOPS rather than throughput. In that case, you need an SSD.
+
+219
+00:18:22.000 --> 00:18:27.280
+And if you really need the maximum IO performance possible, you need to go for I02 Block Express.
+
+220
+00:18:27.280 --> 00:18:32.240
+Otherwise, choose the best all around, which is GP3. And as we said, it's generally the safest
+
+221
+00:18:32.240 --> 00:18:37.680
+default these days. So again, maybe your decision tree starts with GP3, and then you try to look for
+
+222
+00:18:37.680 --> 00:18:42.640
+reasons not to use GP3, and you can look at the other points we mentioned as a way to steer your
+
+223
+00:18:42.640 --> 00:18:46.640
+decision. Now, I think there are also some other interesting features that we should quickly
+
+224
+00:18:46.640 --> 00:18:51.280
+mention before we wrap up. The first one is that with EBS, you can have multi-attachment.
+
+225
+00:18:51.280 --> 00:18:55.920
+That basically means that when you create a volume, that single volume can be attached to
+
+226
+00:18:55.920 --> 00:19:01.760
+multiple EC2 instances. And there is a limit, of course, and the limit is 16 EC2 instances,
+
+227
+00:19:01.760 --> 00:19:07.200
+which basically means that you can share data in a volume across 16 different machines.
+
+228
+00:19:07.200 --> 00:19:12.880
+Only works with provision IOPS though, so you basically are forced to use IO1 or IO2 if you
+
+229
+00:19:12.880 --> 00:19:15.760
+want to use this particular feature. And of course, it's something that you need to use
+
+230
+00:19:15.760 --> 00:19:20.960
+carefully because you know that reading and writing from different machines in the same disk
+
+231
+00:19:20.960 --> 00:19:25.760
+might create consistency problems. So one way to avoid those consistency problems is to use a file
+
+232
+00:19:25.760 --> 00:19:30.320
+system that is designed for this particular use case, like a cluster or file system. So don't just
+
+233
+00:19:30.320 --> 00:19:37.040
+go for the standard Linux one like ext or XFS because these ones might not guarantee you any
+
+234
+00:19:37.040 --> 00:19:42.240
+consistency. There are of course other options if you want to do something like this. Probably you
+
+235
+00:19:42.240 --> 00:19:49.360
+are thinking about NFS or EFS on AWS or maybe FSX, and these are designed for sharing data across
+
+236
+00:19:49.360 --> 00:19:53.520
+many devices. So probably these are more scalable options. Generally speaking, they might be more
+
+237
+00:19:53.520 --> 00:19:57.280
+suitable for this kind of use case, but we thought it was worth mentioning the idea of multi-attachment.
+
+238
+00:19:57.280 --> 00:20:01.520
+Maybe for specific use cases, you maybe have a cluster of a few machines,
+
+239
+00:20:01.520 --> 00:20:06.080
+it might be an easy way to just be able to share information across these machines.
+
+240
+00:20:06.080 --> 00:20:11.040
+And the last thing that I want to mention is that there is ECS support, which basically means that you can configure
+
+241
+00:20:11.040 --> 00:20:16.560
+your tasks or services to create EBS volumes when they are launched or deployed, but you cannot
+
+242
+00:20:16.560 --> 00:20:21.040
+attach an existing EBS volume. The thing that you could do is that you could do a snapshot and then
+
+243
+00:20:21.040 --> 00:20:25.440
+you can create an EBS volume from a snapshot. So again, in the use case where you might have
+
+244
+00:20:25.440 --> 00:20:30.240
+datasets that you have created before and you want to be able to consume those datasets from
+
+245
+00:20:30.240 --> 00:20:35.920
+an ECS cluster, this could be one way of giving your cluster access to that data.
+
+246
+00:20:35.920 --> 00:20:40.800
+And of course, this works in Fargate too, so something to be aware. And this is everything we have on this
+
+247
+00:20:40.800 --> 00:20:46.720
+Jellyfish EBS episode, so hopefully you enjoyed all of that and you find it valuable. But of course,
+
+248
+00:20:46.720 --> 00:20:51.040
+don't forget that if you don't clean up your old volumes as snapshots, you are going to get stung!
+
+249
+00:20:51.040 --> 00:21:02.800
+So thank you very much for being with us and we'll see you in the next episode.

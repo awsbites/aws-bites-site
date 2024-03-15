@@ -25,7 +25,10 @@ function extractExcerpt (content) {
   return excerpt
 }
 
-async function imageShortcode (src, alt, sizes, widths = [300, 600], attrs = {}) {
+async function imageShortcode (src, alt, sizes, _widths, _attrs) {
+  const widths = _widths || [300, 600]
+  const attrs = _attrs || {}
+
   const metadata = await Image(src, {
     widths,
     formats: ['avif', 'jpeg'],
@@ -83,6 +86,10 @@ module.exports = function (eleventyConfig) {
     return now
   })
 
+  eleventyConfig.addNunjucksFilter('youtubePreviewUrl', function (id) {
+    return `https://i.ytimg.com/vi/${id}/maxresdefault.jpg`
+  })
+
   eleventyConfig.addNunjucksAsyncFilter('youtubePreview', function (id, episodeUrl, cb) {
     (async () => {
       const folderDest = path.join('dist', episodeUrl)
@@ -104,7 +111,7 @@ module.exports = function (eleventyConfig) {
           const url = `https://i.ytimg.com/vi/${id}/maxresdefault.jpg`
           const response = await axios.get(url, { responseType: 'stream' })
           imageStream = response.data
-        } catch (_) {}
+        } catch (_) { }
 
         const transform = sharp().resize({ width: 1200, height: 630, fit: sharp.fit.cover })
         const destFile = createWriteStream(dest)

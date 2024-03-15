@@ -79,10 +79,10 @@ module.exports = {
           css: [
             {
               strong: {
-                color: theme('colors.primary.500')
+                color: theme('colors.primary.600')
               },
               a: {
-                color: theme('colors.primary.300')
+                color: theme('colors.primary.600')
               },
               'a:hover': {
                 color: theme('colors.primary.700')

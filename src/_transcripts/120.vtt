@@ -1,0 +1,2429 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:02.760
+Lambda functions have revolutionized the way we build
+
+2
+00:00:02.900 --> 00:00:04.760
+and deploy applications in the cloud,
+
+3
+00:00:04.900 --> 00:00:07.960
+but are we really harnessing their power efficiently?
+
+4
+00:00:08.100 --> 00:00:11.400
+Today we're going to uncover some of Lambda's best practices,
+
+5
+00:00:11.520 --> 00:00:13.760
+combining insights from AWS documentation,
+
+6
+00:00:13.900 --> 00:00:16.560
+but also our own experiences to help you
+
+7
+00:00:16.700 --> 00:00:18.760
+to optimize your serverless architecture.
+
+8
+00:00:19.520 --> 00:00:21.260
+Overall, we want to make sure you have a great time
+
+9
+00:00:21.400 --> 00:00:22.300
+when working with Lambda.
+
+10
+00:00:22.420 --> 00:00:24.120
+I'm Eoin and I'm joined by Luciano
+
+11
+00:00:24.260 --> 00:00:27.000
+for another episode of the AWS Bites podcast.
+
+12
+00:00:27.000 --> 00:00:37.100
+AWS Bites is brought to you by fourTheorem,
+
+13
+00:00:37.240 --> 00:00:40.360
+an AWS partner that specializes in modern application architecture
+
+14
+00:00:40.500 --> 00:00:41.760
+and migration.
+
+15
+00:00:41.900 --> 00:00:43.300
+We are big fans of serverless
+
+16
+00:00:43.440 --> 00:00:45.460
+and we've worked on a lot of serverless projects,
+
+17
+00:00:45.600 --> 00:00:46.700
+even at a massive scale.
+
+18
+00:00:46.840 --> 00:00:49.100
+If you are curious to find out more and to work with us,
+
+19
+00:00:49.240 --> 00:00:51.300
+check us out on fourtheorem.com.
+
+20
+00:00:51.440 --> 00:00:53.540
+One of the things that's worth starting with
+
+21
+00:00:53.660 --> 00:00:55.260
+is how Lambda works under the hood,
+
+22
+00:00:55.360 --> 00:00:58.400
+and we've covered a few different episodes in the past about AWS Lambda,
+
+23
+00:00:58.520 --> 00:01:00.520
+but it's worthwhile having a brief refresher.
+
+24
+00:01:00.660 --> 00:01:03.300
+So, Luciano, do you want to tell us how does Lambda work?
+
+25
+00:01:06.600 --> 00:01:10.260
+I'll try my best and I think this is one of the interesting topics about Lambda that is often not covered enough or not discussed enough.
+
+26
+00:01:10.400 --> 00:01:13.760
+So let's try to discuss how Lambda works under the hood,
+
+27
+00:01:13.900 --> 00:01:17.400
+because I think it's important to come up with a good mental model.
+
+28
+00:01:17.520 --> 00:01:20.060
+And once we do that, I think it's going to be easier to understand
+
+29
+00:01:20.200 --> 00:01:22.860
+how to write Lambda code that is more optimized
+
+30
+00:01:23.000 --> 00:01:24.520
+for that particular kind of environment.
+
+31
+00:01:24.680 --> 00:01:27.520
+So the first thing to clarify is that Lambda as a service,
+
+32
+00:01:27.660 --> 00:01:29.560
+by definition, is serverless.
+
+33
+00:01:29.680 --> 00:01:33.020
+So that means that if you're not using that particular service,
+
+34
+00:01:33.160 --> 00:01:34.880
+for instance, if you don't have anything to do,
+
+35
+00:01:35.020 --> 00:01:38.180
+like you brought an application, but nobody's using that application,
+
+36
+00:01:38.320 --> 00:01:41.020
+ideally, nothing should be running at that moment in time.
+
+37
+00:01:41.160 --> 00:01:43.320
+And that also means as a nice side effect,
+
+38
+00:01:43.460 --> 00:01:45.060
+that you don't get charged for it.
+
+39
+00:01:45.180 --> 00:01:48.320
+So it's not like you have a server spinning out 24-hour seven,
+
+40
+00:01:48.460 --> 00:01:50.760
+and you're going to be paying for even though maybe nobody's
+
+41
+00:01:50.880 --> 00:01:52.220
+actually using your service.
+
+42
+00:01:52.380 --> 00:01:55.760
+With Lambda, if nothing is running, you don't get charged for it.
+
+43
+00:01:56.420 --> 00:02:00.260
+It's also event-based, which means that the computation starts
+
+44
+00:02:00.380 --> 00:02:02.460
+when an event is triggered.
+
+45
+00:02:02.580 --> 00:02:03.860
+And when that event happens,
+
+46
+00:02:03.980 --> 00:02:07.480
+AWS will need to be able to run your Lambda code somewhere.
+
+47
+00:02:07.620 --> 00:02:09.680
+And this is where things get a little bit interesting,
+
+48
+00:02:09.820 --> 00:02:13.320
+because if there is no instance of your Lambda at that moment in time,
+
+49
+00:02:13.460 --> 00:02:16.160
+or maybe the caveat there is if you have other instances,
+
+50
+00:02:16.280 --> 00:02:18.760
+but they are all busy, AWS will need to figure out,
+
+51
+00:02:18.880 --> 00:02:21.660
+okay, where do I run the code for this particular event?
+
+52
+00:02:21.820 --> 00:02:24.820
+And this means that AWS needs to spin up some infrastructure,
+
+53
+00:02:24.960 --> 00:02:27.000
+which generally means loading the code from S3,
+
+54
+00:02:27.120 --> 00:02:29.400
+creating some kind of lightweight virtual machine,
+
+55
+00:02:29.520 --> 00:02:31.620
+and make sure that that virtual machine can run your code.
+
+56
+00:02:31.760 --> 00:02:35.120
+And of course, doing all of that extra setup takes a bit of time.
+
+57
+00:02:35.260 --> 00:02:37.600
+And the time can vary between milliseconds,
+
+58
+00:02:37.720 --> 00:02:39.860
+or even a few seconds, depending on the kind of runtime
+
+59
+00:02:40.000 --> 00:02:41.520
+that you pick for that Lambda function.
+
+60
+00:02:41.660 --> 00:02:44.600
+And because this is extra time that you are spending
+
+61
+00:02:44.720 --> 00:02:47.500
+not really executing any code from the Lambda function,
+
+62
+00:02:47.620 --> 00:02:49.660
+this is generally called a cold start.
+
+63
+00:02:49.760 --> 00:02:54.020
+So you need to take to give AWS time to bring up all the infrastructure
+
+64
+00:02:54.160 --> 00:02:57.300
+so that you can run your own code. And this is what's called a cold start.
+
+65
+00:02:57.420 --> 00:03:00.360
+Now at some point, you take that event, execute that code,
+
+66
+00:03:00.500 --> 00:03:01.860
+you do something useful with it,
+
+67
+00:03:02.000 --> 00:03:05.120
+and you provide some kind of useful response to the system.
+
+68
+00:03:05.860 --> 00:03:09.560
+So in a way, you can say that that particular Lambda execution is completed,
+
+69
+00:03:09.700 --> 00:03:12.560
+but the infrastructure related to that Lambda function
+
+70
+00:03:12.700 --> 00:03:14.800
+is not immediately disposed by AWS,
+
+71
+00:03:14.920 --> 00:03:16.600
+it will be kept around for a few minutes.
+
+72
+00:03:16.760 --> 00:03:20.100
+It's not absolutely clear by AWS how much is that time,
+
+73
+00:03:20.240 --> 00:03:22.940
+we have seen varying between five minutes and 15 minutes.
+
+74
+00:03:23.540 --> 00:03:25.200
+But it's just in the order of minutes.
+
+75
+00:03:25.340 --> 00:03:27.760
+So you need to be aware that your Lambda might stay around
+
+76
+00:03:27.900 --> 00:03:30.260
+doing nothing for a few minutes before it's disposed.
+
+77
+00:03:30.400 --> 00:03:33.260
+And the reason why that happens is because if a new event comes in
+
+78
+00:03:33.400 --> 00:03:35.740
+during that period, AWS can be smart about it
+
+79
+00:03:35.860 --> 00:03:37.260
+and recycle that instance,
+
+80
+00:03:37.400 --> 00:03:40.400
+rather than recreating an entire new one for every single event.
+
+81
+00:03:40.540 --> 00:03:43.840
+And of course, this is an optimization and it's called a warm start,
+
+82
+00:03:43.840 --> 00:03:45.740
+your code can be executed immediately
+
+83
+00:03:45.880 --> 00:03:47.840
+without waiting for another cold start.
+
+84
+00:03:47.980 --> 00:03:50.300
+Now, why it is important to understand all of this?
+
+85
+00:03:50.440 --> 00:03:53.380
+I think in practice, once you understand the lifecycle of a Lambda function,
+
+86
+00:03:53.500 --> 00:03:56.380
+you can write code that is way more optimized for this environment.
+
+87
+00:03:56.500 --> 00:03:58.440
+And just to give you an example, I think at this point,
+
+88
+00:03:58.580 --> 00:04:01.600
+it should be clear that there are more or less two phases of your code.
+
+89
+00:04:01.740 --> 00:04:03.880
+One is what you can call the init phase,
+
+90
+00:04:04.000 --> 00:04:06.680
+and the other one is what you can call the event handling phase.
+
+91
+00:04:06.800 --> 00:04:11.080
+And the init phase generally happens only one for every Lambda function
+
+92
+00:04:11.200 --> 00:04:12.940
+that gets instantiated.
+
+93
+00:04:13.180 --> 00:04:14.980
+And generally, you can use this init phase
+
+94
+00:04:15.100 --> 00:04:17.280
+to create all the expensive resources
+
+95
+00:04:17.400 --> 00:04:19.880
+that you might want to recycle across multiple invocations
+
+96
+00:04:20.000 --> 00:04:21.740
+of the same Lambda instance.
+
+97
+00:04:21.880 --> 00:04:24.380
+For instance, if you need to establish a database connection,
+
+98
+00:04:24.500 --> 00:04:26.380
+if you need to create some kind of client,
+
+99
+00:04:26.500 --> 00:04:28.740
+maybe another AWS SDK client,
+
+100
+00:04:28.880 --> 00:04:31.900
+and all of these resources should be made globally available
+
+101
+00:04:32.040 --> 00:04:36.100
+so that multiple execution of your handler can access those
+
+102
+00:04:36.240 --> 00:04:39.100
+and they don't need to be recreated over and over for every single event.
+
+103
+00:04:39.240 --> 00:04:41.280
+This is something that might be done slightly different,
+
+104
+00:04:41.280 --> 00:04:43.540
+depending on your choice of runtime and language.
+
+105
+00:04:43.680 --> 00:04:45.220
+But pretty much with every language and runtime,
+
+106
+00:04:45.340 --> 00:04:48.080
+you have ways to have this kind of initialization phase,
+
+107
+00:04:48.220 --> 00:04:49.880
+and then you have handler logic
+
+108
+00:04:50.020 --> 00:04:52.380
+that can be called over and over once for every event,
+
+109
+00:04:52.520 --> 00:04:54.340
+and it can access some kind of global space
+
+110
+00:04:54.480 --> 00:04:57.420
+where all these instantiated globals are available,
+
+111
+00:04:57.540 --> 00:05:00.520
+and you can just use them rather than having to recreate them
+
+112
+00:05:00.640 --> 00:05:01.820
+within your handler code.
+
+113
+00:05:01.940 --> 00:05:03.420
+So what can we cover next?
+
+114
+00:05:03.540 --> 00:05:07.220
+I think one interesting topic is maybe clarifying the different ways
+
+115
+00:05:07.340 --> 00:05:08.940
+you can invoke a Lambda function.
+
+116
+00:05:09.100 --> 00:05:11.340
+Should we try to describe all of that, Eoin?
+
+117
+00:05:13.340 --> 00:05:14.540
+Yeah, briefly we definitely should, because this is a really important thing
+
+118
+00:05:14.680 --> 00:05:16.840
+when it comes to understanding why best practices
+
+119
+00:05:16.980 --> 00:05:18.580
+are good practices in the first place.
+
+120
+00:05:19.280 --> 00:05:20.340
+And let's break it down.
+
+121
+00:05:20.480 --> 00:05:23.600
+You've got synchronous invocations, asynchronous invocations,
+
+122
+00:05:23.740 --> 00:05:25.100
+and then you've got the third type,
+
+123
+00:05:25.240 --> 00:05:27.600
+which is polling-based or event source mapping.
+
+124
+00:05:28.140 --> 00:05:30.480
+So with synchronous invocation, you have something waiting
+
+125
+00:05:30.600 --> 00:05:33.400
+for the Lambda function to complete and issue a response,
+
+126
+00:05:33.540 --> 00:05:36.180
+and that applies to services like API Gateway
+
+127
+00:05:36.300 --> 00:05:37.740
+and Application Load Balancer,
+
+128
+00:05:37.840 --> 00:05:42.200
+and it also applies to some other more niche cases like CloudFront,
+
+129
+00:05:42.900 --> 00:05:46.780
+Lambda at Edge functions, Cognito Lambda function integrations,
+
+130
+00:05:46.900 --> 00:05:50.580
+and you can also synchronously invoke things from the API or the CLI
+
+131
+00:05:50.700 --> 00:05:52.600
+if you choose request response mode.
+
+132
+00:05:53.140 --> 00:05:55.280
+Now, the best practices when it comes to synchronous invocation
+
+133
+00:05:55.400 --> 00:05:59.440
+is probably obviously enough to try to keep the execution time
+
+134
+00:05:59.580 --> 00:06:00.680
+as short as possible.
+
+135
+00:06:00.800 --> 00:06:03.500
+For example, if it's an API, you should return a response
+
+136
+00:06:03.640 --> 00:06:06.400
+before an HTTP timeout will occur.
+
+137
+00:06:06.960 --> 00:06:09.000
+API Gateway will give you a 30-second timeout,
+
+138
+00:06:09.140 --> 00:06:11.340
+so you should probably set your Lambda functions timeout
+
+139
+00:06:11.460 --> 00:06:13.000
+to 29 seconds or less.
+
+140
+00:06:13.140 --> 00:06:15.060
+And when it comes to synchronous invocation,
+
+141
+00:06:15.200 --> 00:06:18.840
+then another good practice is to monitor concurrency and throttling,
+
+142
+00:06:18.960 --> 00:06:22.260
+because otherwise a lot of synchronous invocations come in,
+
+143
+00:06:22.400 --> 00:06:23.560
+and then you'll end up in trouble,
+
+144
+00:06:23.700 --> 00:06:25.740
+and your users are going to experience those errors,
+
+145
+00:06:25.860 --> 00:06:29.300
+and you can't automatically handle that seamlessly for them.
+
+146
+00:06:29.440 --> 00:06:31.240
+So if you're not able to spin up new Lambda functions,
+
+147
+00:06:31.360 --> 00:06:34.140
+you'll directly affect those end users.
+
+148
+00:06:34.260 --> 00:06:36.040
+Now, when it comes to asynchronous invocation,
+
+149
+00:06:36.140 --> 00:06:38.180
+this is probably the most common, actually,
+
+150
+00:06:38.300 --> 00:06:40.680
+but with async invocation, you're not waiting for the response.
+
+151
+00:06:40.800 --> 00:06:41.800
+It happens in the background.
+
+152
+00:06:41.940 --> 00:06:43.980
+Now, the execution in this case can take longer,
+
+153
+00:06:44.100 --> 00:06:47.500
+always up to the Lambda global limit of 15 minutes.
+
+154
+00:06:48.040 --> 00:06:51.200
+It also means that Lambda is going to retry if there's a failure,
+
+155
+00:06:51.340 --> 00:06:54.840
+so this is something you can't do with synchronous invocations
+
+156
+00:06:54.980 --> 00:06:56.340
+without handling it yourself.
+
+157
+00:06:56.480 --> 00:06:57.940
+But with async invocations,
+
+158
+00:06:58.080 --> 00:07:01.580
+Lambda will retry up to three invocations total per event
+
+159
+00:07:01.700 --> 00:07:02.540
+in the case of an error.
+
+160
+00:07:02.680 --> 00:07:05.500
+And it does that by queuing up invocations internally
+
+161
+00:07:05.600 --> 00:07:07.440
+for up to a maximum of six hours
+
+162
+00:07:07.560 --> 00:07:10.160
+if it doesn't have enough concurrency available to it
+
+163
+00:07:10.300 --> 00:07:12.100
+when the event comes in immediately.
+
+164
+00:07:12.240 --> 00:07:14.160
+So Lambda has its own internal queue,
+
+165
+00:07:14.300 --> 00:07:16.400
+a bit like an SQS queue, but you don't see it.
+
+166
+00:07:16.540 --> 00:07:19.140
+It's all internal, and that's how async functions work.
+
+167
+00:07:19.260 --> 00:07:22.700
+Now, when it comes to failure handling with async events,
+
+168
+00:07:22.840 --> 00:07:25.300
+you can configure a dead letter queue or a DLQ
+
+169
+00:07:25.440 --> 00:07:27.660
+to automatically receive events that have failed,
+
+170
+00:07:29.100 --> 00:07:30.300
+now up to three times,
+
+171
+00:07:30.440 --> 00:07:32.800
+and then you can inspect them for future investigation,
+
+172
+00:07:32.940 --> 00:07:35.300
+and you can also redrive them back into the function.
+
+173
+00:07:35.400 --> 00:07:37.840
+DLQs are only supported for SNS and SQS.
+
+174
+00:07:37.960 --> 00:07:41.000
+Now, there is another way to do this kind of failure handling,
+
+175
+00:07:41.140 --> 00:07:42.740
+and that's with destinations.
+
+176
+00:07:43.300 --> 00:07:45.800
+So destinations are a newer and probably better way of doing it
+
+177
+00:07:45.940 --> 00:07:47.940
+that is more recommended these days,
+
+178
+00:07:48.060 --> 00:07:51.500
+and you can have a success destination and a failure destination.
+
+179
+00:07:51.640 --> 00:07:55.140
+And then that destination can go to EventBridge, SQS, SNS,
+
+180
+00:07:55.260 --> 00:07:56.800
+or onto another Lambda function.
+
+181
+00:07:56.940 --> 00:07:59.460
+And one of the advantages of failure destinations
+
+182
+00:07:59.600 --> 00:08:01.640
+is that it gives you additional metadata
+
+183
+00:08:01.760 --> 00:08:05.140
+about the event that caused the failure.
+
+184
+00:08:05.300 --> 00:08:07.840
+Now, when it comes to async event invocations,
+
+185
+00:08:08.640 --> 00:08:13.300
+services like S3 and SNS are examples of services
+
+186
+00:08:13.440 --> 00:08:16.640
+that will invoke asynchronously. EventBridge is another one.
+
+187
+00:08:16.760 --> 00:08:19.860
+One of the additional best practices that you should really consider
+
+188
+00:08:20.000 --> 00:08:22.340
+when looking at asynchronous invocation
+
+189
+00:08:22.460 --> 00:08:24.200
+is implementing item potency.
+
+190
+00:08:24.340 --> 00:08:26.560
+And in event-driven architectures in general,
+
+191
+00:08:26.700 --> 00:08:28.940
+item potency is a very important thing to understand,
+
+192
+00:08:29.460 --> 00:08:32.460
+and it basically means that the result of invoking a function
+
+193
+00:08:32.600 --> 00:08:34.300
+more than once should have the same outcome
+
+194
+00:08:34.460 --> 00:08:36.500
+as just invoking the same function once.
+
+195
+00:08:36.640 --> 00:08:39.740
+So if you end up sending the same event to a destination,
+
+196
+00:08:39.860 --> 00:08:42.500
+to a target for processing multiple times,
+
+197
+00:08:42.640 --> 00:08:44.640
+you shouldn't end up with any additional side effects
+
+198
+00:08:44.760 --> 00:08:46.740
+just because you received that event multiple times.
+
+199
+00:08:46.860 --> 00:08:48.760
+And the reason why item potency is important
+
+200
+00:08:48.900 --> 00:08:51.300
+is that most of these delivery modes
+
+201
+00:08:51.440 --> 00:08:54.760
+have at least once processing delivery semantics,
+
+202
+00:08:54.900 --> 00:08:57.560
+so they don't guarantee that they'll only deliver it to you exactly once
+
+203
+00:08:57.700 --> 00:08:59.260
+because that's a really hard thing to do.
+
+204
+00:08:59.400 --> 00:09:02.360
+You should be prepared to expect more than one invocation
+
+205
+00:09:02.520 --> 00:09:05.760
+of the same event, and there are tools that can help you
+
+206
+00:09:05.900 --> 00:09:10.400
+to implement item potency like AWS Lambda power tools,
+
+207
+00:09:10.520 --> 00:09:12.700
+which we'll talk about a little bit later as well,
+
+208
+00:09:12.820 --> 00:09:14.320
+especially when we talk about monitoring.
+
+209
+00:09:14.460 --> 00:09:15.620
+When it comes to async events,
+
+210
+00:09:15.760 --> 00:09:18.520
+there's some nice new metrics you get like the async event age,
+
+211
+00:09:18.660 --> 00:09:21.160
+which will tell you the time between the event coming into Lambda
+
+212
+00:09:21.300 --> 00:09:23.460
+to be queued and ultimately being invoked.
+
+213
+00:09:23.600 --> 00:09:25.320
+And if that turns out to be more than you expect,
+
+214
+00:09:25.460 --> 00:09:27.860
+there's probably a concurrency or a throttling issue
+
+215
+00:09:28.000 --> 00:09:29.960
+or also a failure you need to look out for.
+
+216
+00:09:30.100 --> 00:09:31.700
+And you'll also get a metric that tells you
+
+217
+00:09:31.700 --> 00:09:35.000
+how many dropped async events there have been.
+
+218
+00:09:35.140 --> 00:09:36.860
+So if events aren't processed
+
+219
+00:09:37.000 --> 00:09:38.900
+because they stayed in the queue for more than six hours,
+
+220
+00:09:39.040 --> 00:09:40.560
+that metric will tell you all about it.
+
+221
+00:09:40.700 --> 00:09:44.700
+So that's synchronous invocations and async invocations.
+
+222
+00:09:44.840 --> 00:09:47.040
+And the third one is polling invocation,
+
+223
+00:09:47.160 --> 00:09:48.900
+otherwise known as the event source mapping.
+
+224
+00:09:49.040 --> 00:09:50.100
+And it's called event source mapping
+
+225
+00:09:50.240 --> 00:09:52.740
+because there's a separate piece called an event source mapping
+
+226
+00:09:52.860 --> 00:09:55.140
+that takes the function from a source
+
+227
+00:09:55.260 --> 00:09:57.300
+and essentially synchronously invokes that for you,
+
+228
+00:09:57.440 --> 00:09:59.940
+but it's managing the failures and retries
+
+229
+00:10:00.140 --> 00:10:02.000
+in this event source mapping feature.
+
+230
+00:10:02.140 --> 00:10:04.300
+And it applies to things like DynamoDB streams,
+
+231
+00:10:04.440 --> 00:10:08.200
+Kinesis streams, SQS queues, and Kafka topics as well.
+
+232
+00:10:08.340 --> 00:10:11.400
+When it comes to best practices, item potency applies here equally.
+
+233
+00:10:11.540 --> 00:10:13.700
+You should also monitor the size of the queue
+
+234
+00:10:13.840 --> 00:10:16.200
+or the iterator age of the stream, because if it's growing
+
+235
+00:10:16.340 --> 00:10:18.100
+and you're not processing items fast enough,
+
+236
+00:10:18.240 --> 00:10:20.300
+that can result in a problem for you.
+
+237
+00:10:20.440 --> 00:10:22.080
+Then when it comes to Kinesis,
+
+238
+00:10:22.200 --> 00:10:24.140
+it's important to make sure that you have a process
+
+239
+00:10:24.280 --> 00:10:26.140
+that keeps track of repeated failures.
+
+240
+00:10:27.000 --> 00:10:30.800
+So items are usually processed with Kinesis in order per shard.
+
+241
+00:10:30.940 --> 00:10:32.140
+And if you want to know more about that,
+
+242
+00:10:32.280 --> 00:10:34.400
+you can look back at our previous Kinesis episode
+
+243
+00:10:34.540 --> 00:10:36.480
+where we dived deep into it.
+
+244
+00:10:36.600 --> 00:10:39.600
+And if you can't process an event in an ordered stream,
+
+245
+00:10:39.740 --> 00:10:42.340
+AWS by default will retry indefinitely
+
+246
+00:10:42.480 --> 00:10:44.980
+and basically block up the whole stream from being processed.
+
+247
+00:10:45.100 --> 00:10:47.900
+So that's something you'll need to configure and handle accordingly.
+
+248
+00:10:48.040 --> 00:10:50.240
+And then another thing with things like Kinesis,
+
+249
+00:10:50.380 --> 00:10:52.640
+you can receive batches of like up to 10,000 events.
+
+250
+00:10:52.780 --> 00:10:56.000
+So if you receive batches of messages and one of them fails,
+
+251
+00:10:56.140 --> 00:10:57.680
+you don't necessarily want them all to fail.
+
+252
+00:10:57.800 --> 00:10:59.680
+So there's a few different ways to tell AWS
+
+253
+00:10:59.800 --> 00:11:01.800
+which item succeeded and which ones failed.
+
+254
+00:11:01.940 --> 00:11:04.400
+So only the failed ones will need to be reprocessed.
+
+255
+00:11:04.540 --> 00:11:07.800
+So we have a whole set of articles around event processing,
+
+256
+00:11:07.940 --> 00:11:10.940
+which we'll link in the show notes, and you can take a look there.
+
+257
+00:11:11.080 --> 00:11:13.280
+So those are our three different invocation modes.
+
+258
+00:11:13.400 --> 00:11:15.280
+Important to get those out of the way.
+
+259
+00:11:15.800 --> 00:11:17.840
+Maybe now we could talk about best practices
+
+260
+00:11:17.980 --> 00:11:19.640
+relating to performance and cost.
+
+261
+00:11:21.480 --> 00:11:24.540
+Yeah, it's very important to understand, first of all, what is the formula to calculate cost when it comes to Lambda.
+
+262
+00:11:24.700 --> 00:11:26.540
+And with many things in AWS,
+
+263
+00:11:26.680 --> 00:11:30.400
+it's not always easy to predict cost with like extreme accuracy.
+
+264
+00:11:30.540 --> 00:11:32.740
+But in the case of Lambda, it's not that bad,
+
+265
+00:11:32.880 --> 00:11:34.780
+meaning that there is a simplified formula
+
+266
+00:11:34.900 --> 00:11:38.440
+that we can use to get a feeling for what the cost is going to look like.
+
+267
+00:11:38.580 --> 00:11:40.740
+And this generally is a function of the memory
+
+268
+00:11:40.880 --> 00:11:42.880
+that you pick for your Lambda invocation
+
+269
+00:11:43.000 --> 00:11:44.940
+and the execution time in milliseconds.
+
+270
+00:11:45.080 --> 00:11:47.100
+So that basically means that there is a price unit
+
+271
+00:11:47.240 --> 00:11:50.240
+that changes based on the amount of memory
+
+272
+00:11:50.380 --> 00:11:52.040
+that you allocate for your Lambda function.
+
+273
+00:11:52.180 --> 00:11:54.280
+And then you have to multiply that unit price
+
+274
+00:11:54.280 --> 00:11:55.480
+for the number of milliseconds
+
+275
+00:11:55.620 --> 00:11:57.620
+that you have been invoking that particular function.
+
+276
+00:11:57.740 --> 00:11:59.540
+And of course, if you have concurrent invocations,
+
+277
+00:11:59.680 --> 00:12:02.380
+every invocation amounts for its own cost independent.
+
+278
+00:12:02.520 --> 00:12:05.720
+So it's additional milliseconds that you need to multiply as well.
+
+279
+00:12:05.840 --> 00:12:09.320
+Now, an interesting thing is that CPU is not part of this mix.
+
+280
+00:12:09.440 --> 00:12:11.680
+Network is not part of this mix as well,
+
+281
+00:12:11.820 --> 00:12:13.420
+because these other two units
+
+282
+00:12:13.540 --> 00:12:16.440
+are automatically provisioned for you by AWS,
+
+283
+00:12:16.580 --> 00:12:19.340
+and they are proportional by the amount of memory that you pick.
+
+284
+00:12:19.480 --> 00:12:21.980
+And again, it's not always super streamlined
+
+285
+00:12:22.140 --> 00:12:26.220
+to really understand how much CPU or what kind of networking speed
+
+286
+00:12:26.340 --> 00:12:27.220
+do you get.
+
+287
+00:12:27.340 --> 00:12:30.820
+But the general gist of it is that the more memory you provision,
+
+288
+00:12:30.940 --> 00:12:33.040
+even if you don't necessarily need all of that memory,
+
+289
+00:12:33.180 --> 00:12:37.240
+the more CPU you get and the fastest the networking for your Lambda is.
+
+290
+00:12:37.380 --> 00:12:39.080
+So just be aware of these two things,
+
+291
+00:12:39.220 --> 00:12:41.520
+because sometimes you might try to save cost
+
+292
+00:12:41.640 --> 00:12:43.040
+by reducing the memory to the minimum,
+
+293
+00:12:43.180 --> 00:12:46.340
+but then you end up with very little CPU or very slow network.
+
+294
+00:12:46.480 --> 00:12:49.780
+And that might end up making your Lambda spend so much time
+
+295
+00:12:49.940 --> 00:12:51.540
+completing the computation,
+
+296
+00:12:51.680 --> 00:12:54.640
+and it doesn't necessarily result in saving cost in any way.
+
+297
+00:12:54.780 --> 00:12:56.920
+And you might even have degraded the user experience
+
+298
+00:12:57.040 --> 00:12:59.880
+if you have a user on the other side waiting for things to happen.
+
+299
+00:13:00.020 --> 00:13:02.580
+And this is where things get a little bit tricky.
+
+300
+00:13:02.720 --> 00:13:04.780
+And thankfully, there is a tool that can help you out
+
+301
+00:13:04.920 --> 00:13:07.080
+to figure out exactly what is the sweet spot
+
+302
+00:13:07.220 --> 00:13:09.220
+between performance and cost.
+
+303
+00:13:09.340 --> 00:13:12.380
+And this tool is called Lambda Power Tuning by Alex Casaboni.
+
+304
+00:13:12.520 --> 00:13:13.920
+We will have a link in the show notes.
+
+305
+00:13:14.040 --> 00:13:17.480
+And what it does is basically going to simulate your specific Lambda.
+
+306
+00:13:17.620 --> 00:13:19.580
+So it's not going to do something very generic,
+
+307
+00:13:19.580 --> 00:13:21.880
+but it's actually using your Lambda code,
+
+308
+00:13:22.020 --> 00:13:24.620
+and it's going to try different configurations in terms of memory
+
+309
+00:13:24.740 --> 00:13:27.540
+and give you a nice chart where you can effectively see
+
+310
+00:13:27.680 --> 00:13:29.520
+with all the different configurations
+
+311
+00:13:29.640 --> 00:13:31.940
+what is the time for computing an execution,
+
+312
+00:13:32.080 --> 00:13:34.680
+and compared to that time and the amount of memory used,
+
+313
+00:13:34.820 --> 00:13:36.020
+what is the cost for it.
+
+314
+00:13:36.140 --> 00:13:38.920
+And at that point, you can decide for that particular Lambda function.
+
+315
+00:13:39.040 --> 00:13:41.320
+Maybe you want to prioritize for cost,
+
+316
+00:13:41.440 --> 00:13:43.240
+and it's fine to be maybe a little bit slower,
+
+317
+00:13:43.380 --> 00:13:44.740
+but you're going to save on cost.
+
+318
+00:13:44.880 --> 00:13:46.340
+While with other Lambda functions,
+
+319
+00:13:46.480 --> 00:13:48.140
+you might want to optimize for performance,
+
+320
+00:13:48.300 --> 00:13:50.480
+and it doesn't matter if you're going to be spending a lot more,
+
+321
+00:13:50.600 --> 00:13:53.900
+but you really want to have those milliseconds reduced to the maximum.
+
+322
+00:13:54.040 --> 00:13:56.000
+Sometimes there is a good way in the middle.
+
+323
+00:13:56.140 --> 00:13:58.180
+So the chart that you get at the end
+
+324
+00:13:58.300 --> 00:14:00.980
+is definitely a very good way to figure out exactly
+
+325
+00:14:01.100 --> 00:14:03.680
+what is the sweet spot for you for that particular use case.
+
+326
+00:14:03.800 --> 00:14:06.380
+Another thing worth mentioning, which is not necessarily a best practice,
+
+327
+00:14:06.500 --> 00:14:08.480
+because again, it comes with lots of complexity,
+
+328
+00:14:08.600 --> 00:14:10.540
+and it's not always a binary choice,
+
+329
+00:14:10.680 --> 00:14:13.400
+is you might consider using a compiled runtime,
+
+330
+00:14:13.540 --> 00:14:16.700
+as opposed to runtime such as Python, JavaScript, or Java.
+
+331
+00:14:16.860 --> 00:14:19.200
+You might want to use something like C++, Rust, or Go,
+
+332
+00:14:19.340 --> 00:14:22.860
+because generally these runtimes can have very good performance
+
+333
+00:14:23.000 --> 00:14:25.140
+in terms of cold start, in terms of execution times,
+
+334
+00:14:25.260 --> 00:14:29.500
+just because those languages are more optimized for certain tasks.
+
+335
+00:14:29.640 --> 00:14:33.300
+And this is especially true if you have CPU-intensive Lambdas.
+
+336
+00:14:33.440 --> 00:14:36.000
+Now, where is a problem with that approach
+
+337
+00:14:36.140 --> 00:14:38.100
+is that sometimes learning those languages
+
+338
+00:14:38.240 --> 00:14:41.560
+is much more complicated than learning JavaScript or Node.js.
+
+339
+00:14:41.700 --> 00:14:44.700
+So the trade-off is a bit more on making an investment
+
+340
+00:14:44.860 --> 00:14:47.360
+in terms of knowledge and maintenance costs,
+
+341
+00:14:47.500 --> 00:14:49.540
+and then you might get benefits in the long term
+
+342
+00:14:49.660 --> 00:14:51.840
+because your Lambdas might be more efficient.
+
+343
+00:14:51.960 --> 00:14:54.040
+But this is not always an easy choice to make.
+
+344
+00:14:54.160 --> 00:14:57.060
+You need to take care of making sure that in your team
+
+345
+00:14:57.200 --> 00:14:59.600
+you have people that can do that efficiently,
+
+346
+00:14:59.740 --> 00:15:01.240
+they have all the training available,
+
+347
+00:15:01.360 --> 00:15:04.440
+and effectively you are introducing potentially new languages
+
+348
+00:15:04.560 --> 00:15:06.360
+that you might have to support long term.
+
+349
+00:15:06.500 --> 00:15:08.540
+Another key element to this conversation
+
+350
+00:15:08.660 --> 00:15:11.500
+is that it also affects sustainability,
+
+351
+00:15:11.660 --> 00:15:12.960
+because those combined languages
+
+352
+00:15:13.100 --> 00:15:15.860
+generally have a much better carbon footprint.
+
+353
+00:15:16.000 --> 00:15:17.940
+So if it's something that you really care about,
+
+354
+00:15:18.060 --> 00:15:20.240
+this might be another element to bring into the equation
+
+355
+00:15:20.360 --> 00:15:23.700
+when you decide to invest in these particular languages.
+
+356
+00:15:23.840 --> 00:15:26.460
+And this is something that was mentioned by Werner Vogels
+
+357
+00:15:26.600 --> 00:15:30.040
+in his keynote during the latest re-invent.
+
+358
+00:15:30.160 --> 00:15:32.040
+So again, something else worth considering,
+
+359
+00:15:32.160 --> 00:15:33.760
+but I wouldn't say it's an easy choice.
+
+360
+00:15:33.900 --> 00:15:37.100
+Every team generally might end up with different choices
+
+361
+00:15:37.240 --> 00:15:40.700
+depending on what they know already, what their skills are,
+
+362
+00:15:40.860 --> 00:15:44.000
+how much do they want to invest in learning new technologies.
+
+363
+00:15:44.140 --> 00:15:46.040
+And sometimes you don't always have requirements
+
+364
+00:15:46.160 --> 00:15:47.960
+of looking for extreme performance.
+
+365
+00:15:48.100 --> 00:15:50.840
+So yeah, up to teams to decide what to do,
+
+366
+00:15:50.960 --> 00:15:53.200
+but we would be really curious to know if this is something
+
+367
+00:15:53.340 --> 00:15:55.340
+you are considering for your team.
+
+368
+00:15:55.460 --> 00:15:59.340
+I guess the next topic is how should people structure their Lambda code?
+
+369
+00:15:59.460 --> 00:16:02.400
+This is something we get asked a lot, to be honest.
+
+370
+00:16:02.540 --> 00:16:05.460
+And again, maybe there isn't a one way of doing it,
+
+371
+00:16:05.600 --> 00:16:07.160
+but for sure there are some best practices
+
+372
+00:16:07.300 --> 00:16:08.660
+that I think we can recommend.
+
+373
+00:16:08.660 --> 00:16:10.460
+Yeah, this is true.
+
+374
+00:16:10.600 --> 00:16:12.760
+There's definitely not one way to do it and one right answer, but it is a good idea
+
+375
+00:16:12.900 --> 00:16:14.720
+to have some sort of layered architecture
+
+376
+00:16:14.860 --> 00:16:17.120
+and make sure that the handler function itself
+
+377
+00:16:17.260 --> 00:16:18.720
+ideally only contains glue code.
+
+378
+00:16:18.860 --> 00:16:22.420
+So the layer that adapts the Lambda interface
+
+379
+00:16:22.560 --> 00:16:26.120
+and the event source into the underlying implementation.
+
+380
+00:16:26.260 --> 00:16:29.360
+So you can pass it to a service function or a piece of domain logic,
+
+381
+00:16:29.500 --> 00:16:33.160
+and then your handler is basically just serializing the input,
+
+382
+00:16:33.300 --> 00:16:35.700
+passing it on and transforming the output
+
+383
+00:16:35.820 --> 00:16:37.860
+into the required response type.
+
+384
+00:16:38.020 --> 00:16:39.460
+Now, this is going to make your code more testable
+
+385
+00:16:39.600 --> 00:16:41.460
+because it allows you to test the service logic
+
+386
+00:16:41.600 --> 00:16:44.300
+independently from the Lambda function itself.
+
+387
+00:16:44.420 --> 00:16:47.360
+There's lots of ways of doing this. As we said, hexagonal architecture
+
+388
+00:16:47.500 --> 00:16:49.300
+is one which you'll see mentioned quite a lot,
+
+389
+00:16:49.420 --> 00:16:51.260
+especially in the serverless space,
+
+390
+00:16:51.400 --> 00:16:53.120
+but there's other different ways of implementing,
+
+391
+00:16:53.260 --> 00:16:54.960
+like clean architecture, et cetera.
+
+392
+00:16:55.100 --> 00:16:58.660
+There's a blog post from Luca Metzelira on hexagonal architecture,
+
+393
+00:16:58.800 --> 00:17:00.060
+which we'll link in the show notes,
+
+394
+00:17:00.200 --> 00:17:01.820
+but there's lots of resources out there on it.
+
+395
+00:17:01.960 --> 00:17:04.460
+If you want to test the whole Lambda function logic itself,
+
+396
+00:17:04.600 --> 00:17:07.160
+you can use integration tests then and end-to-end tests
+
+397
+00:17:07.260 --> 00:17:10.960
+and we'd definitely recommend that because Lambda as a service itself
+
+398
+00:17:11.100 --> 00:17:12.900
+can introduce lots of interesting behavior,
+
+399
+00:17:13.020 --> 00:17:15.120
+which you should cover in some sort of automated test
+
+400
+00:17:15.260 --> 00:17:17.320
+and even performance and load tests as well.
+
+401
+00:17:17.460 --> 00:17:20.220
+You can also abstract dependencies like storage
+
+402
+00:17:20.360 --> 00:17:22.360
+or interacting with other AWS services
+
+403
+00:17:22.500 --> 00:17:24.760
+as part of an architecture like this,
+
+404
+00:17:24.900 --> 00:17:26.820
+and then you can easily mock these abstractions
+
+405
+00:17:26.960 --> 00:17:30.020
+or have secondary implementations you can use for local testing.
+
+406
+00:17:30.160 --> 00:17:31.660
+Now, let's give a quick example.
+
+407
+00:17:31.800 --> 00:17:34.360
+Let's say we've got an e-commerce shopping cart example
+
+408
+00:17:34.500 --> 00:17:36.260
+and you want to add an item to a cart
+
+409
+00:17:36.360 --> 00:17:39.120
+and you've got an API endpoint to achieve this.
+
+410
+00:17:39.260 --> 00:17:42.560
+You can define what the expected inputs and outputs are
+
+411
+00:17:42.700 --> 00:17:44.920
+and the validation rules for this API endpoint.
+
+412
+00:17:45.060 --> 00:17:48.460
+So your input might be a cart ID, an item ID and a quantity.
+
+413
+00:17:48.600 --> 00:17:50.360
+With your validation, you can say,
+
+414
+00:17:50.500 --> 00:17:52.100
+well, the cart ID must exist in the database
+
+415
+00:17:52.220 --> 00:17:54.020
+and be associated with an active user.
+
+416
+00:17:54.160 --> 00:17:55.860
+The item ID must exist in the database
+
+417
+00:17:56.000 --> 00:17:58.020
+and it should be associated with a valid product
+
+418
+00:17:58.160 --> 00:18:00.960
+and then a quantity should be a reasonable positive integer,
+
+419
+00:18:01.100 --> 00:18:04.160
+maybe below some arbitrary limit, depending on your context.
+
+420
+00:18:04.400 --> 00:18:06.500
+It's always good to have lower and upper bounds.
+
+421
+00:18:06.620 --> 00:18:08.700
+And the output then would be an updated view of the cart
+
+422
+00:18:08.820 --> 00:18:10.700
+with the new items included perhaps.
+
+423
+00:18:10.820 --> 00:18:12.520
+Now, this validation is all something
+
+424
+00:18:12.660 --> 00:18:15.960
+that you should be considering implementing in your Lambda Function
+
+425
+00:18:16.100 --> 00:18:18.760
+or at some level in the stack, possibly multiple levels.
+
+426
+00:18:19.460 --> 00:18:21.120
+Then also defining all the errors, right?
+
+427
+00:18:21.260 --> 00:18:22.800
+Not just thinking about the happy path,
+
+428
+00:18:22.920 --> 00:18:24.300
+but what are the different errors
+
+429
+00:18:24.420 --> 00:18:26.700
+and what is the information associated with those errors
+
+430
+00:18:26.820 --> 00:18:28.760
+that you want to leak outside your function.
+
+431
+00:18:28.900 --> 00:18:32.160
+Then you can implement code to abstract the persistent layers,
+
+432
+00:18:32.160 --> 00:18:35.000
+like how you're storing the state of your user cart across requests.
+
+433
+00:18:35.120 --> 00:18:37.000
+And this layer might have helper functions
+
+434
+00:18:37.120 --> 00:18:39.600
+such as creating a cart, adding an item to a cart,
+
+435
+00:18:39.720 --> 00:18:42.600
+removing item from cart and maybe emptying the cart.
+
+436
+00:18:42.720 --> 00:18:45.500
+So that could be in a data access layer or repository.
+
+437
+00:18:45.620 --> 00:18:47.960
+And then you implement the service that takes the inputs,
+
+438
+00:18:48.100 --> 00:18:50.100
+like the cart ID, the item ID, the quantity,
+
+439
+00:18:50.220 --> 00:18:52.800
+and updates the given cart or returns the error.
+
+440
+00:18:52.920 --> 00:18:54.900
+So you would update the handler that takes the event,
+
+441
+00:18:55.020 --> 00:18:57.760
+validates it, extracts the cart ID, item ID and quantity,
+
+442
+00:18:57.900 --> 00:18:59.260
+and then pass it to the service.
+
+443
+00:18:59.400 --> 00:19:01.060
+Then it would take the response from the service
+
+444
+00:19:01.220 --> 00:19:03.820
+and convert it to the appropriate maybe HTTP response,
+
+445
+00:19:03.960 --> 00:19:07.360
+if this is a HTTP API, and the handler would take care of working
+
+446
+00:19:07.500 --> 00:19:10.860
+with the Lambda proxy integration event and response format.
+
+447
+00:19:11.000 --> 00:19:14.660
+Now, you don't necessarily always have to have all these layers of abstraction.
+
+448
+00:19:14.800 --> 00:19:16.900
+Sometimes it is okay to keep things simple,
+
+449
+00:19:17.020 --> 00:19:20.400
+especially if you've got something that doesn't do something very complex,
+
+450
+00:19:20.960 --> 00:19:23.100
+as long as you've got some way of testing your code
+
+451
+00:19:23.220 --> 00:19:25.820
+and you have confidence that it does exactly what it's supposed to do
+
+452
+00:19:25.960 --> 00:19:28.460
+and that if you apply changes later, you can easily test it
+
+453
+00:19:28.600 --> 00:19:30.900
+and you don't have to rework your tests completely.
+
+454
+00:19:31.060 --> 00:19:33.920
+And you can also use a middleware library like Middy.js
+
+455
+00:19:34.060 --> 00:19:38.300
+in Node.js, JavaScript, TypeScript, to abstract some of this logic,
+
+456
+00:19:38.420 --> 00:19:40.400
+like validation and serialization,
+
+457
+00:19:40.520 --> 00:19:42.800
+and make it reusable and easily testable.
+
+458
+00:19:42.920 --> 00:19:45.360
+And you can refer back to our previous episode on Middy
+
+459
+00:19:45.500 --> 00:19:46.620
+to find out all about that.
+
+460
+00:19:46.760 --> 00:19:49.220
+And again, this will be related to Power Tools,
+
+461
+00:19:49.360 --> 00:19:51.060
+which maybe we should talk about next.
+
+462
+00:19:51.660 --> 00:19:53.500
+The Power Tools we mentioned already in the show
+
+463
+00:19:53.620 --> 00:19:56.620
+in the context of item potency and also middleware
+
+464
+00:19:56.760 --> 00:20:00.060
+because it integrates with Middy, but even in Python,
+
+465
+00:20:00.220 --> 00:20:02.720
+it will provide you that middleware support as well.
+
+466
+00:20:02.860 --> 00:20:04.560
+What other things can Power Tools provide?
+
+467
+00:20:04.700 --> 00:20:07.000
+I think we probably regard it as just a default best practice
+
+468
+00:20:07.120 --> 00:20:09.700
+to just start off with Power Tools and functions these days.
+
+469
+00:20:11.860 --> 00:20:14.820
+Yes, I think before we get into the details, it's worth clarifying that Power Tools is effectively a library
+
+470
+00:20:14.960 --> 00:20:18.900
+that exists for different languages and specifically targets Lambda.
+
+471
+00:20:19.020 --> 00:20:21.600
+And it tries to solve, I guess, some common problems
+
+472
+00:20:21.720 --> 00:20:23.220
+that you might have when writing Lambdas,
+
+473
+00:20:23.360 --> 00:20:25.300
+and it tries to provide kind of a comprehensive,
+
+474
+00:20:25.420 --> 00:20:29.720
+better-included solution that gives you tools to solve these problems.
+
+475
+00:20:30.060 --> 00:20:32.660
+And the common things that Power Tools started with
+
+476
+00:20:32.800 --> 00:20:34.700
+are logs, metrics, traces,
+
+477
+00:20:34.820 --> 00:20:37.560
+but we already mentioned also item potency
+
+478
+00:20:37.700 --> 00:20:39.660
+and different versions of the library,
+
+479
+00:20:39.800 --> 00:20:42.560
+meaning different languages might have more, I guess,
+
+480
+00:20:42.700 --> 00:20:45.800
+complete support for different things than others.
+
+481
+00:20:45.920 --> 00:20:47.300
+Generally speaking, the Python one,
+
+482
+00:20:47.420 --> 00:20:49.060
+because probably historically was the first one,
+
+483
+00:20:49.200 --> 00:20:50.560
+is the most complete one,
+
+484
+00:20:50.700 --> 00:20:52.660
+and the other ones tend to follow along
+
+485
+00:20:52.800 --> 00:20:54.820
+after a few months with the new features.
+
+486
+00:20:54.960 --> 00:20:57.660
+So definitely check out, depending on your language of choice,
+
+487
+00:20:57.800 --> 00:20:59.760
+what are the available utilities,
+
+488
+00:20:59.760 --> 00:21:02.200
+but Power Tools is definitely something you should be using
+
+489
+00:21:02.320 --> 00:21:04.920
+to the very least for logs, metrics, and traces.
+
+490
+00:21:05.060 --> 00:21:08.200
+But there is more, like item potency that is absolutely useful,
+
+491
+00:21:08.320 --> 00:21:10.920
+and if it's there for your runtime, you should definitely consider it.
+
+492
+00:21:11.060 --> 00:21:12.900
+Other things that are there are, for instance,
+
+493
+00:21:13.020 --> 00:21:15.260
+supports for OpenAPI specification.
+
+494
+00:21:15.400 --> 00:21:17.200
+For instance, the Python one recently introduced
+
+495
+00:21:17.320 --> 00:21:20.200
+lots of helper methods to make all of that process easier.
+
+496
+00:21:20.320 --> 00:21:22.460
+Not really sure if that's already supported in Java
+
+497
+00:21:22.600 --> 00:21:24.000
+or the Node.js equivalent,
+
+498
+00:21:24.120 --> 00:21:25.960
+but something that eventually is going to come up
+
+499
+00:21:26.100 --> 00:21:28.160
+to those versions of the library as well.
+
+500
+00:21:28.400 --> 00:21:33.020
+Another thing that if you really care about metrics and alarms,
+
+501
+00:21:33.160 --> 00:21:36.000
+you might want to check out a tool we have already mentioned before
+
+502
+00:21:36.120 --> 00:21:38.600
+called SlickWatch, which is an open source tool
+
+503
+00:21:38.720 --> 00:21:41.600
+that we created at Fortier to simplify,
+
+504
+00:21:42.360 --> 00:21:45.560
+almost automate the creation of sensible defaults
+
+505
+00:21:45.700 --> 00:21:48.720
+when it comes to metrics and alarms and dashboards.
+
+506
+00:21:48.860 --> 00:21:51.920
+So worth checking it out because it can make your life easier,
+
+507
+00:21:52.060 --> 00:21:56.020
+and it can effectively speed up the work around covering those areas
+
+508
+00:21:56.180 --> 00:21:58.220
+for at least 80% of the use cases.
+
+509
+00:21:58.360 --> 00:22:01.460
+Other things that we already mentioned in terms of tooling
+
+510
+00:22:01.580 --> 00:22:03.480
+is Lambda Power Tuning for performance.
+
+511
+00:22:03.620 --> 00:22:05.460
+But when it comes to all this topic,
+
+512
+00:22:05.580 --> 00:22:07.220
+we have a bunch of previous episodes
+
+513
+00:22:07.360 --> 00:22:10.080
+where we cover details about how to do good logging,
+
+514
+00:22:10.220 --> 00:22:14.580
+how to use CloudWatch for logs, how to use CloudWatch alarms,
+
+515
+00:22:14.720 --> 00:22:15.960
+how to do metrics with CloudWatch.
+
+516
+00:22:16.080 --> 00:22:18.360
+So we'll have all the links for this episode in the show notes
+
+517
+00:22:18.480 --> 00:22:20.680
+if this is a topic that you want to dive on
+
+518
+00:22:20.820 --> 00:22:22.380
+and really understand the details.
+
+519
+00:22:22.520 --> 00:22:23.760
+Moving on to another area,
+
+520
+00:22:23.920 --> 00:22:26.620
+I'm just going to go through some quick suggestions
+
+521
+00:22:26.760 --> 00:22:29.160
+and maybe going less in detail
+
+522
+00:22:29.300 --> 00:22:31.000
+compared to the previous areas we covered today,
+
+523
+00:22:31.120 --> 00:22:32.920
+but hopefully you still get some value
+
+524
+00:22:33.060 --> 00:22:35.360
+in getting some quick suggestions on things
+
+525
+00:22:35.500 --> 00:22:37.700
+to focus on when it comes to writing Lambdas.
+
+526
+00:22:37.820 --> 00:22:40.060
+And one topic, for instance, is configuration,
+
+527
+00:22:40.200 --> 00:22:41.600
+and can be a very big topic.
+
+528
+00:22:41.720 --> 00:22:44.700
+There are different ways to manage configuration when it comes to AWS.
+
+529
+00:22:44.820 --> 00:22:46.700
+So the quick suggestions we have on this one
+
+530
+00:22:46.820 --> 00:22:48.600
+is when it comes to secrets,
+
+531
+00:22:48.720 --> 00:22:51.820
+don't store them in clear text as an environment variable,
+
+532
+00:22:51.980 --> 00:22:54.880
+or even inside your code, that would be probably even worse.
+
+533
+00:22:55.020 --> 00:22:56.620
+But yeah, there are other ways to do that.
+
+534
+00:22:56.760 --> 00:22:58.060
+For instance, you can use Secrets Manager,
+
+535
+00:22:58.180 --> 00:23:00.860
+you can use SSM and have encrypted parameters.
+
+536
+00:23:00.980 --> 00:23:03.180
+So generally speaking, the recommendation there
+
+537
+00:23:03.320 --> 00:23:04.780
+is when it comes to secrets,
+
+538
+00:23:04.920 --> 00:23:07.820
+it can be very convenient to store them in plain text in your code
+
+539
+00:23:07.960 --> 00:23:08.960
+or in environment variables,
+
+540
+00:23:09.080 --> 00:23:12.080
+but generally speaking, if you can avoid that, it's best to do so.
+
+541
+00:23:12.220 --> 00:23:15.160
+And the other point is infrastructure as code.
+
+542
+00:23:15.280 --> 00:23:17.780
+This is a topic that also we cover extensively.
+
+543
+00:23:17.920 --> 00:23:21.080
+So the only recommendation we have here is use it.
+
+544
+00:23:21.080 --> 00:23:23.040
+There is no excuse not to use it.
+
+545
+00:23:23.180 --> 00:23:25.380
+Of course, you can prefer different tools.
+
+546
+00:23:25.520 --> 00:23:28.420
+There is some, Terraform, CDK, Serverless Framework.
+
+547
+00:23:28.540 --> 00:23:30.980
+We have covered pretty much all of them in previous episodes,
+
+548
+00:23:31.120 --> 00:23:32.840
+and we'll have the links in the show notes.
+
+549
+00:23:32.980 --> 00:23:35.720
+But the point is, regardless of which tool you prefer,
+
+550
+00:23:35.840 --> 00:23:37.540
+you should be doing infrastructure as code,
+
+551
+00:23:37.680 --> 00:23:41.580
+because the advantages definitely outweigh the disadvantages,
+
+552
+00:23:41.720 --> 00:23:43.640
+which might be maybe a little bit of learning curve,
+
+553
+00:23:43.780 --> 00:23:47.120
+because you need to learn a new tool and become familiar with it.
+
+554
+00:23:47.240 --> 00:23:49.240
+But then there will be such great advantages
+
+555
+00:23:49.400 --> 00:23:51.380
+that definitely they're going to pay off big time,
+
+556
+00:23:51.500 --> 00:23:52.700
+that initial investment.
+
+557
+00:23:52.840 --> 00:23:55.480
+So if you haven't picked infrastructure as code yet,
+
+558
+00:23:55.600 --> 00:23:57.600
+definitely put it at the top of your to-do list,
+
+559
+00:23:57.740 --> 00:24:00.280
+because you're going to be grateful going forward.
+
+560
+00:24:00.400 --> 00:24:03.340
+And for sure, the whole management of infrastructure
+
+561
+00:24:03.480 --> 00:24:06.200
+is going to become so much easier and so much more reliable.
+
+562
+00:24:06.340 --> 00:24:08.180
+That is something that you will be thankful
+
+563
+00:24:08.300 --> 00:24:09.600
+that you have finally tackled.
+
+564
+00:24:09.740 --> 00:24:12.200
+And finally, one last point is security.
+
+565
+00:24:12.340 --> 00:24:14.380
+This can be a massive topic on its own,
+
+566
+00:24:14.500 --> 00:24:18.000
+but the one quick tip that is particularly relevant for Lambda
+
+567
+00:24:18.160 --> 00:24:20.400
+is to apply the principle of list knowledge.
+
+568
+00:24:20.540 --> 00:24:23.100
+And the reason why I think this applies particularly for Lambda
+
+569
+00:24:23.240 --> 00:24:25.740
+is because in Lambda, since you have such, generally speaking,
+
+570
+00:24:25.860 --> 00:24:27.940
+at least such a small focus,
+
+571
+00:24:28.060 --> 00:24:30.700
+like generally Lambdas are like one purpose only,
+
+572
+00:24:30.840 --> 00:24:34.460
+you can really fine-tune the permissions for that one particular purpose.
+
+573
+00:24:34.600 --> 00:24:36.840
+So you might have, for instance, going back to our example
+
+574
+00:24:36.960 --> 00:24:39.400
+of the adding item to the cart Lambda,
+
+575
+00:24:39.540 --> 00:24:41.940
+you might give that Lambda only the permission
+
+576
+00:24:42.060 --> 00:24:45.300
+to write that particular item, maybe to a DynamoDB table.
+
+577
+00:24:45.440 --> 00:24:47.740
+So it can only add items to carts
+
+578
+00:24:47.740 --> 00:24:48.840
+and not do anything else.
+
+579
+00:24:48.980 --> 00:24:50.800
+So if that Lambda gets compromised,
+
+580
+00:24:50.940 --> 00:24:53.340
+it's not like an attacker can read passwords
+
+581
+00:24:53.480 --> 00:24:56.300
+or maybe manipulate credit card detail.
+
+582
+00:24:56.440 --> 00:25:00.140
+An attacker will only be able to add items to a cart.
+
+583
+00:25:00.780 --> 00:25:03.140
+So, of course, not ideal anyway,
+
+584
+00:25:03.280 --> 00:25:05.500
+but the blast radius is very, very limited.
+
+585
+00:25:05.640 --> 00:25:07.780
+So this is why with Lambda, it's even more important
+
+586
+00:25:07.900 --> 00:25:11.080
+to apply this principle because you can really fine-tune it to the maximum.
+
+587
+00:25:11.200 --> 00:25:13.200
+And therefore, your application as a whole
+
+588
+00:25:13.340 --> 00:25:15.140
+is going to become extremely secure,
+
+589
+00:25:15.140 --> 00:25:18.380
+at least compared to more traditional and monolithic architecture
+
+590
+00:25:18.500 --> 00:25:21.480
+where effectively your weakest spot
+
+591
+00:25:21.600 --> 00:25:24.840
+becomes the biggest vulnerability of the entire system.
+
+592
+00:25:27.240 --> 00:25:28.680
+There are a lot of other areas you might pick when you're talking about best practices.
+
+593
+00:25:28.800 --> 00:25:31.700
+We didn't even cover things like deployment and dependency management
+
+594
+00:25:31.840 --> 00:25:35.540
+or the hot topic of Lambdalith or monolithic Lambda functions
+
+595
+00:25:35.680 --> 00:25:37.880
+versus single-purpose functions.
+
+596
+00:25:38.000 --> 00:25:40.040
+Like maybe these are topics for a future episode,
+
+597
+00:25:40.180 --> 00:25:41.840
+but at the end of the day, a lot of these choices
+
+598
+00:25:41.980 --> 00:25:44.540
+just come down to personal preference and context.
+
+599
+00:25:44.580 --> 00:25:47.280
+So for now, we'll just leave you with some extra resources to check out.
+
+600
+00:25:47.400 --> 00:25:49.000
+So look at the links in the description below
+
+601
+00:25:49.140 --> 00:25:52.800
+for AWS advice on Lambda best practices, which is worthwhile,
+
+602
+00:25:52.940 --> 00:25:55.540
+but also the great video series from Julian Wood,
+
+603
+00:25:55.680 --> 00:25:58.700
+who has 20 good videos on understanding Lambda,
+
+604
+00:25:58.840 --> 00:26:00.440
+and I really recommend them for anyone
+
+605
+00:26:00.580 --> 00:26:02.480
+who's looking to fill any knowledge gaps there.
+
+606
+00:26:02.600 --> 00:26:04.400
+So thanks for listening, and until next time,
+
+607
+00:26:04.540 --> 00:26:06.380
+we'll see you in the next episode.

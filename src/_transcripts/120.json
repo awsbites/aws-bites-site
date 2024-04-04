@@ -1,0 +1,3650 @@
+{
+  "speakers": {
+    "spk_0": "Eoin",
+    "spk_1": "Luciano"
+  },
+  "segments": [
+    {
+      "speakerLabel": "spk_0",
+      "start": 0,
+      "end": 2.7600000000000002,
+      "text": " Lambda functions have revolutionized the way we build"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2.9,
+      "end": 4.76,
+      "text": " and deploy applications in the cloud,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 4.9,
+      "end": 7.96,
+      "text": " but are we really harnessing their power efficiently?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 8.1,
+      "end": 11.4,
+      "text": " Today we're going to uncover some of Lambda's best practices,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 11.52,
+      "end": 13.76,
+      "text": " combining insights from AWS documentation,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 13.9,
+      "end": 16.56,
+      "text": " but also our own experiences to help you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 16.7,
+      "end": 18.76,
+      "text": " to optimize your serverless architecture."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 19.52,
+      "end": 21.26,
+      "text": " Overall, we want to make sure you have a great time"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 21.400000000000002,
+      "end": 22.3,
+      "text": " when working with Lambda."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 22.42,
+      "end": 24.12,
+      "text": " I'm Eoin and I'm joined by Luciano"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 24.26,
+      "end": 27,
+      "text": " for another episode of the AWS Bites podcast."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 27,
+      "end": 37.1,
+      "text": " AWS Bites is brought to you by fourTheorem,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 37.24,
+      "end": 40.36,
+      "text": " an AWS partner that specializes in modern application architecture"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 40.5,
+      "end": 41.76,
+      "text": " and migration."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 41.9,
+      "end": 43.3,
+      "text": " We are big fans of serverless"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 43.44,
+      "end": 45.46,
+      "text": " and we've worked on a lot of serverless projects,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 45.6,
+      "end": 46.7,
+      "text": " even at a massive scale."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 46.84,
+      "end": 49.1,
+      "text": " If you are curious to find out more and to work with us,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 49.24,
+      "end": 51.3,
+      "text": " check us out on fourtheorem.com."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 51.44,
+      "end": 53.54,
+      "text": " One of the things that's worth starting with"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 53.66,
+      "end": 55.260000000000005,
+      "text": " is how Lambda works under the hood,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 55.36,
+      "end": 58.4,
+      "text": " and we've covered a few different episodes in the past about AWS Lambda,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 58.519999999999996,
+      "end": 60.519999999999996,
+      "text": " but it's worthwhile having a brief refresher."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 60.66,
+      "end": 63.3,
+      "text": " So, Luciano, do you want to tell us how does Lambda work?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 66.6,
+      "end": 70.25999999999999,
+      "text": " I'll try my best and I think this is one of the interesting topics about Lambda that is often not covered enough or not discussed enough."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 70.4,
+      "end": 73.75999999999999,
+      "text": " So let's try to discuss how Lambda works under the hood,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 73.9,
+      "end": 77.4,
+      "text": " because I think it's important to come up with a good mental model."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 77.52,
+      "end": 80.06,
+      "text": " And once we do that, I think it's going to be easier to understand"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 80.2,
+      "end": 82.86,
+      "text": " how to write Lambda code that is more optimized"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 83,
+      "end": 84.52,
+      "text": " for that particular kind of environment."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 84.67999999999999,
+      "end": 87.52,
+      "text": " So the first thing to clarify is that Lambda as a service,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 87.66,
+      "end": 89.56,
+      "text": " by definition, is serverless."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 89.67999999999999,
+      "end": 93.02,
+      "text": " So that means that if you're not using that particular service,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 93.16,
+      "end": 94.88,
+      "text": " for instance, if you don't have anything to do,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 95.02,
+      "end": 98.17999999999999,
+      "text": " like you brought an application, but nobody's using that application,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 98.32,
+      "end": 101.02,
+      "text": " ideally, nothing should be running at that moment in time."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 101.16,
+      "end": 103.32,
+      "text": " And that also means as a nice side effect,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 103.46,
+      "end": 105.06,
+      "text": " that you don't get charged for it."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 105.17999999999999,
+      "end": 108.32,
+      "text": " So it's not like you have a server spinning out 24-hour seven,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 108.46,
+      "end": 110.75999999999999,
+      "text": " and you're going to be paying for even though maybe nobody's"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 110.88,
+      "end": 112.22,
+      "text": " actually using your service."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 112.38,
+      "end": 115.76,
+      "text": " With Lambda, if nothing is running, you don't get charged for it."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 116.42,
+      "end": 120.26,
+      "text": " It's also event-based, which means that the computation starts"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 120.38,
+      "end": 122.46,
+      "text": " when an event is triggered."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 122.58,
+      "end": 123.86,
+      "text": " And when that event happens,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 123.98,
+      "end": 127.48,
+      "text": " AWS will need to be able to run your Lambda code somewhere."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 127.62,
+      "end": 129.68,
+      "text": " And this is where things get a little bit interesting,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 129.82,
+      "end": 133.32,
+      "text": " because if there is no instance of your Lambda at that moment in time,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 133.46,
+      "end": 136.16,
+      "text": " or maybe the caveat there is if you have other instances,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 136.28,
+      "end": 138.76,
+      "text": " but they are all busy, AWS will need to figure out,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 138.88,
+      "end": 141.66,
+      "text": " okay, where do I run the code for this particular event?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 141.82,
+      "end": 144.82,
+      "text": " And this means that AWS needs to spin up some infrastructure,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 144.96,
+      "end": 147,
+      "text": " which generally means loading the code from S3,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 147.12,
+      "end": 149.4,
+      "text": " creating some kind of lightweight virtual machine,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 149.52,
+      "end": 151.62,
+      "text": " and make sure that that virtual machine can run your code."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 151.76,
+      "end": 155.12,
+      "text": " And of course, doing all of that extra setup takes a bit of time."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 155.26,
+      "end": 157.6,
+      "text": " And the time can vary between milliseconds,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 157.72,
+      "end": 159.85999999999999,
+      "text": " or even a few seconds, depending on the kind of runtime"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 160,
+      "end": 161.51999999999998,
+      "text": " that you pick for that Lambda function."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 161.66,
+      "end": 164.6,
+      "text": " And because this is extra time that you are spending"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 164.72,
+      "end": 167.5,
+      "text": " not really executing any code from the Lambda function,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 167.62,
+      "end": 169.66,
+      "text": " this is generally called a cold start."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 169.76,
+      "end": 174.02,
+      "text": " So you need to take to give AWS time to bring up all the infrastructure"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 174.16,
+      "end": 177.3,
+      "text": " so that you can run your own code. And this is what's called a cold start."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 177.42,
+      "end": 180.35999999999999,
+      "text": " Now at some point, you take that event, execute that code,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 180.5,
+      "end": 181.85999999999999,
+      "text": " you do something useful with it,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 182,
+      "end": 185.12,
+      "text": " and you provide some kind of useful response to the system."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 185.85999999999999,
+      "end": 189.56,
+      "text": " So in a way, you can say that that particular Lambda execution is completed,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 189.7,
+      "end": 192.56,
+      "text": " but the infrastructure related to that Lambda function"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 192.7,
+      "end": 194.8,
+      "text": " is not immediately disposed by AWS,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 194.92,
+      "end": 196.6,
+      "text": " it will be kept around for a few minutes."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 196.76,
+      "end": 200.1,
+      "text": " It's not absolutely clear by AWS how much is that time,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 200.23999999999998,
+      "end": 202.94,
+      "text": " we have seen varying between five minutes and 15 minutes."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 203.54,
+      "end": 205.2,
+      "text": " But it's just in the order of minutes."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 205.34,
+      "end": 207.76,
+      "text": " So you need to be aware that your Lambda might stay around"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 207.9,
+      "end": 210.26,
+      "text": " doing nothing for a few minutes before it's disposed."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 210.4,
+      "end": 213.26,
+      "text": " And the reason why that happens is because if a new event comes in"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 213.4,
+      "end": 215.74,
+      "text": " during that period, AWS can be smart about it"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 215.85999999999999,
+      "end": 217.26,
+      "text": " and recycle that instance,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 217.4,
+      "end": 220.4,
+      "text": " rather than recreating an entire new one for every single event."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 220.54,
+      "end": 223.84,
+      "text": " And of course, this is an optimization and it's called a warm start,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 223.84,
+      "end": 225.74,
+      "text": " your code can be executed immediately"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 225.88,
+      "end": 227.84,
+      "text": " without waiting for another cold start."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 227.98,
+      "end": 230.3,
+      "text": " Now, why it is important to understand all of this?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 230.44,
+      "end": 233.38,
+      "text": " I think in practice, once you understand the lifecycle of a Lambda function,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 233.5,
+      "end": 236.38,
+      "text": " you can write code that is way more optimized for this environment."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 236.5,
+      "end": 238.44,
+      "text": " And just to give you an example, I think at this point,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 238.58,
+      "end": 241.6,
+      "text": " it should be clear that there are more or less two phases of your code."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 241.74,
+      "end": 243.88,
+      "text": " One is what you can call the init phase,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 244,
+      "end": 246.68,
+      "text": " and the other one is what you can call the event handling phase."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 246.8,
+      "end": 251.08,
+      "text": " And the init phase generally happens only one for every Lambda function"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 251.2,
+      "end": 252.94,
+      "text": " that gets instantiated."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 253.18,
+      "end": 254.98,
+      "text": " And generally, you can use this init phase"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 255.1,
+      "end": 257.28,
+      "text": " to create all the expensive resources"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 257.4,
+      "end": 259.88,
+      "text": " that you might want to recycle across multiple invocations"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 260,
+      "end": 261.74,
+      "text": " of the same Lambda instance."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 261.88,
+      "end": 264.38,
+      "text": " For instance, if you need to establish a database connection,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 264.5,
+      "end": 266.38,
+      "text": " if you need to create some kind of client,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 266.5,
+      "end": 268.74,
+      "text": " maybe another AWS SDK client,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 268.88,
+      "end": 271.9,
+      "text": " and all of these resources should be made globally available"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 272.04,
+      "end": 276.1,
+      "text": " so that multiple execution of your handler can access those"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 276.24,
+      "end": 279.1,
+      "text": " and they don't need to be recreated over and over for every single event."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 279.24,
+      "end": 281.28,
+      "text": " This is something that might be done slightly different,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 281.28,
+      "end": 283.53999999999996,
+      "text": " depending on your choice of runtime and language."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 283.67999999999995,
+      "end": 285.21999999999997,
+      "text": " But pretty much with every language and runtime,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 285.34,
+      "end": 288.08,
+      "text": " you have ways to have this kind of initialization phase,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 288.21999999999997,
+      "end": 289.88,
+      "text": " and then you have handler logic"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 290.02,
+      "end": 292.38,
+      "text": " that can be called over and over once for every event,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 292.52,
+      "end": 294.34,
+      "text": " and it can access some kind of global space"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 294.47999999999996,
+      "end": 297.41999999999996,
+      "text": " where all these instantiated globals are available,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 297.53999999999996,
+      "end": 300.52,
+      "text": " and you can just use them rather than having to recreate them"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 300.64,
+      "end": 301.82,
+      "text": " within your handler code."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 301.94,
+      "end": 303.41999999999996,
+      "text": " So what can we cover next?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 303.53999999999996,
+      "end": 307.21999999999997,
+      "text": " I think one interesting topic is maybe clarifying the different ways"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 307.34,
+      "end": 308.94,
+      "text": " you can invoke a Lambda function."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 309.1,
+      "end": 311.34,
+      "text": " Should we try to describe all of that, Eoin?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 313.34,
+      "end": 314.54,
+      "text": " Yeah, briefly we definitely should, because this is a really important thing"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 314.68,
+      "end": 316.84,
+      "text": " when it comes to understanding why best practices"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 316.98,
+      "end": 318.58,
+      "text": " are good practices in the first place."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 319.28,
+      "end": 320.34,
+      "text": " And let's break it down."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 320.48,
+      "end": 323.6,
+      "text": " You've got synchronous invocations, asynchronous invocations,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 323.74,
+      "end": 325.1,
+      "text": " and then you've got the third type,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 325.24,
+      "end": 327.6,
+      "text": " which is polling-based or event source mapping."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 328.14,
+      "end": 330.48,
+      "text": " So with synchronous invocation, you have something waiting"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 330.6,
+      "end": 333.4,
+      "text": " for the Lambda function to complete and issue a response,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 333.54,
+      "end": 336.18,
+      "text": " and that applies to services like API Gateway"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 336.3,
+      "end": 337.74,
+      "text": " and Application Load Balancer,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 337.84000000000003,
+      "end": 342.2,
+      "text": " and it also applies to some other more niche cases like CloudFront,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 342.90000000000003,
+      "end": 346.78000000000003,
+      "text": " Lambda at Edge functions, Cognito Lambda function integrations,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 346.90000000000003,
+      "end": 350.58,
+      "text": " and you can also synchronously invoke things from the API or the CLI"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 350.7,
+      "end": 352.6,
+      "text": " if you choose request response mode."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 353.14,
+      "end": 355.28000000000003,
+      "text": " Now, the best practices when it comes to synchronous invocation"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 355.40000000000003,
+      "end": 359.44,
+      "text": " is probably obviously enough to try to keep the execution time"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 359.58,
+      "end": 360.68,
+      "text": " as short as possible."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 360.8,
+      "end": 363.5,
+      "text": " For example, if it's an API, you should return a response"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 363.64,
+      "end": 366.40000000000003,
+      "text": " before an HTTP timeout will occur."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 366.96,
+      "end": 369,
+      "text": " API Gateway will give you a 30-second timeout,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 369.14,
+      "end": 371.34,
+      "text": " so you should probably set your Lambda functions timeout"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 371.46,
+      "end": 373,
+      "text": " to 29 seconds or less."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 373.14,
+      "end": 375.06,
+      "text": " And when it comes to synchronous invocation,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 375.2,
+      "end": 378.84,
+      "text": " then another good practice is to monitor concurrency and throttling,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 378.96,
+      "end": 382.26,
+      "text": " because otherwise a lot of synchronous invocations come in,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 382.4,
+      "end": 383.56,
+      "text": " and then you'll end up in trouble,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 383.7,
+      "end": 385.73999999999995,
+      "text": " and your users are going to experience those errors,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 385.85999999999996,
+      "end": 389.29999999999995,
+      "text": " and you can't automatically handle that seamlessly for them."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 389.44,
+      "end": 391.23999999999995,
+      "text": " So if you're not able to spin up new Lambda functions,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 391.35999999999996,
+      "end": 394.14,
+      "text": " you'll directly affect those end users."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 394.26,
+      "end": 396.03999999999996,
+      "text": " Now, when it comes to asynchronous invocation,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 396.14000000000004,
+      "end": 398.18,
+      "text": " this is probably the most common, actually,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 398.3,
+      "end": 400.68,
+      "text": " but with async invocation, you're not waiting for the response."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 400.8,
+      "end": 401.8,
+      "text": " It happens in the background."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 401.94,
+      "end": 403.98,
+      "text": " Now, the execution in this case can take longer,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 404.1,
+      "end": 407.5,
+      "text": " always up to the Lambda global limit of 15 minutes."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 408.04,
+      "end": 411.20000000000005,
+      "text": " It also means that Lambda is going to retry if there's a failure,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 411.34000000000003,
+      "end": 414.84000000000003,
+      "text": " so this is something you can't do with synchronous invocations"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 414.98,
+      "end": 416.34000000000003,
+      "text": " without handling it yourself."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 416.48,
+      "end": 417.94,
+      "text": " But with async invocations,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 418.08000000000004,
+      "end": 421.58000000000004,
+      "text": " Lambda will retry up to three invocations total per event"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 421.70000000000005,
+      "end": 422.54,
+      "text": " in the case of an error."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 422.68,
+      "end": 425.5,
+      "text": " And it does that by queuing up invocations internally"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 425.6,
+      "end": 427.44,
+      "text": " for up to a maximum of six hours"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 427.56,
+      "end": 430.16,
+      "text": " if it doesn't have enough concurrency available to it"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 430.3,
+      "end": 432.1,
+      "text": " when the event comes in immediately."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 432.24,
+      "end": 434.16,
+      "text": " So Lambda has its own internal queue,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 434.3,
+      "end": 436.4,
+      "text": " a bit like an SQS queue, but you don't see it."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 436.54,
+      "end": 439.14,
+      "text": " It's all internal, and that's how async functions work."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 439.26,
+      "end": 442.7,
+      "text": " Now, when it comes to failure handling with async events,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 442.84,
+      "end": 445.3,
+      "text": " you can configure a dead letter queue or a DLQ"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 445.44,
+      "end": 447.66,
+      "text": " to automatically receive events that have failed,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 449.1,
+      "end": 450.3,
+      "text": " now up to three times,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 450.44,
+      "end": 452.8,
+      "text": " and then you can inspect them for future investigation,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 452.94,
+      "end": 455.3,
+      "text": " and you can also redrive them back into the function."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 455.40000000000003,
+      "end": 457.84000000000003,
+      "text": " DLQs are only supported for SNS and SQS."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 457.96000000000004,
+      "end": 461,
+      "text": " Now, there is another way to do this kind of failure handling,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 461.14,
+      "end": 462.74,
+      "text": " and that's with destinations."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 463.3,
+      "end": 465.8,
+      "text": " So destinations are a newer and probably better way of doing it"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 465.94,
+      "end": 467.94,
+      "text": " that is more recommended these days,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 468.06,
+      "end": 471.5,
+      "text": " and you can have a success destination and a failure destination."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 471.64,
+      "end": 475.14,
+      "text": " And then that destination can go to EventBridge, SQS, SNS,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 475.26,
+      "end": 476.8,
+      "text": " or onto another Lambda function."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 476.94,
+      "end": 479.46000000000004,
+      "text": " And one of the advantages of failure destinations"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 479.6,
+      "end": 481.64,
+      "text": " is that it gives you additional metadata"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 481.76,
+      "end": 485.14,
+      "text": " about the event that caused the failure."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 485.3,
+      "end": 487.84000000000003,
+      "text": " Now, when it comes to async event invocations,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 488.64,
+      "end": 493.3,
+      "text": " services like S3 and SNS are examples of services"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 493.44,
+      "end": 496.64,
+      "text": " that will invoke asynchronously. EventBridge is another one."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 496.76,
+      "end": 499.86,
+      "text": " One of the additional best practices that you should really consider"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 500,
+      "end": 502.34000000000003,
+      "text": " when looking at asynchronous invocation"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 502.46000000000004,
+      "end": 504.2,
+      "text": " is implementing item potency."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 504.34000000000003,
+      "end": 506.56,
+      "text": " And in event-driven architectures in general,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 506.7,
+      "end": 508.94,
+      "text": " item potency is a very important thing to understand,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 509.46000000000004,
+      "end": 512.46,
+      "text": " and it basically means that the result of invoking a function"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 512.6,
+      "end": 514.3,
+      "text": " more than once should have the same outcome"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 514.4599999999999,
+      "end": 516.5,
+      "text": " as just invoking the same function once."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 516.64,
+      "end": 519.74,
+      "text": " So if you end up sending the same event to a destination,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 519.8599999999999,
+      "end": 522.5,
+      "text": " to a target for processing multiple times,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 522.64,
+      "end": 524.64,
+      "text": " you shouldn't end up with any additional side effects"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 524.76,
+      "end": 526.74,
+      "text": " just because you received that event multiple times."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 526.8599999999999,
+      "end": 528.76,
+      "text": " And the reason why item potency is important"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 528.9,
+      "end": 531.3,
+      "text": " is that most of these delivery modes"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 531.4399999999999,
+      "end": 534.76,
+      "text": " have at least once processing delivery semantics,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 534.9,
+      "end": 537.56,
+      "text": " so they don't guarantee that they'll only deliver it to you exactly once"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 537.6999999999999,
+      "end": 539.26,
+      "text": " because that's a really hard thing to do."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 539.4,
+      "end": 542.3599999999999,
+      "text": " You should be prepared to expect more than one invocation"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 542.52,
+      "end": 545.76,
+      "text": " of the same event, and there are tools that can help you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 545.9,
+      "end": 550.4,
+      "text": " to implement item potency like AWS Lambda power tools,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 550.52,
+      "end": 552.7,
+      "text": " which we'll talk about a little bit later as well,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 552.82,
+      "end": 554.32,
+      "text": " especially when we talk about monitoring."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 554.46,
+      "end": 555.62,
+      "text": " When it comes to async events,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 555.76,
+      "end": 558.52,
+      "text": " there's some nice new metrics you get like the async event age,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 558.66,
+      "end": 561.16,
+      "text": " which will tell you the time between the event coming into Lambda"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 561.3000000000001,
+      "end": 563.46,
+      "text": " to be queued and ultimately being invoked."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 563.6,
+      "end": 565.32,
+      "text": " And if that turns out to be more than you expect,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 565.46,
+      "end": 567.86,
+      "text": " there's probably a concurrency or a throttling issue"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 568,
+      "end": 569.96,
+      "text": " or also a failure you need to look out for."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 570.1,
+      "end": 571.7,
+      "text": " And you'll also get a metric that tells you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 571.7,
+      "end": 575,
+      "text": " how many dropped async events there have been."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 575.1400000000001,
+      "end": 576.86,
+      "text": " So if events aren't processed"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 577,
+      "end": 578.9000000000001,
+      "text": " because they stayed in the queue for more than six hours,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 579.0400000000001,
+      "end": 580.5600000000001,
+      "text": " that metric will tell you all about it."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 580.7,
+      "end": 584.7,
+      "text": " So that's synchronous invocations and async invocations."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 584.84,
+      "end": 587.0400000000001,
+      "text": " And the third one is polling invocation,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 587.1600000000001,
+      "end": 588.9000000000001,
+      "text": " otherwise known as the event source mapping."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 589.0400000000001,
+      "end": 590.1,
+      "text": " And it's called event source mapping"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 590.24,
+      "end": 592.74,
+      "text": " because there's a separate piece called an event source mapping"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 592.86,
+      "end": 595.1400000000001,
+      "text": " that takes the function from a source"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 595.26,
+      "end": 597.3000000000001,
+      "text": " and essentially synchronously invokes that for you,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 597.44,
+      "end": 599.94,
+      "text": " but it's managing the failures and retries"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 600.1400000000001,
+      "end": 602,
+      "text": " in this event source mapping feature."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 602.1400000000001,
+      "end": 604.3000000000001,
+      "text": " And it applies to things like DynamoDB streams,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 604.44,
+      "end": 608.2,
+      "text": " Kinesis streams, SQS queues, and Kafka topics as well."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 608.34,
+      "end": 611.4000000000001,
+      "text": " When it comes to best practices, item potency applies here equally."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 611.5400000000001,
+      "end": 613.7,
+      "text": " You should also monitor the size of the queue"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 613.84,
+      "end": 616.2,
+      "text": " or the iterator age of the stream, because if it's growing"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 616.34,
+      "end": 618.1,
+      "text": " and you're not processing items fast enough,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 618.24,
+      "end": 620.3000000000001,
+      "text": " that can result in a problem for you."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 620.44,
+      "end": 622.08,
+      "text": " Then when it comes to Kinesis,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 622.2,
+      "end": 624.1400000000001,
+      "text": " it's important to make sure that you have a process"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 624.2800000000001,
+      "end": 626.1400000000001,
+      "text": " that keeps track of repeated failures."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 627,
+      "end": 630.8,
+      "text": " So items are usually processed with Kinesis in order per shard."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 630.9399999999999,
+      "end": 632.14,
+      "text": " And if you want to know more about that,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 632.28,
+      "end": 634.4,
+      "text": " you can look back at our previous Kinesis episode"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 634.54,
+      "end": 636.48,
+      "text": " where we dived deep into it."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 636.6,
+      "end": 639.6,
+      "text": " And if you can't process an event in an ordered stream,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 639.74,
+      "end": 642.34,
+      "text": " AWS by default will retry indefinitely"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 642.48,
+      "end": 644.98,
+      "text": " and basically block up the whole stream from being processed."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 645.1,
+      "end": 647.9,
+      "text": " So that's something you'll need to configure and handle accordingly."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 648.04,
+      "end": 650.24,
+      "text": " And then another thing with things like Kinesis,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 650.38,
+      "end": 652.64,
+      "text": " you can receive batches of like up to 10,000 events."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 652.78,
+      "end": 656,
+      "text": " So if you receive batches of messages and one of them fails,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 656.14,
+      "end": 657.68,
+      "text": " you don't necessarily want them all to fail."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 657.8,
+      "end": 659.68,
+      "text": " So there's a few different ways to tell AWS"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 659.8,
+      "end": 661.8,
+      "text": " which item succeeded and which ones failed."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 661.9399999999999,
+      "end": 664.4,
+      "text": " So only the failed ones will need to be reprocessed."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 664.54,
+      "end": 667.8,
+      "text": " So we have a whole set of articles around event processing,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 667.9399999999999,
+      "end": 670.9399999999999,
+      "text": " which we'll link in the show notes, and you can take a look there."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 671.08,
+      "end": 673.28,
+      "text": " So those are our three different invocation modes."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 673.4,
+      "end": 675.28,
+      "text": " Important to get those out of the way."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 675.8,
+      "end": 677.84,
+      "text": " Maybe now we could talk about best practices"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 677.98,
+      "end": 679.64,
+      "text": " relating to performance and cost."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 681.48,
+      "end": 684.54,
+      "text": " Yeah, it's very important to understand, first of all, what is the formula to calculate cost when it comes to Lambda."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 684.6999999999999,
+      "end": 686.54,
+      "text": " And with many things in AWS,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 686.68,
+      "end": 690.4,
+      "text": " it's not always easy to predict cost with like extreme accuracy."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 690.54,
+      "end": 692.74,
+      "text": " But in the case of Lambda, it's not that bad,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 692.88,
+      "end": 694.78,
+      "text": " meaning that there is a simplified formula"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 694.9,
+      "end": 698.4399999999999,
+      "text": " that we can use to get a feeling for what the cost is going to look like."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 698.5799999999999,
+      "end": 700.74,
+      "text": " And this generally is a function of the memory"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 700.88,
+      "end": 702.88,
+      "text": " that you pick for your Lambda invocation"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 703,
+      "end": 704.9399999999999,
+      "text": " and the execution time in milliseconds."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 705.0799999999999,
+      "end": 707.0999999999999,
+      "text": " So that basically means that there is a price unit"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 707.24,
+      "end": 710.24,
+      "text": " that changes based on the amount of memory"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 710.38,
+      "end": 712.04,
+      "text": " that you allocate for your Lambda function."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 712.18,
+      "end": 714.28,
+      "text": " And then you have to multiply that unit price"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 714.28,
+      "end": 715.48,
+      "text": " for the number of milliseconds"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 715.62,
+      "end": 717.62,
+      "text": " that you have been invoking that particular function."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 717.74,
+      "end": 719.54,
+      "text": " And of course, if you have concurrent invocations,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 719.68,
+      "end": 722.38,
+      "text": " every invocation amounts for its own cost independent."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 722.52,
+      "end": 725.72,
+      "text": " So it's additional milliseconds that you need to multiply as well."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 725.8399999999999,
+      "end": 729.3199999999999,
+      "text": " Now, an interesting thing is that CPU is not part of this mix."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 729.4399999999999,
+      "end": 731.68,
+      "text": " Network is not part of this mix as well,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 731.8199999999999,
+      "end": 733.42,
+      "text": " because these other two units"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 733.54,
+      "end": 736.4399999999999,
+      "text": " are automatically provisioned for you by AWS,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 736.5799999999999,
+      "end": 739.3399999999999,
+      "text": " and they are proportional by the amount of memory that you pick."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 739.48,
+      "end": 741.98,
+      "text": " And again, it's not always super streamlined"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 742.14,
+      "end": 746.22,
+      "text": " to really understand how much CPU or what kind of networking speed"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 746.34,
+      "end": 747.22,
+      "text": " do you get."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 747.34,
+      "end": 750.82,
+      "text": " But the general gist of it is that the more memory you provision,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 750.94,
+      "end": 753.04,
+      "text": " even if you don't necessarily need all of that memory,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 753.1800000000001,
+      "end": 757.24,
+      "text": " the more CPU you get and the fastest the networking for your Lambda is."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 757.38,
+      "end": 759.08,
+      "text": " So just be aware of these two things,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 759.22,
+      "end": 761.52,
+      "text": " because sometimes you might try to save cost"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 761.64,
+      "end": 763.04,
+      "text": " by reducing the memory to the minimum,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 763.1800000000001,
+      "end": 766.34,
+      "text": " but then you end up with very little CPU or very slow network."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 766.48,
+      "end": 769.78,
+      "text": " And that might end up making your Lambda spend so much time"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 769.9399999999999,
+      "end": 771.54,
+      "text": " completing the computation,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 771.68,
+      "end": 774.64,
+      "text": " and it doesn't necessarily result in saving cost in any way."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 774.78,
+      "end": 776.92,
+      "text": " And you might even have degraded the user experience"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 777.04,
+      "end": 779.88,
+      "text": " if you have a user on the other side waiting for things to happen."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 780.02,
+      "end": 782.5799999999999,
+      "text": " And this is where things get a little bit tricky."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 782.72,
+      "end": 784.78,
+      "text": " And thankfully, there is a tool that can help you out"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 784.92,
+      "end": 787.0799999999999,
+      "text": " to figure out exactly what is the sweet spot"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 787.22,
+      "end": 789.22,
+      "text": " between performance and cost."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 789.3399999999999,
+      "end": 792.38,
+      "text": " And this tool is called Lambda Power Tuning by Alex Casaboni."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 792.52,
+      "end": 793.92,
+      "text": " We will have a link in the show notes."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 794.04,
+      "end": 797.48,
+      "text": " And what it does is basically going to simulate your specific Lambda."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 797.62,
+      "end": 799.5799999999999,
+      "text": " So it's not going to do something very generic,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 799.58,
+      "end": 801.88,
+      "text": " but it's actually using your Lambda code,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 802.0200000000001,
+      "end": 804.62,
+      "text": " and it's going to try different configurations in terms of memory"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 804.74,
+      "end": 807.5400000000001,
+      "text": " and give you a nice chart where you can effectively see"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 807.6800000000001,
+      "end": 809.5200000000001,
+      "text": " with all the different configurations"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 809.64,
+      "end": 811.94,
+      "text": " what is the time for computing an execution,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 812.08,
+      "end": 814.6800000000001,
+      "text": " and compared to that time and the amount of memory used,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 814.82,
+      "end": 816.0200000000001,
+      "text": " what is the cost for it."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 816.14,
+      "end": 818.9200000000001,
+      "text": " And at that point, you can decide for that particular Lambda function."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 819.0400000000001,
+      "end": 821.32,
+      "text": " Maybe you want to prioritize for cost,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 821.44,
+      "end": 823.24,
+      "text": " and it's fine to be maybe a little bit slower,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 823.38,
+      "end": 824.74,
+      "text": " but you're going to save on cost."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 824.88,
+      "end": 826.34,
+      "text": " While with other Lambda functions,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 826.48,
+      "end": 828.1400000000001,
+      "text": " you might want to optimize for performance,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 828.3,
+      "end": 830.48,
+      "text": " and it doesn't matter if you're going to be spending a lot more,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 830.6,
+      "end": 833.9,
+      "text": " but you really want to have those milliseconds reduced to the maximum."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 834.04,
+      "end": 836,
+      "text": " Sometimes there is a good way in the middle."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 836.14,
+      "end": 838.18,
+      "text": " So the chart that you get at the end"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 838.3,
+      "end": 840.98,
+      "text": " is definitely a very good way to figure out exactly"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 841.1,
+      "end": 843.68,
+      "text": " what is the sweet spot for you for that particular use case."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 843.8,
+      "end": 846.38,
+      "text": " Another thing worth mentioning, which is not necessarily a best practice,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 846.5,
+      "end": 848.48,
+      "text": " because again, it comes with lots of complexity,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 848.6,
+      "end": 850.54,
+      "text": " and it's not always a binary choice,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 850.68,
+      "end": 853.4,
+      "text": " is you might consider using a compiled runtime,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 853.54,
+      "end": 856.7,
+      "text": " as opposed to runtime such as Python, JavaScript, or Java."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 856.86,
+      "end": 859.2,
+      "text": " You might want to use something like C++, Rust, or Go,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 859.34,
+      "end": 862.86,
+      "text": " because generally these runtimes can have very good performance"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 863,
+      "end": 865.1400000000001,
+      "text": " in terms of cold start, in terms of execution times,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 865.26,
+      "end": 869.5,
+      "text": " just because those languages are more optimized for certain tasks."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 869.6400000000001,
+      "end": 873.3000000000001,
+      "text": " And this is especially true if you have CPU-intensive Lambdas."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 873.44,
+      "end": 876,
+      "text": " Now, where is a problem with that approach"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 876.1400000000001,
+      "end": 878.1,
+      "text": " is that sometimes learning those languages"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 878.24,
+      "end": 881.5600000000001,
+      "text": " is much more complicated than learning JavaScript or Node.js."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 881.7,
+      "end": 884.7,
+      "text": " So the trade-off is a bit more on making an investment"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 884.86,
+      "end": 887.36,
+      "text": " in terms of knowledge and maintenance costs,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 887.5,
+      "end": 889.5400000000001,
+      "text": " and then you might get benefits in the long term"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 889.6600000000001,
+      "end": 891.84,
+      "text": " because your Lambdas might be more efficient."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 891.96,
+      "end": 894.0400000000001,
+      "text": " But this is not always an easy choice to make."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 894.1600000000001,
+      "end": 897.0600000000001,
+      "text": " You need to take care of making sure that in your team"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 897.2,
+      "end": 899.6,
+      "text": " you have people that can do that efficiently,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 899.74,
+      "end": 901.24,
+      "text": " they have all the training available,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 901.36,
+      "end": 904.44,
+      "text": " and effectively you are introducing potentially new languages"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 904.5600000000001,
+      "end": 906.36,
+      "text": " that you might have to support long term."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 906.5,
+      "end": 908.5400000000001,
+      "text": " Another key element to this conversation"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 908.6600000000001,
+      "end": 911.5,
+      "text": " is that it also affects sustainability,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 911.66,
+      "end": 912.96,
+      "text": " because those combined languages"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 913.1,
+      "end": 915.86,
+      "text": " generally have a much better carbon footprint."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 916,
+      "end": 917.94,
+      "text": " So if it's something that you really care about,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 918.06,
+      "end": 920.24,
+      "text": " this might be another element to bring into the equation"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 920.36,
+      "end": 923.7,
+      "text": " when you decide to invest in these particular languages."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 923.84,
+      "end": 926.46,
+      "text": " And this is something that was mentioned by Werner Vogels"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 926.6,
+      "end": 930.04,
+      "text": " in his keynote during the latest re-invent."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 930.16,
+      "end": 932.04,
+      "text": " So again, something else worth considering,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 932.16,
+      "end": 933.76,
+      "text": " but I wouldn't say it's an easy choice."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 933.9,
+      "end": 937.1,
+      "text": " Every team generally might end up with different choices"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 937.24,
+      "end": 940.7,
+      "text": " depending on what they know already, what their skills are,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 940.86,
+      "end": 944,
+      "text": " how much do they want to invest in learning new technologies."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 944.1400000000001,
+      "end": 946.0400000000001,
+      "text": " And sometimes you don't always have requirements"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 946.1600000000001,
+      "end": 947.96,
+      "text": " of looking for extreme performance."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 948.1,
+      "end": 950.84,
+      "text": " So yeah, up to teams to decide what to do,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 950.96,
+      "end": 953.2,
+      "text": " but we would be really curious to know if this is something"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 953.34,
+      "end": 955.34,
+      "text": " you are considering for your team."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 955.46,
+      "end": 959.34,
+      "text": " I guess the next topic is how should people structure their Lambda code?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 959.46,
+      "end": 962.4000000000001,
+      "text": " This is something we get asked a lot, to be honest."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 962.5400000000001,
+      "end": 965.46,
+      "text": " And again, maybe there isn't a one way of doing it,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 965.6,
+      "end": 967.1600000000001,
+      "text": " but for sure there are some best practices"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 967.3000000000001,
+      "end": 968.6600000000001,
+      "text": " that I think we can recommend."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 968.66,
+      "end": 970.4599999999999,
+      "text": " Yeah, this is true."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 970.6,
+      "end": 972.76,
+      "text": " There's definitely not one way to do it and one right answer, but it is a good idea"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 972.9,
+      "end": 974.7199999999999,
+      "text": " to have some sort of layered architecture"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 974.86,
+      "end": 977.12,
+      "text": " and make sure that the handler function itself"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 977.26,
+      "end": 978.7199999999999,
+      "text": " ideally only contains glue code."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 978.86,
+      "end": 982.42,
+      "text": " So the layer that adapts the Lambda interface"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 982.56,
+      "end": 986.12,
+      "text": " and the event source into the underlying implementation."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 986.26,
+      "end": 989.36,
+      "text": " So you can pass it to a service function or a piece of domain logic,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 989.5,
+      "end": 993.16,
+      "text": " and then your handler is basically just serializing the input,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 993.3,
+      "end": 995.6999999999999,
+      "text": " passing it on and transforming the output"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 995.8199999999999,
+      "end": 997.86,
+      "text": " into the required response type."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 998.02,
+      "end": 999.46,
+      "text": " Now, this is going to make your code more testable"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 999.6,
+      "end": 1001.46,
+      "text": " because it allows you to test the service logic"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1001.6,
+      "end": 1004.3000000000001,
+      "text": " independently from the Lambda function itself."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1004.42,
+      "end": 1007.36,
+      "text": " There's lots of ways of doing this. As we said, hexagonal architecture"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1007.5,
+      "end": 1009.3000000000001,
+      "text": " is one which you'll see mentioned quite a lot,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1009.42,
+      "end": 1011.26,
+      "text": " especially in the serverless space,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1011.4,
+      "end": 1013.12,
+      "text": " but there's other different ways of implementing,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1013.26,
+      "end": 1014.96,
+      "text": " like clean architecture, et cetera."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1015.1,
+      "end": 1018.66,
+      "text": " There's a blog post from Luca Metzelira on hexagonal architecture,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1018.8000000000001,
+      "end": 1020.0600000000001,
+      "text": " which we'll link in the show notes,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1020.2,
+      "end": 1021.82,
+      "text": " but there's lots of resources out there on it."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1021.96,
+      "end": 1024.46,
+      "text": " If you want to test the whole Lambda function logic itself,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1024.6,
+      "end": 1027.16,
+      "text": " you can use integration tests then and end-to-end tests"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1027.26,
+      "end": 1030.96,
+      "text": " and we'd definitely recommend that because Lambda as a service itself"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1031.1000000000001,
+      "end": 1032.9,
+      "text": " can introduce lots of interesting behavior,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1033.02,
+      "end": 1035.1200000000001,
+      "text": " which you should cover in some sort of automated test"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1035.26,
+      "end": 1037.3200000000002,
+      "text": " and even performance and load tests as well."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1037.46,
+      "end": 1040.22,
+      "text": " You can also abstract dependencies like storage"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1040.3600000000001,
+      "end": 1042.3600000000001,
+      "text": " or interacting with other AWS services"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1042.5,
+      "end": 1044.76,
+      "text": " as part of an architecture like this,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1044.9,
+      "end": 1046.8200000000002,
+      "text": " and then you can easily mock these abstractions"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1046.96,
+      "end": 1050.02,
+      "text": " or have secondary implementations you can use for local testing."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1050.16,
+      "end": 1051.66,
+      "text": " Now, let's give a quick example."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1051.8000000000002,
+      "end": 1054.3600000000001,
+      "text": " Let's say we've got an e-commerce shopping cart example"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1054.5,
+      "end": 1056.26,
+      "text": " and you want to add an item to a cart"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1056.36,
+      "end": 1059.12,
+      "text": " and you've got an API endpoint to achieve this."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1059.26,
+      "end": 1062.56,
+      "text": " You can define what the expected inputs and outputs are"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1062.7,
+      "end": 1064.92,
+      "text": " and the validation rules for this API endpoint."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1065.06,
+      "end": 1068.46,
+      "text": " So your input might be a cart ID, an item ID and a quantity."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1068.6,
+      "end": 1070.36,
+      "text": " With your validation, you can say,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1070.5,
+      "end": 1072.1,
+      "text": " well, the cart ID must exist in the database"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1072.22,
+      "end": 1074.02,
+      "text": " and be associated with an active user."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1074.16,
+      "end": 1075.86,
+      "text": " The item ID must exist in the database"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1076,
+      "end": 1078.02,
+      "text": " and it should be associated with a valid product"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1078.16,
+      "end": 1080.96,
+      "text": " and then a quantity should be a reasonable positive integer,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1081.1,
+      "end": 1084.16,
+      "text": " maybe below some arbitrary limit, depending on your context."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1084.4,
+      "end": 1086.5,
+      "text": " It's always good to have lower and upper bounds."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1086.6200000000001,
+      "end": 1088.7,
+      "text": " And the output then would be an updated view of the cart"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1088.8200000000002,
+      "end": 1090.7,
+      "text": " with the new items included perhaps."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1090.8200000000002,
+      "end": 1092.52,
+      "text": " Now, this validation is all something"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1092.66,
+      "end": 1095.96,
+      "text": " that you should be considering implementing in your Lambda Function"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1096.1000000000001,
+      "end": 1098.76,
+      "text": " or at some level in the stack, possibly multiple levels."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1099.46,
+      "end": 1101.1200000000001,
+      "text": " Then also defining all the errors, right?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1101.26,
+      "end": 1102.8000000000002,
+      "text": " Not just thinking about the happy path,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1102.92,
+      "end": 1104.3000000000002,
+      "text": " but what are the different errors"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1104.42,
+      "end": 1106.7,
+      "text": " and what is the information associated with those errors"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1106.8200000000002,
+      "end": 1108.76,
+      "text": " that you want to leak outside your function."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1108.9,
+      "end": 1112.16,
+      "text": " Then you can implement code to abstract the persistent layers,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1112.16,
+      "end": 1115,
+      "text": " like how you're storing the state of your user cart across requests."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1115.1200000000001,
+      "end": 1117,
+      "text": " And this layer might have helper functions"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1117.1200000000001,
+      "end": 1119.6000000000001,
+      "text": " such as creating a cart, adding an item to a cart,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1119.72,
+      "end": 1122.6000000000001,
+      "text": " removing item from cart and maybe emptying the cart."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1122.72,
+      "end": 1125.5,
+      "text": " So that could be in a data access layer or repository."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1125.6200000000001,
+      "end": 1127.96,
+      "text": " And then you implement the service that takes the inputs,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1128.1000000000001,
+      "end": 1130.1000000000001,
+      "text": " like the cart ID, the item ID, the quantity,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1130.22,
+      "end": 1132.8000000000002,
+      "text": " and updates the given cart or returns the error."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1132.92,
+      "end": 1134.9,
+      "text": " So you would update the handler that takes the event,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1135.02,
+      "end": 1137.76,
+      "text": " validates it, extracts the cart ID, item ID and quantity,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1137.9,
+      "end": 1139.26,
+      "text": " and then pass it to the service."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1139.4,
+      "end": 1141.0600000000002,
+      "text": " Then it would take the response from the service"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1141.22,
+      "end": 1143.82,
+      "text": " and convert it to the appropriate maybe HTTP response,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1143.96,
+      "end": 1147.36,
+      "text": " if this is a HTTP API, and the handler would take care of working"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1147.5,
+      "end": 1150.86,
+      "text": " with the Lambda proxy integration event and response format."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1151,
+      "end": 1154.6599999999999,
+      "text": " Now, you don't necessarily always have to have all these layers of abstraction."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1154.8,
+      "end": 1156.8999999999999,
+      "text": " Sometimes it is okay to keep things simple,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1157.02,
+      "end": 1160.3999999999999,
+      "text": " especially if you've got something that doesn't do something very complex,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1160.96,
+      "end": 1163.1,
+      "text": " as long as you've got some way of testing your code"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1163.22,
+      "end": 1165.82,
+      "text": " and you have confidence that it does exactly what it's supposed to do"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1165.96,
+      "end": 1168.46,
+      "text": " and that if you apply changes later, you can easily test it"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1168.6,
+      "end": 1170.8999999999999,
+      "text": " and you don't have to rework your tests completely."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1171.06,
+      "end": 1173.9199999999998,
+      "text": " And you can also use a middleware library like Middy.js"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1174.06,
+      "end": 1178.3,
+      "text": " in Node.js, JavaScript, TypeScript, to abstract some of this logic,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1178.4199999999998,
+      "end": 1180.3999999999999,
+      "text": " like validation and serialization,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1180.52,
+      "end": 1182.8,
+      "text": " and make it reusable and easily testable."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1182.9199999999998,
+      "end": 1185.36,
+      "text": " And you can refer back to our previous episode on Middy"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1185.5,
+      "end": 1186.62,
+      "text": " to find out all about that."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1186.76,
+      "end": 1189.22,
+      "text": " And again, this will be related to Power Tools,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1189.36,
+      "end": 1191.06,
+      "text": " which maybe we should talk about next."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1191.6599999999999,
+      "end": 1193.5,
+      "text": " The Power Tools we mentioned already in the show"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1193.62,
+      "end": 1196.62,
+      "text": " in the context of item potency and also middleware"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1196.76,
+      "end": 1200.06,
+      "text": " because it integrates with Middy, but even in Python,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1200.22,
+      "end": 1202.72,
+      "text": " it will provide you that middleware support as well."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1202.86,
+      "end": 1204.56,
+      "text": " What other things can Power Tools provide?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1204.7,
+      "end": 1207,
+      "text": " I think we probably regard it as just a default best practice"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1207.12,
+      "end": 1209.7,
+      "text": " to just start off with Power Tools and functions these days."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1211.86,
+      "end": 1214.82,
+      "text": " Yes, I think before we get into the details, it's worth clarifying that Power Tools is effectively a library"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1214.96,
+      "end": 1218.8999999999999,
+      "text": " that exists for different languages and specifically targets Lambda."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1219.02,
+      "end": 1221.6,
+      "text": " And it tries to solve, I guess, some common problems"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1221.72,
+      "end": 1223.22,
+      "text": " that you might have when writing Lambdas,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1223.36,
+      "end": 1225.3,
+      "text": " and it tries to provide kind of a comprehensive,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1225.4199999999998,
+      "end": 1229.72,
+      "text": " better-included solution that gives you tools to solve these problems."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1230.06,
+      "end": 1232.6599999999999,
+      "text": " And the common things that Power Tools started with"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1232.8,
+      "end": 1234.7,
+      "text": " are logs, metrics, traces,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1234.82,
+      "end": 1237.56,
+      "text": " but we already mentioned also item potency"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1237.7,
+      "end": 1239.6599999999999,
+      "text": " and different versions of the library,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1239.8,
+      "end": 1242.56,
+      "text": " meaning different languages might have more, I guess,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1242.7,
+      "end": 1245.8,
+      "text": " complete support for different things than others."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1245.9199999999998,
+      "end": 1247.3,
+      "text": " Generally speaking, the Python one,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1247.4199999999998,
+      "end": 1249.06,
+      "text": " because probably historically was the first one,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1249.2,
+      "end": 1250.56,
+      "text": " is the most complete one,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1250.7,
+      "end": 1252.6599999999999,
+      "text": " and the other ones tend to follow along"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1252.8,
+      "end": 1254.82,
+      "text": " after a few months with the new features."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1254.96,
+      "end": 1257.6599999999999,
+      "text": " So definitely check out, depending on your language of choice,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1257.8,
+      "end": 1259.76,
+      "text": " what are the available utilities,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1259.76,
+      "end": 1262.2,
+      "text": " but Power Tools is definitely something you should be using"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1262.32,
+      "end": 1264.92,
+      "text": " to the very least for logs, metrics, and traces."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1265.06,
+      "end": 1268.2,
+      "text": " But there is more, like item potency that is absolutely useful,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1268.32,
+      "end": 1270.92,
+      "text": " and if it's there for your runtime, you should definitely consider it."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1271.06,
+      "end": 1272.9,
+      "text": " Other things that are there are, for instance,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1273.02,
+      "end": 1275.26,
+      "text": " supports for OpenAPI specification."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1275.4,
+      "end": 1277.2,
+      "text": " For instance, the Python one recently introduced"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1277.32,
+      "end": 1280.2,
+      "text": " lots of helper methods to make all of that process easier."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1280.32,
+      "end": 1282.46,
+      "text": " Not really sure if that's already supported in Java"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1282.6,
+      "end": 1284,
+      "text": " or the Node.js equivalent,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1284.12,
+      "end": 1285.96,
+      "text": " but something that eventually is going to come up"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1286.1,
+      "end": 1288.16,
+      "text": " to those versions of the library as well."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1288.4,
+      "end": 1293.02,
+      "text": " Another thing that if you really care about metrics and alarms,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1293.16,
+      "end": 1296,
+      "text": " you might want to check out a tool we have already mentioned before"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1296.1200000000001,
+      "end": 1298.6000000000001,
+      "text": " called SlickWatch, which is an open source tool"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1298.72,
+      "end": 1301.6000000000001,
+      "text": " that we created at Fortier to simplify,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1302.3600000000001,
+      "end": 1305.5600000000002,
+      "text": " almost automate the creation of sensible defaults"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1305.7,
+      "end": 1308.72,
+      "text": " when it comes to metrics and alarms and dashboards."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1308.8600000000001,
+      "end": 1311.92,
+      "text": " So worth checking it out because it can make your life easier,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1312.0600000000002,
+      "end": 1316.02,
+      "text": " and it can effectively speed up the work around covering those areas"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1316.18,
+      "end": 1318.22,
+      "text": " for at least 80% of the use cases."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1318.36,
+      "end": 1321.46,
+      "text": " Other things that we already mentioned in terms of tooling"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1321.58,
+      "end": 1323.48,
+      "text": " is Lambda Power Tuning for performance."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1323.62,
+      "end": 1325.46,
+      "text": " But when it comes to all this topic,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1325.58,
+      "end": 1327.22,
+      "text": " we have a bunch of previous episodes"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1327.36,
+      "end": 1330.08,
+      "text": " where we cover details about how to do good logging,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1330.22,
+      "end": 1334.58,
+      "text": " how to use CloudWatch for logs, how to use CloudWatch alarms,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1334.72,
+      "end": 1335.96,
+      "text": " how to do metrics with CloudWatch."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1336.08,
+      "end": 1338.36,
+      "text": " So we'll have all the links for this episode in the show notes"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1338.48,
+      "end": 1340.68,
+      "text": " if this is a topic that you want to dive on"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1340.82,
+      "end": 1342.3799999999999,
+      "text": " and really understand the details."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1342.52,
+      "end": 1343.76,
+      "text": " Moving on to another area,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1343.92,
+      "end": 1346.62,
+      "text": " I'm just going to go through some quick suggestions"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1346.76,
+      "end": 1349.16,
+      "text": " and maybe going less in detail"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1349.3,
+      "end": 1351,
+      "text": " compared to the previous areas we covered today,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1351.12,
+      "end": 1352.92,
+      "text": " but hopefully you still get some value"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1353.06,
+      "end": 1355.36,
+      "text": " in getting some quick suggestions on things"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1355.5,
+      "end": 1357.7,
+      "text": " to focus on when it comes to writing Lambdas."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1357.82,
+      "end": 1360.06,
+      "text": " And one topic, for instance, is configuration,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1360.2,
+      "end": 1361.6,
+      "text": " and can be a very big topic."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1361.72,
+      "end": 1364.7,
+      "text": " There are different ways to manage configuration when it comes to AWS."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1364.82,
+      "end": 1366.7,
+      "text": " So the quick suggestions we have on this one"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1366.82,
+      "end": 1368.6,
+      "text": " is when it comes to secrets,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1368.72,
+      "end": 1371.82,
+      "text": " don't store them in clear text as an environment variable,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1371.98,
+      "end": 1374.8799999999999,
+      "text": " or even inside your code, that would be probably even worse."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1375.02,
+      "end": 1376.62,
+      "text": " But yeah, there are other ways to do that."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1376.76,
+      "end": 1378.06,
+      "text": " For instance, you can use Secrets Manager,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1378.1799999999998,
+      "end": 1380.86,
+      "text": " you can use SSM and have encrypted parameters."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1380.98,
+      "end": 1383.1799999999998,
+      "text": " So generally speaking, the recommendation there"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1383.32,
+      "end": 1384.78,
+      "text": " is when it comes to secrets,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1384.9199999999998,
+      "end": 1387.82,
+      "text": " it can be very convenient to store them in plain text in your code"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1387.96,
+      "end": 1388.96,
+      "text": " or in environment variables,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1389.08,
+      "end": 1392.08,
+      "text": " but generally speaking, if you can avoid that, it's best to do so."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1392.22,
+      "end": 1395.1599999999999,
+      "text": " And the other point is infrastructure as code."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1395.28,
+      "end": 1397.78,
+      "text": " This is a topic that also we cover extensively."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1397.9199999999998,
+      "end": 1401.08,
+      "text": " So the only recommendation we have here is use it."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1401.08,
+      "end": 1403.04,
+      "text": " There is no excuse not to use it."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1403.1799999999998,
+      "end": 1405.3799999999999,
+      "text": " Of course, you can prefer different tools."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1405.52,
+      "end": 1408.4199999999998,
+      "text": " There is some, Terraform, CDK, Serverless Framework."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1408.54,
+      "end": 1410.98,
+      "text": " We have covered pretty much all of them in previous episodes,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1411.12,
+      "end": 1412.84,
+      "text": " and we'll have the links in the show notes."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1412.98,
+      "end": 1415.72,
+      "text": " But the point is, regardless of which tool you prefer,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1415.84,
+      "end": 1417.54,
+      "text": " you should be doing infrastructure as code,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1417.6799999999998,
+      "end": 1421.58,
+      "text": " because the advantages definitely outweigh the disadvantages,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1421.72,
+      "end": 1423.6399999999999,
+      "text": " which might be maybe a little bit of learning curve,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1423.78,
+      "end": 1427.12,
+      "text": " because you need to learn a new tool and become familiar with it."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1427.24,
+      "end": 1429.24,
+      "text": " But then there will be such great advantages"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1429.4,
+      "end": 1431.38,
+      "text": " that definitely they're going to pay off big time,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1431.5,
+      "end": 1432.7,
+      "text": " that initial investment."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1432.84,
+      "end": 1435.48,
+      "text": " So if you haven't picked infrastructure as code yet,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1435.6,
+      "end": 1437.6,
+      "text": " definitely put it at the top of your to-do list,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1437.74,
+      "end": 1440.28,
+      "text": " because you're going to be grateful going forward."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1440.4,
+      "end": 1443.34,
+      "text": " And for sure, the whole management of infrastructure"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1443.48,
+      "end": 1446.2,
+      "text": " is going to become so much easier and so much more reliable."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1446.34,
+      "end": 1448.18,
+      "text": " That is something that you will be thankful"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1448.3,
+      "end": 1449.6,
+      "text": " that you have finally tackled."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1449.74,
+      "end": 1452.2,
+      "text": " And finally, one last point is security."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1452.34,
+      "end": 1454.38,
+      "text": " This can be a massive topic on its own,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1454.5,
+      "end": 1458,
+      "text": " but the one quick tip that is particularly relevant for Lambda"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1458.16,
+      "end": 1460.4,
+      "text": " is to apply the principle of list knowledge."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1460.54,
+      "end": 1463.1,
+      "text": " And the reason why I think this applies particularly for Lambda"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1463.24,
+      "end": 1465.74,
+      "text": " is because in Lambda, since you have such, generally speaking,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1465.86,
+      "end": 1467.94,
+      "text": " at least such a small focus,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1468.06,
+      "end": 1470.7,
+      "text": " like generally Lambdas are like one purpose only,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1470.84,
+      "end": 1474.46,
+      "text": " you can really fine-tune the permissions for that one particular purpose."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1474.6,
+      "end": 1476.84,
+      "text": " So you might have, for instance, going back to our example"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1476.96,
+      "end": 1479.4,
+      "text": " of the adding item to the cart Lambda,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1479.54,
+      "end": 1481.94,
+      "text": " you might give that Lambda only the permission"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1482.06,
+      "end": 1485.3,
+      "text": " to write that particular item, maybe to a DynamoDB table."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1485.44,
+      "end": 1487.74,
+      "text": " So it can only add items to carts"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1487.74,
+      "end": 1488.84,
+      "text": " and not do anything else."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1488.98,
+      "end": 1490.8,
+      "text": " So if that Lambda gets compromised,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1490.94,
+      "end": 1493.34,
+      "text": " it's not like an attacker can read passwords"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1493.48,
+      "end": 1496.3,
+      "text": " or maybe manipulate credit card detail."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1496.44,
+      "end": 1500.14,
+      "text": " An attacker will only be able to add items to a cart."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1500.78,
+      "end": 1503.14,
+      "text": " So, of course, not ideal anyway,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1503.28,
+      "end": 1505.5,
+      "text": " but the blast radius is very, very limited."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1505.64,
+      "end": 1507.78,
+      "text": " So this is why with Lambda, it's even more important"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1507.9,
+      "end": 1511.08,
+      "text": " to apply this principle because you can really fine-tune it to the maximum."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1511.2,
+      "end": 1513.2,
+      "text": " And therefore, your application as a whole"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1513.34,
+      "end": 1515.14,
+      "text": " is going to become extremely secure,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1515.14,
+      "end": 1518.38,
+      "text": " at least compared to more traditional and monolithic architecture"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1518.5,
+      "end": 1521.48,
+      "text": " where effectively your weakest spot"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1521.6000000000001,
+      "end": 1524.8400000000001,
+      "text": " becomes the biggest vulnerability of the entire system."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1527.24,
+      "end": 1528.68,
+      "text": " There are a lot of other areas you might pick when you're talking about best practices."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1528.8000000000002,
+      "end": 1531.7,
+      "text": " We didn't even cover things like deployment and dependency management"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1531.8400000000001,
+      "end": 1535.5400000000002,
+      "text": " or the hot topic of Lambdalith or monolithic Lambda functions"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1535.68,
+      "end": 1537.88,
+      "text": " versus single-purpose functions."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1538,
+      "end": 1540.0400000000002,
+      "text": " Like maybe these are topics for a future episode,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1540.18,
+      "end": 1541.8400000000001,
+      "text": " but at the end of the day, a lot of these choices"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1541.98,
+      "end": 1544.5400000000002,
+      "text": " just come down to personal preference and context."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1544.58,
+      "end": 1547.28,
+      "text": " So for now, we'll just leave you with some extra resources to check out."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1547.3999999999999,
+      "end": 1549,
+      "text": " So look at the links in the description below"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1549.1399999999999,
+      "end": 1552.8,
+      "text": " for AWS advice on Lambda best practices, which is worthwhile,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1552.94,
+      "end": 1555.54,
+      "text": " but also the great video series from Julian Wood,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1555.68,
+      "end": 1558.7,
+      "text": " who has 20 good videos on understanding Lambda,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1558.84,
+      "end": 1560.44,
+      "text": " and I really recommend them for anyone"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1560.58,
+      "end": 1562.48,
+      "text": " who's looking to fill any knowledge gaps there."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1562.6,
+      "end": 1564.3999999999999,
+      "text": " So thanks for listening, and until next time,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1564.54,
+      "end": 1566.3799999999999,
+      "text": " we'll see you in the next episode."
+    }
+  ]
+}

@@ -1,0 +1,2204 @@
+{
+  "speakers": {
+    "spk_0": "spk_0",
+    "spk_1": "spk_1"
+  },
+  "segments": [
+    {
+      "speakerLabel": "spk_0",
+      "start": 0,
+      "end": 2.8000000000000003,
+      "text": " CloudFormation allows us to define stacks,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2.8000000000000003,
+      "end": 6.08,
+      "text": " which is essentially a way to define collections of resources,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 6.08,
+      "end": 10.24,
+      "text": " and that's done using YAML or JSON in the forms of templates."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 10.24,
+      "end": 13.92,
+      "text": " This is the AWS way of helping us to manage our infrastructure"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 13.92,
+      "end": 19.12,
+      "text": " from the creation to updating and deleting resources as our application evolves."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 19.12,
+      "end": 24,
+      "text": " But sometimes CloudFormation building capabilities just aren't enough for what we need to do."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 24,
+      "end": 26.96,
+      "text": " Maybe you find yourself wrestling with verbal syntax,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 26.96,
+      "end": 31.12,
+      "text": " or perhaps you need to provision resources that are not yet supported by AWS,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 31.12,
+      "end": 36.32,
+      "text": " or maybe resources that are outside the scope of AWS, maybe by third-party providers."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 36.32,
+      "end": 41.760000000000005,
+      "text": " Or you might need, for instance, to perform certain tasks before or after CloudFormation runs."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 41.760000000000005,
+      "end": 44.8,
+      "text": " Maybe you need to build some kind of application, maybe a front-end,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 44.8,
+      "end": 49.68,
+      "text": " and package it in such a way that then you can deploy to AWS as part of your own stack."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 49.68,
+      "end": 53.760000000000005,
+      "text": " So today we will explore different ways to extend CloudFormation capabilities."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 53.76,
+      "end": 57.12,
+      "text": " We will cover things like custom scripts, templating engines,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 57.12,
+      "end": 60.8,
+      "text": " higher-level tools such as CDK, SAM, and the serverless framework,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 60.8,
+      "end": 64.8,
+      "text": " but we will also cover CloudFormation macros and custom resources."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 64.8,
+      "end": 68.72,
+      "text": " We will cover different use cases and the pros and cons of every approach."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 68.72,
+      "end": 70.8,
+      "text": " So my name is Gucciano, and together with Eoin,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 70.8,
+      "end": 73.75999999999999,
+      "text": " we are here for another episode of AWS Bites podcast."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 73.76,
+      "end": 85.84,
+      "text": " AWS Bites is brought to you by fourTheorem, an AWS partner that specializes in modern"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 85.84,
+      "end": 90,
+      "text": " application architecture and migration. If you're curious to find out more and to work with us,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 90,
+      "end": 94.4,
+      "text": " check us out on fourtheorem.com. So let's start maybe by giving a quick recap of what"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 94.4,
+      "end": 98.56,
+      "text": " CloudFormation is and why we might need to extend it. Eoin, do you want to cover that?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 98.96000000000001,
+      "end": 105.36,
+      "text": " Sure. Yeah."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 105.36,
+      "end": 109.28,
+      "text": " Back in episode 31, we did a battle episode talking about CloudFormation versus Terraform. It's worth going back to a look at that one. It's one of the most popular"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 109.28,
+      "end": 113.2,
+      "text": " episodes even still. And in that, we talked a little bit about CloudFormation and how you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 113.2,
+      "end": 118.72,
+      "text": " might extend it, but we're going to dive a little bit deeper today. So CloudFormation is the native"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 118.72,
+      "end": 124.4,
+      "text": " infrastructure as cloud solution from AWS. Like you said, Luciano, you get templates that allow"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 124.96000000000001,
+      "end": 130,
+      "text": " you to define stacks, which are just a collection of resources. You use YAML or JSON, and then you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 130,
+      "end": 135.76,
+      "text": " can deploy them to AWS. AWS's responsibility then is to manage the state of those resources"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 135.76,
+      "end": 141.6,
+      "text": " while they're provisioning the dependency between them and to detect failures, retry failures,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 141.6,
+      "end": 146.88,
+      "text": " and then roll back if anything goes wrong and try to keep your cloud in a consistent state. That's"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 146.88,
+      "end": 151.36,
+      "text": " really the goal. And it does its job pretty well. There are some cases, of course, where it might be"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 151.44000000000003,
+      "end": 155.84,
+      "text": " a bit limited or it can be inconvenient. So you do need to build from time to time alternative"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 155.84,
+      "end": 161.20000000000002,
+      "text": " solutions on top of it. I think we've been in this case quite a lot. We can let you know in a bit"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 161.20000000000002,
+      "end": 165.44000000000003,
+      "text": " what we tend to go for. So CloudFormation does do its job pretty well, but there are some cases"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 165.44000000000003,
+      "end": 171.68,
+      "text": " where you might need to customize it or extend it just because there are different situations you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 171.68,
+      "end": 176.88000000000002,
+      "text": " find yourselves in. So one such thing is you just find that the syntax might be very verbose."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 176.88000000000002,
+      "end": 181.20000000000002,
+      "text": " So you might want to write something a bit more high level, higher level component, if you will,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 182.07999999999998,
+      "end": 186.79999999999998,
+      "text": " CloudFormation that allows you to abstract that and have a modular reusable component."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 186.79999999999998,
+      "end": 191.35999999999999,
+      "text": " Then again, you might also just want to provision resources that aren't even supported yet by AWS."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 191.35999999999999,
+      "end": 195.83999999999997,
+      "text": " This happens less these days, but it still does happen. One example I know you've come across"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 195.83999999999997,
+      "end": 202,
+      "text": " recently, Luciana, is Amazon Q Business. It's in preview, but there is no CloudFormation support"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 202,
+      "end": 206.23999999999998,
+      "text": " yet. And then there are resources outside the realm of AWS, like you might be using a third"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 206.24,
+      "end": 211.28,
+      "text": " party vendor like Auth0 or SupaBase or something else. And you want to make sure that all your"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 211.28,
+      "end": 216.08,
+      "text": " resources are part of the same stack for consistent updates and deployments and for making it easy to"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 216.08,
+      "end": 223.20000000000002,
+      "text": " reference resources from one stack to another. Now you might need to do things before or after"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 223.20000000000002,
+      "end": 229.04000000000002,
+      "text": " CloudFormation runs. So that's another use case for customizing it. So you might want to build"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 229.04000000000002,
+      "end": 234.32000000000002,
+      "text": " a front end application and copy all of the assets into an S3 bucket, or you might want to pre-process"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 234.32,
+      "end": 238.64,
+      "text": " assets like optimizing pictures, building container images, something that normally"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 239.12,
+      "end": 242.95999999999998,
+      "text": " falls outside the realm of provisioning infrastructure, but it does become part of"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 242.95999999999998,
+      "end": 247.84,
+      "text": " your deployment. Or you might just want to fetch configuration that you might need as a parameter"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 247.84,
+      "end": 254.56,
+      "text": " for your stacks. So how do we get started? What's the first thing you came across as a solution to"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 254.56,
+      "end": 259.28,
+      "text": " this, Luciana?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 259.28,
+      "end": 265.03999999999996,
+      "text": " Yeah, this is something that I came across a few years ago, I guess, when I started my Cloud journey, it was quite common for people to write their own wrapper scripts and sometimes even"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 265.03999999999996,
+      "end": 271.28,
+      "text": " use templating engines. And the idea is that you will not run the CloudFormation CLI directly for"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 271.28,
+      "end": 275.67999999999995,
+      "text": " deployments, but instead you will run your own custom script that will do many things and at"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 275.67999999999995,
+      "end": 283.59999999999997,
+      "text": " some point also run CloudFormation for you. And the idea is that you might or might not use a"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 283.6,
+      "end": 289.52000000000004,
+      "text": " pre-made template because sometimes you might create your own simplified templates, so to speak."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 289.52000000000004,
+      "end": 293.20000000000005,
+      "text": " And then as part of your script, you will use a templating engine, like something like Jinja,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 293.20000000000005,
+      "end": 299.36,
+      "text": " for example, to generate additional pieces or generate entirely your own actual CloudFormation"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 299.36,
+      "end": 305.20000000000005,
+      "text": " template and then call the CloudFormation CLI to deploy that template. This was very common,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 305.20000000000005,
+      "end": 308.40000000000003,
+      "text": " for instance, because for a long time, CloudFormation didn't even have a concept of"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 308.4,
+      "end": 313.52,
+      "text": " for loops. So for instance, if you had to provision, I don't know, 20 lambdas that were very,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 313.52,
+      "end": 318.4,
+      "text": " very similar with each other, it would be very annoying to just do all of that copy paste."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 318.4,
+      "end": 322.23999999999995,
+      "text": " So you would probably find yourself creating some kind of simpler higher level configuration and"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 322.23999999999995,
+      "end": 326.88,
+      "text": " then use something like Jinja to generate the actual underlying CloudFormation code for every"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 326.88,
+      "end": 332.56,
+      "text": " single lambda. And you might also use that approach to run other kinds of commands, for instance, to,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 332.64,
+      "end": 338.64,
+      "text": " as we said, build containers maybe before you try to deploy the template that references that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 338.64,
+      "end": 343.04,
+      "text": " container on a specific registry. So you can build and publish it as part of that script."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 343.04,
+      "end": 347.84000000000003,
+      "text": " And maybe you can also do things afterwards, maybe, I don't know, indicate somewhere, maybe"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 347.84000000000003,
+      "end": 352.56,
+      "text": " in a chat message that a deployment was completed or the status of that deployment, all sorts of"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 352.56,
+      "end": 356.64,
+      "text": " integrations like that. It was something very common for people to do these kinds of things"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 356.64,
+      "end": 361.28,
+      "text": " back in the days. Now, is this a good practice? It can be very effective, but I would personally"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 361.28,
+      "end": 365.59999999999997,
+      "text": " discourage it because the problem is that you will end up with very custom code that you'll"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 365.59999999999997,
+      "end": 370,
+      "text": " need to maintain over time and that every new engineer in the team will need to get comfortable"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 370,
+      "end": 374.23999999999995,
+      "text": " with. And also it will be very different from company to company because everyone is effectively"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 374.23999999999995,
+      "end": 378.96,
+      "text": " creating their own solution from scratch. And writing this code in a reliable way can also get"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 378.96,
+      "end": 383.91999999999996,
+      "text": " very complicated very quick. For instance, you just need to try to imagine that the more steps you have,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 383.91999999999996,
+      "end": 387.84,
+      "text": " the more opportunities for things to go wrong there are, and you have to think, okay, what do"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 387.84,
+      "end": 392.08,
+      "text": " I do if something goes wrong at this step? How do I clean up? How do I make sure that my entire"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 392.08,
+      "end": 396.71999999999997,
+      "text": " deployment ends up in a consistent state? And again, this is not something very easy to do"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 396.71999999999997,
+      "end": 400.71999999999997,
+      "text": " well. So you might end up with lots of trial and errors before you have something stable."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 400.71999999999997,
+      "end": 405.91999999999996,
+      "text": " And in between, you might end up with a few broken deployments, which is not a great situation to be"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 405.91999999999996,
+      "end": 410.88,
+      "text": " in. So there are today lots of better ways to achieve most of the same things we just discussed"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 410.88,
+      "end": 416.32,
+      "text": " here without having to struggle with creating your own custom scripts. So I think the main one"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 416.32,
+      "end": 422,
+      "text": " is to use new tools that came in the industry in the last few years. So which ones come to mind"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 422,
+      "end": 427.76,
+      "text": " first to you, Eoin?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 427.76,
+      "end": 431.84,
+      "text": " Yeah, there's a whole suite of tools that are essentially CloudFormation generators, and they all have their pros and cons. One of the first ones people might call to mind is the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 431.84,
+      "end": 436.88,
+      "text": " Serverless Framework. It's a third party open source, primarily. I know that the latest version"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 436.88,
+      "end": 441.12,
+      "text": " does have a commercial license if you're a company of a certain size, but the Serverless Framework"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 441.2,
+      "end": 446.56,
+      "text": " gives you a simplified YAML syntax that will eventually be converted to a CloudFormation"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 446.56,
+      "end": 453.36,
+      "text": " template. Now, Serverless Framework supports other clouds and not just AWS, but AWS is,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 453.36,
+      "end": 457.52,
+      "text": " I would imagine, the biggest and most used cloud with Serverless Framework."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 458.24,
+      "end": 463.04,
+      "text": " The Serverless Framework YAML essentially becomes a superset of CloudFormation where you can define"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 463.04,
+      "end": 468.88,
+      "text": " normal CloudFormation in there, but you can also provide this concise syntax for things like"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 468.88,
+      "end": 473.52,
+      "text": " Serverless functions and the triggers for those functions. That's really where it shines."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 474.15999999999997,
+      "end": 478.71999999999997,
+      "text": " One of the notable things about it is that it has a really wide and rich plugin system for all sorts"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 478.71999999999997,
+      "end": 483.6,
+      "text": " of use cases. So you can extend it with all sorts of plugins that can make the job of generating"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 483.6,
+      "end": 489.04,
+      "text": " CloudFormation even easier. And more recently, CDK, and we talked about this recently in the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 489.04,
+      "end": 493.76,
+      "text": " state of JavaScript, sorry, not state of JavaScript, state of Serverless survey results,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 493.76,
+      "end": 497.76,
+      "text": " CDK is getting really popular and it allows you to define infrastructure as code using the program"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 497.76,
+      "end": 503.76,
+      "text": " language of your choice, TypeScript, Java, Python, .NET, and Golang. And it makes it easy then to"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 503.76,
+      "end": 508.64,
+      "text": " create higher level abstractions. There's a whole CDK episode we did where we talked about the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 508.64,
+      "end": 514.64,
+      "text": " different levels of constructs. And at the basis of that, you have essentially types in the language"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 514.64,
+      "end": 519.04,
+      "text": " of your choice that generate just the raw CloudFormation resources. Anything that's a"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 519.04,
+      "end": 523.04,
+      "text": " higher level construct is just built on top of that. So it generates CloudFormation templates,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 523.04,
+      "end": 528.88,
+      "text": " but makes it easier for programmers who are skilled in these languages to make it reusable,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 528.88,
+      "end": 534.56,
+      "text": " modular, and extensible. Now, if we go back to YAML land, we have the Serverless Application"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 534.56,
+      "end": 540.56,
+      "text": " Model or SAM, and it is similar to Serverless Framework in principle and use cases. I would"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 540.56,
+      "end": 546.7199999999999,
+      "text": " imagine it's inspired by it in some way, but it is an official AWS solution and competes with"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 546.7199999999999,
+      "end": 551.8399999999999,
+      "text": " Serverless Framework. It is slightly different in that it doesn't have that plugin ecosystem. In"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 551.9200000000001,
+      "end": 558.8000000000001,
+      "text": " fact, it's much more strict when it comes to the syntax, but the way it works is by having its own"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 558.8000000000001,
+      "end": 563.52,
+      "text": " template language that looks like a superset of raw CloudFormation, but offering those interesting"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 563.52,
+      "end": 568.64,
+      "text": " shortcuts. And its magic is done by using CloudFormation macros, which is one of the ways"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 568.64,
+      "end": 572.72,
+      "text": " of extending CloudFormation that we're going to discuss in a moment. Now, I mentioned a few"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 572.72,
+      "end": 577.2,
+      "text": " previous episodes that are relevant. Don't worry, all the links to those will be in the description"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 577.2,
+      "end": 581.76,
+      "text": " below. So we talked about CloudFormation macros, Luciano, do you want to take us through those?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 582.72,
+      "end": 588.88,
+      "text": " So CloudFormation macros are effectively, you can imagine them as a function that can be executed"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 588.88,
+      "end": 595.04,
+      "text": " and takes as an input your entire template and returns as an output an extended version of that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 595.04,
+      "end": 600.24,
+      "text": " template. And the idea is that you can define macros somewhere, register it into your own"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 600.24,
+      "end": 604.8,
+      "text": " account, and then you need to reference them at the beginning of your own template. So you generally"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 604.8,
+      "end": 610.24,
+      "text": " have an annotation called transform with the name of a specific macro, and that tells CloudFormation"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 610.32,
+      "end": 615.92,
+      "text": " that that template needs to be transformed from using that macro before the deployment."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 615.92,
+      "end": 620.64,
+      "text": " And you can use this concept to do all sorts of different things, for instance, automate tasks,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 620.64,
+      "end": 625.76,
+      "text": " enforce policies, or even just create new resources, for instance, as part of expanding"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 625.76,
+      "end": 630.64,
+      "text": " that template. So what are they good for? We recently used the CloudFormation macros for"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 630.64,
+      "end": 634.5600000000001,
+      "text": " a project called SlickWatch. We will have the link in the show notes. And the idea of SlickWatch is"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 634.56,
+      "end": 640.2399999999999,
+      "text": " that, for instance, you might want to have best practice generated dashboards and alarms,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 640.2399999999999,
+      "end": 644.4,
+      "text": " depending on the resources that you use on your template. So you can basically say,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 644.4,
+      "end": 649.68,
+      "text": " if I'm using an SQS queue, for instance, in my template, this macro will automatically generate"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 649.68,
+      "end": 654.16,
+      "text": " dashboards and alarms for you to monitor the most common things that you would be worried about"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 654.16,
+      "end": 658.2399999999999,
+      "text": " when using something like an SQS queue. And of course, you can extend that concept to different"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 658.2399999999999,
+      "end": 663.8399999999999,
+      "text": " resources. And it solves lots of the boilerplate that you generally have to do when it comes to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 663.84,
+      "end": 668.4,
+      "text": " monitoring for specific resources. So this is just an example of when a CloudFormation macro"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 668.4,
+      "end": 673.52,
+      "text": " can be very convenient. Take a simple template as an input, see what's inside, and do something"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 673.52,
+      "end": 679.0400000000001,
+      "text": " useful and produce maybe a slightly enhanced version of that template. And we already mentioned"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 679.0400000000001,
+      "end": 683.6,
+      "text": " how it generally works, but the idea is that you will need to write that code somewhere. And"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 683.6,
+      "end": 687.9200000000001,
+      "text": " generally, you can write it as a Lambda function. Then you need to publish this Lambda function,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 687.9200000000001,
+      "end": 693.36,
+      "text": " register it as a CloudFormation macro, give it a name. And from that moment on, you can reference"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 693.44,
+      "end": 697.84,
+      "text": " that transform into your own templates before deploying in this specific account where you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 697.84,
+      "end": 702,
+      "text": " provision the macro. So you, of course, you need to make sure the macro is provisioned before you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 702,
+      "end": 706.16,
+      "text": " use it. If you are, for instance, deploying a third-party macro from maybe an open source"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 706.16,
+      "end": 710.88,
+      "text": " project like SlickWatch. But then once you have done that thing one-off, you can use that transform"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 710.88,
+      "end": 714.4,
+      "text": " in all sorts of projects that you are deploying in that particular account."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 714.4,
+      "end": 719.76,
+      "text": " Now, there might be some small problems with it. For instance, one, as I said, is that you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 719.76,
+      "end": 724.64,
+      "text": " need to make sure things are provisioned before you can actually use it. And the other one is that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 724.64,
+      "end": 729.52,
+      "text": " if you have issues, for instance, as you write your transform, it's not always very straightforward to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 730.24,
+      "end": 735.04,
+      "text": " debug exactly where the issue is because effectively you are taking a template that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 735.04,
+      "end": 740.3199999999999,
+      "text": " might be very, very big and very involved in terms of properties. So you need to write generally very"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 740.3199999999999,
+      "end": 744.72,
+      "text": " complex code that can parse the original template, make sure you really understand the semantic of"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 744.72,
+      "end": 749.36,
+      "text": " the template, and then you change things in that template so there is a lot that can go wrong in"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 749.36,
+      "end": 753.6800000000001,
+      "text": " doing all these different things. And we found ourselves that when building SlickWatch, there is"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 753.6800000000001,
+      "end": 758.88,
+      "text": " a lot of debugging that goes on. Of course, you can recreate locally different versions of the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 758.88,
+      "end": 763.44,
+      "text": " templates, run it locally, see what is the output of the template, but you still need sometimes to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 763.44,
+      "end": 767.44,
+      "text": " deploy the template to make sure it is semantically correct and is doing exactly the thing that you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 767.44,
+      "end": 772.8000000000001,
+      "text": " want it to do. So there might be lots of kind of development cycles before you get to a point where"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 772.8000000000001,
+      "end": 777.9200000000001,
+      "text": " you are happy with the outcome of that transform macro. There is actually another good example that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 777.92,
+      "end": 782.4799999999999,
+      "text": " we bumped into multiple times and we might have mentioned it in previous episodes, is a macro"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 782.4799999999999,
+      "end": 788.64,
+      "text": " called AWS SSO Util by Ben Kiyoi. And it's very convenient because it gives you higher level"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 789.1999999999999,
+      "end": 793.8399999999999,
+      "text": " syntax to do things that might get very, very verbose if you need to define the low-level"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 793.8399999999999,
+      "end": 798.7199999999999,
+      "text": " resources that you generally need for SSO type of operations. So another one we will have a link in"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 798.7199999999999,
+      "end": 802.56,
+      "text": " the show notes, and it might be a good one to check out if you are just curious to see what it"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 802.56,
+      "end": 807.76,
+      "text": " takes to build a cloud formation macro. What else does come to mind, Eoin?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 807.76,
+      "end": 811.76,
+      "text": " We should definitely talk about custom resources."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 811.76,
+      "end": 817.92,
+      "text": " I think this is the one we've ended up using the most, probably because they're pretty quick and relatively easy to implement compared to all the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 817.92,
+      "end": 822.16,
+      "text": " other methods. There can be a few foot guns with the custom resources method, so we should talk"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 822.16,
+      "end": 825.92,
+      "text": " about that. There's two ways of implementing them. You can do it with a Lambda function,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 825.92,
+      "end": 830.9599999999999,
+      "text": " or you can actually do it through SNS where you receive a notification and you can actually trigger"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 831.0400000000001,
+      "end": 836.48,
+      "text": " logic anywhere, like on an EC2 instance. And when you want to create a custom resource,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 836.48,
+      "end": 843.2800000000001,
+      "text": " it's fairly straightforward. You just basically in your template, you define a type and that could be"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 843.2800000000001,
+      "end": 849.76,
+      "text": " anything like custom colon colon whatever name you specify, or you can just give us the static"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 849.76,
+      "end": 854.24,
+      "text": " version, which is like AWS CloudFormation custom resource. If you use the custom version,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 854.24,
+      "end": 860.4000000000001,
+      "text": " just be aware that you can't have multiple double colon separators for more complex spacing. You"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 860.4,
+      "end": 864.48,
+      "text": " can't have any more nesting. If you tried to do that, your stack will hang forever until you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 864.48,
+      "end": 870.48,
+      "text": " cancel the deployment and delete the generated change sets. So ask us how we know that one."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 871.1999999999999,
+      "end": 875.4399999999999,
+      "text": " You can also specify custom properties. So you can pass custom properties into your"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 875.4399999999999,
+      "end": 881.4399999999999,
+      "text": " custom resource so that the logic that handles it can read them. And then you just need to specify"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 881.4399999999999,
+      "end": 885.68,
+      "text": " what's handling the creation, updation, and deletion of the custom resource. So that's"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 885.68,
+      "end": 890,
+      "text": " going to be a reference to a Lambda function ARN or an SNS topic, and you pass those in"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 890.16,
+      "end": 894.56,
+      "text": " a field called service token. So that's the only mandatory property for a custom resource. So"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 894.56,
+      "end": 898.64,
+      "text": " there's not a lot of code involved. Let's say you're using the Lambda methods then."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 900.08,
+      "end": 904.08,
+      "text": " When you deploy a stack with one of these custom resources in it, CloudFormation is going to"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 904.08,
+      "end": 908.64,
+      "text": " invoke that Lambda function and pass in a few properties. Important one would be the request"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 908.64,
+      "end": 914.56,
+      "text": " type, which tells whether the action you should perform is a create an update or delete. You just"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 914.56,
+      "end": 920.9599999999999,
+      "text": " need to essentially look at those, figure out what needs to be done. And like if you're creating"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 920.9599999999999,
+      "end": 925.8399999999999,
+      "text": " a new resource, return a physical resource ID. If it's an update, get the physical resource ID,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 926.4799999999999,
+      "end": 930.88,
+      "text": " check for old properties versus new properties, do the update, and then return the physical resource"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 930.88,
+      "end": 935.4399999999999,
+      "text": " ID. Now, when you're doing an update, it doesn't actually have to be the same resource ID you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 935.4399999999999,
+      "end": 940.4799999999999,
+      "text": " originally received. If you provide a new one, then it's considered a resource replacement,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 941.36,
+      "end": 944.72,
+      "text": " which means that CloudFormation will call the delete action with the old one."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 944.72,
+      "end": 948.72,
+      "text": " If you're really handling that proper life cycle of create, update, and delete,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 949.28,
+      "end": 953.76,
+      "text": " that's some of the things you'll need to watch out for. I've seen quite a few naive and simple"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 953.76,
+      "end": 958.08,
+      "text": " versions of custom resources, which essentially just have an idempotent action that happens when"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 958.08,
+      "end": 963.36,
+      "text": " a create or update occurs. And that I suppose simplifies the implementation. And you don't have"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 963.36,
+      "end": 968.8000000000001,
+      "text": " to worry too much about detecting which properties have changed. When your function is invoked,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 968.8,
+      "end": 974.24,
+      "text": " it will also pass in a response URL. You can call that to tell CloudFormation that you're finished"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 974.24,
+      "end": 979.12,
+      "text": " and your update or delete or whatever has succeeded or failed. It's a little bit more"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 979.12,
+      "end": 982.7199999999999,
+      "text": " involved than just returning a value from your Lambda function handler. You need to actually"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 982.7199999999999,
+      "end": 987.4399999999999,
+      "text": " make a request to that specific URL. There are some libraries that can help you to do this"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 987.4399999999999,
+      "end": 992.24,
+      "text": " correctly and safely. There's a few things you need to be aware of. First of all, your Lambda"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 992.24,
+      "end": 996.4799999999999,
+      "text": " function might actually time out before it's able to send the response, which CloudFormation will"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 996.48,
+      "end": 1001.9200000000001,
+      "text": " never get the response and it will take an hour to time out, which I've been through multiple times"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1001.9200000000001,
+      "end": 1008.16,
+      "text": " and it's not fun. Another thing is if an error happens in your import code, like in your module"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1008.16,
+      "end": 1012.48,
+      "text": " initialization code, and you're not catching that and sending back a CloudFormation response in the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1012.48,
+      "end": 1019.04,
+      "text": " handler, then that can also cause this one hour hang. So you have to be really careful. Node.js"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1019.04,
+      "end": 1025.1200000000001,
+      "text": " on NPM, there are a few modules we can link in the show notes that make it a bit easier to safely"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1025.12,
+      "end": 1029.84,
+      "text": " implement CloudFormation customer sources and catch all of these errors and make sure that"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1029.84,
+      "end": 1036,
+      "text": " you always send a response before any possible timeout. Now, the good thing about these customer"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1036,
+      "end": 1040.2399999999998,
+      "text": " sources is that they're probably the easiest ones to start with. We use them quite often."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1040.2399999999998,
+      "end": 1045.6,
+      "text": " Recently, we were using them to run database schema migrations when you deploy an application"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1046.32,
+      "end": 1051.28,
+      "text": " so that you make sure you always deploy it with the application stack. And that makes a lot of"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1051.36,
+      "end": 1055.92,
+      "text": " sense for us and it was a good fit. That's very easy to use for self-contained resources"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1055.92,
+      "end": 1060.16,
+      "text": " that you need just for one project. We mentioned the problems with timeouts. You do have to be"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1060.16,
+      "end": 1065.36,
+      "text": " really careful. It's a good idea to deploy your code, test it outside of CloudFormation environment"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1065.36,
+      "end": 1072,
+      "text": " and really validate that it works before you try it inside CloudFormation. It's missing things like"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1072,
+      "end": 1078.72,
+      "text": " drift detection, resource import. It's difficult to share it across multiple projects. And I suppose"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1078.8,
+      "end": 1083.3600000000001,
+      "text": " as well, you're using a Lambda function. These resources are then running in your own account."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1083.3600000000001,
+      "end": 1087.52,
+      "text": " So you need to make sure you've got the right networking and IAM permissions."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1087.52,
+      "end": 1093.28,
+      "text": " If you're running that Lambda function in private PC subnets, you need to make sure that you set up"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1093.28,
+      "end": 1098.56,
+      "text": " the VPAC endpoints to interact back with CloudFormation with the response. Another gotcha"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1098.56,
+      "end": 1104.08,
+      "text": " there is that the response URL actually comes through as an S3 pre-signed URL. So you need to"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1104.1599999999999,
+      "end": 1108.6399999999999,
+      "text": " make sure then in that case, you've got a S3 gateway endpoint or interface endpoint."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1109.52,
+      "end": 1114.48,
+      "text": " And if you don't do that, you're just going to hang and it was going to take a while for it to"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1114.48,
+      "end": 1118.6399999999999,
+      "text": " fail. And then sometimes try and roll it back and it'll roll back by trying to invoke the same"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1118.6399999999999,
+      "end": 1122.96,
+      "text": " function again, which is going to timeout again, which is going to take you another hour. So"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1122.96,
+      "end": 1129.12,
+      "text": " CloudFormation custom resources can be great, but when they don't work, they really induce rage."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1129.6,
+      "end": 1134.8799999999999,
+      "text": " So when it comes, is there anything we could do to mitigate the risk of rage here, Luciano?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1134.8799999999999,
+      "end": 1137.6,
+      "text": " What else have we got? Yeah."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1137.6,
+      "end": 1142.3999999999999,
+      "text": " Another alternative is CloudFormation Registry, which seems to be kind of the evolution of custom resources in many ways."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1142.3999999999999,
+      "end": 1147.6,
+      "text": " It's a recent development in AWS. And I have to be honest, before we cover this particular point,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1147.6,
+      "end": 1152.32,
+      "text": " this is the one we have used the least. So we will only cover it at high level and try to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1152.32,
+      "end": 1156.4799999999998,
+      "text": " mention the differences with customer resources. But I don't think we have the level of experience"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1156.48,
+      "end": 1161.04,
+      "text": " to tell all the pain points and all the foot guns that I'm sure that there will be some of"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1161.04,
+      "end": 1165.76,
+      "text": " them somewhere, even with the CloudFormation registry. So let's get into it. As I said,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1165.76,
+      "end": 1170.24,
+      "text": " there's a new way of doing effectively the same thing you do with custom resources,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1170.24,
+      "end": 1175.76,
+      "text": " addresses the same use cases in many ways. But the idea is that rather than having just a lambda,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1175.76,
+      "end": 1179.76,
+      "text": " that it is part of your own stack, it's a little bit more like a CloudFormation macro,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1179.76,
+      "end": 1184.72,
+      "text": " meaning that you can register that custom resource at the account level, and then you can reference"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1184.72,
+      "end": 1189.84,
+      "text": " it in other templates that you are going to deploy in a specific account."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1189.84,
+      "end": 1195.04,
+      "text": " And this is where the idea of the registry comes from. And you can even do resources that are"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1195.04,
+      "end": 1198.96,
+      "text": " publicly available. So that's something that can be very convenient, for instance, when you are"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1198.96,
+      "end": 1203.28,
+      "text": " a provider of some sort, like a third party provider providing a service and you want to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1203.28,
+      "end": 1208,
+      "text": " make it easy for people to access those custom resources and install them in their own accounts"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1208,
+      "end": 1212.96,
+      "text": " without having to rewrite something themselves or having to download code and then run scripts"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1212.96,
+      "end": 1217.6000000000001,
+      "text": " to provision it inside their own AWS accounts. So this is one of the main advantages,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1218.24,
+      "end": 1223.68,
+      "text": " having this kind of registry that allows you to easily make your custom resources available,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1223.68,
+      "end": 1228.08,
+      "text": " either internally in your own company across multiple accounts, or even as a third party"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1228.08,
+      "end": 1232.88,
+      "text": " provider to make it available to multiple accounts for your own customers. There is also a little bit"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1232.88,
+      "end": 1238.16,
+      "text": " more. So we say that for custom resources, you have this concept of create, update, and delete."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1238.16,
+      "end": 1243.2,
+      "text": " In the registry, this has been extended to other additional operations. So there is, for instance,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1243.2,
+      "end": 1247.44,
+      "text": " a concept of read that allows you to see the state of a particular custom resource,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1247.44,
+      "end": 1252.24,
+      "text": " but also a concept of list that allows you to list all the resources of a given type"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1252.24,
+      "end": 1256.96,
+      "text": " and see exactly what is their own state. And that gives additional capabilities to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1256.96,
+      "end": 1262.4,
+      "text": " CloudFormation. For instance, this is why this particular approach supports drift detection,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1262.4,
+      "end": 1267.0400000000002,
+      "text": " because they can inspect at any point in time what is the state of a given custom resource,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1267.04,
+      "end": 1271.04,
+      "text": " and then how does it compare with what you have in a specific template that you have provisioned"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1271.04,
+      "end": 1277.36,
+      "text": " before. So you might be wondering, how do you create your own first registry custom resource?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1277.36,
+      "end": 1281.2,
+      "text": " There is a CLI that you can use as an helper. It's called the CloudFormation CLI. We will have the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1281.2,
+      "end": 1285.2,
+      "text": " link in the show notes. And this CLI has a bunch of commands that you can run. And the first one"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1285.2,
+      "end": 1290.48,
+      "text": " you probably want to run allows you to scaffold a new project. And you can pick different languages."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1290.48,
+      "end": 1294.8,
+      "text": " For instance, TypeScript is one of the supported languages. And when you do that, it's going to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1294.8799999999999,
+      "end": 1299.84,
+      "text": " generate actually quite a bit of code for you that effectively is a skeleton that you can use"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1299.84,
+      "end": 1303.2,
+      "text": " to start building the logic. And the first thing that you will probably want to write"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1303.2,
+      "end": 1309.52,
+      "text": " is a JSON schema that defines all the properties that you want to accept as part of that custom"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1309.52,
+      "end": 1313.2,
+      "text": " resource. And because it's a JSON schema, it's not just a list of the properties,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1313.2,
+      "end": 1317.12,
+      "text": " but also the validation rules that you might want to enforce for every single property."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1317.12,
+      "end": 1321.2,
+      "text": " And this is great because at this point, when CloudFormation deploys these resources,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1321.2,
+      "end": 1327.28,
+      "text": " it can validate upfront whether as a user you are using the resource correctly. So compared to the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1327.28,
+      "end": 1332.0800000000002,
+      "text": " other approach with custom resources, you will have to validate that at runtime. So for instance,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1332.0800000000002,
+      "end": 1335.68,
+      "text": " in your own Lambda code and just fail the deployment of that particular resource if"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1335.68,
+      "end": 1341.28,
+      "text": " something doesn't look right from the user input. So this is kind of a way to catch errors a little"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1341.28,
+      "end": 1345.92,
+      "text": " bit early in the process and probably gives you a better user experience in terms of if something is"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1345.92,
+      "end": 1350.0800000000002,
+      "text": " wrong, it's going to fail very quickly. You can fix the problem and retry. So at this point,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1350.08,
+      "end": 1354.08,
+      "text": " after you define the schema, you can run other commands, if I remember correctly, the process,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1354.08,
+      "end": 1358,
+      "text": " and those commands might generate a little bit more code like models that you can use"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1358,
+      "end": 1361.6,
+      "text": " in your code to effectively work with the properties provided by the user."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1361.6,
+      "end": 1365.84,
+      "text": " But then of course, at some point, you need to define exactly what is that creation,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1365.84,
+      "end": 1370.32,
+      "text": " read, update, deletion, list, logic that you need to perform depending on the kind of resource you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1370.32,
+      "end": 1375.04,
+      "text": " are working with. For instance, if you are trying to implement something that is like a third party"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1375.04,
+      "end": 1380.56,
+      "text": " provider for some service, you probably need to use an API or an SDK provided by this third party"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1380.56,
+      "end": 1386.24,
+      "text": " to interact with the resources that live outside AWS and implement all these steps, create, read,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1386.24,
+      "end": 1391.44,
+      "text": " update, delete, and list. So in the time that you will have placeholder where you can do all of"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1391.44,
+      "end": 1396,
+      "text": " these things, and then when you feel that you are ready, you can call another command from the CLI"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1396,
+      "end": 1401.04,
+      "text": " called CFS submit, which is effectively going to package all this code together, ship it to AWS,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1401.12,
+      "end": 1406.3999999999999,
+      "text": " and then make your resource available through the registry. At this point, that resource will have"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1406.3999999999999,
+      "end": 1411.6,
+      "text": " a name and you can easily reference it inside your own templates. What are some of the advantages?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1411.6,
+      "end": 1416.48,
+      "text": " We already mentioned that there are extra features like diff detection. You can import resources as"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1416.48,
+      "end": 1421.52,
+      "text": " well. Another interesting detail is that the code is executed by AWS for you. So you don't have to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1421.52,
+      "end": 1426.08,
+      "text": " worry as much as you have to do with custom resources. Think about, okay, where is this"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1426.08,
+      "end": 1432.56,
+      "text": " Lambda going to run? Did I provision enough memory or I don't know, timeout? Is that timeout"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1432.56,
+      "end": 1436.08,
+      "text": " correct? Is it going to be sufficient for what they need to do? Or think about, I don't know,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1436.08,
+      "end": 1440.56,
+      "text": " networking restrictions, all that kind of stuff. You have less concerns because AWS is going to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1440.56,
+      "end": 1445.6799999999998,
+      "text": " run the code for you. Of course, you still need to provide permissions in some way. And the way"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1445.6799999999998,
+      "end": 1451.9199999999998,
+      "text": " you do that is by providing a role that AWS is going to assume for you and that role constraints"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1451.92,
+      "end": 1457.1200000000001,
+      "text": " what can happen inside the custom logic. So you don't have to be worried in terms of,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1457.1200000000001,
+      "end": 1462,
+      "text": " this custom resource is going to create a massive EC2 instance that is going to cost me lots of"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1462,
+      "end": 1467.76,
+      "text": " money every month. You can restrict exactly what the role is and what can happen inside that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1467.76,
+      "end": 1472,
+      "text": " particular execution. There are other advanced features. For instance, there is a concept of"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1472,
+      "end": 1478.5600000000002,
+      "text": " hooks. And then another advantage is that AWS Config will automatically list all the custom"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1478.56,
+      "end": 1483.04,
+      "text": " resources that are created through the registry. So it's very convenient that if you just want to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1483.04,
+      "end": 1487.9199999999998,
+      "text": " be reassured at any point in time, if you have resources coming from the registry,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1487.9199999999998,
+      "end": 1492.72,
+      "text": " you want to see what those are, you can easily see a list of them, even across multiple stacks."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1492.72,
+      "end": 1496.96,
+      "text": " We will have a link in the show notes with all the documentation that you need to follow if you want"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1496.96,
+      "end": 1501.36,
+      "text": " to implement something like this. Of course, the disadvantage is that this process feels a little"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1501.36,
+      "end": 1507.36,
+      "text": " bit more involved. So something you need to keep in mind as opposed to just creating custom resources"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1507.36,
+      "end": 1512.8,
+      "text": " for simple use cases probably is still simpler to use custom resources. For more advanced use cases,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1512.8,
+      "end": 1518.32,
+      "text": " maybe where you need to make those resources available in an easier way, probably going with"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1518.32,
+      "end": 1523.9199999999998,
+      "text": " the registry is a better approach. Yeah, I was just thinking there."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1523.9199999999998,
+      "end": 1530.7199999999998,
+      "text": " So I remember back a while, there was an announcement from AWS about this AWS Cloud Control API. And the idea was that they"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1530.72,
+      "end": 1536.56,
+      "text": " would provide this new API that was like create, read, update, delete, and list for all the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1536.56,
+      "end": 1542.08,
+      "text": " resources. And that CloudFormation was going to be linked to it, but that it would also allow other"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1542.08,
+      "end": 1546.8,
+      "text": " providers like Terraform to quickly get access to new AWS resources without having to do all"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1546.8,
+      "end": 1551.52,
+      "text": " this stuff. I think I haven't heard that much about it, but I know that HashiCorp released"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1551.52,
+      "end": 1556.56,
+      "text": " like a new provider that was based on this Cloud Control API. So I was just wondering there as you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1556.56,
+      "end": 1563.44,
+      "text": " were speaking, is it possible if you publish your CloudFormation provider, the resource provider in"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1563.44,
+      "end": 1568.3999999999999,
+      "text": " the registry, that it would be automatically supported then in Terraform if you use that"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1568.3999999999999,
+      "end": 1573.84,
+      "text": " provider? I don't know the answer to it, but I'm just wondering if that's some neat side benefit"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1573.84,
+      "end": 1578.8799999999999,
+      "text": " you might get by using this method. Yeah, I don't know the answer either."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1578.8799999999999,
+      "end": 1582.72,
+      "text": " So we'll bounce it back to our listeners. If you have done something like this, let us know in the comments, what was your"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1582.72,
+      "end": 1587.28,
+      "text": " experience? But sounds reasonable to assume that it is either something you can do straight away,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1587.28,
+      "end": 1592.88,
+      "text": " or maybe that it is easy enough to auto-generate a provider at the Terraform level to do something"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1592.88,
+      "end": 1598.08,
+      "text": " like that from a custom reason in the registry."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1598.08,
+      "end": 1602.8,
+      "text": " If you haven't seen the public registry, you can go into CloudFormation console and have a look at all the third-party extensions. AWS has some in"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1602.8,
+      "end": 1609.68,
+      "text": " there for higher level components, but you have like MongoDB, Atlassian, Sneak, Okta, Snowflake"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1609.68,
+      "end": 1614.72,
+      "text": " resources in there. People assume, probably for the most case correctly, that if you're using"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1614.72,
+      "end": 1618.8,
+      "text": " CloudFormation, it's just for AWS resources. But with this method, it doesn't have to be that way."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1618.8,
+      "end": 1622.3200000000002,
+      "text": " And it also means that if you've got a vendor and they don't support CloudFormation for"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1622.3200000000002,
+      "end": 1626.16,
+      "text": " infrastructure as code, you might actually point them in the direction of this episode"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1626.16,
+      "end": 1631.28,
+      "text": " and the documentation and tell them, get on it. Yeah, that's absolutely a very good point."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1631.28,
+      "end": 1635.92,
+      "text": " So let's try to recap what are our final recommendation based on all the different"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1635.92,
+      "end": 1642.16,
+      "text": " methods we suggested. I will remark my suggestion not to use custom scripts or templates unless you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1642.16,
+      "end": 1645.68,
+      "text": " really, really have to, maybe because we have a legacy application and you don't have time to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1645.68,
+      "end": 1650.24,
+      "text": " rewrite that. But if you are building something new, probably there are better ways to do the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1650.24,
+      "end": 1655.44,
+      "text": " things that you need to do around CloudFormation. And you can definitely use CDK, SAM or Server"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1655.44,
+      "end": 1660.72,
+      "text": " Framework. They are great to have that kind of higher level experience, better tooling in general,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1660.72,
+      "end": 1665.2,
+      "text": " better syntax, easier to extend and reuse code in many different ways."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1665.2,
+      "end": 1669.04,
+      "text": " So definitely rely on these tools rather than writing CloudFormation from scratch,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1669.04,
+      "end": 1673.3600000000001,
+      "text": " which is probably great for simple use cases. But as soon as you start to build real applications,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1673.3600000000001,
+      "end": 1677.3600000000001,
+      "text": " those tools will really shine and give you lots of additional benefits that you don't get with"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1677.3600000000001,
+      "end": 1684.48,
+      "text": " raw CloudFormation. When you need to create custom resources or you need to somehow extend the code"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1684.48,
+      "end": 1689.2,
+      "text": " inside the template, there are a few different things you can do. We spoke about macros. Macros"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1689.2,
+      "end": 1694.56,
+      "text": " are great if you want to effectively pre-process a template that is about to be deployed. So you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1694.56,
+      "end": 1699.04,
+      "text": " can get the entire template as an input. You can produce an entirely new template as an output."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1699.04,
+      "end": 1702.8,
+      "text": " And generally speaking, you might be adding a few things. Maybe, I don't know, you can automatically"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1702.8,
+      "end": 1707.8400000000001,
+      "text": " tag all of the resources based on some internal rules, or you can do more advanced things like"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1707.8400000000001,
+      "end": 1713.28,
+      "text": " the ones we did with SlickWatch for simplifying the efforts of making applications very easily"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1713.28,
+      "end": 1718.48,
+      "text": " observable and to have alarms. And the other two things that we mentioned are CloudFormation"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1718.48,
+      "end": 1722.88,
+      "text": " custom resources and the CloudFormation registry. Those are great whenever you want to actually"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1722.88,
+      "end": 1728.48,
+      "text": " create the concept of a new resource, either something that doesn't exist yet in AWS, because"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1728.48,
+      "end": 1732.32,
+      "text": " maybe it's something in preview. So you have maybe an SDK, but you don't necessarily have the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1732.32,
+      "end": 1736.72,
+      "text": " corresponding resources in CloudFormation. You might be doing your own custom resources to back"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1736.72,
+      "end": 1741.76,
+      "text": " field that and still be able to do infrastructure as code. There are some limitations that we"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1741.76,
+      "end": 1746.88,
+      "text": " mentioned with custom resources and some gotchas, so be aware of those. But they are generally"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1746.88,
+      "end": 1750.88,
+      "text": " really good when you have something self-contained. If you have something that instead you plan to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1750.88,
+      "end": 1755.5200000000002,
+      "text": " reuse across multiple applications or even make available externally, then you should be looking"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1755.5200000000002,
+      "end": 1760.24,
+      "text": " into the registry because that seems to be a much more complete solution and something that is easier"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1760.24,
+      "end": 1765.5200000000002,
+      "text": " to share even outside the boundaries of your own company. So all of that brings us to the end of"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1765.5200000000002,
+      "end": 1770.3200000000002,
+      "text": " this episode. I hope you find it informative. One last thing that I want to mention, I want to give"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1770.3200000000002,
+      "end": 1776.24,
+      "text": " credit to the Cloud on the Sky. There is a very good podcast that they did, I think a couple of years ago,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1776.24,
+      "end": 1780.8,
+      "text": " but I think it's still very relevant. They cover some of the topics we discussed today, and they"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1780.8,
+      "end": 1786.08,
+      "text": " also mentioned some examples, some use cases that they had. So if you enjoyed this particular episode"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1786.08,
+      "end": 1790.88,
+      "text": " and you want to find out more, check out that episode. The link will be in the show notes. As always,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1790.88,
+      "end": 1796,
+      "text": " if you found this useful, please share it with your friends, your colleagues, and leave us a comment."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1796,
+      "end": 1800.08,
+      "text": " Let us know what you did like, if you have any question, and what else you would like us to cover"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1800.08,
+      "end": 1804.8,
+      "text": " next. So that's all. Thank you very much for being with us, and we will see you in the next one."
+    }
+  ]
+}

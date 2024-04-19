@@ -18,7 +18,7 @@ In this episode, we mentioned the following resources.
 - [Serverless Framework](https://www.serverless.com/)
 - [SAM (Serverless Application Model)](https://aws.amazon.com/serverless/sam/)
 - [CDK (Cloud Development Kit)](https://aws.amazon.com/cdk/)
-- Ep. 119 ["The state of AWS 2024 (AnsWeRS community survey commentary)"](https://awsbites.com/)119-the-state-of-aws-2024-answers-community-survey-commentary/
+- Ep. 119 ["The state of AWS 2024 (AnsWeRS community survey commentary)"](https://awsbites.com/119-the-state-of-aws-2024-answers-community-survey-commentary/)
 - Ep. 93 ["CDK Patterns - The Good, The Bad and The Ugly"](https://awsbites.com/93-cdk-patterns-the-good-the-bad-and-the-ugly/)
 - [SLIC Watch](https://github.com/fourTheorem/slic-watch)
 - [AWS SSO Utils by Ben Kehoe](https://github.com/benkehoe/aws-sso-util)

@@ -17,5 +17,5 @@ In this episode, we mentioned the following resources.
 - [Amazon Relational Database Service (RDS)](https://aws.amazon.com/rds/)
 - [Amazon RDS Aurora](https://aws.amazon.com/rds/aurora/)
 - [RDS Aurora Serverless](https://aws.amazon.com/rds/aurora/serverless/)
-- Cost calculator: TODO
+- [Comparison of Aurora cost (Cost calculator)](https://calculator.aws/#/estimate?id=4f950b71be8b31438dd12c7aebc9beae3f88179e)
 - Cloudonaut [podcast and blog post about Aurora Serverless V2](https://cloudonaut.io/review-aurora-serverless-v2/)

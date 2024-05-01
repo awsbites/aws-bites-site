@@ -1,0 +1,2024 @@
+{
+  "speakers": {
+    "spk_0": "Eoin",
+    "spk_1": "Luciano"
+  },
+  "segments": [
+    {
+      "speakerLabel": "spk_0",
+      "start": 0,
+      "end": 4.4,
+      "text": " Are you looking for an easy way to set up a relational database with best practices,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 4.4,
+      "end": 9.28,
+      "text": " resilience and disaster recovery in mind? Are you maybe looking for something reliable but also"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 9.28,
+      "end": 14.08,
+      "text": " cheap and easy to maintain? Today we're going to try and answer the question, does such a thing"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 14.08,
+      "end": 19.12,
+      "text": " even exist? The best hope for an AWS solution to this challenge is Amazon Aurora. We're going to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 19.12,
+      "end": 24.16,
+      "text": " dive into Aurora, talk about its unique capabilities, intricacies and of course, trade-offs."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 24.16,
+      "end": 27.36,
+      "text": " I'm Eoin, I'm joined by Luciano and this is AWS Bites."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 30,
+      "end": 40,
+      "text": " AWS Bites is brought to you by fourTheorem. If you need someone to work with you to build the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 40,
+      "end": 46.08,
+      "text": " best designed, highly available database on AWS, give us a shout. Check out fourtheorem.com or contact"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 46.08,
+      "end": 50,
+      "text": " us directly using the links in the show notes. Luciano, before we dive into Aurora,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 50,
+      "end": 54.8,
+      "text": " what's the use case? Maybe let's try and imagine a scenario where Aurora might be a good fit."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 59.76,
+      "end": 64.96,
+      "text": " Yeah, I think it's always good to try to put a frame to the conversation by defining a good use case. Here we are talking about enterprise applications, so not really like hobbyist type"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 64.96,
+      "end": 70.32,
+      "text": " of databases. So that's what it means. It means basically you might have hundreds or even thousands"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 70.32,
+      "end": 76.96,
+      "text": " of data users connected to the database. Volume of transactions that can vary, they can be"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 76.96,
+      "end": 81.03999999999999,
+      "text": " relatively low, but they can grow as needed because as a business, you might have your own"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 81.03999999999999,
+      "end": 85.12,
+      "text": " spikes and you need to figure out how to manage all of that. Generally speaking, we are talking"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 85.12,
+      "end": 89.68,
+      "text": " about really important business data, so something we can consider critical. So something you really"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 89.68,
+      "end": 96.24000000000001,
+      "text": " don't want to lose. And we are expecting low RPO and RTO. So RPO probably in terms of minutes,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 96.24000000000001,
+      "end": 100.72000000000001,
+      "text": " RTO in terms of maybe one hour. And of course, something that needs to be replicated across"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 100.72000000000001,
+      "end": 106.48,
+      "text": " availability zones and possibly have regional failure. So this is a very common use case,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 106.48,
+      "end": 111.52000000000001,
+      "text": " but it still considers something really, really hard to achieve. So somewhat of a pain point if"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 111.52000000000001,
+      "end": 116.72,
+      "text": " you find yourself having to set up this kind of databases. So we are wondering today if there is"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 116.8,
+      "end": 122.72,
+      "text": " a way that can make us happy and make all these things easy for you and give us low overhead"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 122.72,
+      "end": 127.68,
+      "text": " managed database, high availability, multi-region, fast recovery, something that is relatively secure,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 128.24,
+      "end": 133.68,
+      "text": " also as cheap as possible. That's always something nice to have and somewhat developer-friendly."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 133.68,
+      "end": 139.52,
+      "text": " So is this something we can achieve on AWS? If yes, what kind of services we should be looking at"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 139.52,
+      "end": 144.07999999999998,
+      "text": " and try to analyze and decide if they really fit our description. And the first service that comes"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 144.08,
+      "end": 149.68,
+      "text": " to mind is Aurora. So what is Aurora? So if you're looking for a relational database on AWS,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 149.68,
+      "end": 154.24,
+      "text": " you have a few options. You're probably aware of RDS, which is a service that allows you to"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 154.24,
+      "end": 159.68,
+      "text": " create relational databases and supports a big number of databases, including SQL Server,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 159.68,
+      "end": 164.96,
+      "text": " Oracle, but also open source ones like Postgres, MariaDB, MySQL. And the idea is that they give"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 164.96,
+      "end": 169.92000000000002,
+      "text": " you a service that is somewhat managed and it somehow removes some of the pain points of having"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 169.92,
+      "end": 175.2,
+      "text": " to manage databases, but it's still running on EC2 instances. So it does obstruct some things,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 175.2,
+      "end": 178.95999999999998,
+      "text": " but there is still a bit of the pain point of having to manage servers."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 178.95999999999998,
+      "end": 184,
+      "text": " So with RDS, you also have another category of databases, which is the one called Aurora."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 184,
+      "end": 189.92,
+      "text": " And Aurora promises to deliver MySQL and Postgres compatibility with performance three times faster"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 189.92,
+      "end": 195.67999999999998,
+      "text": " than the regular one that you find in the regular MySQL and Postgres RDS. On top of that, Aurora has"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 195.68,
+      "end": 200.56,
+      "text": " some different characteristics that are only possible because effectively AWS reinvented this"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 200.56,
+      "end": 204.8,
+      "text": " kind of databases. It's a service that they somewhat recreated, provided the compatibility"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 204.8,
+      "end": 210.08,
+      "text": " with the protocols of MySQL and Postgres. So they figured out clever ways to optimize the service"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 210.08,
+      "end": 216,
+      "text": " more than what you would get with the open source alternatives. So let's try to dive into the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 216,
+      "end": 220.08,
+      "text": " details. Maybe we should talk first about the storage, because I think that's the first thing"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 220.08,
+      "end": 225.76000000000002,
+      "text": " that comes to mind when we try to think why Aurora is different from just a simple MySQL"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 225.76000000000002,
+      "end": 230.64000000000001,
+      "text": " or Postgres."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 230.64000000000001,
+      "end": 236,
+      "text": " Yeah, definitely the most important thing to know about Aurora is that its storage is different to RDS and to most other databases out there. You mentioned three times faster"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 236,
+      "end": 240.72000000000003,
+      "text": " performance in some benchmarks. That ultimately comes down from the way they have designed Aurora"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 240.72000000000003,
+      "end": 246.32000000000002,
+      "text": " storage. I mean, the engines themselves are using the open source MySQL and Postgres engines on top"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 246.4,
+      "end": 250.4,
+      "text": " of this new storage layer, but because of the way it's been architected, they've been able to reduce"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 250.4,
+      "end": 255.28,
+      "text": " the number of writes that those database engines have to do and achieve that better performance."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 255.28,
+      "end": 259.92,
+      "text": " Normally when you configure a database on a server, you configure the database running as"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 259.92,
+      "end": 265.6,
+      "text": " a process or a set of processes, and then you have the storage, which could be attached in some way."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 265.6,
+      "end": 270,
+      "text": " With Aurora, it's a bit different in that the storage is completely separate from the compute"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 270,
+      "end": 275.03999999999996,
+      "text": " layer and it uses its own magic to give you that better performance, as well as more durability"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 275.04,
+      "end": 279.04,
+      "text": " and faster recovery, which if you're an enterprise, all of those things sound like a dream."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 279.76000000000005,
+      "end": 284.08000000000004,
+      "text": " Now you can think of Aurora storage, I think, as an intelligent kind of EBS volume layer"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 284.08000000000004,
+      "end": 289.04,
+      "text": " that is database transaction aware. So all of the data you store is automatically stored in six"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 289.04,
+      "end": 294.88,
+      "text": " copies across three availability zones by default. So that automatically gives you great resilience."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 295.52000000000004,
+      "end": 300.08000000000004,
+      "text": " And then you have asynchronous replication processes that happen outside of the database"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 300.08,
+      "end": 304.56,
+      "text": " compute. So normally when you have other databases, you have to configure the engines"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 304.56,
+      "end": 309.28,
+      "text": " themselves to do the replication between the compute notes. With Aurora storage, it happens"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 309.28,
+      "end": 314.24,
+      "text": " at the storage layer, so you don't have that compute level replication. So when your data"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 314.24,
+      "end": 318.08,
+      "text": " is replicated, it doesn't actually affect the instance performance, which is a really good thing."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 318.88,
+      "end": 324.56,
+      "text": " And then because it's being written all the time, ex-synchronously, recovery time is really fast"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 324.56,
+      "end": 329.59999999999997,
+      "text": " because the data is not affected by instances going down. The data is already replicated by"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 329.6,
+      "end": 333.44,
+      "text": " design. And you can then add new instances to a database cluster that give you horizontal"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 333.44,
+      "end": 339.28000000000003,
+      "text": " scalability using that existing storage layer. The other thing to know about Aurora storage is"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 339.28000000000003,
+      "end": 342.8,
+      "text": " that it scales automatically, so you don't have to provision storage capacity upfront."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 342.8,
+      "end": 349.36,
+      "text": " It just grows automatically in increments of 10 gigabytes up to a maximum of 128 terabytes."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 349.36,
+      "end": 353.04,
+      "text": " So let's try and understand all this a bit better. And we might take a look at, I suppose,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 353.04,
+      "end": 358.64000000000004,
+      "text": " a few Aurora concepts and constructs and how you might architect a database based on Aurora."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 358.8,
+      "end": 362.47999999999996,
+      "text": " Luciano, would you like to take us through some of the terminology and concepts in Aurora?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 362.47999999999996,
+      "end": 366.56,
+      "text": " Yeah, the first one that comes to mind is probably the concept of a cluster."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 366.56,
+      "end": 372.08,
+      "text": " And this is something that is already different from a more traditional RDS database. So the first thing you need to create"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 372.08,
+      "end": 376.88,
+      "text": " is this idea that your database exists in a cluster, you need to create this cluster."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 376.88,
+      "end": 383.36,
+      "text": " And this represents the storage layer. So even if you don't have any database, meaning the compute"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 383.36,
+      "end": 388.96000000000004,
+      "text": " part of a database in this cluster, the storage exists as a kind of baseline. And of course,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 388.96000000000004,
+      "end": 393.04,
+      "text": " you'll want at some point to add at least one instance to make it useful because just the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 393.04,
+      "end": 397.68,
+      "text": " storage alone is not going to allow you to do any query or any actual operation. It's just there to"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 397.68,
+      "end": 403.68,
+      "text": " keep your data safe. So every cluster can have one writer instance that allows you to effectively"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 403.68,
+      "end": 408.32,
+      "text": " under-read and write requests, but you cannot add more than one writer. So you can have only one"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 408.88,
+      "end": 414.32,
+      "text": " writer per cluster. So that means that you can only scale writes vertically by using bigger"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 414.32,
+      "end": 420,
+      "text": " write instance if you end up having necessity for a bigger write throughput. You can add though"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 420,
+      "end": 424.32,
+      "text": " up to 15 reader instances. So you can definitely scale horizontally the number of reader instances."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 424.32,
+      "end": 428.71999999999997,
+      "text": " So we can also call them read replica if that term is a little bit more familiar to you. And that's"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 428.71999999999997,
+      "end": 432.48,
+      "text": " something that allows you to handle read scalability. So you can easily spin up more"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 432.48,
+      "end": 437.2,
+      "text": " instances if you see that you need more throughput in terms of read. There are ways to do auto"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 437.2,
+      "end": 441.76,
+      "text": " scaling. So you can set up auto scaling policies, and this allows you to basically look for things"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 441.76,
+      "end": 447.12,
+      "text": " like CPU utilization or number of connections to provision new reader nodes as you see that"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 447.12,
+      "end": 451.36,
+      "text": " your traffic increases. And of course, you can also scale it down if you see that that traffic"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 451.36,
+      "end": 455.91999999999996,
+      "text": " decreases. So each instance in the cluster will have its own endpoint. So this is the idea that"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 455.91999999999996,
+      "end": 461.03999999999996,
+      "text": " you need to have a way to connect to the specific instances. So every instance has its own kind of"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 461.03999999999996,
+      "end": 465.59999999999997,
+      "text": " address that allows you to connect to it. But there is also a concept of a cluster"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 465.6,
+      "end": 471.76000000000005,
+      "text": " read and write endpoints. And these endpoints are kind of the preferred way to connect to"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 471.76000000000005,
+      "end": 477.6,
+      "text": " a database because they will automatically do all the routing for you, figuring out which instance"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 477.6,
+      "end": 481.68,
+      "text": " is the most appropriate to handle that particular request. And this is important because, for"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 481.68,
+      "end": 487.6,
+      "text": " instance, as you scale up and down, or maybe if there is some failover in your cluster, that layer,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 487.6,
+      "end": 493.12,
+      "text": " that kind of global endpoint will know exactly what to do to make sure that your request gets"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 493.12,
+      "end": 497.84000000000003,
+      "text": " answered correctly. If you manage your own connection directly to the specific instances,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 497.84000000000003,
+      "end": 502.88,
+      "text": " then doing all of that stuff is on you. And of course, that's not always fun to do. It can lead"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 502.88,
+      "end": 506.96,
+      "text": " to all sorts of problems. So try to avoid it unless you really know what you're doing."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 506.96,
+      "end": 512.72,
+      "text": " So on the topic of failover recovery, if your writer fails, because remember, you only have"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 512.72,
+      "end": 516.64,
+      "text": " one writer, so you might be wondering, okay, what happens if that writer fails? Of course,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 516.64,
+      "end": 521.6800000000001,
+      "text": " there is some kind of failover mechanism. Aurora will automatically promote one of your"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 521.92,
+      "end": 526.9599999999999,
+      "text": " replicas to a writer. So this is all within a single region. We mentioned also that Aurora"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 526.9599999999999,
+      "end": 531.12,
+      "text": " supports the concept of multi-region, which is something that seems really, really cool"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 531.12,
+      "end": 534.9599999999999,
+      "text": " and promising. And if you ever tried to do a multi-region database, you know that it's"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 534.9599999999999,
+      "end": 539.28,
+      "text": " extremely complicated to do it correctly. So maybe we should talk a little bit more about"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 539.28,
+      "end": 543.3599999999999,
+      "text": " this particular characteristic of Aurora."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 543.3599999999999,
+      "end": 548,
+      "text": " When we get to talk about cost a little bit later in the episode, spoiler alert, Aurora is a little bit more expensive than the alternatives."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 548.56,
+      "end": 553.52,
+      "text": " And for that, you have to expect some extra value. And I think when it comes to replication,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 553.52,
+      "end": 557.84,
+      "text": " failover, all of these disaster recovery scenarios and scalability, that's really where you see the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 557.84,
+      "end": 562.72,
+      "text": " value. And multi-region is one of those things where you just get something that you can't"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 562.72,
+      "end": 567.92,
+      "text": " really achieve easily with other databases. So let's talk about global databases. With Aurora,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 567.92,
+      "end": 572.32,
+      "text": " a global database is something that connects together clusters across multiple regions."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 572.32,
+      "end": 578.72,
+      "text": " So it's essentially a grouping of one or more regional Aurora clusters. And only one of those"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 578.72,
+      "end": 583.2,
+      "text": " clusters can be the primary. And that's where the writer instance exists. Now, there is a thing"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 583.2,
+      "end": 589.6800000000001,
+      "text": " called multi-master for MySQL only, but let's put that aside for the moment. If you're looking at a"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 589.6800000000001,
+      "end": 595.12,
+      "text": " global database, you'll have one primary region and that's where the writer will exist. And a"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 595.12,
+      "end": 599.6800000000001,
+      "text": " global database is really just an identifier that Aurora uses to replicate data from the primary"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 599.68,
+      "end": 605.5999999999999,
+      "text": " cluster to read clusters in different regions. And because Aurora global databases are using"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 605.5999999999999,
+      "end": 609.92,
+      "text": " Aurora storage, replication is very fast, typically less than a second. And this is"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 609.92,
+      "end": 615.4399999999999,
+      "text": " with a database that can support up to 150,000 transactions per second. So when it comes to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 615.4399999999999,
+      "end": 621.92,
+      "text": " multi-region disaster recovery, if you've got a very low recovery point objective (RPO), this is"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 621.92,
+      "end": 626.24,
+      "text": " a way to achieve it. It's really something that's very difficult to achieve without Aurora."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 626.24,
+      "end": 631.84,
+      "text": " Now, you can have up to six regions in a global database in total. And if we take the 15 read"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 631.84,
+      "end": 636.48,
+      "text": " replicas supported per region mentioned already, this allows you to go to a pretty big scale with"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 636.48,
+      "end": 642,
+      "text": " 90 read replicas in your database in total. So then if you've got your multi-region database"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 642,
+      "end": 648.24,
+      "text": " setup, you can use this for data locality. If you have some readers in some regions, which might be"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 648.24,
+      "end": 655.6,
+      "text": " better to serve requests from users in a specific region, you can also use it for disaster recovery."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 655.6,
+      "end": 660.96,
+      "text": " And if you have your multi-region global database, you can trigger a failover from primary region to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 660.96,
+      "end": 664.8000000000001,
+      "text": " a secondary region. And this is really useful for enterprise use cases where you need to seriously"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 664.8000000000001,
+      "end": 670.64,
+      "text": " reduce the risk of data loss and lower downtime as well. Now, global databases don't have global"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 670.64,
+      "end": 675.76,
+      "text": " endpoints. So we mentioned about cluster endpoints, read and write endpoints per region. So you still"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 675.76,
+      "end": 679.6800000000001,
+      "text": " need to use those regional cluster endpoints for your application. You need to decide which region"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 679.6800000000001,
+      "end": 684.96,
+      "text": " you're targeting. You can use DNS of course, to manage that or ensure that the application is"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 684.96,
+      "end": 689.12,
+      "text": " aware of the cluster typology and failover scenarios and can respond accordingly."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 690.1600000000001,
+      "end": 693.52,
+      "text": " But there's no such thing as a global endpoint that automatically does that for you at the moment."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 694.4000000000001,
+      "end": 698.08,
+      "text": " Interestingly, there is a thing called write forwarding in Aurora. So you can actually"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 698.08,
+      "end": 702.96,
+      "text": " configure regional read endpoints to take write requests, and they'll just forward them to the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 702.96,
+      "end": 708.24,
+      "text": " write node for you, which is something that might be useful to you, especially in disaster recovery"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 708.24,
+      "end": 713.6,
+      "text": " scenarios. Now, I think that's pretty much all the terminology and some of the primary benefits of"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 713.6,
+      "end": 719.0400000000001,
+      "text": " Aurora, but something that makes the headlines quite frequently is Aurora serverless, sometimes"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 719.0400000000001,
+      "end": 724.24,
+      "text": " for the good reasons, sometimes not so good. Luciano, can you take us through Aurora serverless"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 724.24,
+      "end": 729.2,
+      "text": " and what it can offer people?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 729.2,
+      "end": 733.52,
+      "text": " Yeah, so what we've described so far is what we would call provision mode. So effectively you have to configure your instance sizes more or less similar to what you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 733.52,
+      "end": 738.72,
+      "text": " do with standard RDS. And the only difference is that you don't have to provision the storage."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 738.72,
+      "end": 744.88,
+      "text": " But as you say, there is also a serverless mode, and this is what is generally referred to as"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 744.88,
+      "end": 749.84,
+      "text": " Aurora serverless. It gets a little bit confusing because there was originally a B1, which was,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 749.84,
+      "end": 754,
+      "text": " of course, just called Aurora serverless. Then they did a big rebranding changes and they call"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 754,
+      "end": 758.1600000000001,
+      "text": " it Aurora serverless B2. We'll talk a little bit later about the differences between these two"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 758.1600000000001,
+      "end": 763.9200000000001,
+      "text": " versions. But the point is, what is this concept of Aurora serverless? Is it something that it is"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 763.9200000000001,
+      "end": 768.5600000000001,
+      "text": " somewhat easier to use because the terminology serverless generally is associated with something"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 769.28,
+      "end": 773.52,
+      "text": " that you don't have to manage almost anything. So it's kind of an easier user experience."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 773.52,
+      "end": 778,
+      "text": " Or maybe something else, is it something that maybe looks like if you ever use services like"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 778,
+      "end": 784.3199999999999,
+      "text": " Neon or PlanerScale or Supabase, are we talking about something like that? And my personal answer"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 784.3199999999999,
+      "end": 789.8399999999999,
+      "text": " is probably no. It is quite different from products like Neon, PlanerScale or Supabase."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 790.4,
+      "end": 796.4799999999999,
+      "text": " And I think before we go into the details, maybe it's worth remembering what a serverless database"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 796.48,
+      "end": 800.32,
+      "text": " look like, or at least trying to define it in some way. And of course, the first one that comes"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 800.32,
+      "end": 804.5600000000001,
+      "text": " to mind when you try to think about a serverless database, of course, is DynamoDB in the context of"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 804.5600000000001,
+      "end": 810.5600000000001,
+      "text": " AWS. And it's kind of the gold standard, if you want, for serverlessness in database world."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 811.12,
+      "end": 816.16,
+      "text": " And the idea is that it's a database that scales to zero by default. So you don't really have to"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 816.16,
+      "end": 823.28,
+      "text": " even think about that. It can go up and down and you can also in terms of pricing, you can pick"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 823.28,
+      "end": 827.8399999999999,
+      "text": " between provision and on demand. But when you pick the on demand approach, again, even the pricing"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 827.8399999999999,
+      "end": 834.16,
+      "text": " model becomes more serverless. And you have almost a spontaneous creation of tables. You don't even"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 834.16,
+      "end": 838.8,
+      "text": " have to think in terms of clusters or databases. You just create tables and they almost immediately"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 838.8,
+      "end": 843.52,
+      "text": " appear. But what is the problem with DynamoDB? Why aren't we just using DynamoDB then? Because"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 843.52,
+      "end": 850.3199999999999,
+      "text": " DynamoDB is a NoSQL database. It's not an RDBMS type of database. So when you need relations,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 850.32,
+      "end": 856.1600000000001,
+      "text": " DynamoDB gets much trickier to use to do all the things that you can do with a relational database."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 856.1600000000001,
+      "end": 860.72,
+      "text": " So services like Neon or PlanetScale are really cool because they try to give you that kind of"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 860.72,
+      "end": 865.6,
+      "text": " experience where almost everything is managed for you, almost like with DynamoDB, but you get a fully"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 865.6,
+      "end": 870,
+      "text": " fledged relational database that you can use straight away. Just connect to it and use it."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 870,
+      "end": 874.8000000000001,
+      "text": " The problem with those services is that generally they seem to be targeting more kind of software as"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 874.8000000000001,
+      "end": 880,
+      "text": " a services or smaller startups, not as much as the enterprise, at least for what we have seen so far."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 880.5600000000001,
+      "end": 885.12,
+      "text": " While Aurora on the other end seems to be positioning themselves as the relational database"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 885.12,
+      "end": 889.84,
+      "text": " product for kind of the serious enterprise that needs a certain number of features and needs"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 889.84,
+      "end": 894.72,
+      "text": " something to be really, really reliable. And maybe cost is not always the first trade off that they"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 894.72,
+      "end": 901.2,
+      "text": " look for. So what are we talking about here is more of a modern take on something like Oracle RAC"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 901.7600000000001,
+      "end": 907.6800000000001,
+      "text": " and maybe a little bit cheaper, but the idea is that something runs natively in the cloud on AWS."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 907.68,
+      "end": 912.7199999999999,
+      "text": " What is Aurora Serverless at this point? Why did they give you all this appeal about DynamoDB and"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 912.7199999999999,
+      "end": 917.68,
+      "text": " what we mean by serverless and why we think that Aurora Serverless is not really serverless as you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 917.68,
+      "end": 922.88,
+      "text": " might think? The first thing, okay, scales up and down to some degree it does that. The problem is"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 922.88,
+      "end": 929.04,
+      "text": " it doesn't really scale to zero. There is a concept of ACU, which stands for Aurora Capacity Unit."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 929.04,
+      "end": 935.92,
+      "text": " And the idea is that one ACU is equal to two gigabytes of RAM, more or less. And the idea is"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 935.92,
+      "end": 941.76,
+      "text": " that you cannot just scale to zero ACUs. There is a minimum and the minimum is 0.5, which means that"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 941.76,
+      "end": 946.8,
+      "text": " even if you have a database that is totally idle, because maybe, I don't know, it's a dev deployment,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 946.8,
+      "end": 951.1999999999999,
+      "text": " you maybe are on a break because it's the weekend, nobody's really using that database."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 951.1999999999999,
+      "end": 956.56,
+      "text": " You are still paying for two days, 0.5 ACUs, at least for that particular deployment. And imagine"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 956.56,
+      "end": 961.28,
+      "text": " if you have multiple development environments, maybe you try to segregate things by domain,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 961.28,
+      "end": 967.04,
+      "text": " you might have dozens of database laying around just doing nothing and costing you money. So in"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 967.04,
+      "end": 971.92,
+      "text": " that sense, it's not really serverless as we might like it to be. So that means there is a minimum"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 971.92,
+      "end": 976.24,
+      "text": " cost. And the other interesting thing is that there are still maintenance windows required."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 976.24,
+      "end": 983.68,
+      "text": " So you need to plan around those. So depending on what you do, you might need... eight ACUs are"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 983.68,
+      "end": 990.88,
+      "text": " recommended for global cluster in the primary. So certain parts of your setup will require even more"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 991.28,
+      "end": 997.28,
+      "text": " ACUs if you want to follow the recommended setup. And two ACUs are for performance insight,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 997.28,
+      "end": 1004.4,
+      "text": " which is a tool that gives you query metrics. So it can be even more expensive as a baseline"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1004.4,
+      "end": 1008.8,
+      "text": " if you actually apply all the suggestions that you get from the documentation. And the funny thing is"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1008.8,
+      "end": 1014.0799999999999,
+      "text": " that we recently realized while we were using Aurora that there is the possibility to reboot"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1014.0799999999999,
+      "end": 1018.4,
+      "text": " the server. So we were seeing the server rebooting. So it's kind of funny to see that"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1018.4,
+      "end": 1023.6,
+      "text": " a serverless product, you actually see the server rebooting. So again, it doesn't really feel as"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1023.6,
+      "end": 1028.6399999999999,
+      "text": " serverless as you might like to think. So with all of that being said, there is a benefit in"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1028.6399999999999,
+      "end": 1032.8799999999999,
+      "text": " this capacity of Aurora serverless being able to scale up and down. And it's something that can be"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1032.8799999999999,
+      "end": 1037.2,
+      "text": " useful in some circumstances, especially for instance, when you have very variable traffic,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1037.2,
+      "end": 1041.52,
+      "text": " it's something that can remove some of the headaches about planning, for instance,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1041.52,
+      "end": 1046.96,
+      "text": " the capacity of your database. So in those cases, even if it's not really a serverless database,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1046.96,
+      "end": 1051.92,
+      "text": " this product can be beneficial as opposed to just going for the traditional Aurora or"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1051.92,
+      "end": 1057.3600000000001,
+      "text": " RDS standard. But I mentioned that there are two versions, V1 and V2. Eoin, do you want to try to"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1057.3600000000001,
+      "end": 1062.8,
+      "text": " explain what is it all about?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1062.8,
+      "end": 1068.4,
+      "text": " Yeah, V1 was around for a good few years. I'm not sure exactly when it was announced, but V2 now has been, it was in beta for a while, and I think it's been at least"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1068.4,
+      "end": 1073.1200000000001,
+      "text": " a year generally available. They announced it started this year that V1 is no longer going to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1073.12,
+      "end": 1077.52,
+      "text": " be supported from the end of 2024. And this is quite disappointing for some people because"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1077.52,
+      "end": 1081.84,
+      "text": " version one actually did scale to zero. So that's something as you said, Luciano correctly, you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1081.84,
+      "end": 1087.28,
+      "text": " can't do it with version two. But V2, when they announced it, they did add some big advantages."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1087.28,
+      "end": 1092.1599999999999,
+      "text": " So scale up time is faster. With V1, this could be quite slow, could be like seconds or minutes."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1092.1599999999999,
+      "end": 1096.8799999999999,
+      "text": " Now you can scale up in milliseconds, but the speed you scale up at actually depends on your"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1096.8799999999999,
+      "end": 1101.6,
+      "text": " baseline capacity. So the number of ACUs you're scaling from. So the more ACUs you have, the faster"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1101.6,
+      "end": 1107.9199999999998,
+      "text": " you'll scale up. In V1, it could take minutes and it only actually scaled in double increments."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1107.9199999999998,
+      "end": 1113.6799999999998,
+      "text": " So you could go from two ACUs to four, then to eight, and then to 16. Now you can just scale by"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1113.6799999999998,
+      "end": 1119.4399999999998,
+      "text": " 0.5 ACUs all the time. Version two now supports global databases, where version one did not,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1119.4399999999998,
+      "end": 1124.32,
+      "text": " and version two supports read replicas where version two did not. So version one was really"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1124.32,
+      "end": 1129.36,
+      "text": " just a single instance database, so you couldn't really regard it as a serious production ready"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1129.36,
+      "end": 1134,
+      "text": " database for the enterprise. So I think now it's probably worthwhile thinking, OK,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1134,
+      "end": 1139.04,
+      "text": " when should you consider Aurora Serverless version two instead of provisioned Aurora?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1139.04,
+      "end": 1143.36,
+      "text": " And the primary difference is that scaling you mentioned. Aurora Serverless means you can scale"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1143.36,
+      "end": 1148.24,
+      "text": " vertically without having any failover. And that's really one of the sweet spots here. Because"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1148.24,
+      "end": 1151.4399999999998,
+      "text": " normally, if you've got a provisioned instance and you decide it isn't big enough for your needs"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1151.4399999999998,
+      "end": 1156.6399999999999,
+      "text": " anymore, you would have to add a larger instance size as a reader and then promote it to the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1156.64,
+      "end": 1162.16,
+      "text": " writer and then deprovision the old one. And that takes time, and you might have outage time on the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1162.16,
+      "end": 1167.2800000000002,
+      "text": " right instance while you do that. Otherwise, the management overhead between Aurora Serverless and"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1167.2800000000002,
+      "end": 1171.44,
+      "text": " provisioned Aurora isn't really that different. As he said, you still have maintenance windows,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1171.44,
+      "end": 1176.24,
+      "text": " you can reboot the instance. It doesn't really seem like a serverless product. It has a serverless"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1176.24,
+      "end": 1181.76,
+      "text": " badge, but I think it's a little bit of a mask it's wearing, to be honest. It might be a good"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1181.84,
+      "end": 1186.8799999999999,
+      "text": " fit for your pre-production or development databases where you might have lots of idle time"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1186.8799999999999,
+      "end": 1190.72,
+      "text": " and then you just want to scale them up as you deploy and run test workloads. So that might be"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1190.72,
+      "end": 1196.32,
+      "text": " one of the cases where you can actually make use of the cost difference. Because generally,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1196.32,
+      "end": 1202,
+      "text": " Aurora Serverless will cost you more if you're comparing gigabyte for gigabyte. And it will only"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1202,
+      "end": 1206.56,
+      "text": " really start becoming cheaper if you've got that really variable traffic pattern and you spend a"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1206.56,
+      "end": 1211.12,
+      "text": " lot of time scaling down from peak capacity. So we mentioned cost a few times. So let's go into"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1211.12,
+      "end": 1217.1999999999998,
+      "text": " cost a little bit. I've done some calculations on this. Maybe we can share the link to this cost"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1217.1999999999998,
+      "end": 1222.6399999999999,
+      "text": " calculator, the AWS pricing calculator in the show notes. And if you look at the cheapest possible"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1222.6399999999999,
+      "end": 1228.9599999999998,
+      "text": " serverless V2 instance, so 0.5 ACUs, you're talking about around $50 a month. Whereas the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1228.9599999999998,
+      "end": 1235.04,
+      "text": " cheapest Aurora standard that I could find at least was just a little bit more expensive,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1235.04,
+      "end": 1241.28,
+      "text": " closer to $60. But that was for a much bigger instance. So I think it was, I don't have it"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1241.28,
+      "end": 1245.36,
+      "text": " two hands right now, but I think it was eight or 16 gigabytes of RAM. So you're already getting"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1245.36,
+      "end": 1249.92,
+      "text": " far more compute and memory than you would for the serverless version. Now, if you compare that to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1249.92,
+      "end": 1254.6399999999999,
+      "text": " the cheapest possible one you can get on RDS, I could pick one there that costs $15 a month."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1255.36,
+      "end": 1259.12,
+      "text": " Of course, all of this, you have to try it and measure it yourself. There's no way of saying"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1259.12,
+      "end": 1263.04,
+      "text": " there's absolute price comparisons between all of these options. It depends on your storage,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1263.04,
+      "end": 1266.96,
+      "text": " your traffic and everything. So you really just have to give it a go."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1266.96,
+      "end": 1274.8,
+      "text": " If you were to look at an R6G large, this is a Graviton memory optimized instance, I think 10"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1274.8,
+      "end": 1279.28,
+      "text": " gigabytes. So that's kind of entry level when it comes to Aurora standard. You're looking at"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1279.28,
+      "end": 1286.48,
+      "text": " provisioned cost of over $200 a month. But if you wanted Aurora serverless as a primary in your"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1286.48,
+      "end": 1290.72,
+      "text": " cluster, you're going to need ACUs like you mentioned, that's going to cost you $400 a month."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1291.3600000000001,
+      "end": 1297.52,
+      "text": " So if you're like a startup bootstrapped solopreneur, you might be looking at some"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1297.52,
+      "end": 1300.4,
+      "text": " of these costs thinking this isn't going to work for me. And you might be better off starting with"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1300.4,
+      "end": 1305.52,
+      "text": " something like neon or one of the other services. Or you could just say, okay, well, look, the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1305.52,
+      "end": 1309.28,
+      "text": " database is a serious part of my infrastructure. I'm going to have to spend a serious amount on"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1309.28,
+      "end": 1314.88,
+      "text": " this. I don't think that production grade, enterprise grade databases come for cheap,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1314.88,
+      "end": 1321.44,
+      "text": " unfortunately. So that's our two cents on cost, but there's a lot of other features. We don't have"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1321.44,
+      "end": 1325.68,
+      "text": " time to cover them all. In fact, I think we should probably do a few more episodes on Aurora"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1325.68,
+      "end": 1331.0400000000002,
+      "text": " architecture, maybe setting up and managing Aurora, but what other topics should we run"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1331.0400000000002,
+      "end": 1334.96,
+      "text": " through this channel before we finish up?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1334.96,
+      "end": 1339.3600000000001,
+      "text": " Yeah, let's do a quick list of other things that might be interesting to know, but we'll leave it to you the task of like doing a deep down and"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1339.3600000000001,
+      "end": 1342.96,
+      "text": " really trying to understand all of the details. So the first thing to mention is that there is"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1342.96,
+      "end": 1348.08,
+      "text": " a data API, which right now exists only for Aurora Postgres. MySQL was interesting enough"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1348.08,
+      "end": 1353.52,
+      "text": " supported in Aurora server as V1, but it's not there yet, at least in V2. So if you're planning"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1353.52,
+      "end": 1360.32,
+      "text": " to go from V1 to V2 and you were relying on this MySQL data API, just be aware that it's not there"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1360.32,
+      "end": 1366,
+      "text": " for the V2, at least not yet. Hopefully it's going to come soon. But what is the point of this data"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1366,
+      "end": 1370.8,
+      "text": " API? So the idea is that with the database, you generally connect through kind of a raw TCP"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1370.8,
+      "end": 1375.9199999999998,
+      "text": " connection that uses a protocol that is specific to the database system. While with this data API,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1375.9199999999998,
+      "end": 1382.1599999999999,
+      "text": " there is effectively an HTTP API that replaces all of that. And why is this convenient? Because"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1383.12,
+      "end": 1387.28,
+      "text": " it's a little bit easier, for instance, to call if you are in a Lambda, you don't necessarily need to"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1387.28,
+      "end": 1393.28,
+      "text": " install specific drivers for your own database. So it can make things a little bit easier in terms of"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1393.28,
+      "end": 1397.9199999999998,
+      "text": " connectivity from different environments. Now, should you use it again? If you are in a server"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1398,
+      "end": 1404.0800000000002,
+      "text": " environment, serverless environment probably makes things easier. But if you are in other context,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1404.0800000000002,
+      "end": 1409.8400000000001,
+      "text": " maybe you have a more traditional application with maybe using an ORM, a standard framework,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1409.8400000000001,
+      "end": 1413.28,
+      "text": " like, I don't know, Spring Boot or something like that, it's going to be probably much easier to"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1413.28,
+      "end": 1417.2,
+      "text": " just use the tools that you are already familiar with and just do things in the classic way."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1417.2,
+      "end": 1423.2,
+      "text": " Another interesting thing is that there is an RDS query editor. So you can finally run queries"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1423.2,
+      "end": 1428.48,
+      "text": " in the AWS console. This is something that for traditional RDS, I was looking for for a long"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1428.48,
+      "end": 1434.0800000000002,
+      "text": " time. It's good to know that with Aurora, you have that option. And it is based on the data API,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1434.0800000000002,
+      "end": 1438.56,
+      "text": " so you need to enable the data API for it to work. So just be aware of that small detail."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1438.56,
+      "end": 1442.56,
+      "text": " And there are some limitations that we have observed using it. But if you just need to run"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1442.56,
+      "end": 1446.48,
+      "text": " a quick query just to try to validate some assumption, it can be a really useful tool,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1446.48,
+      "end": 1450.48,
+      "text": " and it might save you a lot of time. Now, it's not necessarily the main tool you should be using"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1450.48,
+      "end": 1454.48,
+      "text": " for doing all your data modeling with your database. But again, if you just need to use"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1454.48,
+      "end": 1460.16,
+      "text": " it for some debugging, it can be very beneficial. And the other thing is RDS proxy. It's probably"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1460.16,
+      "end": 1464.88,
+      "text": " a better solution for Lambda compared to data API. It's an additional resource that you need to"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1464.88,
+      "end": 1469.92,
+      "text": " provision for each regional cluster. And the idea is that because when you run Lambdas, you might"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1469.92,
+      "end": 1476,
+      "text": " end up having really, really quick spinning up thousands of Lambdas. And every single Lambda is"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1476,
+      "end": 1480.32,
+      "text": " going to try to establish its own connection. So if you try to do that in the traditional way,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1480.32,
+      "end": 1485.12,
+      "text": " where you try to just establish a TCP connection directly against the database, you might very"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1485.12,
+      "end": 1490.96,
+      "text": " easily saturate the pool of connections available in the database. So this proxy tries to manage all"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1490.96,
+      "end": 1495.44,
+      "text": " of that, tries to provide some kind of share pool and manage all of this stuff so that you don't end"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1495.44,
+      "end": 1499.6,
+      "text": " up overloading your database in the case where you're spinning up thousands of Lambdas at the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1499.6,
+      "end": 1503.92,
+      "text": " same time. So it keeps your database a little bit leaner and manages all of these things,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1503.92,
+      "end": 1509.44,
+      "text": " and also gives you faster failover because it's aware of the cluster topology. So you don't have"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1509.44,
+      "end": 1515.52,
+      "text": " to rely on DNS. And with DNS, oftentimes you might have problems because maybe you have a TTL,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1515.52,
+      "end": 1519.2,
+      "text": " and then your DNS doesn't get refreshed fast enough. So you might be failing for a while"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1519.2,
+      "end": 1524.24,
+      "text": " before you figure out that there is a new DNS record, and then you can easily connect to the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1524.24,
+      "end": 1529.6000000000001,
+      "text": " correct instance. Another interesting point is that allows you to enforce IAM authentication."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1529.6,
+      "end": 1534.08,
+      "text": " So this can be useful if you have, for instance, to share secrets with the application directly."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1534.08,
+      "end": 1538.3999999999999,
+      "text": " The small problem is that, of course, because it's an additional resource, there is an additional"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1538.3999999999999,
+      "end": 1544.9599999999998,
+      "text": " cost. So something that you have to consider is $25 a month, more or less. So it's not a massive"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1544.9599999999998,
+      "end": 1549.52,
+      "text": " cost, but depending what you are trying to do and what is your budget, it can be something"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1549.52,
+      "end": 1553.6,
+      "text": " significant and is worth considering that. So these three things I wanted to mention,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1553.6,
+      "end": 1558.8799999999999,
+      "text": " Data API, org-js-query-editor, and org-js-proxy, somewhat interesting. So if you end up using our"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1558.88,
+      "end": 1562.8000000000002,
+      "text": " Aurora or seriously considering Aurora, check them out a little bit better in the documentation."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1562.8000000000002,
+      "end": 1566.5600000000002,
+      "text": " We'll have links in the show notes if you really want to understand why those additional"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1566.5600000000002,
+      "end": 1571.2,
+      "text": " three things can be really beneficial for you. I guess this is time now to jump to the conclusions."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1578.24,
+      "end": 1582.4,
+      "text": " Yeah, while we were talking about v1 and v2, I was reminded that the Cloudanut podcast and blog, they had a good analysis of the differences between v1 and v2 because I think they were"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1582.4,
+      "end": 1587.7600000000002,
+      "text": " using v1 and were a bit disappointed to realize that the migration path from v1 to v2 isn't great."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1587.76,
+      "end": 1592.64,
+      "text": " Essentially, you have to take a snapshot and then copy it across, create a new v2 cluster from it."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1592.64,
+      "end": 1596.96,
+      "text": " It's worth checking out, but maybe we should finish up with some advice on when you should"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1596.96,
+      "end": 1601.44,
+      "text": " use Aurora from our perspective. I think it's really for serious enterprise use cases."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1602.4,
+      "end": 1606,
+      "text": " And I can see Amazon basically aiming at people who are paying a lot of money for commercial"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1606,
+      "end": 1610.72,
+      "text": " databases with high license costs and lower performance. And they're saying,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1610.72,
+      "end": 1615.12,
+      "text": " this is going to be cheaper and faster, even though it's still a significant cost for the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1615.12,
+      "end": 1622.3999999999999,
+      "text": " average user like us from our perspective. For enterprises, they can definitely make some savings."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1622.3999999999999,
+      "end": 1627.84,
+      "text": " But it's also good for single instance, low config, serverless type cases that need relational database"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1627.84,
+      "end": 1632.32,
+      "text": " rather than no SQL. So if you're somewhere in between those two extremes, you might just use"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1632.32,
+      "end": 1638.1599999999999,
+      "text": " RDS or another vendor, especially if you are cost conscious. So just to summarize everything we"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1638.1599999999999,
+      "end": 1643.28,
+      "text": " talked about today, Aurora, its relational database solution on AWS, we talked about some of its unique"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1643.28,
+      "end": 1648.3999999999999,
+      "text": " capabilities, intricacies and trade offs, and how it'll give you MySQL and Postgres compatibility"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1648.3999999999999,
+      "end": 1653.76,
+      "text": " with faster performance. But the most important thing maybe to take away is its distinct storage"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1653.76,
+      "end": 1658.08,
+      "text": " layer that gives you that better performance and durability and faster recovery. And then bear in"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1658.08,
+      "end": 1663.68,
+      "text": " mind as well the concepts of Aurora clusters, reader and writers, endpoints, instances, and"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1663.68,
+      "end": 1668.6399999999999,
+      "text": " global databases as well. When it comes to Aurora serverless, comparing its two versions and their"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1668.64,
+      "end": 1674.72,
+      "text": " features, V2 is definitely more enterprise grade, but V1 is not going to be supported from the end"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1674.72,
+      "end": 1680.5600000000002,
+      "text": " of this year anyway. And while it definitely does not reach the gold standard of serverlessness"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1680.5600000000002,
+      "end": 1685.3600000000001,
+      "text": " set by DynamoDB, it does have its uses, particularly for variable traffic use cases,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1685.3600000000001,
+      "end": 1691.1200000000001,
+      "text": " and maybe pre-production workloads as well. And we also touched on billing aspects and things like"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1691.1200000000001,
+      "end": 1697.0400000000002,
+      "text": " the data API, RDS query editor, and RDS proxy as well. So overall, I think it is a really powerful"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1697.04,
+      "end": 1703.36,
+      "text": " and scalable solution. It's not trivial to use, especially when it comes to global scale, but"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1703.36,
+      "end": 1708.08,
+      "text": " still way more trivial than the alternative because when you're dealing with clusters of"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1708.08,
+      "end": 1713.36,
+      "text": " relational databases, at least as of yet, there is no silver bullet, ultimately simple solution."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1714.1599999999999,
+      "end": 1719.12,
+      "text": " So thanks very much for joining us and join us in the upcoming episode for more on Aurora and"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1719.12,
+      "end": 1723.1999999999998,
+      "text": " a whole load of other AWS topics."
+    }
+  ]
+}

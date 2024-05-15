@@ -1,0 +1,2654 @@
+{
+  "speakers": {
+    "spk_0": "spk_0",
+    "spk_1": "spk_1"
+  },
+  "segments": [
+    {
+      "speakerLabel": "spk_0",
+      "start": 0,
+      "end": 2.8000000000000003,
+      "text": " Following on from our last episode on Aurora,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2.8000000000000003,
+      "end": 4.5600000000000005,
+      "text": " we are sticking with databases today."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 4.5600000000000005,
+      "end": 8.88,
+      "text": " This time we are discussing one of the most requested topics by our listener, DynamoDB."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 8.88,
+      "end": 12.48,
+      "text": " We are going to give you our opinion on when and how to use DynamoDB,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 12.48,
+      "end": 13.6,
+      "text": " when you should avoid it,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 13.6,
+      "end": 18.48,
+      "text": " and whether the much talked about topic of single table design is actually worth the effort."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 18.48,
+      "end": 21.68,
+      "text": " By the end of today's episode, we hope you will have a comprehensive understanding"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 21.68,
+      "end": 26.48,
+      "text": " of the main DynamoDB concepts and how to get most of the value from DynamoDB."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 26.48,
+      "end": 28.080000000000002,
+      "text": " I'm Luciano and I'm joined by Eoin,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 28.08,
+      "end": 30.639999999999997,
+      "text": " and this is another episode of AWS Bites podcast."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 38.879999999999995,
+      "end": 41.599999999999994,
+      "text": " AWS Bites is brought to you by fourTheorem."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 41.599999999999994,
+      "end": 44.959999999999994,
+      "text": " If you need someone to work with to build the best design,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 44.959999999999994,
+      "end": 47.84,
+      "text": " highly available databases on AWS, give us a shout."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 47.84,
+      "end": 53.44,
+      "text": " You can check us out at fourtheorem.com or contact us directly using the links you will find in the show notes."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 53.44,
+      "end": 57.76,
+      "text": " So maybe to get started, what we can do is give a little bit of background"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 57.76,
+      "end": 63.04,
+      "text": " on what DynamoDB is and how does it compare with relational databases."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 63.04,
+      "end": 68.64,
+      "text": " So DynamoDB is well known as one of the best in class NoSQL databases in the cloud."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 68.64,
+      "end": 72.24,
+      "text": " And because we talked about relational databases in the previous episode,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 72.24,
+      "end": 76.47999999999999,
+      "text": " again, how does a NoSQL database compare with a SQL database?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 76.47999999999999,
+      "end": 82.24,
+      "text": " And it's not necessarily an easy description because NoSQL is a bit of a marketing term."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 82.24,
+      "end": 84.88,
+      "text": " So it's not like there is a canonical definition,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 84.88,
+      "end": 89.67999999999999,
+      "text": " but we'll try our best to try to describe the differences between those two classes of databases."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 89.67999999999999,
+      "end": 91.75999999999999,
+      "text": " So let's start with relational databases first."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 91.75999999999999,
+      "end": 94.56,
+      "text": " Relational databases traditionally optimize for storage."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 94.56,
+      "end": 99.36,
+      "text": " And after all, we have to think that they were invented at a time where storage was very expensive."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 99.36,
+      "end": 104,
+      "text": " So the goal at that point in history was to try to limit as much as possible"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 104,
+      "end": 108.08,
+      "text": " the duplication of data because storage was effectively a scarce resource."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 108.08,
+      "end": 112.96,
+      "text": " So data is generally separated into normalized tables with defined relations between them."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 112.96,
+      "end": 115.6,
+      "text": " So well-organized structure and well-defined schema."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 115.6,
+      "end": 121.44,
+      "text": " Relational databases normally use a language called SQL and highly optimized query engine"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 121.44,
+      "end": 126.08,
+      "text": " that basically allows to retrieve data across multiple tables in a very dynamic way."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 126.08,
+      "end": 130,
+      "text": " Allows you to combine data in different ways, filter data in different ways,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 130,
+      "end": 133.44,
+      "text": " do updates across multiple records at the same time."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 133.44,
+      "end": 138.32,
+      "text": " And this has become over the years some kind of lingua franca for databases."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 138.32,
+      "end": 143.92,
+      "text": " And incredibly popular, lots of people in the industry know SQL as a language,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 143.92,
+      "end": 147.28,
+      "text": " well understood, used in many products, even for reporting,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 147.28,
+      "end": 149.76,
+      "text": " not just for actually interacting with databases."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 149.76,
+      "end": 154.72,
+      "text": " And if you think it's been around for 15 years, 50 years, it actually makes sense"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 154.72,
+      "end": 159.35999999999999,
+      "text": " that it's something so well-known and understood and adopted in the industry."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 159.35999999999999,
+      "end": 165.84,
+      "text": " So SQL is kind of a way to do arbitrary requests or ask arbitrary questions to your database."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 165.92000000000002,
+      "end": 169.84,
+      "text": " And that's a great thing. It's actually a great feature, especially in comparison with"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 169.84,
+      "end": 174.48000000000002,
+      "text": " NoSQL databases because you generally don't need to know in advance what you're going to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 174.48000000000002,
+      "end": 178.88,
+      "text": " be using this database for. You just put all your data there, you give it some sensible structure,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 178.88,
+      "end": 182.96,
+      "text": " and then over time you can come up with new access patterns, with new questions to ask"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 182.96,
+      "end": 187.36,
+      "text": " to your database and SQL is going to be flexible enough to allow you to express this kind of"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 187.36,
+      "end": 191.84,
+      "text": " questions to your database. But this is a bit of a double-edged sword because it's so flexible,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 191.84,
+      "end": 196.72,
+      "text": " that also means that it cannot be optimized for performance for any use case or for any"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 196.72,
+      "end": 200.48000000000002,
+      "text": " question that you might have. So sometimes you will find yourself, if you ever manage a SQL"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 200.48000000000002,
+      "end": 205.04,
+      "text": " database, trying to figure out why this query was particularly slow, how do I optimize it."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 205.04,
+      "end": 210.56,
+      "text": " Sometimes that means maybe changing the data structure, maybe adding indices, maybe scaling"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 210.56,
+      "end": 215.28,
+      "text": " hardware, maybe thinking how do I partition this data across maybe multiple instances of"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 215.28,
+      "end": 220.24,
+      "text": " that database. So these are kind of the pros and cons of relational databases. Let's talk now about"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 220.32000000000002,
+      "end": 226,
+      "text": " NoSQL. And we already mentioned that NoSQL is a bit of a marketing thing, so let's try to figure"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 226,
+      "end": 230.8,
+      "text": " out what is the simplest definition that we can give that probably most people would agree with."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 230.8,
+      "end": 236.24,
+      "text": " And one of the main points of most NoSQL products is that they are schema-less. So that means that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 236.24,
+      "end": 241.04000000000002,
+      "text": " when you store data, you store it in a set, for lack of a better word, let's just call it a set,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 241.04000000000002,
+      "end": 246.16000000000003,
+      "text": " like one place where you put all your data and different records in that set can contain"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 246.24,
+      "end": 250.72,
+      "text": " a different structure of data. So you can have different fields. That's what we mean by schema-less."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 250.72,
+      "end": 255.35999999999999,
+      "text": " You don't have to think in advance about a schema that will fulfill all the records that you want to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 255.35999999999999,
+      "end": 261.68,
+      "text": " put in that particular set, but every single item can have its own properties. And another interesting"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 261.68,
+      "end": 266.48,
+      "text": " point is that generally NoSQL products will be a little bit more relaxed when it comes to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 266.48,
+      "end": 271.04,
+      "text": " ACID compliance. With ACID, we mean atomic consistent, isolated, and durable, which is"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 271.04,
+      "end": 277.44,
+      "text": " a property that most relational database will try to guarantee. In NoSQL databases, generally,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 277.44,
+      "end": 281.76000000000005,
+      "text": " the producers are concerned about performance and making sure that the data can be easily"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 281.76000000000005,
+      "end": 286.40000000000003,
+      "text": " distributed across multiple nodes. So there are some trade-offs that are made where generally,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 286.40000000000003,
+      "end": 291.84000000000003,
+      "text": " for instance, what NoSQL producers will do, they will give up on the idea of consistency and favor"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 291.84000000000003,
+      "end": 296.8,
+      "text": " eventual consistency so that it's easier for them to be able to distribute the data in a durable way"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 296.8,
+      "end": 301.6,
+      "text": " across multiple partitions. And the final point is that with NoSQL databases, you generally"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 301.6,
+      "end": 306.64,
+      "text": " worry a lot less about storage cost. And this is probably because it's a much modern version of"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 306.64,
+      "end": 312.88,
+      "text": " databases. So storage is a bit less of a problem since the 70s. So there is a lot more freedom to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 313.52,
+      "end": 318.56,
+      "text": " use storage in ways where you might end up duplicating data. But once you do that,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 318.56,
+      "end": 323.44,
+      "text": " you might be able to access that data much faster in some access patterns. If you want to think"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 323.44,
+      "end": 328.88,
+      "text": " about what is the simplest NoSQL database that you can imagine, you can just think about a key"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 328.88,
+      "end": 334.56,
+      "text": " value storage. So imagine you have a map in any programming language where you can start key value"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 334.56,
+      "end": 339.28,
+      "text": " pairs. And you can imagine that the key is basically the thing that allows you to access"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 339.28,
+      "end": 344,
+      "text": " records univocally. And then inside the value, you can store complex objects of any kinds with"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 344,
+      "end": 349.68,
+      "text": " multiple attributes. And they can all be different between every record. And it's also worth mentioning"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 349.68,
+      "end": 353.44,
+      "text": " that this is not necessarily the same thing when we mentioned document databases. You might have"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 353.44,
+      "end": 358.16,
+      "text": " heard of MongoDB, which is generally classified as a document database because document-oriented"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 358.16,
+      "end": 362.8,
+      "text": " databases are more of an extension of the key value concept. They tend to have a little bit"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 362.8,
+      "end": 368.96000000000004,
+      "text": " of a more structured format and a more expressive query language. So when we talk about NoSQL,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 368.96000000000004,
+      "end": 373.28000000000003,
+      "text": " and especially in the context of DynamoDB, we are talking about something that maybe can be a little"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 373.28000000000003,
+      "end": 378.56,
+      "text": " bit simpler than products like MongoDB. Hopefully that gives you a good introduction to the world"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 378.56,
+      "end": 384.24,
+      "text": " of NoSQL and what we mean by NoSQL and how does it compare with relational databases. So let's now"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 384.24,
+      "end": 387.36,
+      "text": " talk about specifically DynamoDB. Eoin, where do we start?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 392.08,
+      "end": 396.88,
+      "text": " Yeah, let's start with some of the terminology and concepts around DynamoDB so that we can take the discussion from there. Just like SQL databases, you start with a table. So this is the primary unit."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 396.88,
+      "end": 402.56,
+      "text": " And you don't really create databases in DynamoDB, but you create tables. And that's your starting"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 402.56,
+      "end": 407.2,
+      "text": " point. Within tables, then you're going to be storing items. So an item is the term that is"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 407.2,
+      "end": 412.96,
+      "text": " used to refer to essentially a row containing a key and attribute values. So then we talk about"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 412.96,
+      "end": 418.64,
+      "text": " a key and a key is less of a trivial concept really. But it is, as we mentioned, a type of"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 418.64,
+      "end": 423.28,
+      "text": " key value store, and every record is identified with a key. And there are two types that you can"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 423.28,
+      "end": 429.12,
+      "text": " use. You can either use a simple key or a composite key. And that would be the primary key uniquely"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 429.12,
+      "end": 436.32,
+      "text": " identifying an item in the table. A single key has a hash key only, which is also known as a partition"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 436.32,
+      "end": 441.12,
+      "text": " key. So it's probably a good idea to understand both the term hash key and also partition key."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 441.12,
+      "end": 445.92,
+      "text": " And then if you're using a composite key, you'll have that same hash key. But you can also have"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 445.92,
+      "end": 451.68,
+      "text": " then a range key, which is also known as a sort key. And when you're writing or reading DynamoDB"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 451.68,
+      "end": 457.03999999999996,
+      "text": " data, you'll always use the partition key. If you have a sort key as well, so if you are using"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 457.03999999999996,
+      "end": 461.68,
+      "text": " composite keys, you'll need to specify it when writing data, but you don't necessarily have to"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 461.68,
+      "end": 465.36,
+      "text": " specify it when you're reading. So we'll talk a little bit more about all that later on."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 466,
+      "end": 469.76,
+      "text": " So that's your key. And then your value is composed of attributes. You can have multiple"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 469.76,
+      "end": 473.76,
+      "text": " attributes in each item, as you mentioned already, and an attribute has a name and a value. It's a"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 473.76,
+      "end": 478.08000000000004,
+      "text": " little bit different to the document storage option or just a simple key value storage option,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 478.08000000000004,
+      "end": 482.16,
+      "text": " where you have a single value or you have a document with awareness of the structure."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 482.16,
+      "end": 486.96000000000004,
+      "text": " In DynamoDB, you can have multiple attributes and each of those could be like a little document,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 486.96000000000004,
+      "end": 491.68,
+      "text": " but in a very unstructured way. There's a number of different types supported. It's worthwhile"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 491.68,
+      "end": 497.6,
+      "text": " understanding what types are supported, especially when it gets into the multi-value types. So the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 497.6,
+      "end": 502.48,
+      "text": " simple values types, the literals you can store are string, number. You can also store binary"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 502.48,
+      "end": 509.36,
+      "text": " data as a type. And then you have lists, maps, and sets. If you just write kind of JSON type data"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 509.36,
+      "end": 513.2,
+      "text": " into an attribute, that's a map, a list is an array, and then you have sets where you don't"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 513.2,
+      "end": 517.84,
+      "text": " get duplicate values. And you have three different types of sets supported. So you have string sets,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 517.84,
+      "end": 522.32,
+      "text": " number sets, and binary sets. And we'll talk a little bit more about how you use those."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 522.32,
+      "end": 527.84,
+      "text": " There is also a null type that's quite rarely used. Now it is important to note that unlike"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 527.84,
+      "end": 533.0400000000001,
+      "text": " a lot of databases, the maximum item size in DynamoDB is 400 kilobytes. It's important to"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 533.0400000000001,
+      "end": 536.88,
+      "text": " note that this is per item, right? For the whole record, not just per attribute. You might think"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 536.88,
+      "end": 541.76,
+      "text": " this is a small comparison to like Cassandra or MongoDB, which lets you store gigabytes in"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 541.76,
+      "end": 546.64,
+      "text": " records, but there's a lot of limitations like this in DynamoDB, which are there for a very good"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 546.64,
+      "end": 550.64,
+      "text": " reason. And they're there because it helps them to deliver on the massive performance and"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 550.64,
+      "end": 555.4399999999999,
+      "text": " scalability guarantees that they provide. So it seems sometimes working with DynamoDB that it's"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 555.4399999999999,
+      "end": 560.88,
+      "text": " almost like working with a low level database engine because they're strict about giving you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 560.88,
+      "end": 565.28,
+      "text": " a limited set of features so that they can give you those guarantees in return. So if you want"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 565.28,
+      "end": 571.76,
+      "text": " more data than 400 KB per item, it's difficult to offload that into an S3 object. So maybe before"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 571.76,
+      "end": 578.16,
+      "text": " we start diving into more technical details, let's go up a level. Why and when would you use DynamoDB?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 584.16,
+      "end": 590.3199999999999,
+      "text": " I will say that one of the main reasons to think about using DynamoDB is because it's so nice and easy to get started with. You can create a table in a matter of seconds. Either you click offset,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 590.3199999999999,
+      "end": 594.8,
+      "text": " or you just write a few lines of YAML in your CloudFormation file, and you have a table that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 594.8,
+      "end": 599.2,
+      "text": " you can use to store data, read it, write it, and build an application on top of that. And this is"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 599.2,
+      "end": 603.84,
+      "text": " something that I haven't seen in any other database, even when you can manage services."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 603.84,
+      "end": 608.96,
+      "text": " If those are relational databases especially, it takes a longer time to get started with."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 608.96,
+      "end": 614.24,
+      "text": " So for quick things, definitely a database to consider. It can also be very cost effective,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 614.8000000000001,
+      "end": 620.24,
+      "text": " especially when you don't need a data intensive application, when you don't expect to be reading"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 620.24,
+      "end": 624.5600000000001,
+      "text": " and writing all the time, or when you don't expect large volumes of data. It can be very,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 624.56,
+      "end": 628.64,
+      "text": " very cost effective. And the main idea is that it's kind of a serverless database,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 628.64,
+      "end": 632.3199999999999,
+      "text": " at least from the pricing perspective. If you don't use it, you don't have to pay anything."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 632.3199999999999,
+      "end": 637.4399999999999,
+      "text": " In reality, there are different building modes. But again, we can think about it as if it's a"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 637.4399999999999,
+      "end": 642,
+      "text": " serverless service. So they try to provide you with an interface that the more you use it,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 642,
+      "end": 645.5999999999999,
+      "text": " the more you're going to pay. If you don't use it, the cost is going to be very limited."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 645.5999999999999,
+      "end": 649.1199999999999,
+      "text": " And this can be a really big advantage, for instance, if you are a startup,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 649.1199999999999,
+      "end": 653.8399999999999,
+      "text": " where maybe at the very beginning, you are going to have very limited traffic as you try to build"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 653.84,
+      "end": 659.12,
+      "text": " your first MVP. Then eventually, if your product is very successful, it might grow. And of course,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 659.12,
+      "end": 663.84,
+      "text": " your billing is going to grow with the success of your platform. It's very well integrated with"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 663.84,
+      "end": 668.32,
+      "text": " other AWS services. That's another interesting point. For instance, we can talk about DynamoDB"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 668.32,
+      "end": 674.08,
+      "text": " streams, which is a nice way to basically get all the changes that happen in a DynamoDB table"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 674.08,
+      "end": 678.08,
+      "text": " and stream them for real-time processing, for instance, to Lambda. And this is something that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 678.08,
+      "end": 682.64,
+      "text": " allows you to do change data capture, and you can do all sorts of interesting things with it."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 682.64,
+      "end": 687.76,
+      "text": " Also, you can get very fine-grained access control because it's kind of a native AWS service,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 687.76,
+      "end": 694.08,
+      "text": " so to speak. You can use IAM policies to a very fine level of detail. You can really control"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 694.08,
+      "end": 700.16,
+      "text": " what kind of, not just what kind of tables, but what kind of records different roles can actually"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 700.16,
+      "end": 704.08,
+      "text": " access. And this can allow you to do very cool things. For instance, if you're building a"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 704.08,
+      "end": 709.52,
+      "text": " multi-tenant application, you could limit, for example, a Lambda to be able to read only the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 709.52,
+      "end": 713.92,
+      "text": " records that are attributed to a specific tenant and not the other ones, which can be something"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 713.92,
+      "end": 718.0799999999999,
+      "text": " really, really beneficial if you're trying to get some kind of stock compliance, or if you just want"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 718.0799999999999,
+      "end": 722,
+      "text": " to be sure that you're not going to be leaking data across tenants by accident. And this will"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 722,
+      "end": 727.04,
+      "text": " be something very, very difficult to achieve at this level with relational databases that are not"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 727.04,
+      "end": 732.8,
+      "text": " so well integrated with the rest of the AWS ecosystem. And another few things that are very"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 732.8,
+      "end": 737.68,
+      "text": " worth mentioning is that DynamoDB scales massively. And after all, we have to think that DynamoDB was"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 737.68,
+      "end": 741.5999999999999,
+      "text": " built for Amazon, so to solve all the problems that they were having with their own massive"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 741.5999999999999,
+      "end": 747.92,
+      "text": " e-commerce as it was growing in popularity. And it is powering today the entirety of the Amazon"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 747.92,
+      "end": 752.7199999999999,
+      "text": " infrastructure. So you can imagine that if you can build something as complex as Amazon and as big as"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 752.7199999999999,
+      "end": 757.52,
+      "text": " Amazon, there is a level of scale there that is not trivial to achieve with other technologies."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 757.52,
+      "end": 763.68,
+      "text": " It can be very simple to use, of course, for simple use cases. If you have access patterns"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 763.68,
+      "end": 769.1999999999999,
+      "text": " that are pretty much key value based, then it is very simple to use. You just store your data by"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 769.1999999999999,
+      "end": 774,
+      "text": " key, you read your data by key, super easy to get started. If you need very low latency,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 774,
+      "end": 779.04,
+      "text": " DynamoDB is one of the best databases for that out there. It has very consistent load and latency"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 779.04,
+      "end": 784.64,
+      "text": " responses. For example, they promise you single digit milliseconds when you do a GET operation."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 784.64,
+      "end": 789.52,
+      "text": " So when you can access a key exactly, you get single digit millisecond response, which is"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 789.52,
+      "end": 793.68,
+      "text": " amazing. And that's very consistent, regardless, for instance, of the size of your dataset."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 793.68,
+      "end": 796.64,
+      "text": " And this is something that can be a great candidate, for instance, when you're building"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 796.64,
+      "end": 801.4399999999999,
+      "text": " web applications and you want to make sure your users have very snappy responses, there is a"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 801.4399999999999,
+      "end": 805.52,
+      "text": " feeling that the application is very responsive, or other use cases where you need to guarantee"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 805.52,
+      "end": 809.6,
+      "text": " that the access to the data is as fast as possible. But now let's talk very quickly on"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 809.6,
+      "end": 814.16,
+      "text": " when you might not want to use DynamoDB, because of course it's not a silver bullet that is going"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 814.16,
+      "end": 819.28,
+      "text": " to solve all your problems. So some cases that come to mind is the main one is probably when"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 819.8399999999999,
+      "end": 824.9599999999999,
+      "text": " you need flexible querying capabilities. And this is actually very common for startups."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 824.9599999999999,
+      "end": 829.76,
+      "text": " Conversely, we say that DynamoDB is really good for startup environments because the pricing"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 829.76,
+      "end": 833.52,
+      "text": " dynamics will scale with the growth of your company. But on the other end, you have to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 833.52,
+      "end": 838.4,
+      "text": " consider that DynamoDB requires you to understand really, really well the way you'd need to access"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 838.4,
+      "end": 843.1999999999999,
+      "text": " the data. And when you're building a startup, sometimes you need to pivot multiple times before"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 843.2,
+      "end": 847.44,
+      "text": " you figure out exactly what's your product market fit, what's the product that is really solving a"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 847.44,
+      "end": 851.9200000000001,
+      "text": " problem for your customers. So you're going to go through significant different iterations of your"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 851.9200000000001,
+      "end": 856,
+      "text": " product. And as such, you're probably going to change the way you use the data in your database"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 856,
+      "end": 860.5600000000001,
+      "text": " multiple times. DynamoDB might not be the best database for that. It will require you a lot of"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 860.5600000000001,
+      "end": 865.2,
+      "text": " hard work to always adjust changes to the structure of your database, change it to the way you query"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 865.2,
+      "end": 869.0400000000001,
+      "text": " the data. Something like a relational database might be much more suitable for that kind of"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 869.04,
+      "end": 873.28,
+      "text": " thing because with the flexibility of SQL, as long as you're keeping your data normalized,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 873.28,
+      "end": 877.5999999999999,
+      "text": " then you can easily adjust for different access patterns. So definitely worth considering if you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 877.5999999999999,
+      "end": 882.8,
+      "text": " don't really think you understand well your current and future access patterns, DynamoDB"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 882.8,
+      "end": 886.9599999999999,
+      "text": " might create a little bit of friction for the evolution of your product. Other reasons why you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 886.9599999999999,
+      "end": 891.04,
+      "text": " might not want to use DynamoDB is, for instance, when you need to integrate with other systems that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 891.04,
+      "end": 896,
+      "text": " expect a SQL interface. DynamoDB is not going to give you a SQL interface or at least not a"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 896.08,
+      "end": 900.8,
+      "text": " traditional one. So definitely it will make your life much harder if you need to integrate with"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 900.8,
+      "end": 906,
+      "text": " something that is expecting SQL as a language. Another case is when you might have lots of"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 906,
+      "end": 910.72,
+      "text": " relational data by nature. So you really need to use features like join and join data across"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 910.72,
+      "end": 915.44,
+      "text": " multiple tables. That's not even something that is supported in DynamoDB natively. So you will need"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 915.44,
+      "end": 920.08,
+      "text": " to do your own joins with code inside your application. And that's something that is not"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 920.08,
+      "end": 924.32,
+      "text": " going to be very efficient and it's going to be very tricky to do well and to scale it."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 924.32,
+      "end": 929.7600000000001,
+      "text": " And finally, if you, for whatever reason, need to manage a database by yourself, like you need to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 929.7600000000001,
+      "end": 934.32,
+      "text": " host it yourself and run it yourself in your data center or even inside your own cloud account,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 934.32,
+      "end": 940.1600000000001,
+      "text": " DynamoDB doesn't offer that option. DynamoDB is only a managed service. Amazon will give you a"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 940.1600000000001,
+      "end": 944.72,
+      "text": " single node local version that you can use and run it yourself, but that's meant to be used only for"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 944.72,
+      "end": 948.8000000000001,
+      "text": " local testing and development, not to be run in production. Now, I think at this point, it might"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 948.8,
+      "end": 955.5999999999999,
+      "text": " be very beneficial to try to explain a little bit more how DynamoDB works, because I think that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 955.5999999999999,
+      "end": 960,
+      "text": " is going to demystify why there are so many constraints, but at the same time also why"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 960,
+      "end": 963.5999999999999,
+      "text": " DynamoDB can be so effective and performant in certain use cases."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 963.5999999999999,
+      "end": 968.64,
+      "text": " DynamoDB data is stored in partitions. You might've guessed this already, since we mentioned that"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 968.64,
+      "end": 974,
+      "text": " data needs a partition key, that hash key we referred to earlier. So when you provide your"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 974,
+      "end": 978.96,
+      "text": " value for your primary key, the partition key part at least, that key is going to be hashed"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 978.96,
+      "end": 984.8,
+      "text": " by DynamoDB. And the hashed value is going to be used by DynamoDB to route it to the server nodes"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 984.8,
+      "end": 990.32,
+      "text": " where the partition or that shard of data is stored. And it's the scalability of the partition"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 990.32,
+      "end": 996.56,
+      "text": " model that gives DynamoDB its infinite scalability. Then each partition has a primary node that will"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 996.56,
+      "end": 1000.96,
+      "text": " handle writes just like many other databases, but it will also have two secondary nodes. And for"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1000.96,
+      "end": 1005.44,
+      "text": " data to be written, it has to be written by the primary and at least one other secondary node."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1005.44,
+      "end": 1010.32,
+      "text": " The third node then can be updated asynchronously. So that will give you better performance on"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1010.32,
+      "end": 1017.12,
+      "text": " writes. But what this means is that because any of these nodes can handle reads and only one of"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1017.12,
+      "end": 1022.72,
+      "text": " the secondaries is updated synchronously, you might end up reading from a node that doesn't have"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1022.72,
+      "end": 1028.48,
+      "text": " the latest data. And this is part of DynamoDB's default mode of eventual consistency. And if this"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1028.48,
+      "end": 1032.56,
+      "text": " tradeoff is a problem for you, there is a way around it, you can explicitly request strong"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1032.56,
+      "end": 1037.1200000000001,
+      "text": " consistency when reading. And that may take a little longer because it has to wait for the third"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1037.1200000000001,
+      "end": 1042.32,
+      "text": " node to acknowledge. But you will pay an increased price for this mode, essentially double based on"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1042.32,
+      "end": 1045.68,
+      "text": " the billing model, which we'll explain a little bit later. And that billing model, the pricing"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1045.68,
+      "end": 1051.76,
+      "text": " model of DynamoDB is very tied into its performance and scalability. Because when you write, you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1051.76,
+      "end": 1057.6,
+      "text": " consume a write capacity unit, when you read, you consume a read capacity unit. So WCUs and RCUs."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1057.6,
+      "end": 1062.9599999999998,
+      "text": " One RCU will allow you a strongly consistent or two eventually consistent reads per second,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1062.9599999999998,
+      "end": 1067.9199999999998,
+      "text": " and they can be up to four kilobytes. And a write capacity unit allows you to write one item up to"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1067.9199999999998,
+      "end": 1072.6399999999999,
+      "text": " one kilobyte. You have two pricing options. You've got provisioned mode where you can say, okay,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1072.6399999999999,
+      "end": 1078.56,
+      "text": " I'm going to need 500 RCUs and 500 WCUs. And then you pay a fixed amount per hour as long as the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1078.56,
+      "end": 1084.24,
+      "text": " table exists. The newer mode, which is more serverless is the on demand capacity. And that"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1084.24,
+      "end": 1089.1200000000001,
+      "text": " will scale the WCUs and RCUs up and down for you. If you don't use them, you don't pay. But if you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1089.1200000000001,
+      "end": 1093.28,
+      "text": " do use them, the cost is generally higher than provisioned capacity. So you need to measure your"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1093.28,
+      "end": 1098.96,
+      "text": " own workload and decide which one works. Generally, we'd say start with on demand capacity, measure"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1098.96,
+      "end": 1103.04,
+      "text": " how much you're using, look at your bill and optimize accordingly. And the good news there"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1103.04,
+      "end": 1108.4,
+      "text": " actually is that I think just last week, AWS released a new feature, which will allow you to"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1108.4,
+      "end": 1113.76,
+      "text": " cap the maximum on demand capacity. So you can manage that maximum cost and don't have to lie"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1113.76,
+      "end": 1118.72,
+      "text": " awake at night worrying about it. Now, when we talk about partitions, you might have heard the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1118.72,
+      "end": 1123.04,
+      "text": " concept of hot partitions, especially if you're reading older blog posts or content where your"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1123.04,
+      "end": 1128.32,
+      "text": " throughput could suffer if you didn't actually evenly distribute the partition keys across your"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1128.32,
+      "end": 1133.52,
+      "text": " whole data set. And if you do read anything like that, don't worry, because Amazon has since added"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1133.52,
+      "end": 1138.56,
+      "text": " an adaptive capacity feature a few years ago that automatically solves that for you. So they'll"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1138.56,
+      "end": 1143.52,
+      "text": " manage capacity according to the size of the partition keys on different nodes. But it is"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1143.52,
+      "end": 1148,
+      "text": " still important to note that each partition does have a maximum throughput. So it's 3000"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1148,
+      "end": 1152.8,
+      "text": " RCUs or 1000 WCUs. So if you are going to have a lot of traffic, you should make sure that you're"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1152.8,
+      "end": 1157.6,
+      "text": " not just using a small number of partition keys. And that will allow you to ensure that you get"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1157.6,
+      "end": 1162.16,
+      "text": " consistent performance across all of your data. So I think partitions, they're basically the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1162.16,
+      "end": 1166.8799999999999,
+      "text": " fundamental concept to understand. We've talked about strong consistency and eventual consistency."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1166.8799999999999,
+      "end": 1171.6,
+      "text": " Let's talk more practically, how do you get started and what you do to start using DynamoDB?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1172.1599999999999,
+      "end": 1177.1999999999998,
+      "text": " If you're used to more traditional relational databases, one thing that might be surprising"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1177.1999999999998,
+      "end": 1184.56,
+      "text": " about DynamoDB is that it doesn't use something like an ODBC or JDBC type of connector. Instead,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1184.56,
+      "end": 1190,
+      "text": " you just do HTTP requests. So in a way, it's like you have a web API to interact with when you use"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1190,
+      "end": 1195.84,
+      "text": " DynamoDB. In reality, you rarely want to use the web API directly. You will be using the AWS SDK,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1195.84,
+      "end": 1200.08,
+      "text": " which of course abstract all of that communication in a much nicer way."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1200.48,
+      "end": 1204.56,
+      "text": " When it comes to the SDK, there are actually two different types of client. And this is something"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1204.56,
+      "end": 1208.56,
+      "text": " that sometimes can be a little bit confusing, but the idea is that you have clients at two"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1208.56,
+      "end": 1213.36,
+      "text": " different levels. You have the main DynamoDB client where you still need to understand a"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1213.36,
+      "end": 1218.24,
+      "text": " little bit what is the protocol when it comes to specifying the different types of values that you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1218.24,
+      "end": 1224.3999999999999,
+      "text": " need to read and write. Instead, when you use the Dogament client, that type of client is generally"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1224.3999999999999,
+      "end": 1228.8,
+      "text": " a little bit more integrated with your programming language of choice. It can understand the types"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1228.8,
+      "end": 1232.8799999999999,
+      "text": " directly from the type that you express in your programming language, and it's going to do an"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1232.8799999999999,
+      "end": 1237.36,
+      "text": " implicit conversion behind the scenes for you. So if you are trying to put a string, for instance,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1237.36,
+      "end": 1242.8,
+      "text": " in an attribute, it's going to automatically create the correct shape of the object that the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1242.8,
+      "end": 1248,
+      "text": " underlying client expects to say that that value is going to be persisted in DynamoDB as a string"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1248,
+      "end": 1252.72,
+      "text": " and not, for instance, as another data type. So generally speaking, I would recommend to use the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1252.72,
+      "end": 1257.84,
+      "text": " Dogament client because it will make your life a little bit easier, and it will abstract some"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1257.84,
+      "end": 1261.84,
+      "text": " details that you don't necessarily have to worry about when it comes to the underlying protocol of"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1261.84,
+      "end": 1266.6399999999999,
+      "text": " DynamoDB. Let's talk a little bit more about how do you write data, what kind of options do you have"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1266.6399999999999,
+      "end": 1272.08,
+      "text": " there, and all the right actions that you need to do, as Eoin, you mentioned before, force you to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1272.08,
+      "end": 1276.6399999999999,
+      "text": " provide the full primary key. So you need to explicitly say, this is the primary key that I'm"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1276.6399999999999,
+      "end": 1280.9599999999998,
+      "text": " going to be used to store this particular record or to update a particular record."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1280.9599999999998,
+      "end": 1285.4399999999998,
+      "text": " And one interesting thing, and this is something of a pain point that I had a few times in the past,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1285.44,
+      "end": 1291.3600000000001,
+      "text": " is that you have no way to do a query such as update all the records where this particular"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1291.3600000000001,
+      "end": 1297.1200000000001,
+      "text": " clause is true. You need to read and write based on a primary key that you need to know in advance."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1297.1200000000001,
+      "end": 1302.64,
+      "text": " So you cannot just use arbitrary attributes to do that stuff. Now, when it comes to writing, you have"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1302.64,
+      "end": 1307.92,
+      "text": " a few different operations that you can do. The first one is put item, where basically you are"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1307.92,
+      "end": 1314.0800000000002,
+      "text": " either creating or overriding an existing item, so a single item. Then you have update item, which is,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1314.08,
+      "end": 1319.28,
+      "text": " again, either write or update. You can specify a subset of attributes in this case,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1319.28,
+      "end": 1323.84,
+      "text": " and you can also use this particular operation, for instance, if you want to delete existing"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1323.84,
+      "end": 1328.08,
+      "text": " attributes from an existing record. And you can also use it in interesting ways. For instance,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1328.08,
+      "end": 1334,
+      "text": " if you have a record or an item that contains a set or a map, you can just insert or remove"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1334,
+      "end": 1338.3999999999999,
+      "text": " data from the underlying set and maps that exist in the attributes of your item."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1338.3999999999999,
+      "end": 1342.1599999999999,
+      "text": " And finally, and this is something that can be actually very common, I've seen it a few times"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1342.16,
+      "end": 1347.0400000000002,
+      "text": " when using DynamoDB, if you have counters, you can use the update item to just say increase by"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1347.0400000000002,
+      "end": 1352.5600000000002,
+      "text": " one. And if you consider that this is a distributed database, you don't want to read the data first,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1352.5600000000002,
+      "end": 1356.64,
+      "text": " then in your code increase by one and then start the data again, because you might have that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1356.64,
+      "end": 1361.8400000000001,
+      "text": " operation happening simultaneously, potentially in a number of different concurrent executions,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1361.8400000000001,
+      "end": 1365.52,
+      "text": " and therefore your counting might be overriding each other. So it's better to just let the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1365.52,
+      "end": 1370.5600000000002,
+      "text": " database do the increment for you, because that way can be done consistently. Then, of course,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1370.56,
+      "end": 1376.08,
+      "text": " we have delete item operations, and it's important to know that you can also do batch writing. So,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1376.08,
+      "end": 1380.8,
+      "text": " for instance, if you need to insert lots of data into DynamoDB, maybe you are loading data from,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1380.8,
+      "end": 1384.8,
+      "text": " I don't know, fixture data that you need to use in your application, you can do that,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1384.8,
+      "end": 1390,
+      "text": " but there are limits. For instance, you can write up to 25 items if they're not wrong in a single"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1390,
+      "end": 1394.3999999999999,
+      "text": " batch. So you need to create multiple batches according to how many items you need to write."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1394.4,
+      "end": 1400.8000000000002,
+      "text": " And finally, you can also use the transact write item, which allows you to write data as part of a"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1400.8000000000002,
+      "end": 1405.6000000000001,
+      "text": " transaction. And the other thing is that when you write something into DynamoDB, so when you do"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1405.6000000000001,
+      "end": 1411.76,
+      "text": " an update operation, you might be interested in receiving a response from DynamoDB, and you can"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1411.76,
+      "end": 1416.96,
+      "text": " actually specify what kind of response you want to get back from DynamoDB. So different options"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1416.96,
+      "end": 1420.48,
+      "text": " are, for instance, if you don't really care about anything, you can just say, no, just write the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1420.48,
+      "end": 1424.8,
+      "text": " data, I don't care about the result of that operation. Then, for instance, when you're doing"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1424.8,
+      "end": 1430.32,
+      "text": " updates, it can be very interesting to know what was updated. So you have options like all old,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1430.32,
+      "end": 1436.88,
+      "text": " or updated old, or all new, or updated new, that will allow you to select a subset of the data that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1436.88,
+      "end": 1440.64,
+      "text": " was actually updated and compare it with the previous data. And going back to the case of the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1440.64,
+      "end": 1445.1200000000001,
+      "text": " counter, if you want to say, for instance, increase this particular attribute by one,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1445.1200000000001,
+      "end": 1448.8,
+      "text": " you don't necessarily know what's going to be the final value, because maybe you didn't read the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1448.8,
+      "end": 1453.28,
+      "text": " value in the first place, or maybe the value that you have right now in memory in your program is"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1453.28,
+      "end": 1458,
+      "text": " outdated, because meanwhile, there have been other increases from other concurrent executions,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1458,
+      "end": 1463.36,
+      "text": " you can get the new value as a response from your update operation when you select one of"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1463.36,
+      "end": 1467.36,
+      "text": " these attributes. So that can be a convenient use case. For instance, if you are building some kind"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1467.36,
+      "end": 1471.68,
+      "text": " of counter, increase the value, and you want to know what's the most recent count in your program."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1471.68,
+      "end": 1475.9199999999998,
+      "text": " Another thing is that you can add condition expression. So when you write, you can say,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1475.92,
+      "end": 1481.3600000000001,
+      "text": " write this record only if certain conditions are happening, and don't write it if those conditions"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1481.3600000000001,
+      "end": 1486.64,
+      "text": " are not satisfied. And this can be useful, for instance, if you want to guarantee data integrity,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1486.64,
+      "end": 1491.52,
+      "text": " for instance, you might want to create a new user in a table, and maybe you want to make sure that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1491.52,
+      "end": 1496.16,
+      "text": " there is only one user with a given email. Again, thinking that you might have concurrent execution"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1496.16,
+      "end": 1500.4,
+      "text": " of your program in different environments, maybe different lambdas, it's not unlikely that you can"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1500.4,
+      "end": 1504.8000000000002,
+      "text": " have a very similar request from two different lambdas in a very short amount of time. So for"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1504.8,
+      "end": 1510.1599999999999,
+      "text": " instance, if a user is submitting a form twice by mistake, you might end up creating two users with"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1510.1599999999999,
+      "end": 1515.52,
+      "text": " the same email. By using a condition expression, you can say, don't create a user a second time if"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1515.52,
+      "end": 1520.6399999999999,
+      "text": " this email is already existing in the primary key, for instance, of another record. Going into"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1520.6399999999999,
+      "end": 1525.84,
+      "text": " queries, you have different ways to query your data. The simplest one is probably get item."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1525.84,
+      "end": 1531.12,
+      "text": " Another use case is scans, which basically allows you to iterate over the entire table."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1531.12,
+      "end": 1536.32,
+      "text": " This is generally a very niche use case. You rarely need to do that. Or if you find yourself"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1536.32,
+      "end": 1540.56,
+      "text": " doing that, probably you should think twice because it's not always a good idea to do this."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1540.56,
+      "end": 1544.8,
+      "text": " So unless you really know what you're doing, try to avoid scans as much as possible. And the main"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1544.8,
+      "end": 1549.4399999999998,
+      "text": " reason is that, especially if you have a large data set, a scan might take a very long time to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1549.4399999999998,
+      "end": 1554.1599999999999,
+      "text": " complete, but also it's going to be very expensive for you. So just be sure that you are aware of"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1554.1599999999999,
+      "end": 1558.7199999999998,
+      "text": " that. If you find yourself using a scan, make sure you know what you're doing. And if you have other"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1558.72,
+      "end": 1563.2,
+      "text": " options, probably go with the other options. Of course, we have a concept of query as well,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1563.2,
+      "end": 1568.08,
+      "text": " where you might want to retrieve multiple records together, but of course it is still somewhat"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1568.08,
+      "end": 1574.48,
+      "text": " limited to the partition key. So you can query only for a given partition key and then filter"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1574.48,
+      "end": 1579.84,
+      "text": " the subset of records from your sort key when you have a composite key. And you can have expressions"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1579.84,
+      "end": 1586,
+      "text": " such as equality, begins with, between, but you cannot do more generic expressions that you might"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1586,
+      "end": 1591.28,
+      "text": " find in SQLite, for instance, when you use the like operator and you cannot even do ends with."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1591.28,
+      "end": 1595.04,
+      "text": " So you need to be very careful depending on the type of queries that you expect to do"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1595.04,
+      "end": 1600,
+      "text": " in structuring your keys so that the query operation allows you to do the queries that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1600,
+      "end": 1604.4,
+      "text": " you need to do. And you can also use filter expressions, which are a little bit more flexible"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1604.4,
+      "end": 1608.72,
+      "text": " and they can be applied to any attribute, not just the primary key and the secondary key."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1608.72,
+      "end": 1613.84,
+      "text": " And these filters are a little bit funny. They work in a way that you might not expect"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1614.8,
+      "end": 1619.84,
+      "text": " the first time you use them, because if you're using again to SQL, the filtering happens at the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1619.84,
+      "end": 1626.1599999999999,
+      "text": " database level where the database is just going to give you the data that matches the conditions"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1626.1599999999999,
+      "end": 1630.48,
+      "text": " that you are looking for and ignore everything else. While here with DynamoDB, when you use"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1630.48,
+      "end": 1634.8,
+      "text": " filter expressions, you are actually still getting all the data, effectively discarding the records"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1634.8,
+      "end": 1639.9199999999998,
+      "text": " that don't match that particular filter expression. Finally, each query has one megabyte read limit."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1639.92,
+      "end": 1644.5600000000002,
+      "text": " If you need to read more, you need to use pagination. Thankfully, the SDK these days"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1644.5600000000002,
+      "end": 1649.6000000000001,
+      "text": " makes that much easier than it used to be, especially in dynamic programming languages"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1649.6000000000001,
+      "end": 1654.72,
+      "text": " like JavaScript, you can use async-atorators and that's a relatively easier experience to go"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1654.72,
+      "end": 1658.24,
+      "text": " through all the different pages. But of course, you need to be aware that you are making multiple"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1658.24,
+      "end": 1663.44,
+      "text": " requests to DynamoDB. You're sending multiple HTTP requests. So the more data you read, the more"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1663.44,
+      "end": 1667.3600000000001,
+      "text": " time is going to be required to read the entire dataset. Now we should probably talk a little bit"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1667.36,
+      "end": 1671.84,
+      "text": " about indices because that's such another interesting topic in DynamoDB and it's something"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1671.84,
+      "end": 1676.6399999999999,
+      "text": " that can allow for other access patterns."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1676.6399999999999,
+      "end": 1680.9599999999998,
+      "text": " And we've talked about one type of index, kind of, so far because we mentioned primary keys, but you can actually add additional keys to"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1680.9599999999998,
+      "end": 1685.28,
+      "text": " support querying by fields that are not in the primary key. As we've said, and you've talked"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1685.28,
+      "end": 1690.6399999999999,
+      "text": " through the query semantics, you need to specify the partition key. If you want to do more granular"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1690.6399999999999,
+      "end": 1696,
+      "text": " filtering, you need to use a key expression, but what about different access patterns? What if you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1696,
+      "end": 1700.16,
+      "text": " need to query by something else entirely? Well, that's where indexes come in and they're called"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1700.16,
+      "end": 1705.92,
+      "text": " secondary indexes in this case. There's two types of secondary index. There's the local secondary"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1705.92,
+      "end": 1711.2,
+      "text": " index, which is stored together on the same partition as your database. And because of that,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1711.2,
+      "end": 1715.52,
+      "text": " the partition key is always the same as your primary key's partition key. And only the sort"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1715.52,
+      "end": 1719.84,
+      "text": " key is different. Then you have global secondary indexes, which are stored separately, and they can"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1719.84,
+      "end": 1723.68,
+      "text": " have a different partition key and sort key. For that reason, they're a lot more common. Local"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1723.68,
+      "end": 1728.64,
+      "text": " secondary indexes have a few more limitations and they also share the table's capacity,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1728.64,
+      "end": 1733.04,
+      "text": " whereas global secondary indexes have their own capacity. And when you hear people talking about"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1733.04,
+      "end": 1736.8,
+      "text": " global secondary indexes and local secondary indexes, because they're a bit of a mouthful,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1736.8,
+      "end": 1742.3200000000002,
+      "text": " they'll normally say GSI and any kind of secondary index allows you to retrieve atom attributes from"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1742.3200000000002,
+      "end": 1747.68,
+      "text": " a set of related records by different keys. You can imagine having a DynamoDB table that stores"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1747.68,
+      "end": 1753.04,
+      "text": " customer orders. And normally you retrieve it by customer ID and maybe date for the sort key so"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1753.04,
+      "end": 1757.68,
+      "text": " that you can filter by date. But you might also want to retrieve by product ID and amount. So you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1757.68,
+      "end": 1762.48,
+      "text": " could put product ID and amount in as a separate global secondary index. One of the cool things"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1762.48,
+      "end": 1767.12,
+      "text": " about indexes is that they can actually be sparse. So what does that mean? Well, if some of the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1767.12,
+      "end": 1771.76,
+      "text": " attributes in your index aren't present in any item that you're inserting into a table, your"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1771.76,
+      "end": 1775.76,
+      "text": " index doesn't actually need to store that record at all. So the volume of data in an index could be"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1775.76,
+      "end": 1780.8,
+      "text": " much less than in the table itself. And because of that, indexes can actually be used as like a"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1780.8,
+      "end": 1786.72,
+      "text": " materialized view or a filter on data because it's already pre-filtered based on whether those"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1786.72,
+      "end": 1792.8799999999999,
+      "text": " attributes are present or not. And that's quite a common pattern for GSIs. You can also use indexes"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1792.8799999999999,
+      "end": 1797.6,
+      "text": " to store different but related entities together in the one table. So we talked about storing"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1797.6,
+      "end": 1803.04,
+      "text": " customer orders, but what if you wanted to store customers' orders and products and query them"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1803.04,
+      "end": 1808,
+      "text": " together? You can actually do that in DynamoDB. And you do that by overloading the partition keys"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1808,
+      "end": 1813.2,
+      "text": " and sort key values so that you can query them individually and using more indexes as well to be"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1813.2,
+      "end": 1818,
+      "text": " able to support more and more query patterns. And this approach is called single table design."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1818.56,
+      "end": 1824.8,
+      "text": " And it typically means having a naming convention in your keys, like having a partition key,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1824.8,
+      "end": 1829.76,
+      "text": " which has a syntax like customer hash, and then a customer ID. And then maybe in your sort key,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1829.76,
+      "end": 1834.08,
+      "text": " you'll have a order hash order ID. And then you might have a separate product ID column,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1834.08,
+      "end": 1839.76,
+      "text": " which is used in a secondary index to query the product. It's a total shift from the simplicity"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1839.76,
+      "end": 1844,
+      "text": " of the default DynamoDB approach. And it's incorporating relational modeling from relational"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1844,
+      "end": 1849.6,
+      "text": " databases, but it allows you to get the best of both worlds with some trade-offs, but you can"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1849.6,
+      "end": 1854.8,
+      "text": " actually implement relational design in this way. And this all came about, well, it's been around"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1854.8,
+      "end": 1859.6,
+      "text": " for a while, I guess, but it was popularized when Rick Houlihan, who used to work at AWS advising"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1859.6,
+      "end": 1864.7199999999998,
+      "text": " all of their amazon.com teams on how to do this. He gave a series of very famous re-invent talks"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1864.7199999999998,
+      "end": 1868.8799999999999,
+      "text": " describing advanced DynamoDB modeling. And this really gave a lot of momentum to the idea of"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1868.8799999999999,
+      "end": 1872.32,
+      "text": " single table design. I remember seeing this talk and thinking, wow, this is amazing, but"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1872.8799999999999,
+      "end": 1877.52,
+      "text": " I had to watch it a few times to really understand it because it's kind of mind-meltingly high speed"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1877.52,
+      "end": 1884.32,
+      "text": " and deep dive, like the most level 400 talk I've seen. And then Alex DeBrie gave a much more"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1884.32,
+      "end": 1888.7199999999998,
+      "text": " accessible guide on it in his great DynamoDB book. Yeah, he has got a lot of great content"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1888.72,
+      "end": 1893.04,
+      "text": " around DynamoDB, so much so that I'm surprised they haven't renamed it to Dynamo DeBrie at this"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1893.04,
+      "end": 1897.76,
+      "text": " point. So the fundamental idea with single table design is if you know your access patterns ahead"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1897.76,
+      "end": 1902.16,
+      "text": " of time, you can design your DynamoDB table indexes and keys to store all of this data,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1902.16,
+      "end": 1905.52,
+      "text": " related data together. So that could be created together and it can allow you to do all this"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1905.52,
+      "end": 1910.4,
+      "text": " relational modeling, but still gain from the performance and scalability of DynamoDB."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1911.1200000000001,
+      "end": 1915.92,
+      "text": " Unfortunately, it's not really very easy to grasp and do well. I'm still afraid of it,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1915.92,
+      "end": 1920.0800000000002,
+      "text": " to be honest. Even if you do do it, it can be difficult for others on your team to understand"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1920.0800000000002,
+      "end": 1924.96,
+      "text": " and troubleshoot when they join the team. Even I've seen single table designs, which I've"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1924.96,
+      "end": 1928.88,
+      "text": " implemented and understood, and then gone back to it a few months later and thought,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1928.88,
+      "end": 1933.6000000000001,
+      "text": " what is this schema? I can't remember how this is modeled. And people have tried to provide"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1933.6000000000001,
+      "end": 1938,
+      "text": " tooling around that to make it easier. And that has helped to design it, but I still don't see"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1938,
+      "end": 1942.16,
+      "text": " a great solution to ultimately making it accessible and understandable for everybody. Of course,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1942.16,
+      "end": 1946.64,
+      "text": " we mentioned that you need your access patterns well-documented and understood ahead of time. So"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1946.64,
+      "end": 1950.5600000000002,
+      "text": " if they change, you need to be able to plan and execute a schema change and a migration later."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1950.5600000000002,
+      "end": 1954.3200000000002,
+      "text": " So it's not a silver bullet. And while it looks really cool and it's very appealing,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1954.3200000000002,
+      "end": 1958.72,
+      "text": " I would tend to say, don't get caught up in it and don't worry about it too much. What do you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1958.72,
+      "end": 1963.52,
+      "text": " think, Luciano? I mostly agree with what you said there."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1963.52,
+      "end": 1968.16,
+      "text": " The only thing I can add is that I found that it might help a little bit if you try to abstract all of that stuff in your code,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1968.16,
+      "end": 1971.6000000000001,
+      "text": " meaning that you are going to use something like the repository pattern to say,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1971.6000000000001,
+      "end": 1977.1200000000001,
+      "text": " well, I have a code layer where I can just say, give me all the, I don't know, products,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1977.1200000000001,
+      "end": 1982.5600000000002,
+      "text": " or give me what's in the cart for this customer. And behind the scenes, you have abstracted all the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1982.5600000000002,
+      "end": 1987.8400000000001,
+      "text": " necessary logic to integrate with DynamoDB from a team perspective that may make things a little"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1987.8400000000001,
+      "end": 1991.92,
+      "text": " bit easier because you are not necessarily required to go and look under the wood to exactly"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1991.92,
+      "end": 1996.64,
+      "text": " see what's happening with DynamoDB. But of course, as you say, then if you eventually find yourself"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1996.64,
+      "end": 2000.3200000000002,
+      "text": " in the position where you need to change the data structure to accommodate for different access"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2000.3200000000002,
+      "end": 2004.24,
+      "text": " patterns, then somebody will need to be able to touch that layer and make the necessary"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2004.24,
+      "end": 2009.2,
+      "text": " adjustments. So this is not necessarily a silver bullet. It's just, I guess, good code practices"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2009.2,
+      "end": 2013.8400000000001,
+      "text": " that might create abstraction layers that can be more accessible to a larger group of people in the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2013.8400000000001,
+      "end": 2019.44,
+      "text": " team. So that's maybe something else to consider if you do find yourself using the single table"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2019.44,
+      "end": 2023.44,
+      "text": " design pattern, if you see value in it, and there is definitely value, that can be one of the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2023.44,
+      "end": 2027.76,
+      "text": " practices you can use to make your life as a team a little bit easier. And I think at this point,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2027.76,
+      "end": 2032.8,
+      "text": " we've covered enough ground when it comes to DynamoDB. This was a longer episode that we"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2032.8,
+      "end": 2038.4,
+      "text": " generally do, and hopefully you enjoyed it anyway. We tried to share as much as we could about the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2038.4,
+      "end": 2043.52,
+      "text": " basics of DynamoDB, what it is, how does it compare with relational databases, how do you use it,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2043.52,
+      "end": 2049.12,
+      "text": " even up to talking about the single table design pattern. And of course, don't forget that if you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2049.12,
+      "end": 2053.2000000000003,
+      "text": " decide to use DynamoDB, don't forget that relational databases are still pretty ubiquitous."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2053.52,
+      "end": 2058.16,
+      "text": " In a way, if you're using AWS, it makes sense to adopt DynamoDB, but you always need to look at"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2058.16,
+      "end": 2061.7599999999998,
+      "text": " your requirements and make sure you make it a conscious decision. Definitely, there are many"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2061.7599999999998,
+      "end": 2066.7999999999997,
+      "text": " advantages in using DynamoDB, but also we can say the same when it comes to traditional relational"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2066.7999999999997,
+      "end": 2073.2,
+      "text": " databases and SQL. So don't be feeling like you are missing out if you prefer to use a relational"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2073.2,
+      "end": 2078.48,
+      "text": " database rather than DynamoDB. I think there are still many ways to use relational databases and"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2078.48,
+      "end": 2085.2,
+      "text": " make them scale in the cloud even at very high scale. So I think we will love to hear more from"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2085.2,
+      "end": 2089.6,
+      "text": " you if you're using DynamoDB, if you totally ditch relational databases, or if you are still"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2089.6,
+      "end": 2094.88,
+      "text": " feeling more attached to relational databases than to DynamoDB. And maybe hear about the stories that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2094.88,
+      "end": 2099.6,
+      "text": " you might have, if you have any scar from DynamoDB or any scar from relational databases. It would be"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2099.6,
+      "end": 2105.2,
+      "text": " nice to put these ideas into context because I think the context is really the key here. It's not"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2105.2,
+      "end": 2109.4399999999996,
+      "text": " really like one technology is better than the other. Different use cases might be more suitable"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2109.4399999999996,
+      "end": 2113.3599999999997,
+      "text": " for different types of technologies. With that, we will leave you some additional resources in"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2113.3599999999997,
+      "end": 2118.64,
+      "text": " the show notes. We will link the DynamoDB book that we mentioned by Alex DeBrie, but we will also"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2118.64,
+      "end": 2123.4399999999996,
+      "text": " link Alex's podcast and YouTube channel where you can find additional content and we will share some"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2123.4399999999996,
+      "end": 2127.4399999999996,
+      "text": " of the talks we mentioned about Rick Houlian. So thank you very much for being with us and we look"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2127.44,
+      "end": 2135.52,
+      "text": " forward to seeing you in the next episodes."
+    }
+  ]
+}

@@ -1,0 +1,1034 @@
+{
+  "speakers": {
+    "spk_0": "spk_0",
+    "spk_1": "spk_1"
+  },
+  "segments": [
+    {
+      "speakerLabel": "spk_0",
+      "start": 0,
+      "end": 2.96,
+      "text": " S3 must be the most loved of all AWS services."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2.96,
+      "end": 6.5600000000000005,
+      "text": " It's a storage service that allows you to store files with a simple API"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 6.5600000000000005,
+      "end": 10,
+      "text": " and takes care of scalability, durability, security,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 10,
+      "end": 13.32,
+      "text": " and a whole bunch of other things with very little effort on the developer side."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 13.32,
+      "end": 16.04,
+      "text": " S3 is becoming the ubiquitous cloud storage platform"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 16.04,
+      "end": 18.400000000000002,
+      "text": " and powers a large variety of use cases."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 18.400000000000002,
+      "end": 20.76,
+      "text": " And for some of these use cases, performance really matters."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 20.76,
+      "end": 23.400000000000002,
+      "text": " So if you're building a product that relies heavily on S3,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 23.400000000000002,
+      "end": 26.92,
+      "text": " there are a few interesting optimizations that you might want to leverage."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 26.92,
+      "end": 29.68,
+      "text": " In today's episode, we're going to talk about some of the lessons"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 29.68,
+      "end": 32,
+      "text": " we've learned and some of the tips and tricks"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 32,
+      "end": 35.32,
+      "text": " that we've discovered along the way working with S3 at scale."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 35.32,
+      "end": 37.2,
+      "text": " My name is Eoin, I'm joined by Luciano"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 37.2,
+      "end": 40.32,
+      "text": " and this is another episode of the AWS Bites podcast."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 48.44,
+      "end": 50.72,
+      "text": " AWS Bites is brought to you by 4Theorem,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 50.72,
+      "end": 54,
+      "text": " an AWS consulting partner with tons of experience with S3."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 54,
+      "end": 57.44,
+      "text": " If you need someone to work with you to optimize your S3-based workloads,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 57.44,
+      "end": 62.08,
+      "text": " check out 4theorem.com or contact us directly using the links in the show notes."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 62.08,
+      "end": 65.56,
+      "text": " We already spoke about S3 best practices back in episode 33."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 65.56,
+      "end": 69,
+      "text": " Now that was more of a generic episode on a variety of best practices"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 69,
+      "end": 71.96,
+      "text": " that are relevant to using S3, but we did give a quick intro"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 71.96,
+      "end": 75,
+      "text": " on what S3 is, the related terminology."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 75,
+      "end": 78.03999999999999,
+      "text": " So if you haven't checked it out, it might be a good one to go back to."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 78.03999999999999,
+      "end": 81.47999999999999,
+      "text": " Today though, we're going to assume you already have a little bit of basic knowledge"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 81.47999999999999,
+      "end": 85.4,
+      "text": " about the service and how it works, and we're going to focus mostly on performance."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 85.4,
+      "end": 89.32000000000001,
+      "text": " But let's give a brief intro. Luciano, where would you like to start?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 94.48,
+      "end": 99.60000000000001,
+      "text": " I think it's a good idea to still review how S3 works under the hood, because I think understanding, at least at the high level, what's the machinery behind it,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 99.60000000000001,
+      "end": 103.44,
+      "text": " it's important to really understand why certain performance or activities actually work."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 103.44,
+      "end": 106.24000000000001,
+      "text": " So if we want to just start with some stats,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 106.24000000000001,
+      "end": 110.4,
+      "text": " this is something that we can just observe to understand the scale of the service."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 110.4,
+      "end": 114.76,
+      "text": " And this is coming from a presentation that's maybe a little bit obsolete at this point,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 114.76,
+      "end": 118.12,
+      "text": " because it's a presentation from reInvent that was delivered in 2021,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 118.12,
+      "end": 119.96000000000001,
+      "text": " called Deep Dive on Amazon S3."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 119.96000000000001,
+      "end": 122.52000000000001,
+      "text": " It's a really good one, so we'll leave the link in the show notes."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 122.52000000000001,
+      "end": 126.44,
+      "text": " But the data that they share there is that S3 stores exabytes of data."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 126.44,
+      "end": 130.76,
+      "text": " This is 1 billion gigabytes, I had to look that up, across millions of drives."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 130.76,
+      "end": 136.96,
+      "text": " So you can imagine that AWS somehow has to manage this huge amount of physical drives"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 136.96,
+      "end": 140.08,
+      "text": " where all your data is going to be stored in a way or another."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 140.08,
+      "end": 143.76,
+      "text": " So this is the level of complexity that AWS is taking care of for you,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 143.76,
+      "end": 147.28,
+      "text": " so you don't have to worry about the kind of management of physical devices."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 147.28,
+      "end": 152.72,
+      "text": " Now, there are a list that's, what they say, trillions of objects stored in various S3 markets."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 152.72,
+      "end": 158.79999999999998,
+      "text": " So all these drives are effectively a distributed system that shares all these trillions of objects."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 158.79999999999998,
+      "end": 162.32,
+      "text": " And the service can handle millions of requests per second."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 162.32,
+      "end": 167.28,
+      "text": " So I hope that all these numbers give you an idea of the volume and the scale of the service."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 167.28,
+      "end": 172.95999999999998,
+      "text": " There is another one, they even say that they can reach a peak of 60 terabytes per second of data processed."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 172.96,
+      "end": 175.68,
+      "text": " So again, how is that magic happening?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 175.68,
+      "end": 178.4,
+      "text": " We don't necessarily know all the implementation details."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 178.4,
+      "end": 184.88,
+      "text": " But the interesting thing to know is that AWS does all of this at scale and still guarantees data durability."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 184.88,
+      "end": 190.08,
+      "text": " And the way they do that is by storing your data in multiple copies in different places."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 190.08,
+      "end": 192.88,
+      "text": " So we are obviously talking about the distributed system here,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 192.88,
+      "end": 198.08,
+      "text": " because it wouldn't be possible to reach this level of scalability with just one big machine, of course."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 198.08,
+      "end": 202.24,
+      "text": " Now, if we remember the networking basics, you know that there are regions,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 202.24,
+      "end": 204.64000000000001,
+      "text": " and inside regions there are availability zones."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 204.64000000000001,
+      "end": 210.8,
+      "text": " And you can imagine an availability zone as a separate data center with independent connectivity, power, and so on."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 210.8,
+      "end": 215.68,
+      "text": " So in most cases, and I say in most cases because there are certain configurations that you can tweak,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 215.68,
+      "end": 219.84,
+      "text": " but by default S3 stores your data across multiple availability zones."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 219.84,
+      "end": 223.36,
+      "text": " That basically means that as soon as you send an object to S3,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 223.36,
+      "end": 228.16000000000003,
+      "text": " AWS is automatically copying that object across independent availability zones."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 228.16,
+      "end": 230,
+      "text": " And then you get an acknowledge."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 230,
+      "end": 235.12,
+      "text": " That means that at that point your file is saved securely across different locations."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 235.12,
+      "end": 240.48,
+      "text": " Now, in all that process, at some point the data is being stored in a physical disk."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 240.48,
+      "end": 243.35999999999999,
+      "text": " And you can also imagine that it's stored in many of them,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 243.35999999999999,
+      "end": 246.56,
+      "text": " because of course if the data is living in independent locations,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 246.56,
+      "end": 249.92,
+      "text": " there are independent disks that are keeping different copies of your data."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 249.92,
+      "end": 254.24,
+      "text": " So you can imagine that managing all these disks is tricky,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 254.24,
+      "end": 259.2,
+      "text": " and AWS needs to really have a solid process to check for physical device failure."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 259.2,
+      "end": 262.48,
+      "text": " And they actually can predict when the devices fail,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 262.48,
+      "end": 265.04,
+      "text": " and they can actually replace them before they actually break."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 265.04,
+      "end": 269.92,
+      "text": " And they can do all of that without basically losing access to your data."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 269.92,
+      "end": 275.12,
+      "text": " So they can still do all this swapping of disks and making sure that your data is always available and durable,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 275.12,
+      "end": 277.68,
+      "text": " without you having any interruption of service."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 277.68,
+      "end": 281.36,
+      "text": " There is another cool feature that you can enable, which is called cross-region replication."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 281.44,
+      "end": 286.8,
+      "text": " So by default a bucket lives in one region, and the data is shared across multiple availability zones."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 286.8,
+      "end": 291.84000000000003,
+      "text": " But if you want extra guarantees, or maybe you want lower latency because you might have"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 291.84000000000003,
+      "end": 294.96000000000004,
+      "text": " the necessity to access to that data from different locations around the world,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 294.96000000000004,
+      "end": 297.76,
+      "text": " what you can do is you can enable this cross-region replication."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 297.76,
+      "end": 300.72,
+      "text": " And what happens is basically for every object you create in a bucket,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 300.72,
+      "end": 303.6,
+      "text": " you can replicate that object in other regions as well."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 303.6,
+      "end": 305.28000000000003,
+      "text": " A bucket exists in other regions."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 305.28000000000003,
+      "end": 309.6,
+      "text": " And you can even make the data available to any location through something called"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 309.6,
+      "end": 314.56,
+      "text": " AWS Global Accelerator. And we'll mention some around that a little bit later in this episode."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 314.56,
+      "end": 320.32000000000005,
+      "text": " So hopefully that gives you an understanding of the scale and the things that AWS takes care of"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 320.32000000000005,
+      "end": 325.04,
+      "text": " for us when we use this service. So probably this is a good point now to jump to the first"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 325.04,
+      "end": 325.84000000000003,
+      "text": " performance tip."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 369.6,
+      "end": 375.28000000000003,
+      "text": " Toby 10,000 parts and you don't even need to upload them in order. So every part is, I think,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 375.28000000000003,
+      "end": 379.04,
+      "text": " between the limits. It has to be between five megabytes and five gigabytes per part."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 379.04,
+      "end": 381.92,
+      "text": " So if you've got a three megabyte file, you wouldn't use a multi-part upload for it."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 381.92,
+      "end": 386.88,
+      "text": " It has to be at least five megs. And AWS generally recommend you use something like eight or 16"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 386.88,
+      "end": 391.84000000000003,
+      "text": " megabytes for your part size. When you upload a single part, S3 will return to an entity tag,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 391.84000000000003,
+      "end": 396.72,
+      "text": " also known as an ETag for the part. And you record that with the part number."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 396.72,
+      "end": 401.28000000000003,
+      "text": " And when you do the third step in the process, which is complete multi-part upload,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 401.28000000000003,
+      "end": 406.16,
+      "text": " then you essentially provide a manifest of all of the part numbers and ETags with that request."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 406.16,
+      "end": 410.48,
+      "text": " You can even send AWS a checksum of the original file to make sure everything was transferred"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 410.48,
+      "end": 415.44000000000005,
+      "text": " correctly. And it's not a checksum of the entire object, but rather each individual part."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 416.08000000000004,
+      "end": 420.16,
+      "text": " There's a link in the show notes to a user guide that will help you to understand that process."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 420.16,
+      "end": 424.8,
+      "text": " You generally don't have to do this yourself since most of the SDKs include some higher level"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 424.88,
+      "end": 430.88,
+      "text": " abstraction in the API, or in the SDK for uploads and downloads, actually. But the upload part will"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 430.88,
+      "end": 435.92,
+      "text": " generally automatically use multi-part uploads when it makes sense. And we'll provide links to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 435.92,
+      "end": 442.96000000000004,
+      "text": " code samples, the SDKs, including one example is the Node.js helper library, which is the lib"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 442.96000000000004,
+      "end": 448.8,
+      "text": " storage in the AWS SDK version three. You can also do some cool esoteric things with this as well."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 448.8,
+      "end": 453.68,
+      "text": " I remember having a case before when we needed to essentially merge a lot of CSV files. And those"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 453.68,
+      "end": 458.48,
+      "text": " CSV files didn't have headers in them. So we were able to do that just using S3 features. Because"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 458.48,
+      "end": 461.92,
+      "text": " when you specify a part for a multi-part upload, it doesn't have to be something that's on your"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 461.92,
+      "end": 466.24,
+      "text": " client machine, it can also be an existing object on S3. So you can use it just to concatenate a"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 466.24,
+      "end": 471.44,
+      "text": " bunch of files on S3 without any of that data, leaving S3 and being transferred to your machine."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 471.44,
+      "end": 476.72,
+      "text": " Now, let's get on to multi-part downloads, or as it's better known, byte range fetches. So when"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 476.72,
+      "end": 482.72,
+      "text": " you're doing a get object command, you can specify the start and end range for bytes. And if you want"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 482.72,
+      "end": 488.24,
+      "text": " to download the entire file, it's generally not built into the SDKs. But there are examples of"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 488.24,
+      "end": 493.04,
+      "text": " doing of implementing this yourself, we'll provide a link to that in the show notes."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 493.04,
+      "end": 498.24,
+      "text": " There is a very interesting podcast episode and a library associated with it from our friends at"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 498.24,
+      "end": 503.68,
+      "text": " Cloud or Not. And they had a very specific need for one of their products to download large,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 503.68,
+      "end": 509.28000000000003,
+      "text": " large objects from S3 in Node.js and implemented a highly optimized library for it. So you can check"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 509.28,
+      "end": 513.1999999999999,
+      "text": " that link out in the show notes as well. So that's tip one. Basically, use concurrency,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 513.1999999999999,
+      "end": 518.56,
+      "text": " do multi-part uploads and byte range fetches for downloads. What else should we suggest, Luciano?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 518.56,
+      "end": 525.52,
+      "text": " Luciano Another common thing is to try to spread the load across different key namespaces. And I"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 525.52,
+      "end": 530.0799999999999,
+      "text": " think to really understand this one, we need to explain a little bit how some of the details of"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 530.0799999999999,
+      "end": 536,
+      "text": " how S3 stores the object and what are some of the limits. Because if you look at the documentation,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 536,
+      "end": 542.32,
+      "text": " what the documentation says is that you can do 3500 put, copy, post, or delete operations,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 542.32,
+      "end": 548.64,
+      "text": " and 5500 get and head operations per prefix. And this is where things get a little bit confusing,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 548.64,
+      "end": 554.24,
+      "text": " because what does it mean per prefix? And if you look at other parts of the documentation,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 554.24,
+      "end": 559.28,
+      "text": " there is an official definition that says a prefix is a string of characters at the beginning of the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 559.28,
+      "end": 563.92,
+      "text": " object key name. A prefix can be of any length, subject to the maximum length of the object key"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 563.92,
+      "end": 569.28,
+      "text": " name, which is 1204 bytes. You can think of prefixes as a way to organize your data in a"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 569.28,
+      "end": 574.24,
+      "text": " similar way to directories. However, prefixes are not directories. So you can kind of make the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 574.24,
+      "end": 581.5999999999999,
+      "text": " parallel that a prefix is like saying, I don't know, \"/om,\" \"/luciano,\" \"/documents,\" and then"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 581.5999999999999,
+      "end": 586.24,
+      "text": " the name of your object. But behind the scenes, AWS is not really maintaining a file system. It's"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 586.24,
+      "end": 590.56,
+      "text": " just a way for you to organize your data. What is interesting, though, is that somehow"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 590.56,
+      "end": 596.16,
+      "text": " AWS is using this information to distribute the data across multiple partitions. And this is"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 596.16,
+      "end": 600.9599999999999,
+      "text": " probably where the limit conversation comes from. You can do a certain amount of operations per"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 600.9599999999999,
+      "end": 605.1999999999999,
+      "text": " prefix, but that probably really means per partition. And this is something that is not"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 605.1999999999999,
+      "end": 611.52,
+      "text": " always entirely clear. What is the logic that AWS uses there to define how prefix maps to actual"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 611.52,
+      "end": 617.68,
+      "text": " physical partitions? So it's something that AWS tries to determine automatically, depending on"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 617.68,
+      "end": 623.1999999999999,
+      "text": " your usage patterns. But what we have seen in the wild is that if you really do lots of requests,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 623.1999999999999,
+      "end": 628.4799999999999,
+      "text": " even if you have different prefixes, you can still get throttled and see 503 errors."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 628.4799999999999,
+      "end": 634.8,
+      "text": " So it is really important if you're running at such scale to monitor the number of 503s,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 634.8,
+      "end": 639.12,
+      "text": " because if you're using the SDK, there are retries. So eventually you might be able to"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 639.12,
+      "end": 643.1999999999999,
+      "text": " get your operation successfully performed. But that operation might take a long time,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 643.1999999999999,
+      "end": 646.56,
+      "text": " because there is a loop of retries that is happening behind the scenes. So you need to"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 646.56,
+      "end": 650.0799999999999,
+      "text": " be aware if you're trying to get the best performance when retries are happening."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 650.0799999999999,
+      "end": 654.64,
+      "text": " Another interesting thing that we bumped into working with one of our customers"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 654.64,
+      "end": 660.4799999999999,
+      "text": " is that we were still getting lots of 503s and at some point we decided to talk with support."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 660.4799999999999,
+      "end": 666.7199999999999,
+      "text": " And it was a long conversation. We got lots of help from AWS, but it seems to be possible to get"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 666.7199999999999,
+      "end": 671.4399999999999,
+      "text": " AWS to tweak whatever is the internal mechanism for your specific use case. So if you're really"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 671.4399999999999,
+      "end": 674.88,
+      "text": " hitting all these limits and you don't know what else can you do, I think the best course"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 674.88,
+      "end": 679.92,
+      "text": " to action right now is to just open a ticket, try to talk with AWS, explain your use case."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 679.92,
+      "end": 685.52,
+      "text": " And I think they might be able to discuss with you very custom options that are the best solution for"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 685.52,
+      "end": 690.16,
+      "text": " your particular use case. I think this is still very rare in the industry. We only had one use"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 690.16,
+      "end": 695.12,
+      "text": " case, at least that I can remember on in my career. But again, if you happen to do thousands and"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 695.12,
+      "end": 699.6,
+      "text": " thousands of requests to AWS per second, it's not unlikely that you're going to bump in this"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 699.6,
+      "end": 704.16,
+      "text": " particular limit action. So just be aware that there are solutions, even though the solution is"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 704.16,
+      "end": 708.0799999999999,
+      "text": " not necessarily well documented, but you can talk with AWS and they will help you to figure out the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 708.0799999999999,
+      "end": 713.8399999999999,
+      "text": " solution. Overall, the idea is to try to think about namespaces that make sense and then distribute"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 713.8399999999999,
+      "end": 718.88,
+      "text": " your access, your operations to different namespaces if you want to leverage as much"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 719.52,
+      "end": 722.0799999999999,
+      "text": " requests per second as possible. What's the next one you have, Oeil?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 734.16,
+      "end": 747.36,
+      "text": " Oeil Oeil"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 747.36,
+      "end": 754.4,
+      "text": " Oeil"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 764.16,
+      "end": 784.4,
+      "text": " Oeil"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 784.4,
+      "end": 804.64,
+      "text": " Oeil"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 814.4,
+      "end": 834.64,
+      "text": " Oeil"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 874.4,
+      "end": 894.64,
+      "text": " Oeil Oeil"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 894.64,
+      "end": 914.88,
+      "text": " Oeil"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 924.64,
+      "end": 944.88,
+      "text": " Oeil"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 954.64,
+      "end": 974.88,
+      "text": " Oeil"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 974.88,
+      "end": 995.12,
+      "text": " Oeil"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1004.88,
+      "end": 1025.12,
+      "text": " Oeil"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1034.88,
+      "end": 1055.1200000000001,
+      "text": " Oeil"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1075.36,
+      "end": 1095.6,
+      "text": " Oeil Oeil"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1105.36,
+      "end": 1125.6,
+      "text": " Oeil"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1135.36,
+      "end": 1155.6,
+      "text": " Oeil"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1165.36,
+      "end": 1185.6,
+      "text": " Oeil"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1195.36,
+      "end": 1205.36,
+      "text": " Oeil"
+    }
+  ]
+}

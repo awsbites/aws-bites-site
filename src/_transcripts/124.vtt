@@ -1,0 +1,617 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:02.960
+S3 must be the most loved of all AWS services.
+
+2
+00:00:02.960 --> 00:00:06.560
+It's a storage service that allows you to store files with a simple API
+
+3
+00:00:06.560 --> 00:00:10.000
+and takes care of scalability, durability, security,
+
+4
+00:00:10.000 --> 00:00:13.320
+and a whole bunch of other things with very little effort on the developer side.
+
+5
+00:00:13.320 --> 00:00:16.040
+S3 is becoming the ubiquitous cloud storage platform
+
+6
+00:00:16.040 --> 00:00:18.400
+and powers a large variety of use cases.
+
+7
+00:00:18.400 --> 00:00:20.760
+And for some of these use cases, performance really matters.
+
+8
+00:00:20.760 --> 00:00:23.400
+So if you're building a product that relies heavily on S3,
+
+9
+00:00:23.400 --> 00:00:26.920
+there are a few interesting optimizations that you might want to leverage.
+
+10
+00:00:26.920 --> 00:00:29.680
+In today's episode, we're going to talk about some of the lessons
+
+11
+00:00:29.680 --> 00:00:32.000
+we've learned and some of the tips and tricks
+
+12
+00:00:32.000 --> 00:00:35.320
+that we've discovered along the way working with S3 at scale.
+
+13
+00:00:35.320 --> 00:00:37.200
+My name is Eoin, I'm joined by Luciano
+
+14
+00:00:37.200 --> 00:00:40.320
+and this is another episode of the AWS Bites podcast.
+
+15
+00:00:48.440 --> 00:00:50.720
+AWS Bites is brought to you by fourTheorem,
+
+16
+00:00:50.720 --> 00:00:54.000
+an AWS consulting partner with tons of experience with S3.
+
+17
+00:00:54.000 --> 00:00:57.440
+If you need someone to work with you to optimize your S3-based workloads,
+
+18
+00:00:57.440 --> 00:01:02.080
+check out fourtheorem.com or contact us directly using the links in the show notes.
+
+19
+00:01:02.080 --> 00:01:05.560
+We already spoke about S3 best practices back in episode 33.
+
+20
+00:01:05.560 --> 00:01:09.000
+Now that was more of a generic episode on a variety of best practices
+
+21
+00:01:09.000 --> 00:01:11.960
+that are relevant to using S3, but we did give a quick intro
+
+22
+00:01:11.960 --> 00:01:15.000
+on what S3 is, the related terminology.
+
+23
+00:01:15.000 --> 00:01:18.040
+So if you haven't checked it out, it might be a good one to go back to.
+
+24
+00:01:18.040 --> 00:01:21.480
+Today though, we're going to assume you already have a little bit of basic knowledge
+
+25
+00:01:21.480 --> 00:01:25.400
+about the service and how it works, and we're going to focus mostly on performance.
+
+26
+00:01:25.400 --> 00:01:29.320
+But let's give a brief intro. Luciano, where would you like to start?
+
+27
+00:01:34.480 --> 00:01:39.600
+I think it's a good idea to still review how S3 works under the hood, because I think understanding, at least at the high level, what's the machinery behind it,
+
+28
+00:01:39.600 --> 00:01:43.440
+it's important to really understand why certain performance or activities actually work.
+
+29
+00:01:43.440 --> 00:01:46.240
+So if we want to just start with some stats,
+
+30
+00:01:46.240 --> 00:01:50.400
+this is something that we can just observe to understand the scale of the service.
+
+31
+00:01:50.400 --> 00:01:54.760
+And this is coming from a presentation that's maybe a little bit obsolete at this point,
+
+32
+00:01:54.760 --> 00:01:58.120
+because it's a presentation from reInvent that was delivered in 2021,
+
+33
+00:01:58.120 --> 00:01:59.960
+called Deep Dive on Amazon S3.
+
+34
+00:01:59.960 --> 00:02:02.520
+It's a really good one, so we'll leave the link in the show notes.
+
+35
+00:02:02.520 --> 00:02:06.440
+But the data that they share there is that S3 stores exabytes of data.
+
+36
+00:02:06.440 --> 00:02:10.760
+This is 1 billion gigabytes, I had to look that up, across millions of drives.
+
+37
+00:02:10.760 --> 00:02:16.960
+So you can imagine that AWS somehow has to manage this huge amount of physical drives
+
+38
+00:02:16.960 --> 00:02:20.080
+where all your data is going to be stored in a way or another.
+
+39
+00:02:20.080 --> 00:02:23.760
+So this is the level of complexity that AWS is taking care of for you,
+
+40
+00:02:23.760 --> 00:02:27.280
+so you don't have to worry about the kind of management of physical devices.
+
+41
+00:02:27.280 --> 00:02:32.720
+Now, there are a list that's, what they say, trillions of objects stored in various S3 markets.
+
+42
+00:02:32.720 --> 00:02:38.800
+So all these drives are effectively a distributed system that shares all these trillions of objects.
+
+43
+00:02:38.800 --> 00:02:42.320
+And the service can handle millions of requests per second.
+
+44
+00:02:42.320 --> 00:02:47.280
+So I hope that all these numbers give you an idea of the volume and the scale of the service.
+
+45
+00:02:47.280 --> 00:02:52.960
+There is another one, they even say that they can reach a peak of 60 terabytes per second of data processed.
+
+46
+00:02:52.960 --> 00:02:55.680
+So again, how is that magic happening?
+
+47
+00:02:55.680 --> 00:02:58.400
+We don't necessarily know all the implementation details.
+
+48
+00:02:58.400 --> 00:03:04.880
+But the interesting thing to know is that AWS does all of this at scale and still guarantees data durability.
+
+49
+00:03:04.880 --> 00:03:10.080
+And the way they do that is by storing your data in multiple copies in different places.
+
+50
+00:03:10.080 --> 00:03:12.880
+So we are obviously talking about the distributed system here,
+
+51
+00:03:12.880 --> 00:03:18.080
+because it wouldn't be possible to reach this level of scalability with just one big machine, of course.
+
+52
+00:03:18.080 --> 00:03:22.240
+Now, if we remember the networking basics, you know that there are regions,
+
+53
+00:03:22.240 --> 00:03:24.640
+and inside regions there are availability zones.
+
+54
+00:03:24.640 --> 00:03:30.800
+And you can imagine an availability zone as a separate data center with independent connectivity, power, and so on.
+
+55
+00:03:30.800 --> 00:03:35.680
+So in most cases, and I say in most cases because there are certain configurations that you can tweak,
+
+56
+00:03:35.680 --> 00:03:39.840
+but by default S3 stores your data across multiple availability zones.
+
+57
+00:03:39.840 --> 00:03:43.360
+That basically means that as soon as you send an object to S3,
+
+58
+00:03:43.360 --> 00:03:48.160
+AWS is automatically copying that object across independent availability zones.
+
+59
+00:03:48.160 --> 00:03:50.000
+And then you get an acknowledge.
+
+60
+00:03:50.000 --> 00:03:55.120
+That means that at that point your file is saved securely across different locations.
+
+61
+00:03:55.120 --> 00:04:00.480
+Now, in all that process, at some point the data is being stored in a physical disk.
+
+62
+00:04:00.480 --> 00:04:03.360
+And you can also imagine that it's stored in many of them,
+
+63
+00:04:03.360 --> 00:04:06.560
+because of course if the data is living in independent locations,
+
+64
+00:04:06.560 --> 00:04:09.920
+there are independent disks that are keeping different copies of your data.
+
+65
+00:04:09.920 --> 00:04:14.240
+So you can imagine that managing all these disks is tricky,
+
+66
+00:04:14.240 --> 00:04:19.200
+and AWS needs to really have a solid process to check for physical device failure.
+
+67
+00:04:19.200 --> 00:04:22.480
+And they actually can predict when the devices fail,
+
+68
+00:04:22.480 --> 00:04:25.040
+and they can actually replace them before they actually break.
+
+69
+00:04:25.040 --> 00:04:29.920
+And they can do all of that without basically losing access to your data.
+
+70
+00:04:29.920 --> 00:04:35.120
+So they can still do all this swapping of disks and making sure that your data is always available and durable,
+
+71
+00:04:35.120 --> 00:04:37.680
+without you having any interruption of service.
+
+72
+00:04:37.680 --> 00:04:41.360
+There is another cool feature that you can enable, which is called cross-region replication.
+
+73
+00:04:41.440 --> 00:04:46.800
+So by default a bucket lives in one region, and the data is shared across multiple availability zones.
+
+74
+00:04:46.800 --> 00:04:51.840
+But if you want extra guarantees, or maybe you want lower latency because you might have
+
+75
+00:04:51.840 --> 00:04:54.960
+the necessity to access to that data from different locations around the world,
+
+76
+00:04:54.960 --> 00:04:57.760
+what you can do is you can enable this cross-region replication.
+
+77
+00:04:57.760 --> 00:05:00.720
+And what happens is basically for every object you create in a bucket,
+
+78
+00:05:00.720 --> 00:05:03.600
+you can replicate that object in other regions as well.
+
+79
+00:05:03.600 --> 00:05:05.280
+A bucket exists in other regions.
+
+80
+00:05:05.280 --> 00:05:09.600
+And you can even make the data available to any location through something called
+
+81
+00:05:09.600 --> 00:05:14.560
+AWS Global Accelerator. And we'll mention some around that a little bit later in this episode.
+
+82
+00:05:14.560 --> 00:05:20.320
+So hopefully that gives you an understanding of the scale and the things that AWS takes care of
+
+83
+00:05:20.320 --> 00:05:25.040
+for us when we use this service. So probably this is a good point now to jump to the first
+
+84
+00:05:25.040 --> 00:05:25.840
+performance tip.
+
+85
+00:06:09.600 --> 00:06:15.280
+... 10,000 parts and you don't even need to upload them in order. So every part is, I think,
+
+86
+00:06:15.280 --> 00:06:19.040
+between the limits. It has to be between five megabytes and five gigabytes per part.
+
+87
+00:06:19.040 --> 00:06:21.920
+So if you've got a three megabyte file, you wouldn't use a multi-part upload for it.
+
+88
+00:06:21.920 --> 00:06:26.880
+It has to be at least five megs. And AWS generally recommend you use something like eight or 16
+
+89
+00:06:26.880 --> 00:06:31.840
+megabytes for your part size. When you upload a single part, S3 will return to an entity tag,
+
+90
+00:06:31.840 --> 00:06:36.720
+also known as an ETag for the part. And you record that with the part number.
+
+91
+00:06:36.720 --> 00:06:41.280
+And when you do the third step in the process, which is complete multi-part upload,
+
+92
+00:06:41.280 --> 00:06:46.160
+then you essentially provide a manifest of all of the part numbers and ETags with that request.
+
+93
+00:06:46.160 --> 00:06:50.480
+You can even send AWS a checksum of the original file to make sure everything was transferred
+
+94
+00:06:50.480 --> 00:06:55.440
+correctly. And it's not a checksum of the entire object, but rather each individual part.
+
+95
+00:06:56.080 --> 00:07:00.160
+There's a link in the show notes to a user guide that will help you to understand that process.
+
+96
+00:07:00.160 --> 00:07:04.800
+You generally don't have to do this yourself since most of the SDKs include some higher level
+
+97
+00:07:04.880 --> 00:07:10.880
+abstraction in the API, or in the SDK for uploads and downloads, actually. But the upload part will
+
+98
+00:07:10.880 --> 00:07:15.920
+generally automatically use multi-part uploads when it makes sense. And we'll provide links to
+
+99
+00:07:15.920 --> 00:07:22.960
+code samples, the SDKs, including one example is the Node.js helper library, which is the lib
+
+100
+00:07:22.960 --> 00:07:28.800
+storage in the AWS SDK version three. You can also do some cool esoteric things with this as well.
+
+101
+00:07:28.800 --> 00:07:33.680
+I remember having a case before when we needed to essentially merge a lot of CSV files. And those
+
+102
+00:07:33.680 --> 00:07:38.480
+CSV files didn't have headers in them. So we were able to do that just using S3 features. Because
+
+103
+00:07:38.480 --> 00:07:41.920
+when you specify a part for a multi-part upload, it doesn't have to be something that's on your
+
+104
+00:07:41.920 --> 00:07:46.240
+client machine, it can also be an existing object on S3. So you can use it just to concatenate a
+
+105
+00:07:46.240 --> 00:07:51.440
+bunch of files on S3 without any of that data, leaving S3 and being transferred to your machine.
+
+106
+00:07:51.440 --> 00:07:56.720
+Now, let's get on to multi-part downloads, or as it's better known, byte range fetches. So when
+
+107
+00:07:56.720 --> 00:08:02.720
+you're doing a get object command, you can specify the start and end range for bytes. And if you want
+
+108
+00:08:02.720 --> 00:08:08.240
+to download the entire file, it's generally not built into the SDKs. But there are examples of
+
+109
+00:08:08.240 --> 00:08:13.040
+doing of implementing this yourself, we'll provide a link to that in the show notes.
+
+110
+00:08:13.040 --> 00:08:18.240
+There is a very interesting podcast episode and a library associated with it from our friends at
+
+111
+00:08:18.240 --> 00:08:23.680
+Cloud or Not. And they had a very specific need for one of their products to download large,
+
+112
+00:08:23.680 --> 00:08:29.280
+large objects from S3 in Node.js and implemented a highly optimized library for it. So you can check
+
+113
+00:08:29.280 --> 00:08:33.200
+that link out in the show notes as well. So that's tip one. Basically, use concurrency,
+
+114
+00:08:33.200 --> 00:08:38.560
+do multi-part uploads and byte range fetches for downloads. What else should we suggest, Luciano?
+
+115
+00:08:38.560 --> 00:08:45.520
+Another common thing is to try to spread the load across different key namespaces. And I
+
+116
+00:08:45.520 --> 00:08:50.080
+think to really understand this one, we need to explain a little bit how some of the details of
+
+117
+00:08:50.080 --> 00:08:56.000
+how S3 stores the object and what are some of the limits. Because if you look at the documentation,
+
+118
+00:08:56.000 --> 00:09:02.320
+what the documentation says is that you can do 3500 put, copy, post, or delete operations,
+
+119
+00:09:02.320 --> 00:09:08.640
+and 5500 get and head operations per prefix. And this is where things get a little bit confusing,
+
+120
+00:09:08.640 --> 00:09:14.240
+because what does it mean per prefix? And if you look at other parts of the documentation,
+
+121
+00:09:14.240 --> 00:09:19.280
+there is an official definition that says a prefix is a string of characters at the beginning of the
+
+122
+00:09:19.280 --> 00:09:23.920
+object key name. A prefix can be of any length, subject to the maximum length of the object key
+
+123
+00:09:23.920 --> 00:09:29.280
+name, which is 1204 bytes. You can think of prefixes as a way to organize your data in a
+
+124
+00:09:29.280 --> 00:09:34.240
+similar way to directories. However, prefixes are not directories. So you can kind of make the
+
+125
+00:09:34.240 --> 00:09:41.600
+parallel that a prefix is like saying, I don't know, "/om," "/luciano," "/documents," and then
+
+126
+00:09:41.600 --> 00:09:46.240
+the name of your object. But behind the scenes, AWS is not really maintaining a file system. It's
+
+127
+00:09:46.240 --> 00:09:50.560
+just a way for you to organize your data. What is interesting, though, is that somehow
+
+128
+00:09:50.560 --> 00:09:56.160
+AWS is using this information to distribute the data across multiple partitions. And this is
+
+129
+00:09:56.160 --> 00:10:00.960
+probably where the limit conversation comes from. You can do a certain amount of operations per
+
+130
+00:10:00.960 --> 00:10:05.200
+prefix, but that probably really means per partition. And this is something that is not
+
+131
+00:10:05.200 --> 00:10:11.520
+always entirely clear. What is the logic that AWS uses there to define how prefix maps to actual
+
+132
+00:10:11.520 --> 00:10:17.680
+physical partitions? So it's something that AWS tries to determine automatically, depending on
+
+133
+00:10:17.680 --> 00:10:23.200
+your usage patterns. But what we have seen in the wild is that if you really do lots of requests,
+
+134
+00:10:23.200 --> 00:10:28.480
+even if you have different prefixes, you can still get throttled and see 503 errors.
+
+135
+00:10:28.480 --> 00:10:34.800
+So it is really important if you're running at such scale to monitor the number of 503s,
+
+136
+00:10:34.800 --> 00:10:39.120
+because if you're using the SDK, there are retries. So eventually you might be able to
+
+137
+00:10:39.120 --> 00:10:43.200
+get your operation successfully performed. But that operation might take a long time,
+
+138
+00:10:43.200 --> 00:10:46.560
+because there is a loop of retries that is happening behind the scenes. So you need to
+
+139
+00:10:46.560 --> 00:10:50.080
+be aware if you're trying to get the best performance when retries are happening.
+
+140
+00:10:50.080 --> 00:10:54.640
+Another interesting thing that we bumped into working with one of our customers
+
+141
+00:10:54.640 --> 00:11:00.480
+is that we were still getting lots of 503s and at some point we decided to talk with support.
+
+142
+00:11:00.480 --> 00:11:06.720
+And it was a long conversation. We got lots of help from AWS, but it seems to be possible to get
+
+143
+00:11:06.720 --> 00:11:11.440
+AWS to tweak whatever is the internal mechanism for your specific use case. So if you're really
+
+144
+00:11:11.440 --> 00:11:14.880
+hitting all these limits and you don't know what else can you do, I think the best course
+
+145
+00:11:14.880 --> 00:11:19.920
+to action right now is to just open a ticket, try to talk with AWS, explain your use case.
+
+146
+00:11:19.920 --> 00:11:25.520
+And I think they might be able to discuss with you very custom options that are the best solution for
+
+147
+00:11:25.520 --> 00:11:30.160
+your particular use case. I think this is still very rare in the industry. We only had one use
+
+148
+00:11:30.160 --> 00:11:35.120
+case, at least that I can remember on in my career. But again, if you happen to do thousands and
+
+149
+00:11:35.120 --> 00:11:39.600
+thousands of requests to AWS per second, it's not unlikely that you're going to bump in this
+
+150
+00:11:39.600 --> 00:11:44.160
+particular limit action. So just be aware that there are solutions, even though the solution is
+
+151
+00:11:44.160 --> 00:11:48.080
+not necessarily well documented, but you can talk with AWS and they will help you to figure out the
+
+152
+00:11:48.080 --> 00:11:53.840
+solution. Overall, the idea is to try to think about namespaces that make sense and then distribute
+
+153
+00:11:53.840 --> 00:11:58.880
+your access, your operations to different namespaces if you want to leverage as much
+
+154
+00:11:59.520 --> 00:12:02.080
+requests per second as possible. What's the next one you have, ...

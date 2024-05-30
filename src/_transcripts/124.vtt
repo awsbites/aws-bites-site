@@ -498,7 +498,7 @@ similar way to directories. However, prefixes are not directories. So you can ki
 
 125
 00:09:34.240 --> 00:09:41.600
-parallel that a prefix is like saying, I don't know, "/om," "/luciano," "/documents," and then
+parallel that a prefix is like saying, I don't know, "/home," "/luciano," "/documents," and then
 
 126
 00:09:41.600 --> 00:09:46.240
@@ -614,1100 +614,1092 @@ your access, your operations to different namespaces if you want to leverage as 
 
 154
 00:11:59.520 --> 00:12:02.080
-requests per second as possible. What's the next one you have, ...
+requests per second as possible. What's the next one you have, Eoin?
 
 155
-00:12:03.118 --> 00:12:04.887
-requests per second as possible. What's
-
-156
-00:12:04.887 --> 00:12:05.654
-the next one you have?
-
-157
 00:12:05.854 --> 00:12:07.523
 The next one is going down to the network
 
-158
+156
 00:12:07.523 --> 00:12:10.526
 level. So it's a fairly common design
 
-159
+157
 00:12:10.526 --> 00:12:12.027
 pattern in networking
 
-160
+158
 00:12:12.161 --> 00:12:14.763
 and files storage to horizontally scale
 
-161
+159
 00:12:14.763 --> 00:12:16.365
 performance using multiple
 
-162
+160
 00:12:16.365 --> 00:12:17.566
 connections. So if you're making
 
-163
+161
 00:12:17.666 --> 00:12:19.702
 requests from one network device to
 
-164
+162
 00:12:19.702 --> 00:12:21.103
 another, you might bump into some
 
-165
+163
 00:12:21.103 --> 00:12:22.271
 bandwidth limits of that
 
-166
+164
 00:12:22.271 --> 00:12:24.573
 device and devices in between. So
 
-167
+165
 00:12:24.573 --> 00:12:25.407
 distributing the requests
 
-168
+166
 00:12:25.407 --> 00:12:27.276
 across multiple devices, multiple
 
-169
+167
 00:12:27.376 --> 00:12:29.144
 end-to-end connections can definitely
 
-170
+168
 00:12:29.144 --> 00:12:30.512
 help you to achieve higher
 
-171
+169
 00:12:30.512 --> 00:12:32.848
 throughput. So if an example of
 
-172
+170
 00:12:32.848 --> 00:12:34.783
 that is born out, again, going back to
 
-173
+171
 00:12:34.783 --> 00:12:37.586
-the Cloudenot example, they realized that
+the Cloudonaut example, they realized that
 
-174
+172
 00:12:37.586 --> 00:12:39.121
 connecting to S3 from
 
-175
+173
 00:12:39.121 --> 00:12:41.056
 an EC2 instance, there's a limit of five
 
-176
+174
 00:12:41.056 --> 00:12:43.025
 gigabits per single VPC flow.
 
-177
+175
 00:12:43.292 --> 00:12:44.393
 And a VPC flow is defined as
 
-178
+176
 00:12:44.493 --> 00:12:46.462
 combination of source IP, source port,
 
-179
+177
 00:12:46.795 --> 00:12:47.763
 and then a destination IP
 
-180
+178
 00:12:47.763 --> 00:12:49.198
 and destination port. And if
 
-181
+179
 00:12:49.198 --> 00:12:51.333
 you're just doing a fairly simple HTTP
 
-182
+180
 00:12:51.333 --> 00:12:54.036
 request to an S3 endpoint, you're going
 
-183
+181
 00:12:54.036 --> 00:12:55.237
 to get a DNS lookup.
 
-184
+182
 00:12:55.604 --> 00:12:57.773
 It's going to give you back an IP or a
 
-185
+183
 00:12:57.773 --> 00:12:58.874
 set of IP addresses. Your
 
-186
+184
 00:12:58.874 --> 00:12:59.708
 client is going to pick one
 
-187
+185
 00:12:59.908 --> 00:13:02.010
 and make the connection to that IP
 
-188
+186
 00:13:02.010 --> 00:13:02.978
 address. But if you're a
 
-189
+187
 00:13:02.978 --> 00:13:04.413
 little bit smarter about it,
 
-190
+188
 00:13:04.413 --> 00:13:07.049
 you can take all of the IP addresses for
 
-191
+189
 00:13:07.049 --> 00:13:09.251
 S3 back and use that to
 
-192
+190
 00:13:09.251 --> 00:13:10.352
 get multiple connections
 
-193
+191
 00:13:10.819 --> 00:13:12.955
 from your source to the destination. And
 
-194
+192
 00:13:12.955 --> 00:13:13.789
 that's exactly what that
 
-195
+193
 00:13:13.789 --> 00:13:15.190
 clever library from Cloudonaut
 
-196
+194
 00:13:15.357 --> 00:13:18.961
 did. It's something this load balancing
 
-197
+195
 00:13:18.961 --> 00:13:20.395
 on the client is
 
-198
+196
 00:13:20.395 --> 00:13:22.831
 something that the AWS CRT,
 
-199
+197
 00:13:22.831 --> 00:13:24.867
 the Common Runtime does as well. So the
 
-200
+198
 00:13:24.867 --> 00:13:26.935
-AWS CS3 library, which is
+AWS CRT library, which is
 
-201
+199
 00:13:26.935 --> 00:13:29.304
-used in the Java SDK and Bodo3
+used in the Java SDK and Boto3
 
-202
+200
 00:13:29.304 --> 00:13:31.907
 as well, has the capability to do that
 
-203
+201
 00:13:31.907 --> 00:13:34.676
 and do all this download performance
 
-204
+202
 00:13:34.676 --> 00:13:35.978
 optimization too. So
 
-205
+203
 00:13:36.011 --> 00:13:37.679
 it's worth checking out. And then as
 
-206
+204
 00:13:37.679 --> 00:13:39.915
 well, on the topic of network
 
-207
+205
 00:13:39.915 --> 00:13:40.949
 connections, different
 
-208
+206
 00:13:40.949 --> 00:13:42.651
 environments vary, different EC2
 
-209
+207
 00:13:42.651 --> 00:13:44.520
 instances have different bandwidth
 
-210
+208
 00:13:44.520 --> 00:13:45.854
 characteristics on the network
 
-211
+209
 00:13:45.854 --> 00:13:47.456
 devices. And then you have enhanced
 
-212
+210
 00:13:47.456 --> 00:13:48.991
 networking and elastic fabric
 
-213
+211
 00:13:48.991 --> 00:13:50.692
 adapter to really squeeze more
 
-214
+212
 00:13:50.692 --> 00:13:52.261
 performance out of it. Also bear in mind
 
-215
+213
 00:13:52.261 --> 00:13:53.262
 that when you're running
 
-216
+214
 00:13:53.262 --> 00:13:54.763
 an AWS Lambda, your network
 
-217
+215
 00:13:54.763 --> 00:13:56.698
 connection size depends on your memory
 
-218
+216
 00:13:56.698 --> 00:13:59.101
 configuration because it's linearly
 
-219
+217
 00:13:59.101 --> 00:14:00.836
 proportional. So if you're
 
-220
+218
 00:14:00.836 --> 00:14:02.805
 finding that bandwidth is a constraint,
 
-221
+219
 00:14:02.805 --> 00:14:03.705
 you might think about,
 
-222
+220
 00:14:03.705 --> 00:14:05.274
 "Okay, well, can I do multiple
 
-223
+221
 00:14:05.474 --> 00:14:07.476
 downloads and multiple functions or do I
 
-224
+222
 00:14:07.476 --> 00:14:08.210
 just need to up the
 
-225
+223
 00:14:08.210 --> 00:14:10.112
 memory so that I get maximum IO
 
-226
+224
 00:14:10.112 --> 00:14:12.014
 throughput on that as well?" So that's
 
-227
+225
 00:14:12.014 --> 00:14:13.515
 the lower level performance
 
-228
+226
 00:14:13.515 --> 00:14:15.651
-tips. What else do we have,
+tips. What else do we have, Luciano?
 
-229
+227
 00:14:15.651 --> 00:14:18.320
-Luciano? Another interesting one is the
+Another interesting one is the
 
-230
+228
 00:14:18.320 --> 00:14:20.189
 usage of the edge. Let's
 
-231
+229
 00:14:20.189 --> 00:14:21.657
 call it like that. The idea is
 
-232
+230
 00:14:21.657 --> 00:14:23.392
 that you can enable something like Amazon
 
-233
+231
 00:14:23.392 --> 00:14:25.093
 S3 transfer acceleration.
 
-234
+232
 00:14:25.427 --> 00:14:26.862
 This is more when you have
 
-235
+233
 00:14:26.862 --> 00:14:28.730
 use cases where you might, for instance,
 
-236
+234
 00:14:28.964 --> 00:14:30.065
 be building a web
 
-237
+235
 00:14:30.065 --> 00:14:31.600
 application and you might have users
 
-238
+236
 00:14:31.934 --> 00:14:33.769
 that are connecting from all around the
 
-239
+237
 00:14:33.769 --> 00:14:35.170
 globe. And of course, if you
 
-240
+238
 00:14:35.170 --> 00:14:37.906
 store your data in a bucket
 
-241
+239
 00:14:37.906 --> 00:14:40.375
 that exists only one region, you might
 
-242
+240
 00:14:40.375 --> 00:14:42.177
 have good latency for all
 
-243
+241
 00:14:42.177 --> 00:14:43.345
 the users that are close to the
 
-244
+242
 00:14:43.345 --> 00:14:45.247
 region and very poor latency for all the
 
-245
+243
 00:14:45.247 --> 00:14:46.048
 other users that may be
 
-246
+244
 00:14:46.048 --> 00:14:47.416
 very far away from the region.
 
-247
+245
 00:14:47.683 --> 00:14:48.884
 So one way that you can solve this
 
-248
+246
 00:14:48.884 --> 00:14:50.085
 particular problem and give
 
-249
+247
 00:14:50.085 --> 00:14:52.454
 more or less similar performance
 
-250
+248
 00:14:52.454 --> 00:14:54.189
 to all the users, regardless of where
 
-251
+249
 00:14:54.189 --> 00:14:55.557
 they are around the globe, is
 
-252
+250
 00:14:55.557 --> 00:14:56.758
 to enable this feature called
 
-253
+251
 00:14:56.925 --> 00:14:58.827
 transfer acceleration. And there are some
 
-254
+252
 00:14:58.827 --> 00:15:00.195
 data that AWS shares in
 
-255
+253
 00:15:00.195 --> 00:15:01.163
 their marketing page where
 
-256
+254
 00:15:01.230 --> 00:15:03.298
 they say that this can improve as much as
 
-257
+255
 00:15:03.298 --> 00:15:06.134
 between 50 and 500% performance for
 
-258
+256
 00:15:06.134 --> 00:15:07.169
 long-distance transfer
 
-259
+257
 00:15:07.169 --> 00:15:09.404
 of large objects. So that means, imagine
 
-260
+258
 00:15:09.404 --> 00:15:12.307
 that you have a bucket somewhere in
 
-261
+259
 00:15:12.307 --> 00:15:13.475
 Europe and a user from
 
-262
+260
 00:15:13.609 --> 00:15:15.410
 Australia is connected to that bucket.
 
-263
+261
 00:15:15.644 --> 00:15:16.511
 You can imagine that there
 
-264
+262
 00:15:16.511 --> 00:15:17.512
 is by default significant
 
-265
+263
 00:15:17.679 --> 00:15:19.314
 latency, but enabling this kind of
 
-266
+264
 00:15:19.314 --> 00:15:20.849
 feature will reduce that latency
 
-267
+265
 00:15:20.849 --> 00:15:22.384
 significantly. And this is
 
-268
+266
 00:15:22.384 --> 00:15:23.719
 a feature that you need to enable
 
-269
+267
 00:15:23.719 --> 00:15:25.220
 because, of course, there is a
 
-270
+268
 00:15:25.220 --> 00:15:26.555
 significant complexity to
 
-271
+269
 00:15:27.189 --> 00:15:29.324
 make all of this happen for you. Data is
 
-272
+270
 00:15:29.324 --> 00:15:30.325
 replicated effectively
 
-273
+271
 00:15:30.325 --> 00:15:31.393
 around the globe for you.
 
-274
+272
 00:15:31.793 --> 00:15:33.629
 So it's something that you enable it and
 
-275
+273
 00:15:33.629 --> 00:15:35.163
 you need to be aware that you pay a
 
-276
+274
 00:15:35.163 --> 00:15:36.198
 premium price for it.
 
-277
+275
 00:15:36.198 --> 00:15:37.966
 So it's not a free feature. So of course,
 
-278
+276
 00:15:37.966 --> 00:15:38.901
 it makes sense to use it
 
-279
+277
 00:15:38.901 --> 00:15:40.168
 only when you really have that
 
-280
+278
 00:15:40.168 --> 00:15:42.170
 particular type of use case, not just
 
-281
+279
 00:15:42.170 --> 00:15:43.472
 enable it because it might
 
-282
+280
 00:15:43.472 --> 00:15:44.840
 seem like a convenient thing to
 
-283
+281
 00:15:44.840 --> 00:15:47.276
 do. And if you know CloudFront, this
 
-284
+282
 00:15:47.276 --> 00:15:49.177
 feature is effectively leveraging
 
-285
+283
 00:15:49.177 --> 00:15:50.712
 CloudFront under the hood
 
-286
+284
 00:15:50.812 --> 00:15:52.948
 and is just distributing the data across
 
-287
+285
 00:15:52.948 --> 00:15:55.050
 different edge locations and then using
 
-288
+286
 00:15:55.751 --> 00:15:58.287
 the AWS Packable Networks to make sure
 
-289
+287
 00:15:58.287 --> 00:15:59.688
 that the connection between
 
-290
+288
 00:15:59.688 --> 00:16:01.723
 your actual region and the edge
 
-291
+289
 00:16:01.723 --> 00:16:04.159
 location is as fast as it could be. This
 
-292
+290
 00:16:04.159 --> 00:16:04.927
 is a feature that you need
 
-293
+291
 00:16:04.927 --> 00:16:06.328
 to enable at the bucket level.
 
-294
+292
 00:16:06.662 --> 00:16:09.498
 So you just go to the bucket setting and
 
-295
+293
 00:16:09.498 --> 00:16:10.532
 you can enable it there
 
-296
+294
 00:16:10.532 --> 00:16:12.901
 either from the UI or with the CLI.
 
-297
+295
 00:16:13.569 --> 00:16:15.971
 And effectively, then when you want to
 
-298
+296
 00:16:15.971 --> 00:16:18.674
 download a file from S3
 
-299
+297
 00:16:18.674 --> 00:16:19.741
 using this particular feature,
 
-300
+298
 00:16:19.875 --> 00:16:21.843
 you have to specify a special endpoint
 
-301
+299
 00:16:21.843 --> 00:16:22.678
 that is called
 
-302
+300
 00:16:22.678 --> 00:16:26.982
-https_s3-escalerate.amazon.ws.com.
+https://s3-accelerate.amazonaws.com
 
-303
+301
 00:16:26.982 --> 00:16:28.684
 So that basically, rather than going
 
-304
+302
 00:16:28.684 --> 00:16:30.485
 directly through the bucket endpoint,
 
-305
+303
 00:16:30.819 --> 00:16:32.087
 is going to go through this special
 
-306
+304
 00:16:32.087 --> 00:16:34.189
 endpoint that uses the Edge Network.
 
-307
+305
 00:16:34.489 --> 00:16:36.291
 Now we can give you a lot more details,
 
-308
+306
 00:16:36.291 --> 00:16:37.626
 but it's probably going to be more useful
 
-309
+307
 00:16:37.759 --> 00:16:39.494
 for you to redirect to the documentation
 
-310
+308
 00:16:39.494 --> 00:16:40.796
 page. We have a link in the
 
-311
+309
 00:16:40.796 --> 00:16:41.830
 show notes if we're curious
 
-312
+310
 00:16:41.830 --> 00:16:43.498
 to really find out how do you really
 
-313
+311
 00:16:43.498 --> 00:16:45.167
 enable this and kind of how
 
-314
+312
 00:16:45.167 --> 00:16:46.468
 to with all the steps that you
 
-315
+313
 00:16:46.501 --> 00:16:47.936
 need to follow if you really want to
 
-316
+314
 00:16:47.936 --> 00:16:49.471
 implement this particular feature.
 
-317
+315
 00:16:49.805 --> 00:16:52.307
 And the other option is if you are just
 
-318
+316
 00:16:52.307 --> 00:16:53.375
 building a website, for
 
-319
+317
 00:16:53.375 --> 00:16:54.810
 instance, and you want to make sure
 
-320
+318
 00:16:54.810 --> 00:16:56.712
 that all the static assets of that
 
-321
+319
 00:16:56.712 --> 00:16:58.480
 website are available in the edge
 
-322
+320
 00:16:58.480 --> 00:17:00.148
 locations, you can use
 
-323
+321
 00:17:00.148 --> 00:17:03.652
 CloudFront directly. So you just enable a
 
-324
+322
 00:17:03.652 --> 00:17:04.586
 CloudFront distribution.
 
-325
+323
 00:17:04.886 --> 00:17:06.388
 CloudFront is effectively a CDN.
 
-326
+324
 00:17:06.755 --> 00:17:08.824
 So that will make your object available
 
-327
+325
 00:17:08.824 --> 00:17:10.892
 in different locations
 
-328
+326
 00:17:10.892 --> 00:17:11.893
 around the world. AWS
 
-329
+327
 00:17:11.927 --> 00:17:13.929
 claims that they have about 400 edge
 
-330
+328
 00:17:13.929 --> 00:17:15.197
 locations. So this is
 
-331
+329
 00:17:15.197 --> 00:17:16.131
 probably going to have a good
 
-332
+330
 00:17:16.164 --> 00:17:18.333
 coverage for all around the globe. And
 
-333
+331
 00:17:18.333 --> 00:17:19.534
 yeah, if you're doing all
 
-334
+332
 00:17:19.534 --> 00:17:20.402
 of that, there is another
 
-335
+333
 00:17:20.402 --> 00:17:22.371
 extra advantage because at that point you
 
-336
+334
 00:17:22.371 --> 00:17:23.205
 are serving an entire
 
-337
+335
 00:17:23.205 --> 00:17:24.973
 website from an S3 bucket.
 
-338
+336
 00:17:25.240 --> 00:17:28.310
 But if you just enable the S3 website
 
-339
+337
 00:17:28.310 --> 00:17:29.945
 feature, that by default is
 
-340
+338
 00:17:29.945 --> 00:17:31.913
 only HTTP, which is not really
 
-341
+339
 00:17:31.913 --> 00:17:33.749
 ideal these days. You probably want to
 
-342
+340
 00:17:33.749 --> 00:17:36.018
 have HTTPS. When you use CloudFront, you
 
-343
+341
 00:17:36.018 --> 00:17:37.252
 also get support for
 
-344
+342
 00:17:37.252 --> 00:17:39.554
 HTTPS. So that's one more reason to use
 
-345
+343
 00:17:39.554 --> 00:17:40.889
 CloudFront when you are
 
-346
+344
 00:17:40.889 --> 00:17:42.391
 serving just static assets for a
 
-347
+345
 00:17:42.391 --> 00:17:44.760
 website. That I think concludes this tip.
 
-348
+346
 00:17:45.093 --> 00:17:46.028
 So what do we have next?
 
-349
+347
 00:17:46.328 --> 00:17:48.230
 The next one and final one is a bit neat
 
-350
+348
 00:17:48.230 --> 00:17:49.898
 maybe, but if your
 
-351
+349
 00:17:49.898 --> 00:17:52.267
 application relates to tabular data,
 
-352
+350
 00:17:52.267 --> 00:17:54.803
 like analytics or data science, you can
 
-353
+351
 00:17:54.803 --> 00:17:55.871
 leverage some of the
 
-354
+352
 00:17:55.871 --> 00:17:57.305
 great tools that optimize data
 
-355
+353
 00:17:57.305 --> 00:17:59.508
 retrieval from S3 for you to avoid
 
-356
+354
 00:17:59.508 --> 00:18:01.510
 reading data that you don't need. And
 
-357
+355
 00:18:01.510 --> 00:18:02.577
 this goes back to our
 
-358
+356
 00:18:02.577 --> 00:18:04.746
 byte range fetch really, but it's also
 
-359
+357
 00:18:04.746 --> 00:18:06.515
 saying some of the tools are already
 
-360
+358
 00:18:06.515 --> 00:18:07.349
 doing this for you on
 
-361
+359
 00:18:07.349 --> 00:18:08.684
 the hood and you don't even really need
 
-362
+360
 00:18:08.684 --> 00:18:10.318
 to think about how it works. And the
 
-363
+361
 00:18:10.318 --> 00:18:11.186
 simplest one of all is
 
-364
+362
 00:18:11.219 --> 00:18:13.789
 S3 Select. This is an S3 API. It's
 
-365
+363
 00:18:13.789 --> 00:18:15.257
 available in all the SDKs
 
-366
+364
 00:18:15.257 --> 00:18:16.992
 and in the console. And it's
 
-367
+365
 00:18:17.225 --> 00:18:18.593
 pretty straightforward. It allows you to
 
-368
+366
 00:18:18.593 --> 00:18:19.928
 retrieve specific rows and
 
-369
+367
 00:18:19.928 --> 00:18:21.830
 columns of data from S3 using
 
-370
+368
 00:18:21.830 --> 00:18:24.833
 a simple SQL-like syntax. So you could do
 
-371
+369
 00:18:24.833 --> 00:18:26.635
 select columns from table,
 
-372
+370
 00:18:26.902 --> 00:18:28.070
 where, and put some simple
 
-373
+371
 00:18:28.070 --> 00:18:29.304
 where clause. There's no joins or
 
-374
+372
 00:18:29.304 --> 00:18:30.205
 anything complicated like
 
-375
+373
 00:18:30.205 --> 00:18:31.073
 that in it. It's just for
 
-376
+374
 00:18:31.073 --> 00:18:32.674
 a single table. And that avoids you
 
-377
+375
 00:18:32.674 --> 00:18:33.775
 having to retrieve large
 
-378
+376
 00:18:33.775 --> 00:18:35.110
 volumes of data over the network
 
-379
+377
 00:18:35.277 --> 00:18:37.112
 and you push the heavy lifting onto S3.
 
-380
+378
 00:18:37.379 --> 00:18:37.779
 Now, if you're doing
 
-381
+379
 00:18:37.779 --> 00:18:38.613
 something a bit more complicated
 
-382
+380
 00:18:38.814 --> 00:18:41.216
 and you're in this space, you might be
 
-383
+381
 00:18:41.216 --> 00:18:42.250
 familiar with the arrow,
 
-384
+382
 00:18:42.451 --> 00:18:43.685
 which is core to a lot of these
 
-385
+383
 00:18:43.685 --> 00:18:45.454
 data science tools, the arrow library and
 
-386
+384
 00:18:45.454 --> 00:18:47.055
 format tools built on top
 
-387
+385
 00:18:47.055 --> 00:18:48.690
 of it, like pandas and polars
 
-388
+386
 00:18:48.690 --> 00:18:51.793
 and DuckDB. These all ensure you don't
 
-389
+387
 00:18:51.793 --> 00:18:52.561
 have to read all of the
 
-390
+388
 00:18:52.561 --> 00:18:53.829
 data if you don't need it,
 
-391
+389
 00:18:53.829 --> 00:18:55.764
 particularly if you're using optimized
 
-392
+390
 00:18:55.764 --> 00:18:57.532
 column number formats like
 
-393
+391
 00:18:57.532 --> 00:18:59.101
 Parquet. All of these tools
 
-394
+392
 00:18:59.101 --> 00:19:01.636
 can intelligently like with Parquet file,
 
-395
+393
 00:19:01.636 --> 00:19:02.504
 for example, the
 
-396
+394
 00:19:02.504 --> 00:19:03.872
 metadata describing what data is
 
-397
+395
 00:19:03.872 --> 00:19:05.607
 in it is at the bottom of it. So those
 
-398
+396
 00:19:05.607 --> 00:19:06.942
 tools will go read the
 
-399
+397
 00:19:06.942 --> 00:19:08.310
 footer from the Parquet file,
 
-400
+398
 00:19:08.510 --> 00:19:09.611
 then they can figure out where the
 
-401
+399
 00:19:09.611 --> 00:19:10.479
 columns are stored in the
 
-402
+400
 00:19:10.479 --> 00:19:12.380
 file and where the row groups are
 
-403
+401
 00:19:12.414 --> 00:19:14.316
 that's split into groups. And then they
 
-404
+402
 00:19:14.316 --> 00:19:15.317
 can retrieve only the
 
-405
+403
 00:19:15.317 --> 00:19:16.818
 data you need. Polars and
 
-406
+404
 00:19:16.818 --> 00:19:19.454
 DuckDB are particularly fast when it
 
-407
+405
 00:19:19.454 --> 00:19:20.388
 comes to this kind of use
 
-408
+406
 00:19:20.388 --> 00:19:21.723
 case. They'll leverage those
 
-409
+407
 00:19:21.723 --> 00:19:23.825
 byte range queries automatically for you
 
-410
+408
 00:19:23.825 --> 00:19:26.094
 and are surprisingly fast
 
-411
+409
 00:19:26.094 --> 00:19:27.596
 in how they can run and are
 
-412
+410
 00:19:27.596 --> 00:19:29.131
 already putting a lot of engineering
 
-413
+411
 00:19:29.131 --> 00:19:30.732
 effort into optimizing things
 
-414
+412
 00:19:30.732 --> 00:19:32.400
 like object retrieval from S3.
 
-415
+413
 00:19:32.667 --> 00:19:34.436
 So you don't even have to think about it.
 
-416
+414
 00:19:34.703 --> 00:19:35.437
 So in terms of additional
 
-417
+415
 00:19:35.437 --> 00:19:36.471
 resources, we're going to
 
-418
+416
 00:19:36.471 --> 00:19:38.173
 throw a bunch of links in the show notes,
 
-419
+417
 00:19:38.173 --> 00:19:39.307
 which we hope are valuable,
 
-420
+418
 00:19:39.641 --> 00:19:40.775
 including some performance
 
-421
+419
 00:19:40.775 --> 00:19:43.145
 guidelines on S3 and design patterns.
 
-422
+420
 00:19:43.445 --> 00:19:45.046
 Apart from that, let us know if you have
 
-423
+421
 00:19:45.046 --> 00:19:46.047
 any more S3 performance
 
-424
+422
 00:19:46.148 --> 00:19:47.682
 tips. I'm sure there's more out there.
 
-425
+423
 00:19:47.883 --> 00:19:48.583
 Just let us know in the
 
-426
+424
 00:19:48.583 --> 00:19:49.784
 comments. Thanks very much for
 
-427
+425
 00:19:49.784 --> 00:19:51.887
 joining us this time, and we'll see you
 
-428
+426
 00:19:51.887 --> 00:19:52.888
 in the next episode.

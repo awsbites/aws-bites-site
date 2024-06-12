@@ -1,0 +1,1677 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:03.120
+A couple of weeks ago, AWS announced a new open source tool,
+
+2
+00:00:03.120 --> 00:00:07.440
+CloudFront Hosting Toolkit, a new tool that promises to streamline the experience
+
+3
+00:00:07.440 --> 00:00:12.960
+of deploying front-end applications to AWS while retaining full control of the underlying infrastructure.
+
+4
+00:00:12.960 --> 00:00:17.440
+We are particularly excited about this announcement because it was recognized by some people in the community
+
+5
+00:00:17.440 --> 00:00:20.320
+as the AWS response to something like Vercel.
+
+6
+00:00:20.320 --> 00:00:24.560
+We took CloudFront Hosting Toolkit for a spin and we are eager to tell you what we found out.
+
+7
+00:00:24.560 --> 00:00:28.160
+In this episode, we'll discuss all about CloudFront and Toolkit,
+
+8
+00:00:28.160 --> 00:00:33.360
+but we will also talk about modern front-ends and what's the expectation for a modern web application these days,
+
+9
+00:00:33.360 --> 00:00:36.640
+brought from a user perspective, so visiting an application,
+
+10
+00:00:36.640 --> 00:00:39.920
+but also from a developer perspective, so building that kind of application.
+
+11
+00:00:39.920 --> 00:00:45.600
+We will then discuss CloudFront Hosting Toolkit and see how it stands against this way of seeing modern front-ends.
+
+12
+00:00:45.600 --> 00:00:50.400
+My name is Luciano and as always, I'm joined by Eoin for another episode of AWS Bites podcast.
+
+13
+00:00:58.400 --> 00:01:04.000
+AWS Bites is brought to you by fourTheorem, an AWS consulting partner with tons of experience with AWS.
+
+14
+00:01:04.000 --> 00:01:08.960
+If you need someone to help you with your ambitious AWS projects, check out fourTheorem.com.
+
+15
+00:01:08.960 --> 00:01:12.160
+You can contact us directly using the links in the show notes.
+
+16
+00:01:12.160 --> 00:01:17.360
+So maybe we can start this episode by describing what a modern front-end application looks like
+
+17
+00:01:17.360 --> 00:01:22.080
+because for many years, the golden standard of front-end application has been single page applications.
+
+18
+00:01:22.080 --> 00:01:26.320
+And if you're not familiar with that definition, a single page application is effectively,
+
+19
+00:01:26.320 --> 00:01:31.920
+you can imagine like a single HTML shell that is loaded and that shell only loads some JavaScript.
+
+20
+00:01:31.920 --> 00:01:35.760
+And inside that JavaScript, you have all the logic that your application needs.
+
+21
+00:01:35.760 --> 00:01:41.360
+So that JavaScript will do client-side routing, which basically means that once the application is loaded,
+
+22
+00:01:41.360 --> 00:01:47.200
+there is JavaScript logic that will look at the current URL and decide which components need to be mounted
+
+23
+00:01:47.200 --> 00:01:50.480
+or unmounted to effectively refresh the page dynamically.
+
+24
+00:01:50.480 --> 00:01:56.240
+It will also do client-side HTTP requests, something that has been called originally Ajax requests.
+
+25
+00:01:56.240 --> 00:01:58.880
+In the past, now it's more called fetch requests.
+
+26
+00:01:58.880 --> 00:02:03.120
+But the idea is that once the application is loaded, it doesn't really have any dynamic data,
+
+27
+00:02:03.120 --> 00:02:05.280
+something that you might keep, for instance, in a database.
+
+28
+00:02:05.280 --> 00:02:10.240
+So whenever you need to load dynamic data, you need to do HTTP requests to a backend API,
+
+29
+00:02:10.240 --> 00:02:14.160
+and that API will give you the dynamic data that then can be displayed in the page.
+
+30
+00:02:14.160 --> 00:02:18.320
+So this basically means that you can also the entire front-end as a static website
+
+31
+00:02:18.320 --> 00:02:20.960
+in something like CloudFront, for instance.
+
+32
+00:02:20.960 --> 00:02:24.240
+And the great part of all of this is that you don't need a backend at all.
+
+33
+00:02:24.240 --> 00:02:29.120
+It's just static files. The browser can load them, and all the business logic needed for your front-end
+
+34
+00:02:29.120 --> 00:02:31.840
+exists in those JavaScript files loaded by the browser.
+
+35
+00:02:31.840 --> 00:02:35.600
+And this keeps things very simple, and it can be also very cost efficient,
+
+36
+00:02:35.600 --> 00:02:40.400
+because once you host in S3 and CloudFront, that can scale to a massive amount,
+
+37
+00:02:40.400 --> 00:02:42.000
+still with very little cost.
+
+38
+00:02:42.000 --> 00:02:46.560
+The main frameworks that emerged in the last decade that try to cover this kind of use cases
+
+39
+00:02:46.560 --> 00:02:48.560
+are probably React, Vue, and Angular.
+
+40
+00:02:48.560 --> 00:02:51.520
+There are so many others, and your framework comes out every week.
+
+41
+00:02:51.520 --> 00:02:55.280
+But these are probably the three main ones that you will find in most projects.
+
+42
+00:02:55.280 --> 00:02:59.120
+Now, there are some problems with this approach, this SPA's approach.
+
+43
+00:02:59.120 --> 00:03:03.600
+One problem is that you have perceived loading times that can be very long.
+
+44
+00:03:03.600 --> 00:03:07.920
+And this is because until all the JavaScript is loaded in the page, you basically see an empty page.
+
+45
+00:03:07.920 --> 00:03:12.640
+You see just a white screen, and it might look like the website is broken if it takes too long.
+
+46
+00:03:12.640 --> 00:03:17.040
+And with some framework, it's actually very easy to forget to do some optimization,
+
+47
+00:03:17.040 --> 00:03:20.880
+and you might end up with your JavaScript bundle that can be multiple megabytes.
+
+48
+00:03:20.880 --> 00:03:25.360
+So really, lots of people might have this risk if they underestimate the effort and
+
+49
+00:03:25.360 --> 00:03:28.240
+optimize the JavaScript code that you just deploy your application,
+
+50
+00:03:28.240 --> 00:03:32.240
+you expect everything works perfectly, but then the user has a very bad experience.
+
+51
+00:03:32.240 --> 00:03:35.760
+We also mentioned that all dynamic data needs to be loaded externally.
+
+52
+00:03:35.760 --> 00:03:38.960
+So that means that for all the kind of stuff, you need to build your own API,
+
+53
+00:03:38.960 --> 00:03:44.320
+you need to deploy that API independently, and then your UI still needs to fetch all of that
+
+54
+00:03:44.320 --> 00:03:48.400
+data, which might add to the delay before the user can see something useful.
+
+55
+00:03:48.400 --> 00:03:53.360
+And that also creates some SEO problems because search engines will access your website,
+
+56
+00:03:53.360 --> 00:03:58.320
+but then everything is happening after JavaScript is loaded, and not every search engine will
+
+57
+00:03:58.320 --> 00:04:02.480
+actually wait for that amount of time or even try to run JavaScript.
+
+58
+00:04:02.480 --> 00:04:08.880
+So your indexing against search engines might be not necessarily the best because it's going to be
+
+59
+00:04:08.880 --> 00:04:12.640
+very unpredictable what different engines will be able to see from your website.
+
+60
+00:04:12.640 --> 00:04:17.600
+So to address all these problems in the last few years, this trend of building UIs has evolved a
+
+61
+00:04:17.600 --> 00:04:22.000
+little bit, and it seems like we are going back to server-side rendering. So what we used to do
+
+62
+00:04:22.000 --> 00:04:27.040
+in the times of PHP, Ruby or Rails, Django, basically you always have a server that's
+
+63
+00:04:27.040 --> 00:04:31.920
+generating all the HTML, all the JavaScript, CSS for your websites, and you can generate all of
+
+64
+00:04:31.920 --> 00:04:36.080
+that stuff dynamically. So whenever you need to read data from a database, your server will do
+
+65
+00:04:36.080 --> 00:04:40.000
+that, compile the final page for the user, and then send all the assets to that.
+
+66
+00:04:40.000 --> 00:04:44.800
+So in the JavaScript space, there are some new tools that have emerged to try to satisfy this
+
+67
+00:04:44.800 --> 00:04:50.080
+need, and probably one of the main ones is Next.js. And Next.js basically allows you to do
+
+68
+00:04:50.080 --> 00:04:54.400
+everything still with JavaScript. So you will be able to use, for instance, if you like React,
+
+69
+00:04:54.400 --> 00:04:59.200
+you will be able to use React components both on the client-side and the server-side. And Next.js
+
+70
+00:04:59.200 --> 00:05:04.000
+gives you an experience, a development experience, where it's easy to perform actions on the server
+
+71
+00:05:04.000 --> 00:05:08.320
+and pre-generate content, ship that content directly to the user, so it's going to be loaded
+
+72
+00:05:08.320 --> 00:05:13.040
+very quickly. And then whenever you need to do something client-side, you can still use all the
+
+73
+00:05:13.040 --> 00:05:17.440
+tools that you generally use with React and do client-side stuff. So it's kind of an hybrid,
+
+74
+00:05:17.440 --> 00:05:21.360
+where in the same application, you can define all the backend logic and the frontend logic,
+
+75
+00:05:21.360 --> 00:05:26.560
+and wherever you need to share components, Next.js makes it very easy. Now, Next.js is an open source
+
+76
+00:05:26.560 --> 00:05:30.560
+project that is built and maintained by Vercel. And of course, Vercel has an interest in that
+
+77
+00:05:30.560 --> 00:05:35.360
+project because they have a commercial offering where they make it very, very easy to host Next.js
+
+78
+00:05:35.360 --> 00:05:40.080
+projects and more. And we think that their experience is actually very interesting.
+
+79
+00:05:40.080 --> 00:05:45.200
+So maybe we should talk a little bit more about that, just to see how this tool announced by AWS
+
+80
+00:05:45.200 --> 00:05:49.120
+compares to that kind of experience.
+
+81
+00:05:49.120 --> 00:05:55.120
+The number one thing that you'd think about when you think about Vercel is probably the developer experience. And that involves how easy is it to get up and
+
+82
+00:05:55.120 --> 00:06:00.960
+running and deploy your first application and keep it running. And the zero-config nature of Vercel
+
+83
+00:06:00.960 --> 00:06:04.960
+is probably one of its best selling points because it's just very easy to connect your GitHub repo
+
+84
+00:06:04.960 --> 00:06:10.320
+and have something deployed in a couple of minutes. It doesn't just limit itself to Next.js
+
+85
+00:06:10.320 --> 00:06:14.880
+as well. It supports many other frameworks out of the box. And when you deploy it, you get the
+
+86
+00:06:14.880 --> 00:06:20.480
+automated deployment from your repo, but you also get custom domains and your HTTPS certificates
+
+87
+00:06:20.480 --> 00:06:25.520
+are going to be provisioned for you. And then it'll also scale on demand for you. So it's
+
+88
+00:06:25.520 --> 00:06:29.280
+using other cloud providers under the hood, including AWS, and it's managing all of the
+
+89
+00:06:29.280 --> 00:06:35.040
+scalability. But as well as just scaling within regions on cloud providers, it's also edge
+
+90
+00:06:35.040 --> 00:06:40.240
+optimized. So it's doing edge up deployments as well to various CDNs and running a lot of those
+
+91
+00:06:40.240 --> 00:06:45.280
+server actions and server component rendering on the edge for low latency. One of the really
+
+92
+00:06:45.280 --> 00:06:49.440
+cool things is that if you're working with branches, it will give you preview deployments
+
+93
+00:06:49.440 --> 00:06:53.520
+from your branches. So this means that right away, when you create a feature branch or a fixed branch,
+
+94
+00:06:53.520 --> 00:06:57.360
+and you're working on something, you immediately get a preview URL that you can share with
+
+95
+00:06:57.360 --> 00:07:02.720
+stakeholders. And one of the cool features of that is that your participants can annotate
+
+96
+00:07:02.720 --> 00:07:07.520
+and make comments in line in your preview environment. So you can iterate really quickly
+
+97
+00:07:07.520 --> 00:07:12.560
+with feedback. It also has a whole set of other integrations with other products like databases,
+
+98
+00:07:12.560 --> 00:07:16.320
+you can get a Postgres database up and running pretty quickly. You get logs,
+
+99
+00:07:16.320 --> 00:07:22.480
+they've been putting a lot of investment into AI support recently, CMS integration, and also other
+
+100
+00:07:22.480 --> 00:07:27.680
+things like analytics and important security aspects as well. So there's a whole lot to love
+
+101
+00:07:27.680 --> 00:07:32.480
+about Vercel, but they're not a sponsor of this episode. So while we like the developer experience
+
+102
+00:07:32.480 --> 00:07:36.720
+and the feature set, it's still a software as a service, and you have a build or buy decision,
+
+103
+00:07:36.720 --> 00:07:41.520
+and you have to evaluate the vendor on their own merits. If you want some more control autonomy
+
+104
+00:07:41.520 --> 00:07:46.480
+around the infrastructure, you might want to deploy it to your own AWS account. And Vercel
+
+105
+00:07:46.480 --> 00:07:50.640
+isn't something that will allow you to do that. So if you use Vercel, you don't have a lot of
+
+106
+00:07:50.640 --> 00:07:55.760
+visibility into how your code is deployed and where it's going under the hood. And especially
+
+107
+00:07:55.760 --> 00:08:00.240
+in the context of working with enterprise organizations, there are a lot of good reasons
+
+108
+00:08:00.240 --> 00:08:06.320
+to avoid Vercel and to host front end applications yourself directly on AWS. So where do we start?
+
+109
+00:08:06.320 --> 00:08:10.160
+If we want to host a front end on AWS, this is something that we've talked about a lot. It's a
+
+110
+00:08:10.160 --> 00:08:15.680
+bit of a bugbear of ours, I suppose, just trying to find the right most optimal way to host static
+
+111
+00:08:15.680 --> 00:08:20.160
+websites. We covered it in one of the very first episodes, episode three, how do you deploy a static
+
+112
+00:08:20.160 --> 00:08:25.360
+website on AWS? And then back in episode 80, we were talking specifically about private static
+
+113
+00:08:25.360 --> 00:08:30.320
+websites for enterprises. And there was always, it's always a trade off, no clear winner there.
+
+114
+00:08:30.320 --> 00:08:35.280
+But now AWS has announced a new open source tool to help you tackle this problem. And this is the
+
+115
+00:08:35.280 --> 00:08:40.000
+CloudFront hosting toolkit. So this certainly got a lot of people's attention, a lot of people
+
+116
+00:08:40.000 --> 00:08:45.040
+talking because just you only have to mention Vercel competitor to get people's ears pricked
+
+117
+00:08:45.040 --> 00:08:51.520
+up. And Luciano, you've been good enough to take a good look at this for us. So maybe your best
+
+118
+00:08:51.520 --> 00:08:57.040
+place to give us an introduction, what is this CloudFront hosting toolkit and what can we do
+
+119
+00:08:57.040 --> 00:09:01.040
+with it?
+
+120
+00:09:01.040 --> 00:09:06.560
+Yeah, if you look at the announcement blog post, we will have a link in the show notes, they describe this tool as an open source command line interface to help you deploy fast and secure
+
+121
+00:09:06.560 --> 00:09:11.440
+front ends in the cloud. So that kind of tells you what is the ambition of the tool. And the idea is
+
+122
+00:09:11.440 --> 00:09:15.040
+to try to remove as much as possible the complexity of setting up everything you need
+
+123
+00:09:15.040 --> 00:09:21.280
+to run your own front end on AWS. So you have a CLI, you run the CLI, it can, once you install it
+
+124
+00:09:21.280 --> 00:09:24.640
+and run it against your particular repository where you are building your own front end,
+
+125
+00:09:24.640 --> 00:09:29.600
+it can detect the framework of choice. For instance, Next.js is one of the supported ones.
+
+126
+00:09:29.600 --> 00:09:33.520
+And at that point, it can start to generate configuration for you, for instance, recognizing
+
+127
+00:09:33.520 --> 00:09:38.720
+how do you build for this particular front end. It integrates with your repository. Right now,
+
+128
+00:09:38.720 --> 00:09:44.000
+it supports GitHub. And basically what it does, the CLI will allow you to connect your GitHub
+
+129
+00:09:44.000 --> 00:09:48.560
+with a build pipeline hosted in AWS. And also at that point, it can create all the necessary
+
+130
+00:09:48.560 --> 00:09:53.360
+resources. So for instance, what do you need to host a front end? You would need an S3 bucket,
+
+131
+00:09:53.360 --> 00:09:58.000
+you would need the CloudFront distribution, DNS record, TLS certificates, and more. It will create
+
+132
+00:09:58.000 --> 00:10:02.160
+all of that stuff for you using infrastructure as code. So you don't really need to worry about
+
+133
+00:10:02.160 --> 00:10:06.560
+basically coding all these things or figuring out where to find all of the examples to put all these
+
+134
+00:10:06.560 --> 00:10:10.880
+things together. So that removes a lot of the friction of self-hosting your own front ends.
+
+135
+00:10:10.880 --> 00:10:15.440
+And everything that it does, as I said, is done through infrastructure as code, and it's made very
+
+136
+00:10:15.440 --> 00:10:19.760
+accessible. It's still deploying through CloudFormation so you can see exactly what's
+
+137
+00:10:19.760 --> 00:10:24.080
+being deployed. You have configuration files that gets generated for you. So you have also
+
+138
+00:10:24.080 --> 00:10:28.880
+opportunities to still sticking with the same process that is given to you by the CLI. You can
+
+139
+00:10:28.880 --> 00:10:33.200
+tweak and configure certain things to your liking. And then even if at the end of the day, you still
+
+140
+00:10:33.200 --> 00:10:36.960
+want to change more, all the infrastructure is there, all the CloudFormation is there.
+
+141
+00:10:36.960 --> 00:10:41.600
+So you can take that and do further customization if you need to. And somewhere else, I think in the
+
+142
+00:10:41.600 --> 00:10:47.200
+repository, they say something that to me represents the ambition of this project. And it reads us,
+
+143
+00:10:47.200 --> 00:10:51.760
+gives you the convenience of a managed service while putting you in full control of the hosting
+
+144
+00:10:51.760 --> 00:10:57.040
+infrastructure and deployment pipelines to make it your own. So that's a good marketing phrase to
+
+145
+00:10:57.040 --> 00:11:01.360
+say, yes, we want to make it easy for you, but at the end of the day, this is your own infrastructure.
+
+146
+00:11:01.760 --> 00:11:04.480
+You'll have access to it and you'll be able to change everything you need.
+
+147
+00:11:04.480 --> 00:11:06.400
+You can have your cake and eat it.
+
+148
+00:11:06.400 --> 00:11:11.120
+Something like that, yes. But now we get to the more painful notes, I guess, because yeah,
+
+149
+00:11:11.120 --> 00:11:16.720
+just to be real, we need to say that the current state is still a version 1.0 and it's still very,
+
+150
+00:11:16.720 --> 00:11:21.600
+very early. Well, it was announced only a few weeks ago and it's fair to say that it's still
+
+151
+00:11:21.600 --> 00:11:26.000
+very early days. So if our feedback is going to look a little bit harsh in some parts,
+
+152
+00:11:26.000 --> 00:11:30.080
+at the same time, you have to think that this is an evolving project. It's only early stages,
+
+153
+00:11:30.080 --> 00:11:34.800
+so it can only get better. So let's be fair in that sense. So if you look at the supported
+
+154
+00:11:34.800 --> 00:11:40.400
+feature, right now it supports everything that you need to host an SPA that is statically generated.
+
+155
+00:11:40.400 --> 00:11:44.880
+And that is a very important note because it means that right now you cannot do any server
+
+156
+00:11:44.880 --> 00:11:48.960
+side rendering. By default, it doesn't support any of that. So in a way, it's still a little
+
+157
+00:11:48.960 --> 00:11:54.480
+bit behind the current trends. And if you use, for instance, Next.js, Next.js allows you to do
+
+158
+00:11:54.480 --> 00:12:00.640
+websites that are only static generated with some tweaking in the configuration and just by not
+
+159
+00:12:00.640 --> 00:12:05.360
+using certain specific features, you can do that. But you need to be aware that this is an existing
+
+160
+00:12:05.360 --> 00:12:09.440
+limitation. If you want to use this tool with Next.js, you can only use the features that are
+
+161
+00:12:09.440 --> 00:12:15.840
+supported with the pre-rendered static version of the website. The other feature is that, as we said,
+
+162
+00:12:15.840 --> 00:12:20.720
+integrates really well with GitHub for version control. It's going to do for you atomic and
+
+163
+00:12:20.720 --> 00:12:25.840
+immutable Eastern deploys on CloudFront. We'll talk a little bit more about that later. It's a
+
+164
+00:12:25.840 --> 00:12:30.160
+pretty cool implementation. So I think it's worth spending some time on how all of that works.
+
+165
+00:12:30.160 --> 00:12:36.080
+It's a CLI tool, so very easy to install with NPM, very easy to run it in any new project. It takes
+
+166
+00:12:36.080 --> 00:12:40.880
+literally a few seconds just to get started. And also it does security and caching best practices.
+
+167
+00:12:40.880 --> 00:12:44.880
+So all of these things are already incorporated in the generated infrastructure. So one less
+
+168
+00:12:44.880 --> 00:12:49.120
+thing to worry about because if you were doing all of this yourself, maybe you get something working
+
+169
+00:12:49.120 --> 00:12:53.840
+after a few hours of investigation and trainings, but then at the end of the day, you might still be
+
+170
+00:12:53.840 --> 00:12:57.840
+unsure on whether that's something that can be production ready or not. This tool removes a
+
+171
+00:12:57.840 --> 00:13:02.160
+little bit of that concern because it's already following tons of best practices that have been
+
+172
+00:13:02.160 --> 00:13:06.800
+established in the AWS landscape for the last few years. And then it allows you to use custom
+
+173
+00:13:06.800 --> 00:13:12.640
+domains. So if you want to host your own front end in your own custom domain, all of that process
+
+174
+00:13:12.640 --> 00:13:18.080
+is streamlined. It's going to integrate with Route 53 and generate the necessary records,
+
+175
+00:13:18.080 --> 00:13:22.880
+generate the TLS certificates for you, and make sure everything is integrated properly. If you
+
+176
+00:13:22.880 --> 00:13:27.120
+don't have a custom domain, it's going to use a CloudFront domain for you. And finally, there is
+
+177
+00:13:27.120 --> 00:13:32.640
+also a CDK level three construct for the toolkit that can be used as an alternative for the CLI.
+
+178
+00:13:32.640 --> 00:13:37.120
+So that's maybe another option if you prefer to go more with something that is integrated with your
+
+179
+00:13:37.120 --> 00:13:42.960
+own CDK rather than using the CLI. But I mentioned atomic and immutable instant deploys, which is a
+
+180
+00:13:42.960 --> 00:13:47.360
+little bit of a mouthful. So do we want to try to explain what that really is and how it is
+
+181
+00:13:47.360 --> 00:13:52.560
+implemented? Yeah, it's pretty neat.
+
+182
+00:13:52.560 --> 00:13:57.520
+It uses CloudFront functions and CloudFront key value store, which you may not have come across. Let's go through these fundamental pieces of CloudFront
+
+183
+00:13:57.520 --> 00:14:03.120
+first. So CloudFront functions are a little bit like CloudFlare workers, I guess, or other edge
+
+184
+00:14:03.120 --> 00:14:07.520
+functions that you might've come across. They're like a much simpler version of Lambda because you
+
+185
+00:14:07.520 --> 00:14:13.120
+also have Lambda at the edge, but Lambda at the edge is more like a fully fledged Lambda,
+
+186
+00:14:13.120 --> 00:14:18.960
+although not quite. CloudFront functions are just more like lightweight JavaScript isolated
+
+187
+00:14:18.960 --> 00:14:24.960
+contexts that are much more efficient, but also restricted in terms of what packages you can use
+
+188
+00:14:24.960 --> 00:14:29.840
+and that sort of thing. So you could use CloudFront functions for writing lightweight functions for
+
+189
+00:14:30.400 --> 00:14:37.920
+high-scale latency-sensitive CDN customizations like redirects or request response modification,
+
+190
+00:14:38.400 --> 00:14:43.600
+URL rewrites, that sort of thing. And then you have CloudFront key value store. And this is a
+
+191
+00:14:43.600 --> 00:14:48.800
+bit like a simplified version of DynamoDB that runs on the edge. And we've seen this kind of
+
+192
+00:14:48.800 --> 00:14:56.000
+service from CloudFront, sorry, from CloudFlare as well. It's a global low latency key value store,
+
+193
+00:14:56.000 --> 00:15:01.760
+and it allows you to read from CloudFront functions. And by having that state in your
+
+194
+00:15:01.760 --> 00:15:07.280
+key value store, you can do more customizable logic at the edge functions. So when you have
+
+195
+00:15:07.360 --> 00:15:13.200
+CloudFront key value store, you can make updates to function code and updates to the data associated
+
+196
+00:15:13.200 --> 00:15:18.160
+with the function independently of each other. This kind of separation will simplify your
+
+197
+00:15:18.160 --> 00:15:22.160
+functions code and makes it easy to update data without the need to deploy code changes.
+
+198
+00:15:23.040 --> 00:15:27.520
+Now, when it comes back to this CloudFront hosting toolkit, the basic idea is that every time you
+
+199
+00:15:27.520 --> 00:15:32.800
+want to deploy a new version of your front end, rather than replacing the entire content of the
+
+200
+00:15:32.800 --> 00:15:38.000
+S3 bucket hosting your assets or overwriting, you'll create a new unique deployment ID and
+
+201
+00:15:38.000 --> 00:15:43.120
+host all the files for a deployment version in a dedicated prefix, like a subfolder. So let's say
+
+202
+00:15:43.120 --> 00:15:47.280
+your first deployment ID is version one, then it'll create a prefix like slash version one.
+
+203
+00:15:47.280 --> 00:15:53.840
+And then within that, you'll have your index.html and your bundled JavaScript. And then with your
+
+204
+00:15:53.840 --> 00:15:58.240
+second deployment, it would be version two under a slash version two prefix. So when a user will
+
+205
+00:15:58.240 --> 00:16:05.600
+try to access a page by doing get index.html, this request goes to CloudFront first and the
+
+206
+00:16:05.600 --> 00:16:10.320
+CloudFront function is the first bit of logic that gets evaluated. It can go to the CloudFront
+
+207
+00:16:10.320 --> 00:16:14.480
+key value store to read the ID of the latest deployed version. And the function will then
+
+208
+00:16:14.480 --> 00:16:20.080
+rewrite the URL to point to the specific assets in the S3 origin for that current version.
+
+209
+00:16:20.080 --> 00:16:25.840
+So if you're going, making a request to get slash about that would become get slash version two
+
+210
+00:16:26.160 --> 00:16:31.680
+slash about dot html, for example. So then it'll load that specific asset from S3 or cache and
+
+211
+00:16:31.680 --> 00:16:35.440
+return it to the user. And then when you have a new deployment, it'll just create a new prefix
+
+212
+00:16:35.440 --> 00:16:40.000
+in S3 to host all those assets. When all is done, the new version ID is stored in that key value
+
+213
+00:16:40.000 --> 00:16:43.840
+store. And the next time somebody is accessing the website, they'll get the latest version. Now,
+
+214
+00:16:43.840 --> 00:16:47.920
+there's a few nice things about this approach. It's an immutable deployment approach, which means
+
+215
+00:16:47.920 --> 00:16:52.880
+that every deployment is clean and new, and you can troubleshoot it in its own space. But you also
+
+216
+00:16:52.960 --> 00:16:57.920
+retain older versions, which would make it easy to do rollbacks if you have to do that. There is
+
+217
+00:16:57.920 --> 00:17:01.840
+little risk then that a user will receive assets from different versions, which is a common problem
+
+218
+00:17:01.840 --> 00:17:07.440
+if you're just kind of overwriting into a single prefix in S3 or if they're accessing the website
+
+219
+00:17:07.440 --> 00:17:13.120
+during an update. The other nice thing about this is that it could easily support preview
+
+220
+00:17:13.120 --> 00:17:17.440
+environments. But we haven't seen anything showing that this is supported yet in CloudFront hosting
+
+221
+00:17:17.440 --> 00:17:22.560
+toolkit, but it seems like this kind of architecture would certainly enable it. So
+
+222
+00:17:22.560 --> 00:17:27.920
+maybe let's talk about your real world practice. You've taken it for a good test drive CloudFront
+
+223
+00:17:27.920 --> 00:17:32.160
+hosting toolkit, and you've had some successes and some bumps in the road Luciano.
+
+224
+00:17:34.800 --> 00:17:41.520
+So I'm going to try to describe the steps that I performed to try to test this tool and the different things that I found out.
+
+225
+00:17:41.520 --> 00:17:45.680
+And hopefully that can give you an idea of how the tool works, the kind of developer experience
+
+226
+00:17:45.760 --> 00:17:51.200
+you get and what gets created for you behind the scenes. So I started with a plain vanilla Next.js
+
+227
+00:17:51.200 --> 00:17:56.960
+project. There is one CLI command that you can find in the Next.js documentation that basically
+
+228
+00:17:56.960 --> 00:18:02.960
+uses a starter kit. And that starter kit is just a simple repo where you have a one Next.js page
+
+229
+00:18:02.960 --> 00:18:08.560
+that points you to the documentation, to the about page and a few other simple things. So effectively
+
+230
+00:18:08.560 --> 00:18:13.520
+it's like one page application, and it's like a static, statically renderable application because
+
+231
+00:18:13.520 --> 00:18:18.000
+it doesn't really do any server side action or anything like that. So you run this first command,
+
+232
+00:18:18.000 --> 00:18:22.720
+this command will do all the scaffolding for you. At that point, you can do npm install to install
+
+233
+00:18:22.720 --> 00:18:27.360
+the dependencies. And if you want to run your frontend locally, just to see it running and play
+
+234
+00:18:27.360 --> 00:18:32.640
+around with it, you can just say npm run dev, and that will give you locally an environment that you
+
+235
+00:18:32.640 --> 00:18:36.880
+can use to tweak things around. Then at some point you are maybe happy with it and you want to try to
+
+236
+00:18:36.880 --> 00:18:41.440
+deploy it using this CloudFront hosting toolkit. The first thing you need to do is install the
+
+237
+00:18:41.440 --> 00:18:46.640
+toolkit itself. We said it's a CLN application, it's built with Node.js. So of course Node.js
+
+238
+00:18:46.640 --> 00:18:52.800
+becomes a requirement at that point. But once you do that, you can easily install with MPX or just
+
+239
+00:18:52.800 --> 00:18:59.600
+by doing an npm install global of the art AWS slash CloudFront dash hosting dash toolkit. And
+
+240
+00:18:59.600 --> 00:19:04.240
+that will basically pull the latest version of the toolkit for you in your local development
+
+241
+00:19:04.240 --> 00:19:08.160
+environment. Now the idea is that you need to use it against an existing repository. So this is why
+
+242
+00:19:08.160 --> 00:19:14.000
+I created an XJS project first. Once I did all of that and I was happy with the outcome, then you
+
+243
+00:19:14.000 --> 00:19:19.760
+can start the tool. And the way you start the tool, you go with your CLI into the specific folder where
+
+244
+00:19:19.760 --> 00:19:24.880
+you have your frontend application and you just run CloudFront dash hosting dash toolkit space
+
+245
+00:19:24.880 --> 00:19:30.160
+init. That's literally the one command you need to run. And at that point, you have a guided process
+
+246
+00:19:30.160 --> 00:19:35.120
+that will effectively ask you some questions to try to understand how to deploy this project for
+
+247
+00:19:35.120 --> 00:19:39.280
+you. And the first question that it's going to ask is what is your repository? And of course,
+
+248
+00:19:39.280 --> 00:19:44.480
+it's going to be able to auto detect it from the current working folder. If you have already
+
+249
+00:19:44.480 --> 00:19:48.800
+initialized that as a Git repository and it's hosted on GitHub, it's going to automatically
+
+250
+00:19:48.800 --> 00:19:52.880
+complete that particular question. But you can change it if you have different requirements,
+
+251
+00:19:52.880 --> 00:19:57.440
+or maybe if you haven't set up the repo yet locally, you can still point it to a repo that
+
+252
+00:19:57.440 --> 00:20:02.160
+you have set up already remotely on GitHub. The next step is going to ask you the name of the
+
+253
+00:20:02.160 --> 00:20:07.840
+branch for deployments. It defaults to main, but I think you can use this if you want to change that
+
+254
+00:20:07.840 --> 00:20:12.560
+to something else. Maybe you want to have a branch called deployment or deploy that you specifically,
+
+255
+00:20:12.560 --> 00:20:16.400
+when you want to trigger a deploy, you can decide which branch is actually going to trigger the
+
+256
+00:20:16.400 --> 00:20:21.440
+deployments that way. The next question is what is your framework of choice? And here, you have a few
+
+257
+00:20:21.440 --> 00:20:27.200
+frameworks that are supported. AngularJS, Next.js, React, Vue.js. There is another one which is
+
+258
+00:20:27.200 --> 00:20:31.680
+no build required, which basically means everything that is in the main folder is going to
+
+259
+00:20:31.680 --> 00:20:37.040
+be deployed. And I think this is for static websites that don't require a build process. Maybe
+
+260
+00:20:37.040 --> 00:20:41.840
+you just created a few simple HTML, CSS, and JavaScript files. You have them there and you just
+
+261
+00:20:41.840 --> 00:20:46.080
+want to deploy them. The cool thing here is that it was able to automatically detect that I was
+
+262
+00:20:46.080 --> 00:20:51.680
+using Next.js. So that option was already selected for me. I just needed to hit enter and proceed.
+
+263
+00:20:51.680 --> 00:20:56.640
+But of course, you can change that if maybe it's not able to detect your framework, or maybe you
+
+264
+00:20:56.640 --> 00:21:00.960
+are actually using something else and it didn't really detect it correctly. The next step is
+
+265
+00:21:01.600 --> 00:21:07.200
+asking you if you want to use a specific domain name, or if you want to use the default CloudFront
+
+266
+00:21:07.200 --> 00:21:11.920
+domains. In this particular case, I didn't have a domain, so I just went with the CloudFront one,
+
+267
+00:21:11.920 --> 00:21:16.400
+which maybe is a little bit of a simpler path. I'd be curious to try it again with a custom domain,
+
+268
+00:21:16.400 --> 00:21:21.120
+just to see all the extra resources that it needs to create to support that. But I haven't done that
+
+269
+00:21:21.120 --> 00:21:25.280
+yet. Once you've done all of this, this is basically the initial setup. So it's basically
+
+270
+00:21:25.280 --> 00:21:30.240
+making sure that it understands your project and the configuration of your project. But at that
+
+271
+00:21:30.240 --> 00:21:34.160
+point, it can start to generate things for you. And it's interesting to see that it generates a
+
+272
+00:21:34.160 --> 00:21:39.440
+folder called the CloudFront-hosting-toolkit. And in this folder, it will generate three files for
+
+273
+00:21:39.440 --> 00:21:44.160
+you. The first file is a code build job configuration. So it's basically the YAML file
+
+274
+00:21:44.160 --> 00:21:48.320
+that contains all of that configuration. And this is awesome because that means that if you want to
+
+275
+00:21:48.320 --> 00:21:52.800
+change anything in the pre-generated build step, because it's kind of assuming, okay, this is a
+
+276
+00:21:52.800 --> 00:21:57.920
+Next.js project. I know how to build a Next.js project, but maybe you have additional requirements.
+
+277
+00:21:57.920 --> 00:22:02.000
+Maybe you want to do additional things that are not the standard way of building an Next.js website.
+
+278
+00:22:02.000 --> 00:22:07.280
+You can easily change all the steps and customize it to your liking without having to change the
+
+279
+00:22:07.280 --> 00:22:11.760
+toolkit or having to change anything else in the infrastructure as code. So it's just this one file
+
+280
+00:22:11.760 --> 00:22:16.560
+allows you to change things. It also generates in this folder the CloudFront function that is used
+
+281
+00:22:16.560 --> 00:22:21.840
+for URL rewriting, the one you described before, Eoin. And you can see all the JavaScript code that
+
+282
+00:22:21.840 --> 00:22:26.640
+is being generated. So also there, you have an opportunity to change things around. Maybe you can,
+
+283
+00:22:26.640 --> 00:22:31.040
+I don't know, add some extra logic to check if there is a query string parameter that says
+
+284
+00:22:31.040 --> 00:22:36.000
+version equals something. Maybe you can actually enable that feature preview that way and by
+
+285
+00:22:36.000 --> 00:22:39.600
+yourself, assuming that it's not supported yet. But basically, this is just to tell you that you
+
+286
+00:22:39.600 --> 00:22:43.840
+have one file with all the logic that are visible. It's easy to change. And if you change it, this is
+
+287
+00:22:43.840 --> 00:22:48.560
+what's going to get deployed for you. And then finally, there is a generic JSON file that contains
+
+288
+00:22:48.560 --> 00:22:54.240
+all the options that were requested to you in the initial init phase. So if you change your mind,
+
+289
+00:22:54.240 --> 00:22:58.000
+maybe you don't want to deploy from main anymore, you want to deploy from another branch, you can
+
+290
+00:22:58.000 --> 00:23:02.880
+easily change that JSON file to get your base configuration updated. At that point, what you
+
+291
+00:23:02.880 --> 00:23:09.200
+can do is that you can effectively deploy. At this point, you haven't deployed anything. You just
+
+292
+00:23:09.200 --> 00:23:13.360
+generated these three configuration files, but those three configuration files are enough for
+
+293
+00:23:13.360 --> 00:23:18.080
+you to start the deployment. So you can run another command called cloudfront-osting-toolkit
+
+294
+00:23:18.080 --> 00:23:22.000
+space deploy. And what it's going to do is basically going to take all these three generated
+
+295
+00:23:22.000 --> 00:23:27.040
+files as an input, and it's going to create all the necessary cloud formation templates to deploy
+
+296
+00:23:27.040 --> 00:23:31.760
+everything else that we described before. So it's three buckets, cloud front, the distributions,
+
+297
+00:23:31.760 --> 00:23:36.480
+the cloud front function, the cloud front key value storage, and there is a lot more. You can
+
+298
+00:23:36.480 --> 00:23:41.200
+check out, there is a diagram in the announcement page and in the repository showing exactly all the
+
+299
+00:23:41.200 --> 00:23:45.280
+resources that get created and how they are related to each other. And this is also going
+
+300
+00:23:45.280 --> 00:23:49.840
+to do a few other things. So initially it's going to bootstrap your AWS account, which I think it
+
+301
+00:23:49.840 --> 00:23:54.320
+means it's going to create a dedicated street bucket for the deployments. It's going to create
+
+302
+00:23:54.320 --> 00:23:58.480
+the repository, the CodeStar integration. And actually the CodeStar integration is really
+
+303
+00:23:58.480 --> 00:24:02.960
+interesting because what it does the first time you need to manually confirm that connection
+
+304
+00:24:02.960 --> 00:24:07.600
+between your GitHub account and AWS. And it's something that you have to do in a browser where
+
+305
+00:24:07.600 --> 00:24:12.160
+you are effectively authenticated on both sides. So what it's going to do is going to generate
+
+306
+00:24:12.160 --> 00:24:16.800
+the request for you. Then it's going to redirect you to the AWS console and in the AWS console,
+
+307
+00:24:16.800 --> 00:24:21.760
+you can click to basically connect your own GitHub account. To be honest, this was amazing to see on
+
+308
+00:24:21.760 --> 00:24:25.680
+one side, but on the other side, in my case, it was a little bit annoying because I use,
+
+309
+00:24:25.680 --> 00:24:30.480
+when I access to AWS, I generally use anonymous sessions because I might have sessions for
+
+310
+00:24:30.480 --> 00:24:34.320
+different AWS accounts. So when I was trying to connect to GitHub, it didn't have my own
+
+311
+00:24:34.400 --> 00:24:39.840
+credentials. And it took me a while to connect into that anonymous environment with GitHub,
+
+312
+00:24:39.840 --> 00:24:45.360
+asking you MFA and confirmation by email, just because they see that it's a different session
+
+313
+00:24:45.360 --> 00:24:49.920
+that you haven't used before. But eventually I managed to get it working. And then all the
+
+314
+00:24:49.920 --> 00:24:56.240
+local setup was done. The remote setup was done on AWS. And you just need to click enter to say
+
+315
+00:24:56.240 --> 00:25:01.920
+that you successfully connected GitHub with AWS. And then at that point it's going to proceed with
+
+316
+00:25:01.920 --> 00:25:06.800
+the cloud formation deployment. Now, at this point, I had a problem because once everything
+
+317
+00:25:06.800 --> 00:25:11.920
+is deployed for you, it's also going to try to run the code build for the first time and try to do a
+
+318
+00:25:11.920 --> 00:25:16.000
+first deployment of your front-end application. Like if you were doing your first commit,
+
+319
+00:25:16.000 --> 00:25:21.440
+basically. And that one actually failed because there is an issue with the version of Next.js
+
+320
+00:25:21.440 --> 00:25:26.480
+that I'm using. I'm using the very latest version and that latest version doesn't support Next
+
+321
+00:25:26.480 --> 00:25:32.400
+export, which is what the default build pipeline is using to create the static version of the
+
+322
+00:25:32.400 --> 00:25:37.360
+website. Now, this is something you can easily fix. You just need to create a Next config.js file,
+
+323
+00:25:37.360 --> 00:25:41.520
+do the modern way of saying that you want to produce a static website, which is just like
+
+324
+00:25:41.520 --> 00:25:45.840
+one option, I think it's export static or something like that. Commit that into your own
+
+325
+00:25:45.840 --> 00:25:51.040
+repository. And of course you also need to update the code build pipeline, not to use Next export
+
+326
+00:25:51.040 --> 00:25:55.680
+anymore, because at that point, when you do Next build, it's already creating the final version of
+
+327
+00:25:55.680 --> 00:25:59.920
+your website for deployment. And this is basically where I stopped, but I could see that everything
+
+328
+00:25:59.920 --> 00:26:04.320
+was generated correctly. I could see that if I was doing another commit, the build pipeline would
+
+329
+00:26:04.320 --> 00:26:08.960
+trigger automatically and do all of the deployment we described. So I think even though there are
+
+330
+00:26:08.960 --> 00:26:13.680
+some steps that might be a little bit annoying, overall, that experience was quite pleasant.
+
+331
+00:26:13.680 --> 00:26:18.080
+I don't know what you think so far, and if you have any final consideration on your end.
+
+332
+00:26:18.160 --> 00:26:22.880
+You know, we talked about this kind of stuff when we were talking about CDK in previous episodes.
+
+333
+00:26:22.880 --> 00:26:28.880
+I personally have a bias against code, sorry, against tools that generate code that introduce
+
+334
+00:26:28.880 --> 00:26:33.120
+another level of abstraction, mainly because it's just another, you have to understand kind of
+
+335
+00:26:33.120 --> 00:26:37.600
+what's going on under the hood, and then also what's happening in this abstraction layer. And
+
+336
+00:26:37.600 --> 00:26:41.280
+if, especially with a tool like this that might not be perfectly stable yet, you might wonder,
+
+337
+00:26:41.280 --> 00:26:46.000
+will it suddenly generate a completely different set of infrastructure that might make it difficult
+
+338
+00:26:46.000 --> 00:26:51.200
+to do seamless upgrades? And I'd much prefer to spend the time to provision all of the
+
+339
+00:26:51.200 --> 00:26:56.720
+infrastructure myself and really understand it more often than not. But I can certainly see
+
+340
+00:26:56.720 --> 00:27:01.280
+the value in it, because I have been in a case recently where I've been trying to deploy a static
+
+341
+00:27:01.280 --> 00:27:06.400
+version, like a SPA version of an XJS app, with only client-side rendering, with static export
+
+342
+00:27:06.400 --> 00:27:11.920
+to CloudFront, and it's definitely not a trivial thing. So I think there's, I definitely commend
+
+343
+00:27:11.920 --> 00:27:17.520
+the effort here to get all of this stuff working. It's not an easy thing to do, and it does provide
+
+344
+00:27:17.520 --> 00:27:23.200
+like a good blueprint for people to get started with it. So while my bias isn't necessarily drawn
+
+345
+00:27:23.200 --> 00:27:28.240
+to a tool like this, I think it is pretty promising. I think there's some really good
+
+346
+00:27:28.240 --> 00:27:32.160
+ideas in here, like the immutable deployments, and it seems to be simple enough to use. There's
+
+347
+00:27:32.160 --> 00:27:36.000
+obviously some rough edges that need to be polished. The fact that it doesn't support
+
+348
+00:27:36.000 --> 00:27:40.080
+server-side rendering may be a bit of a blocker for a lot of people at this point. Let's hope
+
+349
+00:27:40.080 --> 00:27:46.080
+we'll see a bit of evolution there. I mean, I kind of think back to one of the previous
+
+350
+00:27:46.080 --> 00:27:50.880
+releases from AWS we covered, which was the integration testing toolkit, the IITK,
+
+351
+00:27:50.880 --> 00:27:55.840
+and it was also a similar kind of review, like a lot of promising stuff, but needs more work.
+
+352
+00:27:55.840 --> 00:28:00.160
+And when I went back to look at that recently, because I did use it in a side project,
+
+353
+00:28:01.040 --> 00:28:06.640
+it doesn't seem to have actually evolved that much. So I know, we know that AWS likes to
+
+354
+00:28:06.640 --> 00:28:11.120
+release things early and get feedback from the user base, but let's hope that this one
+
+355
+00:28:11.120 --> 00:28:14.480
+sees the love and attention that we need. What's your take?
+
+356
+00:28:14.480 --> 00:28:18.800
+Yeah, I absolutely agree with everything you said.
+
+357
+00:28:18.800 --> 00:28:24.880
+A few things that I can mention in addition to that is that I was able to fix an initial issue that I had with the CLI not
+
+358
+00:28:24.880 --> 00:28:30.480
+installing properly. So I just submitted a PR and I was impressed to see how quickly I got a review.
+
+359
+00:28:30.480 --> 00:28:37.200
+The PR was properly commented and released and very quickly all happened in the span of an hour.
+
+360
+00:28:37.200 --> 00:28:42.000
+And the problem was fixed immediately. The maintainer was extremely welcoming. So that's
+
+361
+00:28:42.000 --> 00:28:46.960
+definitely a good thing to see. And I think that creates a big opportunity for everyone that wants
+
+362
+00:28:46.960 --> 00:28:51.520
+to contribute to this kind of project to be able to do that. It seems really like a very welcoming
+
+363
+00:28:51.520 --> 00:28:56.080
+environment for people to contribute. So maybe if the tool doesn't have all the things you need
+
+364
+00:28:56.080 --> 00:29:00.160
+and you are willing to invest a little bit on it, definitely think about contributing and
+
+365
+00:29:00.160 --> 00:29:04.160
+giving back and working with the maintainer to get to the point where this tool is actually
+
+366
+00:29:04.160 --> 00:29:09.440
+going to be helpful for you and for other people. So that's absolutely a plus one for the tool and
+
+367
+00:29:09.440 --> 00:29:14.480
+the current maintaining team. Another thing that I think is worth mentioning is that there is another
+
+368
+00:29:14.480 --> 00:29:19.200
+walkthrough by our friend Sandro Volpicella. We will have the link in the show notes. He has also
+
+369
+00:29:19.200 --> 00:29:24.080
+done a similar kind of test ride of the tool and wrote a blog post detailing all the things that
+
+370
+00:29:24.080 --> 00:29:28.080
+he found out. I think there is even a few more things that he explains. Like for instance,
+
+371
+00:29:28.080 --> 00:29:31.920
+there is a step function that is used for updating the versions and he also goes through on
+
+372
+00:29:31.920 --> 00:29:36.240
+how that works and why it needs to be there and maybe how it can be improved. So if you want to
+
+373
+00:29:36.240 --> 00:29:40.160
+do an additional deep dive on the technology and get another perspective on the tool,
+
+374
+00:29:40.160 --> 00:29:44.400
+definitely recommend to read that blog post. And then finally, I think it's worth mentioning a
+
+375
+00:29:44.400 --> 00:29:48.800
+few potential alternatives because we are effectively working with a customer that might
+
+376
+00:29:48.800 --> 00:29:53.120
+need this kind of stuff. So we are doing lots of research on what are the possible options there.
+
+377
+00:29:53.120 --> 00:29:57.280
+And it's also a topic we are really passionate about. As you can see, we keep talking about this.
+
+378
+00:29:58.080 --> 00:30:02.160
+So other things that we think are going to be suitable, for instance, you can more or less
+
+379
+00:30:02.160 --> 00:30:06.640
+relatively easy, you should be able to create a container and then run that container with a Next
+
+380
+00:30:06.640 --> 00:30:11.440
+JS application with full server-side rendering either on a Prunner or Fargate. But then of course,
+
+381
+00:30:11.440 --> 00:30:15.520
+you have something that is running 24 seven. So maybe not necessarily what you want to do if you
+
+382
+00:30:15.520 --> 00:30:19.680
+want a more serverless approach. And in that front, there is another project that seems very
+
+383
+00:30:19.680 --> 00:30:25.120
+promising that is called OpenNext, which we haven't tried yet, but in the docs, it says that it also
+
+384
+00:30:25.120 --> 00:30:30.720
+supports server-side rendering on Lambda. So that seems maybe a closer re-implementation of what
+
+385
+00:30:30.720 --> 00:30:35.520
+Vercel does for you, but that you can deploy on your own on AWS. It's definitely worth a look.
+
+386
+00:30:35.520 --> 00:30:40.160
+And hopefully we will have time to try it out and maybe give you an overview of what that looks like.
+
+387
+00:30:40.160 --> 00:30:44.320
+Similarly, there is another project called Coolify, which is a little bit more generic.
+
+388
+00:30:44.960 --> 00:30:50.640
+It's probably a modern take on Heroku. So it allows you to host your own bus and it does that
+
+389
+00:30:50.640 --> 00:30:56.240
+in a serverless way. But as such, you should be able to host a container that you can run with
+
+390
+00:30:56.240 --> 00:31:00.560
+everything you need to run an Next JS project. So another thing that we really like to try,
+
+391
+00:31:00.560 --> 00:31:05.200
+we haven't had the time yet, but if we do try it, we'll let you know our findings. And finally,
+
+392
+00:31:05.200 --> 00:31:10.240
+there is Amplify, which always gets mentioned every time that people talk about Vercel versus
+
+393
+00:31:10.240 --> 00:31:14.880
+AWS. I don't personally have an opinion on that one because I haven't really used Amplify much.
+
+394
+00:31:14.880 --> 00:31:18.560
+So, oh, and I'll leave it to you to mention something about Amplify if you want.
+
+395
+00:31:18.640 --> 00:31:21.840
+I've looked at, you know, I don't have a huge amount of experience either.
+
+396
+00:31:21.840 --> 00:31:27.920
+I've used the Amplify CLI and the client SDK a lot. The managed side of Amplify is a whole other set of features.
+
+397
+00:31:27.920 --> 00:31:34.720
+Like they allow you to easily provision storage and hosting and all sorts of other stuff. I know
+
+398
+00:31:34.720 --> 00:31:40.320
+that they've introduced a new generation two, and I'd love to do an episode on that in the future.
+
+399
+00:31:40.880 --> 00:31:45.520
+But from what I can see with the new generation two Amplify, it's also solving the same sort of
+
+400
+00:31:45.520 --> 00:31:50.560
+problem in a much more managed service kind of way. So it seems a little bit more like an AWS
+
+401
+00:31:50.560 --> 00:31:56.960
+managed Vercel alternative. And I think from what I've seen so far, a lot of work has gone into
+
+402
+00:31:56.960 --> 00:32:00.480
+that. I haven't tried it, so I don't know exactly what the experience is like. Let us know if you
+
+403
+00:32:00.480 --> 00:32:06.240
+have, because I'd love to know. I have seen some online discussion. Actually Yan Shui was
+
+404
+00:32:07.200 --> 00:32:13.040
+mentioning the release of the CloudFront hosting toolkit. And one of the principal essays at AWS
+
+405
+00:32:13.040 --> 00:32:16.800
+was answering the question, well, why did you actually create this tool when you already have
+
+406
+00:32:16.800 --> 00:32:21.680
+Amplify? And it seems like they explained pretty clearly that strategically they're basically
+
+407
+00:32:21.680 --> 00:32:25.200
+saying, if you want to manage service, use Amplify. But if you want a little bit more
+
+408
+00:32:25.200 --> 00:32:28.960
+control over the infrastructure and you're really just looking for something to generate that
+
+409
+00:32:28.960 --> 00:32:34.880
+blueprint infrastructure, then that's what the CloudFront hosting toolkit is aimed to solve for
+
+410
+00:32:34.880 --> 00:32:39.200
+you. So at least that gives you the right kind of context for deciding which approach you might like
+
+411
+00:32:39.200 --> 00:32:42.960
+to take. Awesome. And I think that covers everything we wanted to cover for today.
+
+412
+00:32:43.520 --> 00:32:48.240
+Let us know if you had a chance to try the tool yourself and what is your opinion, or if you've
+
+413
+00:32:48.240 --> 00:32:52.640
+used any other alternative tool, what do you use and whether you like it or not. I think this is
+
+414
+00:32:52.640 --> 00:32:57.440
+still a topic that deserves a lot of attention. I don't think there is a final solution that is
+
+415
+00:32:57.440 --> 00:33:03.200
+going to fit all the use cases. So I'm really good to see... Well, unless you use PHP and become a
+
+416
+00:33:03.200 --> 00:33:09.120
+millionaire that way. But yeah, let us know what are you using today. And I'm curious to see how
+
+417
+00:33:09.120 --> 00:33:12.320
+this space is going to evolve in the next few years, because I think there is still a lot of
+
+418
+00:33:12.320 --> 00:33:16.640
+innovation that needs to happen in this space to fit all the different use cases that people
+
+419
+00:33:16.640 --> 00:33:25.680
+have today. So thank you very much, and we'll see you in the next episode.

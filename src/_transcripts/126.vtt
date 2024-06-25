@@ -1,0 +1,613 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:03.440
+Hello and welcome to AWS Bites, episode 126.
+
+2
+00:00:03.440 --> 00:00:05.200
+I'm Eoin and I'm here with Luciano.
+
+3
+00:00:05.200 --> 00:00:09.600
+Today we're going to revisit the topic of secure access to private VPC resources.
+
+4
+00:00:09.600 --> 00:00:15.440
+A while back we talked about SSH, SSM and bastion hosts in episode 78.
+
+5
+00:00:15.440 --> 00:00:19.840
+Recently though we've been using a bit of a simpler approach that avoids EC2 instances
+
+6
+00:00:19.840 --> 00:00:24.240
+altogether and uses containers instead. By the end of this episode you'll hopefully have all
+
+7
+00:00:24.240 --> 00:00:29.600
+the knowledge you need to use Fargate and SSM as a lightweight on-demand access mechanism for private
+
+8
+00:00:29.600 --> 00:00:41.120
+resources in a VPC. AWS Bites is brought to you by fourTheorem. If you're looking for a partner
+
+9
+00:00:41.120 --> 00:00:46.640
+to architect, develop and modernize on AWS give Fourth Theorem a call and you can check out
+
+10
+00:00:46.640 --> 00:00:52.640
+fourtheorem.com. Luciano, when we're looking at VPC access, private VPC access, what problem are
+
+11
+00:00:52.640 --> 00:00:57.200
+you actually trying to address here?
+
+12
+00:00:57.200 --> 00:01:03.600
+Yes, so the problem is commonly when you have some resources that exist in a private VPC so they are not publicly accessible on the internet and at some
+
+13
+00:01:03.600 --> 00:01:10.400
+point you maybe you have a bug, maybe you need to do some manual intervention on a resource, you
+
+14
+00:01:10.400 --> 00:01:16.400
+effectively need to access that resource whether that's a database or a server or a container but
+
+15
+00:01:16.400 --> 00:01:21.840
+running on a private perimeter. Another example that we mentioned a lot is for instance if you
+
+16
+00:01:21.840 --> 00:01:27.360
+have a Redis cluster sometimes you just want to run some Redis commands just to see like maybe
+
+17
+00:01:27.360 --> 00:01:32.320
+the state was corrupted, maybe you want to validate why a certain bug happened that maybe
+
+18
+00:01:32.320 --> 00:01:39.040
+involves Redis. So yeah, the problem is how do you connect to these kind of resources to do all these
+
+19
+00:01:39.040 --> 00:01:44.000
+kinds of investigations or actions that you might need to perform for a resource that exists in a
+
+20
+00:01:44.000 --> 00:01:49.520
+private VPC subnet. And generally speaking there are some traditional solutions.
+
+21
+00:01:49.520 --> 00:01:53.840
+The most common one and the one that has been existing for the longest probably is setting up a jump box or
+
+22
+00:01:53.840 --> 00:01:59.360
+bastion host which is basically an EC2 instance that has a public IP. Maybe you are protecting that
+
+23
+00:01:59.360 --> 00:02:05.680
+instance with some security group that limits the IP ranges that can access it and then of
+
+24
+00:02:05.680 --> 00:02:10.080
+course you have SSH keys but it's still an instance with a public IP so it's publicly
+
+25
+00:02:10.080 --> 00:02:16.080
+reachable on the internet and that instance also has access to the private VPC so effectively what
+
+26
+00:02:16.080 --> 00:02:21.440
+you do you establish a connection to this machine using the public internet and then use that
+
+27
+00:02:21.440 --> 00:02:26.400
+machine as a funnel to reach out into the private VPC and connect to the specific resource that you
+
+28
+00:02:26.400 --> 00:02:31.600
+want to access. Other approaches are using a VPN and another thing that we've been discussing in
+
+29
+00:02:31.600 --> 00:02:36.720
+a previous episode is still relying on the concept of a jump box but it makes it a little bit more
+
+30
+00:02:36.720 --> 00:02:43.360
+automated and on demand and it's a CLI tool called Basti that effectively makes it easy to create
+
+31
+00:02:43.360 --> 00:02:48.800
+that instance, create the connection for you, create the tunnel for you only when you need it
+
+32
+00:02:48.800 --> 00:02:53.360
+so it's going to create it and destroy it depending on when you need that session and also when you
+
+33
+00:02:53.360 --> 00:02:58.640
+want to use it to access an RDS database it does a bunch of stuff to make that access to RDS even
+
+34
+00:02:58.640 --> 00:03:04.560
+easier for you. So you can see that as an improvement on the classic idea of the jump box or
+
+35
+00:03:04.560 --> 00:03:10.400
+bastion host. So all of these approaches are something we discussed in detail in episode 78.
+
+36
+00:03:10.400 --> 00:03:14.640
+So go and check out that one if you missed it we will have the link in the show notes but these are
+
+37
+00:03:15.520 --> 00:03:20.400
+approaches that work but hopefully today we're going to be able to present a better solution
+
+38
+00:03:20.400 --> 00:03:25.120
+but maybe let's start by discussing what are the challenges with this particular type of approaches.
+
+39
+00:03:25.120 --> 00:03:29.840
+Well we've definitely seen challenges where some companies actually have restrictions around
+
+40
+00:03:29.840 --> 00:03:35.760
+creating EC2 instances and it just might mean that there's more governance and procedure around
+
+41
+00:03:35.760 --> 00:03:42.080
+creating instances and operating system security and running agents on them so it just might mean
+
+42
+00:03:42.080 --> 00:03:46.080
+that there's a lead time in actually getting EC2 instances up and running and it's not just
+
+43
+00:03:46.080 --> 00:03:49.360
+possible to fire one up because of all the security stuff and sometimes it's just really
+
+44
+00:03:49.360 --> 00:03:53.600
+hard they just don't let you do it just because there's more attack servers area so there's a
+
+45
+00:03:53.600 --> 00:03:57.840
+little bit more of a process around it. As well as that EC2 instances do require quite a bit of
+
+46
+00:03:57.840 --> 00:04:01.920
+management and maintenance to keep them up and running and up to date. Sure you can get one up
+
+47
+00:04:01.920 --> 00:04:06.560
+and running reasonably quickly in general but then you have to think about what happens when
+
+48
+00:04:06.560 --> 00:04:12.160
+you need to upgrade to the newest version of Ubuntu and various other pieces of the stack become
+
+49
+00:04:12.160 --> 00:04:16.960
+deprecated or suffer from some sort of bit rot and for that reason a lot of people we've spoken
+
+50
+00:04:16.960 --> 00:04:21.440
+to about this kind of challenge just prefer if they could just run a container. It's generally
+
+51
+00:04:21.440 --> 00:04:27.280
+easier to do there's fewer guardrails in place so we've been thinking about this and a while back
+
+52
+00:04:27.280 --> 00:04:32.320
+started actually figuring out ways of using containers as a bastion instead of having to
+
+53
+00:04:32.320 --> 00:04:38.560
+worry about virtual machines at all.
+
+54
+00:04:38.560 --> 00:04:44.880
+Yeah I'll try to describe how that works so let's say that you have your private VPC all set up you have an existing or a new subnet and you want to set up
+
+55
+00:04:44.880 --> 00:04:50.080
+a ACS cluster of course assuming that you don't have one already you can just set up a Fargate
+
+56
+00:04:50.080 --> 00:04:54.960
+service with a task definition and this is going to be your Bastion container. You basically need
+
+57
+00:04:55.360 --> 00:05:00.720
+those two things you need to set up the cluster and then the service and you have the that Bastion
+
+58
+00:05:00.720 --> 00:05:06.240
+container running as a container but of course you need to make sure that certain conditions are met
+
+59
+00:05:06.240 --> 00:05:09.760
+so you need to do a little bit of extra configuration. The first thing is that you need
+
+60
+00:05:09.760 --> 00:05:15.680
+to enable ECS for your Fargate service this basically will connect your container to SSM
+
+61
+00:05:15.680 --> 00:05:21.760
+allowing authorized principles to effectively use SSM as a tunnel to reach into the container and
+
+62
+00:05:21.760 --> 00:05:26.880
+this is kind of the key here because the idea is that you don't need to expose anything on the
+
+63
+00:05:26.880 --> 00:05:32.560
+public network through the AWS control plane and SSM you'll be able to establish a connection
+
+64
+00:05:32.560 --> 00:05:39.600
+directly into your container so your container is not directly exposed to the open internet.
+
+65
+00:05:39.600 --> 00:05:44.800
+The cool thing about SSM is that it can allow you to run commands for instance to create a shell
+
+66
+00:05:44.800 --> 00:05:50.240
+environment within the container and again this is without exposing anything on the public internet so
+
+67
+00:05:50.240 --> 00:05:56.400
+SSM will basically route those commands through AWS into the container. We have a little bit of
+
+68
+00:05:56.400 --> 00:06:01.440
+a better explanation in episode 78 so again please check out that one if anything we are saying
+
+69
+00:06:01.440 --> 00:06:06.880
+doesn't make too much sense hopefully episode 78 will provide more details that can explain better
+
+70
+00:06:06.880 --> 00:06:13.040
+what we are about to say today. So you'll need to decide which container image to use at this point.
+
+71
+00:06:13.040 --> 00:06:18.400
+We have the opportunity to run a container but of course what kind of image do we need because
+
+72
+00:06:18.400 --> 00:06:22.960
+depending on the image we pick we will have different tools that we can use. So what do we
+
+73
+00:06:22.960 --> 00:06:26.800
+want to do with this container? Do we want to access a database? Maybe we need a specific
+
+74
+00:06:26.800 --> 00:06:31.840
+database client. We want to access Redis. Maybe we need the Redis CLI installed. We want to just run
+
+75
+00:06:31.840 --> 00:06:37.200
+AWS commands. We need the AWS CLI there. Maybe we need to do some network troubleshooting. We need
+
+76
+00:06:37.200 --> 00:06:42.640
+specific network utilities installed in our Dockerfile. So that's also an important step.
+
+77
+00:06:42.640 --> 00:06:47.280
+Make sure that you understand exactly what kind of use cases do you want to cover and prepare your
+
+78
+00:06:47.280 --> 00:06:52.640
+Dockerfile accordingly so that you have all the tools that you need already available as soon as
+
+79
+00:06:52.640 --> 00:06:56.720
+you create a session. Of course you don't want this service to be always up and running because
+
+80
+00:06:56.720 --> 00:07:01.520
+you are going to be paying for a running container that maybe you only use occasionally when you want
+
+81
+00:07:01.520 --> 00:07:05.600
+to debug something and the cool thing with Fargate is that you can create the service
+
+82
+00:07:05.600 --> 00:07:10.400
+but where the desired count is zero. So that basically means that you have an instance of
+
+83
+00:07:10.400 --> 00:07:14.880
+the server already pre-configured but effectively no container is running so you are not using any
+
+84
+00:07:14.960 --> 00:07:21.440
+compute in practice. And when you need it you can just bump that count to one. At that point Fargate
+
+85
+00:07:21.440 --> 00:07:26.000
+is going to spin up one instance of that container and then you can start to create whatever. You can
+
+86
+00:07:26.000 --> 00:07:32.720
+run the commands through SSM to log in or create a shell and I think this is where Eoin you're going
+
+87
+00:07:32.720 --> 00:07:37.040
+to explain how do you actually use this container.
+
+88
+00:07:37.040 --> 00:07:40.720
+If you have an EC2 instance and you want to connect to it with SSM it's reasonably straightforward because you can just
+
+89
+00:07:41.360 --> 00:07:48.000
+click connect in the EC2 console and get a shell open in your browser or you can use AWS CLI with
+
+90
+00:07:48.000 --> 00:07:53.760
+the SSM extension installed. Then you just run `aws ssm start-session` and you pass in the instance
+
+91
+00:07:53.760 --> 00:07:58.320
+ID for the EC2 instance. With ECS or Fargate it's a little bit different. When you want to create a
+
+92
+00:07:58.320 --> 00:08:05.760
+remote shell in a container you can run `aws ecs execute-command`, pass in your cluster task container
+
+93
+00:08:05.760 --> 00:08:11.040
+and it will start up an interactive session for you on your container.
+
+94
+00:08:11.040 --> 00:08:15.840
+So that's very handy if you've just got containers you want to debug even if you're not using it as a bastion it's just handy
+
+95
+00:08:15.840 --> 00:08:20.560
+if you're trying to debug something running in the container or figure out some problem. Now once you
+
+96
+00:08:20.560 --> 00:08:26.480
+have this remote shell you have access to the container that has access to your private VPC
+
+97
+00:08:26.480 --> 00:08:30.480
+resources without having to make that publicly exposed on the network. If you need to connect to
+
+98
+00:08:30.480 --> 00:08:34.800
+your database you can just run your database client in this shell but what if you don't want
+
+99
+00:08:34.800 --> 00:08:39.760
+to run a shell but instead you want to connect like a graphical database client from your own
+
+100
+00:08:39.760 --> 00:08:44.160
+computer instead. In that case you're going to need a tunnel that presents a local socket
+
+101
+00:08:44.160 --> 00:08:49.200
+securely forwarding all the traffic to and from the database server on the private network. And
+
+102
+00:08:49.200 --> 00:08:56.400
+with EC2 it's again a similar method but with ECS AWS actually provides something called an SSM document.
+
+103
+00:08:56.400 --> 00:09:01.120
+Now SSM documents are useful for lots of different types of automation on remote
+
+104
+00:09:01.120 --> 00:09:07.280
+servers but there's a specific one called start port forwarding session to remote host that AWS
+
+105
+00:09:07.280 --> 00:09:12.640
+provides as an SSM document that anyone can use. So if you run this document with SSM it's actually
+
+106
+00:09:12.640 --> 00:09:16.560
+going to set up the tunnel for you and all of a sudden you've got the magic happening that allows
+
+107
+00:09:16.560 --> 00:09:20.640
+you to securely tunnel through to your local machine. The command syntax itself it's a bit
+
+108
+00:09:20.640 --> 00:09:24.720
+of a mouthful but, because anyone might be interested, it goes a bit like this so you're
+
+109
+00:09:24.720 --> 00:09:30.400
+doing `start-session` and then you pass in a target which is composed of your ECS cluster, task ID and
+
+110
+00:09:30.400 --> 00:09:34.960
+container. But you also pass in a document name which is your "StartPortForwardingSessionToRemoteHost"
+
+111
+00:09:34.960 --> 00:09:40.720
+document and then you give that document some parameters as a stringified JSON
+
+112
+00:09:40.720 --> 00:09:46.320
+and those parameters have your remote host, the remote port number and the local port number. And
+
+113
+00:09:46.320 --> 00:09:51.680
+that's going to set up one or more port mappings for you between the remote environment, the remote
+
+114
+00:09:51.680 --> 00:09:57.120
+network and your local network. And then you can simply use your database client to connect to
+
+115
+00:09:57.120 --> 00:10:02.880
+Postgres remotely and securely over this local port. And you can set up loads of different
+
+116
+00:10:02.880 --> 00:10:07.600
+port mappings at the same time so you might have one tunnel for your database, one for a private
+
+117
+00:10:07.600 --> 00:10:12.000
+API gateway endpoint, one for your ElastiCache. Once you've done the solution once it's quite
+
+118
+00:10:12.000 --> 00:10:16.240
+easy to repeat and set up as part of your troubleshooting environment. Now there's probably
+
+119
+00:10:16.240 --> 00:10:21.040
+a few steps there, is there any way we can kind of codify this all together, make it easier for
+
+120
+00:10:21.040 --> 00:10:26.960
+people?
+
+121
+00:10:27.840 --> 00:10:32.480
+Yeah probably there is room here for a new open source tool, something similar to what Basti does that tries to remove all the complexity of running multiple commands, passing the right
+
+122
+00:10:32.480 --> 00:10:38.240
+parameters. We can probably apply that same idea to this new approach using containers. But for now
+
+123
+00:10:38.240 --> 00:10:42.320
+we haven't done all of that, we have a simpler version of this which is effectively a Python
+
+124
+00:10:42.320 --> 00:10:48.160
+script that we will make available in a gist, the link will be in the show notes and this should
+
+125
+00:10:48.160 --> 00:10:53.520
+simplify this process making it easier for you to just run the right commands with just minimal
+
+126
+00:10:53.600 --> 00:10:59.520
+configuration. It's not a lot of code so you can probably read it in 10 minutes and really
+
+127
+00:10:59.520 --> 00:11:03.440
+understand what's going on. You should find more or less everything we explained today,
+
+128
+00:11:03.440 --> 00:11:07.360
+just follow the order, see the different commands and how the parameters are wired together.
+
+129
+00:11:07.920 --> 00:11:14.240
+But yeah generally what we will do is when we set a CDK project we will have the script to be part
+
+130
+00:11:14.240 --> 00:11:20.480
+of our deployment and available when we used to use this particular pattern. And you can automate
+
+131
+00:11:20.480 --> 00:11:26.640
+the entire process by providing this script in a development environment and for troubleshooting.
+
+132
+00:11:26.640 --> 00:11:31.280
+For example what you do is you start a container in Fargate, you create the tunnel, you generate
+
+133
+00:11:31.280 --> 00:11:36.800
+IAM credentials for your database users assuming you want to access the database, then you launch
+
+134
+00:11:36.800 --> 00:11:41.360
+something like psql if your database is a Postgres. If you have another database server you need to
+
+135
+00:11:41.360 --> 00:11:46.560
+use the correct client to access that server and the specific command that is required for your
+
+136
+00:11:46.560 --> 00:11:52.080
+client to connect to that particular machine. So this is all we can do with this particular script
+
+137
+00:11:52.080 --> 00:11:56.720
+but is there any room for improvement?
+
+138
+00:11:56.720 --> 00:12:01.040
+Yeah one thing I thought that would be nice to add this would be just some automation to shut down the container automatically when the tunnel hasn't
+
+139
+00:12:01.040 --> 00:12:06.160
+been used for a period of time. We've discussed different ways of doing this. One way might be if
+
+140
+00:12:06.160 --> 00:12:12.800
+you capture CloudTrail events for SSM start session to your Fargate service by using CloudWatch
+
+141
+00:12:12.800 --> 00:12:17.440
+logs for your CloudTrail. And then you could do a CloudWatch logs metrics filter which is going to
+
+142
+00:12:17.440 --> 00:12:22.640
+count up the number of start sessions over time. You could use those metrics then to auto scale the
+
+143
+00:12:22.640 --> 00:12:27.200
+container down when no session has been started for a certain period. Now you don't necessarily
+
+144
+00:12:27.200 --> 00:12:31.120
+know that it's not being used just because it was started a long time ago so maybe it's also
+
+145
+00:12:31.120 --> 00:12:36.400
+possible to use SSM session logs because you can configure SSM to also log all of the commands for
+
+146
+00:12:36.400 --> 00:12:42.320
+compliance that are executed over a remote session. So it might be useful to do that as well to gain
+
+147
+00:12:42.320 --> 00:12:47.680
+more detailed activity information and determine whether sessions are actually idle. We'd love to
+
+148
+00:12:47.680 --> 00:12:52.960
+get ideas from people but generally I think this approach is a simpler option. It allows you to
+
+149
+00:12:52.960 --> 00:12:56.800
+get those connections up for private resources because it's containerized. It might just be
+
+150
+00:12:56.800 --> 00:13:01.920
+easier to manage, keep up to date and switch on and off on demand. I'd love to know are people
+
+151
+00:13:01.920 --> 00:13:07.520
+using something like this from all our listeners and if you have any suggestions for improvements
+
+152
+00:13:07.520 --> 00:13:11.760
+or other tools we can use let us know in the comments. But until next time thanks a lot for
+
+153
+00:13:11.760 --> 00:13:29.840
+listening and we'll catch you in the next episode.

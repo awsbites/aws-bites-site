@@ -1,0 +1,926 @@
+{
+  "speakers": {
+    "spk_0": "Eoin",
+    "spk_1": "Luciano"
+  },
+  "segments": [
+    {
+      "speakerLabel": "spk_0",
+      "start": 0,
+      "end": 3.44,
+      "text": " Hello and welcome to AWS Bites, episode 126."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 3.44,
+      "end": 5.2,
+      "text": " I'm Eoin and I'm here with Luciano."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 5.2,
+      "end": 9.6,
+      "text": " Today we're going to revisit the topic of secure access to private VPC resources."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 9.6,
+      "end": 15.44,
+      "text": " A while back we talked about SSH, SSM and bastion hosts in episode 78."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 15.44,
+      "end": 19.84,
+      "text": " Recently though we've been using a bit of a simpler approach that avoids EC2 instances"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 19.84,
+      "end": 24.240000000000002,
+      "text": " altogether and uses containers instead. By the end of this episode you'll hopefully have all"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 24.240000000000002,
+      "end": 29.6,
+      "text": " the knowledge you need to use Fargate and SSM as a lightweight on-demand access mechanism for private"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 29.6,
+      "end": 41.120000000000005,
+      "text": " resources in a VPC. AWS Bites is brought to you by fourTheorem. If you're looking for a partner"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 41.120000000000005,
+      "end": 46.64,
+      "text": " to architect, develop and modernize on AWS give Fourth Theorem a call and you can check out"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 46.64,
+      "end": 52.64,
+      "text": " fourtheorem.com. Luciano, when we're looking at VPC access, private VPC access, what problem are"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 52.64,
+      "end": 57.2,
+      "text": " you actually trying to address here?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 57.2,
+      "end": 63.6,
+      "text": " Yes, so the problem is commonly when you have some resources that exist in a private VPC so they are not publicly accessible on the internet and at some"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 63.6,
+      "end": 70.4,
+      "text": " point you maybe you have a bug, maybe you need to do some manual intervention on a resource, you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 70.4,
+      "end": 76.4,
+      "text": " effectively need to access that resource whether that's a database or a server or a container but"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 76.4,
+      "end": 81.84,
+      "text": " running on a private perimeter. Another example that we mentioned a lot is for instance if you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 81.84,
+      "end": 87.36,
+      "text": " have a Redis cluster sometimes you just want to run some Redis commands just to see like maybe"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 87.36,
+      "end": 92.32000000000001,
+      "text": " the state was corrupted, maybe you want to validate why a certain bug happened that maybe"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 92.32000000000001,
+      "end": 99.04,
+      "text": " involves Redis. So yeah, the problem is how do you connect to these kind of resources to do all these"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 99.04,
+      "end": 104,
+      "text": " kinds of investigations or actions that you might need to perform for a resource that exists in a"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 104,
+      "end": 109.52000000000001,
+      "text": " private VPC subnet. And generally speaking there are some traditional solutions."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 109.52,
+      "end": 113.84,
+      "text": " The most common one and the one that has been existing for the longest probably is setting up a jump box or"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 113.84,
+      "end": 119.36,
+      "text": " bastion host which is basically an EC2 instance that has a public IP. Maybe you are protecting that"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 119.36,
+      "end": 125.67999999999999,
+      "text": " instance with some security group that limits the IP ranges that can access it and then of"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 125.67999999999999,
+      "end": 130.07999999999998,
+      "text": " course you have SSH keys but it's still an instance with a public IP so it's publicly"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 130.07999999999998,
+      "end": 136.07999999999998,
+      "text": " reachable on the internet and that instance also has access to the private VPC so effectively what"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 136.08,
+      "end": 141.44000000000003,
+      "text": " you do you establish a connection to this machine using the public internet and then use that"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 141.44000000000003,
+      "end": 146.4,
+      "text": " machine as a funnel to reach out into the private VPC and connect to the specific resource that you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 146.4,
+      "end": 151.60000000000002,
+      "text": " want to access. Other approaches are using a VPN and another thing that we've been discussing in"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 151.60000000000002,
+      "end": 156.72000000000003,
+      "text": " a previous episode is still relying on the concept of a jump box but it makes it a little bit more"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 156.72000000000003,
+      "end": 163.36,
+      "text": " automated and on demand and it's a CLI tool called Basti that effectively makes it easy to create"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 163.36,
+      "end": 168.8,
+      "text": " that instance, create the connection for you, create the tunnel for you only when you need it"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 168.8,
+      "end": 173.36,
+      "text": " so it's going to create it and destroy it depending on when you need that session and also when you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 173.36,
+      "end": 178.64000000000001,
+      "text": " want to use it to access an RDS database it does a bunch of stuff to make that access to RDS even"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 178.64000000000001,
+      "end": 184.56,
+      "text": " easier for you. So you can see that as an improvement on the classic idea of the jump box or"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 184.56,
+      "end": 190.4,
+      "text": " bastion host. So all of these approaches are something we discussed in detail in episode 78."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 190.4,
+      "end": 194.64000000000001,
+      "text": " So go and check out that one if you missed it we will have the link in the show notes but these are"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 195.52,
+      "end": 200.4,
+      "text": " approaches that work but hopefully today we're going to be able to present a better solution"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 200.4,
+      "end": 205.12,
+      "text": " but maybe let's start by discussing what are the challenges with this particular type of approaches."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 205.12,
+      "end": 209.84,
+      "text": " Well we've definitely seen challenges where some companies actually have restrictions around"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 209.84,
+      "end": 215.76,
+      "text": " creating EC2 instances and it just might mean that there's more governance and procedure around"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 215.76,
+      "end": 222.07999999999998,
+      "text": " creating instances and operating system security and running agents on them so it just might mean"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 222.07999999999998,
+      "end": 226.07999999999998,
+      "text": " that there's a lead time in actually getting EC2 instances up and running and it's not just"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 226.07999999999998,
+      "end": 229.35999999999999,
+      "text": " possible to fire one up because of all the security stuff and sometimes it's just really"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 229.35999999999999,
+      "end": 233.6,
+      "text": " hard they just don't let you do it just because there's more attack servers area so there's a"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 233.6,
+      "end": 237.84,
+      "text": " little bit more of a process around it. As well as that EC2 instances do require quite a bit of"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 237.84,
+      "end": 241.92,
+      "text": " management and maintenance to keep them up and running and up to date. Sure you can get one up"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 241.92,
+      "end": 246.55999999999997,
+      "text": " and running reasonably quickly in general but then you have to think about what happens when"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 246.55999999999997,
+      "end": 252.16,
+      "text": " you need to upgrade to the newest version of Ubuntu and various other pieces of the stack become"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 252.16,
+      "end": 256.96,
+      "text": " deprecated or suffer from some sort of bit rot and for that reason a lot of people we've spoken"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 256.96,
+      "end": 261.44,
+      "text": " to about this kind of challenge just prefer if they could just run a container. It's generally"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 261.44,
+      "end": 267.28,
+      "text": " easier to do there's fewer guardrails in place so we've been thinking about this and a while back"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 267.28,
+      "end": 272.32,
+      "text": " started actually figuring out ways of using containers as a bastion instead of having to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 272.32,
+      "end": 278.55999999999995,
+      "text": " worry about virtual machines at all."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 278.55999999999995,
+      "end": 284.88,
+      "text": " Yeah I'll try to describe how that works so let's say that you have your private VPC all set up you have an existing or a new subnet and you want to set up"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 284.88,
+      "end": 290.08,
+      "text": " a ACS cluster of course assuming that you don't have one already you can just set up a Fargate"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 290.08,
+      "end": 294.96,
+      "text": " service with a task definition and this is going to be your Bastion container. You basically need"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 295.35999999999996,
+      "end": 300.71999999999997,
+      "text": " those two things you need to set up the cluster and then the service and you have the that Bastion"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 300.71999999999997,
+      "end": 306.23999999999995,
+      "text": " container running as a container but of course you need to make sure that certain conditions are met"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 306.23999999999995,
+      "end": 309.76,
+      "text": " so you need to do a little bit of extra configuration. The first thing is that you need"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 309.76,
+      "end": 315.67999999999995,
+      "text": " to enable ECS for your Fargate service this basically will connect your container to SSM"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 315.67999999999995,
+      "end": 321.76,
+      "text": " allowing authorized principles to effectively use SSM as a tunnel to reach into the container and"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 321.76,
+      "end": 326.88,
+      "text": " this is kind of the key here because the idea is that you don't need to expose anything on the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 326.88,
+      "end": 332.56,
+      "text": " public network through the AWS control plane and SSM you'll be able to establish a connection"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 332.56,
+      "end": 339.59999999999997,
+      "text": " directly into your container so your container is not directly exposed to the open internet."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 339.59999999999997,
+      "end": 344.8,
+      "text": " The cool thing about SSM is that it can allow you to run commands for instance to create a shell"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 344.8,
+      "end": 350.24,
+      "text": " environment within the container and again this is without exposing anything on the public internet so"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 350.24,
+      "end": 356.40000000000003,
+      "text": " SSM will basically route those commands through AWS into the container. We have a little bit of"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 356.40000000000003,
+      "end": 361.44,
+      "text": " a better explanation in episode 78 so again please check out that one if anything we are saying"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 361.44,
+      "end": 366.88,
+      "text": " doesn't make too much sense hopefully episode 78 will provide more details that can explain better"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 366.88,
+      "end": 373.04,
+      "text": " what we are about to say today. So you'll need to decide which container image to use at this point."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 373.04,
+      "end": 378.40000000000003,
+      "text": " We have the opportunity to run a container but of course what kind of image do we need because"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 378.4,
+      "end": 382.96,
+      "text": " depending on the image we pick we will have different tools that we can use. So what do we"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 382.96,
+      "end": 386.79999999999995,
+      "text": " want to do with this container? Do we want to access a database? Maybe we need a specific"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 386.79999999999995,
+      "end": 391.84,
+      "text": " database client. We want to access Redis. Maybe we need the Redis CLI installed. We want to just run"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 391.84,
+      "end": 397.2,
+      "text": " AWS commands. We need the AWS CLI there. Maybe we need to do some network troubleshooting. We need"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 397.2,
+      "end": 402.64,
+      "text": " specific network utilities installed in our Dockerfile. So that's also an important step."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 402.64,
+      "end": 407.28,
+      "text": " Make sure that you understand exactly what kind of use cases do you want to cover and prepare your"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 407.28,
+      "end": 412.64,
+      "text": " Dockerfile accordingly so that you have all the tools that you need already available as soon as"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 412.64,
+      "end": 416.71999999999997,
+      "text": " you create a session. Of course you don't want this service to be always up and running because"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 416.71999999999997,
+      "end": 421.52,
+      "text": " you are going to be paying for a running container that maybe you only use occasionally when you want"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 421.52,
+      "end": 425.59999999999997,
+      "text": " to debug something and the cool thing with Fargate is that you can create the service"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 425.59999999999997,
+      "end": 430.4,
+      "text": " but where the desired count is zero. So that basically means that you have an instance of"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 430.4,
+      "end": 434.88,
+      "text": " the server already pre-configured but effectively no container is running so you are not using any"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 434.96,
+      "end": 441.44,
+      "text": " compute in practice. And when you need it you can just bump that count to one. At that point Fargate"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 441.44,
+      "end": 446,
+      "text": " is going to spin up one instance of that container and then you can start to create whatever. You can"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 446,
+      "end": 452.71999999999997,
+      "text": " run the commands through SSM to log in or create a shell and I think this is where Eoin you're going"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 452.71999999999997,
+      "end": 457.04,
+      "text": " to explain how do you actually use this container."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 457.04,
+      "end": 460.71999999999997,
+      "text": " If you have an EC2 instance and you want to connect to it with SSM it's reasonably straightforward because you can just"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 461.36,
+      "end": 468,
+      "text": " click connect in the EC2 console and get a shell open in your browser or you can use AWS CLI with"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 468,
+      "end": 473.76000000000005,
+      "text": " the SSM extension installed. Then you just run `aws ssm start-session` and you pass in the instance"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 473.76000000000005,
+      "end": 478.32000000000005,
+      "text": " ID for the EC2 instance. With ECS or Fargate it's a little bit different. When you want to create a"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 478.32000000000005,
+      "end": 485.76000000000005,
+      "text": " remote shell in a container you can run `aws ecs execute-command`, pass in your cluster task container"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 485.76,
+      "end": 491.03999999999996,
+      "text": " and it will start up an interactive session for you on your container."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 491.03999999999996,
+      "end": 495.84,
+      "text": " So that's very handy if you've just got containers you want to debug even if you're not using it as a bastion it's just handy"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 495.84,
+      "end": 500.56,
+      "text": " if you're trying to debug something running in the container or figure out some problem. Now once you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 500.56,
+      "end": 506.48,
+      "text": " have this remote shell you have access to the container that has access to your private VPC"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 506.48,
+      "end": 510.48,
+      "text": " resources without having to make that publicly exposed on the network. If you need to connect to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 510.48,
+      "end": 514.8,
+      "text": " your database you can just run your database client in this shell but what if you don't want"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 514.8,
+      "end": 519.76,
+      "text": " to run a shell but instead you want to connect like a graphical database client from your own"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 519.76,
+      "end": 524.16,
+      "text": " computer instead. In that case you're going to need a tunnel that presents a local socket"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 524.16,
+      "end": 529.1999999999999,
+      "text": " securely forwarding all the traffic to and from the database server on the private network. And"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 529.1999999999999,
+      "end": 536.4,
+      "text": " with EC2 it's again a similar method but with ECS AWS actually provides something called an SSM document. "
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 536.4,
+      "end": 541.12,
+      "text": "Now SSM documents are useful for lots of different types of automation on remote"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 541.12,
+      "end": 547.28,
+      "text": " servers but there's a specific one called start port forwarding session to remote host that AWS"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 547.28,
+      "end": 552.64,
+      "text": " provides as an SSM document that anyone can use. So if you run this document with SSM it's actually"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 552.64,
+      "end": 556.5600000000001,
+      "text": " going to set up the tunnel for you and all of a sudden you've got the magic happening that allows"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 556.5600000000001,
+      "end": 560.64,
+      "text": " you to securely tunnel through to your local machine. The command syntax itself it's a bit"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 560.64,
+      "end": 564.72,
+      "text": " of a mouthful but, because anyone might be interested, it goes a bit like this so you're"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 564.72,
+      "end": 570.4,
+      "text": " doing `start-session` and then you pass in a target which is composed of your ECS cluster, task ID and"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 570.4,
+      "end": 574.9599999999999,
+      "text": " container. But you also pass in a document name which is your \"StartPortForwardingSessionToRemoteHost\""
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 574.9599999999999,
+      "end": 580.72,
+      "text": "document and then you give that document some parameters as a stringified JSON"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 580.72,
+      "end": 586.3199999999999,
+      "text": " and those parameters have your remote host, the remote port number and the local port number. And"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 586.3199999999999,
+      "end": 591.68,
+      "text": " that's going to set up one or more port mappings for you between the remote environment, the remote"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 591.68,
+      "end": 597.12,
+      "text": " network and your local network. And then you can simply use your database client to connect to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 597.12,
+      "end": 602.88,
+      "text": " Postgres remotely and securely over this local port. And you can set up loads of different"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 602.88,
+      "end": 607.6,
+      "text": " port mappings at the same time so you might have one tunnel for your database, one for a private"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 607.6,
+      "end": 612,
+      "text": " API gateway endpoint, one for your ElastiCache. Once you've done the solution once it's quite"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 612,
+      "end": 616.24,
+      "text": " easy to repeat and set up as part of your troubleshooting environment. Now there's probably"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 616.24,
+      "end": 621.04,
+      "text": " a few steps there, is there any way we can kind of codify this all together, make it easier for"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 621.04,
+      "end": 626.96,
+      "text": " people?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 627.84,
+      "end": 632.48,
+      "text": " Yeah probably there is room here for a new open source tool, something similar to what Basti does that tries to remove all the complexity of running multiple commands, passing the right"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 632.48,
+      "end": 638.24,
+      "text": " parameters. We can probably apply that same idea to this new approach using containers. But for now"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 638.24,
+      "end": 642.32,
+      "text": " we haven't done all of that, we have a simpler version of this which is effectively a Python"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 642.32,
+      "end": 648.1600000000001,
+      "text": " script that we will make available in a gist, the link will be in the show notes and this should"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 648.1600000000001,
+      "end": 653.52,
+      "text": " simplify this process making it easier for you to just run the right commands with just minimal"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 653.6,
+      "end": 659.52,
+      "text": " configuration. It's not a lot of code so you can probably read it in 10 minutes and really"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 659.52,
+      "end": 663.4399999999999,
+      "text": " understand what's going on. You should find more or less everything we explained today,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 663.4399999999999,
+      "end": 667.36,
+      "text": " just follow the order, see the different commands and how the parameters are wired together."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 667.92,
+      "end": 674.24,
+      "text": " But yeah generally what we will do is when we set a CDK project we will have the script to be part"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 674.24,
+      "end": 680.48,
+      "text": " of our deployment and available when we used to use this particular pattern. And you can automate"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 680.48,
+      "end": 686.64,
+      "text": " the entire process by providing this script in a development environment and for troubleshooting."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 686.64,
+      "end": 691.28,
+      "text": " For example what you do is you start a container in Fargate, you create the tunnel, you generate"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 691.28,
+      "end": 696.8000000000001,
+      "text": " IAM credentials for your database users assuming you want to access the database, then you launch"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 696.8000000000001,
+      "end": 701.36,
+      "text": " something like psql if your database is a Postgres. If you have another database server you need to"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 701.36,
+      "end": 706.5600000000001,
+      "text": " use the correct client to access that server and the specific command that is required for your"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 706.56,
+      "end": 712.0799999999999,
+      "text": " client to connect to that particular machine. So this is all we can do with this particular script"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 712.0799999999999,
+      "end": 716.7199999999999,
+      "text": " but is there any room for improvement?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 716.7199999999999,
+      "end": 721.04,
+      "text": " Yeah one thing I thought that would be nice to add this would be just some automation to shut down the container automatically when the tunnel hasn't"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 721.04,
+      "end": 726.16,
+      "text": " been used for a period of time. We've discussed different ways of doing this. One way might be if"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 726.16,
+      "end": 732.8,
+      "text": " you capture CloudTrail events for SSM start session to your Fargate service by using CloudWatch"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 732.8,
+      "end": 737.4399999999999,
+      "text": " logs for your CloudTrail. And then you could do a CloudWatch logs metrics filter which is going to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 737.4399999999999,
+      "end": 742.64,
+      "text": " count up the number of start sessions over time. You could use those metrics then to auto scale the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 742.64,
+      "end": 747.1999999999999,
+      "text": " container down when no session has been started for a certain period. Now you don't necessarily"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 747.1999999999999,
+      "end": 751.12,
+      "text": " know that it's not being used just because it was started a long time ago so maybe it's also"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 751.12,
+      "end": 756.4,
+      "text": " possible to use SSM session logs because you can configure SSM to also log all of the commands for"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 756.4,
+      "end": 762.3199999999999,
+      "text": " compliance that are executed over a remote session. So it might be useful to do that as well to gain"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 762.32,
+      "end": 767.6800000000001,
+      "text": " more detailed activity information and determine whether sessions are actually idle. We'd love to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 767.6800000000001,
+      "end": 772.96,
+      "text": " get ideas from people but generally I think this approach is a simpler option. It allows you to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 772.96,
+      "end": 776.8000000000001,
+      "text": " get those connections up for private resources because it's containerized. It might just be"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 776.8000000000001,
+      "end": 781.9200000000001,
+      "text": " easier to manage, keep up to date and switch on and off on demand. I'd love to know are people"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 781.9200000000001,
+      "end": 787.5200000000001,
+      "text": " using something like this from all our listeners and if you have any suggestions for improvements"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 787.5200000000001,
+      "end": 791.7600000000001,
+      "text": " or other tools we can use let us know in the comments. But until next time thanks a lot for"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 791.76,
+      "end": 809.84,
+      "text": " listening and we'll catch you in the next episode."
+    }
+  ]
+}

@@ -9,7 +9,7 @@ publish_date: 2024-06-14
 In this episode, we discuss the newly announced CloudFront Hosting Toolkit from AWS. We provide an overview of the tool, which aims to simplify deploying modern front-end applications to AWS while retaining infrastructure control. We discuss the current capabilities and limitations and share our hands-on experiences trying out the tool. We also talk about alternatives like Vercel and Amplify, and the tradeoffs between convenience VS control. Overall, the toolkit shows promise but is still early-stage. We are excited to see it evolve to support more frameworks and use cases.
 
 
-> AWS Bites is brought to you by fourTheorem an AWS consulting partner with tons of experience with AWS. If you need someone to help you with your ambitions AWS projects, check out [fourtheorem.com](https://fourtheorem.com)!
+> AWS Bites is brought to you by fourTheorem an AWS consulting partner with tons of experience with AWS. If you need someone to help you with your ambitious AWS projects, check out [fourtheorem.com](https://fourtheorem.com)!
 
 
 In this episode, we mentioned the following resources:

@@ -1,0 +1,2258 @@
+{
+  "speakers": {
+    "spk_0": "Luciano",
+    "spk_1": "Eoin"
+  },
+  "segments": [
+    {
+      "speakerLabel": "spk_0",
+      "start": 0,
+      "end": 4.72,
+      "text": " Hello there and welcome to episode 127 of AWS Bites."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 4.72,
+      "end": 6.640000000000001,
+      "text": " My name is Luciano and I'm here with Eoin."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 6.640000000000001,
+      "end": 9.76,
+      "text": " So cloud computing is all about elastic scalability,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 9.76,
+      "end": 11.44,
+      "text": " high availability and security."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 11.44,
+      "end": 13.76,
+      "text": " For most architecture to get all of that,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 13.76,
+      "end": 15.200000000000001,
+      "text": " you'll need a load balancer."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 15.200000000000001,
+      "end": 16.96,
+      "text": " But what is a load balancer really?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 16.96,
+      "end": 19.2,
+      "text": " This is the topic of our podcast today."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 19.2,
+      "end": 22.32,
+      "text": " So we are going to explore how does it work, a load balancer,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 22.32,
+      "end": 24.240000000000002,
+      "text": " what type of load balancer should you choose"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 24.240000000000002,
+      "end": 26.8,
+      "text": " when it comes to performance, cost and flexibility."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 26.8,
+      "end": 28.48,
+      "text": " And by the end of this episode,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 28.48,
+      "end": 30.16,
+      "text": " hopefully you should have a clear idea"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 30.16,
+      "end": 33.36,
+      "text": " on which load balancer to choose when you need one on AWS."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 41.44,
+      "end": 42.96,
+      "text": " So let's start with an example."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 42.96,
+      "end": 45.84,
+      "text": " You have a client application that could be a web browser"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 45.84,
+      "end": 48.16,
+      "text": " or maybe another kind of application,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 48.16,
+      "end": 49.84,
+      "text": " maybe running on a mobile phone."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 49.84,
+      "end": 51.519999999999996,
+      "text": " It could be an IoT device."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 51.519999999999996,
+      "end": 54.400000000000006,
+      "text": " This client is going to send a request to a server."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 54.400000000000006,
+      "end": 56.24,
+      "text": " What kind of server is probably the first question"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 56.24,
+      "end": 57.2,
+      "text": " you should ask yourself?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 57.68,
+      "end": 60.480000000000004,
+      "text": " Well, even if your application is running on a physical host,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 60.480000000000004,
+      "end": 64.16,
+      "text": " maybe that can be a virtual machine running on EC2"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 64.16,
+      "end": 66.88,
+      "text": " or maybe a container running on Fargate,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 66.88,
+      "end": 69.68,
+      "text": " it's unlikely that your traffic is going to be served directly"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 69.68,
+      "end": 71.44,
+      "text": " to that application server."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 71.44,
+      "end": 74,
+      "text": " And because there will be a few problems with that approach."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 74,
+      "end": 76,
+      "text": " First of all, it would expose your server directly"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 76,
+      "end": 77.36,
+      "text": " to the public internet,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 77.36,
+      "end": 79.52000000000001,
+      "text": " which can cause some kind of security problems."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 79.52000000000001,
+      "end": 83.04,
+      "text": " You generally don't want to put your web server"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 83.04,
+      "end": 84.88,
+      "text": " just in front on the public internet."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 85.52,
+      "end": 87.6,
+      "text": " That would also mean that you have only one host."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 87.6,
+      "end": 90.32,
+      "text": " So that means that if you start to get a lot of traffic,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 90.32,
+      "end": 95.19999999999999,
+      "text": " your single instance machine is going to be overloaded very quickly."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 95.19999999999999,
+      "end": 97.52,
+      "text": " And then you have limited options on how to scale it"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 97.52,
+      "end": 100,
+      "text": " in response to an increase of traffic, for example."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 100.56,
+      "end": 103.75999999999999,
+      "text": " And you can also think that this is a single point of failure,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 103.75999999999999,
+      "end": 105.28,
+      "text": " not just in terms of scalability,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 105.28,
+      "end": 107.36,
+      "text": " but maybe if something else goes wrong,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 107.36,
+      "end": 109.12,
+      "text": " maybe, I don't know, you install an update"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 109.12,
+      "end": 110.72,
+      "text": " and that update goes wrong,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 110.72,
+      "end": 113.52,
+      "text": " or maybe your host fails because of an hardware failure."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 113.52,
+      "end": 115.75999999999999,
+      "text": " At that point, your application just becomes unavailable"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 115.75999999999999,
+      "end": 117.84,
+      "text": " because your only server just died"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 117.84,
+      "end": 120,
+      "text": " and no traffic can be served anymore."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 120,
+      "end": 122.64,
+      "text": " And again, if you want to deploy a new version of the software"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 122.64,
+      "end": 125.84,
+      "text": " or maybe upgrade something in the configuration of your server,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 125.84,
+      "end": 126.72,
+      "text": " then you need to decide,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 126.72,
+      "end": 128.56,
+      "text": " what am I going to do during the downtime?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 128.56,
+      "end": 130,
+      "text": " I will have some kind of downtime."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 130,
+      "end": 132,
+      "text": " How do I manage all of that?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 132,
+      "end": 134.88,
+      "text": " And that's going to degrade the experience of your users."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 134.88,
+      "end": 138,
+      "text": " So ideally, you don't want to have just one instance,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 138,
+      "end": 141.6,
+      "text": " which brings us to the challenge that we need to do something"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 141.6,
+      "end": 146.88,
+      "text": " in our architecture that allows us to support multiple instances of an application."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 146.88,
+      "end": 150.48,
+      "text": " And actually, this problem existed even before cloud computing."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 150.48,
+      "end": 153.2,
+      "text": " So back in the days around the 1990s,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 153.2,
+      "end": 157.44,
+      "text": " when people started to ship all kinds of server applications,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 157.44,
+      "end": 159.76,
+      "text": " they started to have these problems even in their own data centers."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 159.76,
+      "end": 164.07999999999998,
+      "text": " So how do we scale and make things highly available for our users?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 164.07999999999998,
+      "end": 166.48,
+      "text": " And that's where softwares like NGINX,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 166.48,
+      "end": 169.44,
+      "text": " Squid, HAProxy, Trafic, and many others,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 169.44,
+      "end": 172.07999999999998,
+      "text": " were started to come up to help solve this problem."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 172.07999999999998,
+      "end": 175.2,
+      "text": " So the idea is that you use one of this software"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 175.2,
+      "end": 178.96,
+      "text": " to effectively become the entry point into your application,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 178.96,
+      "end": 181.6,
+      "text": " and they can distribute and manage multiple connections"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 181.6,
+      "end": 184.8,
+      "text": " and distribute those connections across a variety of servers"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 184.8,
+      "end": 189.2,
+      "text": " that exist behind the scenes of this specific application."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 189.2,
+      "end": 193.68,
+      "text": " So this is where we can say that the idea of a load balancer was invented."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 193.68,
+      "end": 197.76,
+      "text": " And we will discuss a little bit today about more of the details,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 197.76,
+      "end": 200.23999999999998,
+      "text": " what is really the responsibility of a load balancer,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 200.23999999999998,
+      "end": 202.16,
+      "text": " what different kinds of load balancers exist,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 202.16,
+      "end": 205.44,
+      "text": " and then we'll talk a little bit more specifically about AWS."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 205.44,
+      "end": 207.6,
+      "text": " What kind of load balancer do you have there,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 207.6,
+      "end": 211.44,
+      "text": " and which ones should you choose depending on your specific use cases?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 211.44,
+      "end": 215.12,
+      "text": " So maybe make sense to start with the features of a load balancer."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 215.12,
+      "end": 217.12,
+      "text": " Eoin, do you want to talk a little bit about that?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 221.04,
+      "end": 225.6,
+      "text": " Yeah, feature number one is the ability to distribute the traffic across multiple hosts and solve a lot of those problems you were talking about there."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 225.6,
+      "end": 229.04,
+      "text": " And then load balancers will generally have different algorithms"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 229.04,
+      "end": 234.07999999999998,
+      "text": " for distributing the traffic, like simple round robin, weighted distribution, etc."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 234.07999999999998,
+      "end": 236.48,
+      "text": " And often there's a lot more and a lot different edge cases"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 236.48,
+      "end": 238.32,
+      "text": " that load balancers will have to handle for you."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 239.12,
+      "end": 241.92,
+      "text": " Then they'll need health checks because if you've got multiple hosts"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 241.92,
+      "end": 243.6,
+      "text": " and they need to be able to redirect traffic,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 243.6,
+      "end": 245.12,
+      "text": " they want to direct it to healthy hosts,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 245.12,
+      "end": 250,
+      "text": " so ones that are proven to be able to serve responses to requests effectively."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 250,
+      "end": 252.07999999999998,
+      "text": " So health checks are an important feature."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 252.79999999999998,
+      "end": 254.64,
+      "text": " TLS and SSL termination."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 254.64,
+      "end": 258,
+      "text": " Normally TLS termination these days for HTTPS"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 258,
+      "end": 261.84,
+      "text": " or even any other protocol supporting securing encryption,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 261.84,
+      "end": 263.2,
+      "text": " it's a really important feature."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 263.2,
+      "end": 269.44,
+      "text": " And load balancers can offload the computational workload of TLS"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 269.44,
+      "end": 272.8,
+      "text": " from your server by handling it at the entry point into your network."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 272.8,
+      "end": 274.88,
+      "text": " So if the route between your load balancer and the host"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 274.88,
+      "end": 276.8,
+      "text": " is secured via another mechanism,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 276.8,
+      "end": 278.96,
+      "text": " like in the case with AWS VPCs,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 278.96,
+      "end": 282.32,
+      "text": " which are already secured and encrypted traffic by default,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 282.32,
+      "end": 284.24,
+      "text": " your hosts will then have a reduced workload."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 284.40000000000003,
+      "end": 286.56,
+      "text": " Since they don't have to do that TLS handshaking,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 286.56,
+      "end": 287.76,
+      "text": " encryption and decryption."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 288.32,
+      "end": 291.52,
+      "text": " Other important features are things like DDoS protection"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 291.52,
+      "end": 295.44,
+      "text": " to protect against distributed denial of service attacks."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 295.44,
+      "end": 296.72,
+      "text": " And then a firewall, right?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 296.72,
+      "end": 299.6,
+      "text": " A web application firewall or other firewall rules"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 299.6,
+      "end": 304.8,
+      "text": " or software or hardware to detect intrusions and prevent intrusions."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 305.36,
+      "end": 308.32,
+      "text": " Now there's a lot more features you can get with load balancers,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 308.32,
+      "end": 311.6,
+      "text": " but it'll ultimately depend on the type of load balancer you have."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 312.32000000000005,
+      "end": 315.04,
+      "text": " And it's probably a good idea now to start talking"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 315.04,
+      "end": 316.56,
+      "text": " about the different types of load balancers."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 317.12,
+      "end": 321.36,
+      "text": " If we're going to do that, we should talk about the OSI networking model."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 321.36,
+      "end": 322.72,
+      "text": " You might be very familiar with this."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 322.72,
+      "end": 325.84000000000003,
+      "text": " Maybe you've heard about it, or you might have a vague memory"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 325.84000000000003,
+      "end": 329.28000000000003,
+      "text": " or flashback to your college days or somewhere"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 329.28000000000003,
+      "end": 330.48,
+      "text": " where you learned about it before."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 331.04,
+      "end": 333.92,
+      "text": " So let's quickly revisit it, quick refresher,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 333.92,
+      "end": 335.36,
+      "text": " just to make sure we're all on the same page."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 336.32000000000005,
+      "end": 338.24,
+      "text": " The OSI model, it's a theoretical model."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 338.24,
+      "end": 342.48,
+      "text": " It doesn't necessarily translate directly to physical implementations"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 342.48,
+      "end": 344.96000000000004,
+      "text": " or software implementations, but it's a good model"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 344.96000000000004,
+      "end": 346.88,
+      "text": " for talking about networking."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 346.88,
+      "end": 348.72,
+      "text": " Because when we're talking about networking protocols,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 348.72,
+      "end": 351.6,
+      "text": " we usually start defining about which layer they belong to"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 351.6,
+      "end": 352.96000000000004,
+      "text": " within this OSI model."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 352.96000000000004,
+      "end": 355.28000000000003,
+      "text": " So it's useful for understanding what happens when traffic"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 355.28000000000003,
+      "end": 357.76,
+      "text": " is flowing between a source and a destination."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 358.32,
+      "end": 361.84000000000003,
+      "text": " For load balancers, we're going to focus on layers four and seven,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 361.84000000000003,
+      "end": 364,
+      "text": " and there are seven layers in the OSI model."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 364,
+      "end": 365.6,
+      "text": " But let's quickly run through the layers"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 365.6,
+      "end": 367.2,
+      "text": " so we can understand where they fit."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 367.2,
+      "end": 370.08,
+      "text": " And if we start from the bottom up, your first one is layer one,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 370.08,
+      "end": 371.03999999999996,
+      "text": " that's the physical layer."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 371.03999999999996,
+      "end": 373.12,
+      "text": " That's where your hardware devices are."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 373.12,
+      "end": 376.4,
+      "text": " Above that, you'll have layer two, which is called the data link layer."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 376.4,
+      "end": 379.12,
+      "text": " And this is like low-level communication protocols"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 379.12,
+      "end": 380.64,
+      "text": " like Ethernet or Wi-Fi."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 380.64,
+      "end": 382.8,
+      "text": " And above that, you'll have your network layer,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 382.8,
+      "end": 384.4,
+      "text": " which is routing and addressing."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 384.4,
+      "end": 386.08,
+      "text": " And this is in TCP IP."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 386.08,
+      "end": 388.48,
+      "text": " This is where IP sits, Internet Protocol."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 388.48,
+      "end": 390.4,
+      "text": " So those are kind of low-level things."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 390.4,
+      "end": 391.91999999999996,
+      "text": " Most people will be familiar with IP."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 392.56,
+      "end": 394.15999999999997,
+      "text": " If you're dealing with things like load balancers,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 394.15999999999997,
+      "end": 396.48,
+      "text": " you probably have some familiarity with that,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 396.56,
+      "end": 399.04,
+      "text": " and you'll understand what an IP address is."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 399.04,
+      "end": 401.52000000000004,
+      "text": " But above that, then you talk about your transport layer."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 401.52000000000004,
+      "end": 402.72,
+      "text": " That's layer four."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 402.72,
+      "end": 407.44,
+      "text": " And this is where things like TCP, UDP, and TLS more or less goes there."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 407.44,
+      "end": 409.84000000000003,
+      "text": " TLS, I suppose you can almost put it anywhere"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 409.84000000000003,
+      "end": 412.24,
+      "text": " because it's like an encryption thing on top."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 413.36,
+      "end": 416.64000000000004,
+      "text": " But transport layer is like TCP traffic or UDP traffic"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 416.64000000000004,
+      "end": 418.8,
+      "text": " between source and destination, usually."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 418.8,
+      "end": 422.48,
+      "text": " Now, above that, you get into higher-level protocols."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 422.48,
+      "end": 424.72,
+      "text": " Layer five, typically called the session layer."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 425.68,
+      "end": 429.12,
+      "text": " This is for coordination of sessions, really, between two hosts."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 429.12,
+      "end": 431.84000000000003,
+      "text": " And protocols like NFS will operate at that level."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 431.84000000000003,
+      "end": 434.72,
+      "text": " Depending on the system, you don't necessarily have all the layers."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 434.72,
+      "end": 436.8,
+      "text": " So a lot of systems don't have session layer,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 436.8,
+      "end": 438.8,
+      "text": " so you don't have to worry about it too much."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 438.8,
+      "end": 442.08000000000004,
+      "text": " Layer six also is something you don't typically have to think about too much."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 442.08000000000004,
+      "end": 444.24,
+      "text": " It's called a presentation layer."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 444.24,
+      "end": 446,
+      "text": " And that deals with the structure of the data itself,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 446,
+      "end": 449.52000000000004,
+      "text": " like whether it's HTML or JSON or JPEG or text."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 449.52000000000004,
+      "end": 452.08000000000004,
+      "text": " And also compression can fit in there too."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 452.15999999999997,
+      "end": 455.76,
+      "text": " But then at layer seven, this starts to get relevant for most of us again,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 455.76,
+      "end": 458.24,
+      "text": " because this is the application layer, and this is the highest level."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 458.8,
+      "end": 461.03999999999996,
+      "text": " And it deals with the high-level application protocol."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 461.03999999999996,
+      "end": 463.91999999999996,
+      "text": " This is where HTTP and HTTPS live."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 465.12,
+      "end": 469.52,
+      "text": " And for other things like email, SMTP is also a protocol that fits into layer seven."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 470.47999999999996,
+      "end": 473.52,
+      "text": " So now that that slightly torturous theory lesson is over,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 473.52,
+      "end": 477.76,
+      "text": " let's get back to load balancers, knowing roughly where layer four,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 477.76,
+      "end": 481.44,
+      "text": " the transport layer, and layer seven, application layer, sit."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 482.15999999999997,
+      "end": 485.76,
+      "text": " And we can talk about layer four and layer seven load balancers."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 485.76,
+      "end": 488.64,
+      "text": " So what's the deal with layer four load balancers, Luciano?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 492.08,
+      "end": 496.88,
+      "text": " So since layer four load balancers operate at the transport layer, they don't really understand anything about what we might call the protocol."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 496.88,
+      "end": 500.47999999999996,
+      "text": " Like, is it an HTTP request or is it maybe an SMTP?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 500.47999999999996,
+      "end": 504.24,
+      "text": " Or they don't even understand whether you are trying to transmit,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 504.24,
+      "end": 507.44,
+      "text": " I don't know, a JPG or an HTML page."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 507.44,
+      "end": 508.96,
+      "text": " They are only dealing with transport."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 508.96,
+      "end": 511.52,
+      "text": " So that generally means TCP or UDP."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 511.52,
+      "end": 513.4399999999999,
+      "text": " And of course, this is a trade-off."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 513.4399999999999,
+      "end": 516,
+      "text": " It comes with some advantages and some disadvantages."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 516,
+      "end": 521.68,
+      "text": " And the main advantage is that because it focuses only at the TCP or UDP level,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 521.68,
+      "end": 523.04,
+      "text": " there is very low latency."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 523.04,
+      "end": 526.64,
+      "text": " Like it doesn't have to really unpack or pack any data"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 526.64,
+      "end": 530.4,
+      "text": " or trying to really understand the content of the packets,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 530.4,
+      "end": 533.52,
+      "text": " but it can literally move packets from one place to another,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 534.16,
+      "end": 538.4,
+      "text": " which means that it can move like millions of billions of packets"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 538.56,
+      "end": 543.6,
+      "text": " in the order of second with very little hardware costs, so to speak."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 544.16,
+      "end": 550,
+      "text": " So that's why layer four load balancers generally are considered most performant."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 550,
+      "end": 552.16,
+      "text": " And they can move massive amounts of traffic."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 552.16,
+      "end": 554.3199999999999,
+      "text": " So that's definitely the main advantage."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 554.3199999999999,
+      "end": 557.76,
+      "text": " But the disadvantage is that because they don't understand the actual traffic,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 557.76,
+      "end": 563.1999999999999,
+      "text": " that the amount of features you can have at the protocol level, of course, is very limited."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 563.1999999999999,
+      "end": 567.68,
+      "text": " And for instance, you cannot do things like, I don't know,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 567.68,
+      "end": 570.7199999999999,
+      "text": " if you are doing an HTTP request to a specific path,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 570.7199999999999,
+      "end": 574.2399999999999,
+      "text": " forward that request to maybe an endpoint, but not to another."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 574.2399999999999,
+      "end": 576.8,
+      "text": " Of course, because you cannot even understand the concept of a path"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 576.8,
+      "end": 578.9599999999999,
+      "text": " because that exists at the HTTP level,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 578.9599999999999,
+      "end": 582.64,
+      "text": " that's definitely a feature that cannot exist in this kind of load balancers."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 582.64,
+      "end": 585.68,
+      "text": " Maybe the things that you can do, because you can understand IP,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 585.68,
+      "end": 588.3199999999999,
+      "text": " so you can understand source IP and destination IP,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 588.3199999999999,
+      "end": 594.0799999999999,
+      "text": " you can probably create rules on how to forward traffic based on IP information."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 594.0799999999999,
+      "end": 596.16,
+      "text": " This is something that exists at the TCP level,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 596.16,
+      "end": 602.0799999999999,
+      "text": " so you can use that and use it to do routing or maybe understand,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 602.0799999999999,
+      "end": 605.28,
+      "text": " depending on the distribution of traffic that you want to use,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 605.28,
+      "end": 608.8,
+      "text": " there can be an information you can take and apply to the specific protocol."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 608.8,
+      "end": 614.0799999999999,
+      "text": " And there are some more modern load balancers that have this concept of a proxy protocol,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 614.0799999999999,
+      "end": 618,
+      "text": " which is something that can add additional information into the packets themselves."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 618,
+      "end": 623.28,
+      "text": " For instance, I know that some of them will allow you to see what was the originating IP address,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 623.28,
+      "end": 628.88,
+      "text": " just because they embed that information into this particular space inside the TCP packet."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 628.88,
+      "end": 633.6,
+      "text": " Because the idea is that since they will be normally rewriting TCP packets themselves,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 633.6,
+      "end": 638.4,
+      "text": " from your server perspective, it looks like every request is being originated by the load balancer."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 638.4,
+      "end": 641.92,
+      "text": " So if you actually want to know which one was the actual client IP,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 641.92,
+      "end": 645.1999999999999,
+      "text": " you need to try to read this additional information from somewhere else,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 645.1999999999999,
+      "end": 647.68,
+      "text": " and the proxy protocol helps with that."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 647.68,
+      "end": 652.56,
+      "text": " So hopefully that gives you an idea of what layer 4 is good for, what are the pros and cons,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 652.56,
+      "end": 654.4799999999999,
+      "text": " but let's talk about layer 7 now."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 654.4799999999999,
+      "end": 658.4,
+      "text": " Yeah, if you're looking for some more control at the layer 7 layer,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 658.4,
+      "end": 664.3199999999999,
+      "text": " then you'll need a layer 7 load balancer, because they can see the traffic at that HTTP or HTTPS"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 664.3199999999999,
+      "end": 669.04,
+      "text": " level. That means you can see the headers, the path, query parameters, and even the body."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 669.76,
+      "end": 675.5999999999999,
+      "text": " Doing this, as you said, Luciano, it's going to introduce some latency, but with that,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 675.5999999999999,
+      "end": 679.3599999999999,
+      "text": " you'll get a lot more useful features. And the list is a bit longer, like you can get"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 680,
+      "end": 686.24,
+      "text": " routing based on header, path, and query. You can even modify all of those things before you pass"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 686.24,
+      "end": 691.36,
+      "text": " the request to the backend. You can do HTTP compression in your load balancer, so you could do"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 691.36,
+      "end": 698.64,
+      "text": " gzip encoding at the load balancer level. You can do much finer-grained specific HTTP health checks,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 698.64,
+      "end": 702.48,
+      "text": " like checking the health of a specific URL and inspecting the response in detail,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 702.48,
+      "end": 708.5600000000001,
+      "text": " like the status code and the body or response headers. You can even do caching in the load"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 708.56,
+      "end": 713.4399999999999,
+      "text": " balancer. Another thing that is quite common in load balancers is to do authentication"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 713.4399999999999,
+      "end": 719.68,
+      "text": " and authorization at the load balancer level. Like layer 7 load balancers can also almost be used as"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 719.68,
+      "end": 723.92,
+      "text": " a very effective API gateway. When we're talking about security, we mentioned things like DDoS"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 723.92,
+      "end": 728.4,
+      "text": " protection, but when you're operating at layer 7, you can also have a web application firewall"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 728.4,
+      "end": 734.2399999999999,
+      "text": " linked to your load balancer so that you can do lots of more specific HTTP, like kind of OASP top"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 734.24,
+      "end": 739.6,
+      "text": " 10 type attack detection. Because you can see headers, you can see cookies, and therefore you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 739.6,
+      "end": 746.88,
+      "text": " can also do cookie-based stickiness in layer 7 load balancers. And you don't need that proxy"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 746.88,
+      "end": 752.8,
+      "text": " protocol thing that was added for network load balancers or layer 4 load balancers, Luciano,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 752.8,
+      "end": 758.32,
+      "text": " because the X-forwarded for header is very typical with load balancers and reverse proxies."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 758.32,
+      "end": 766.6400000000001,
+      "text": " Whereas layer 4 load balancers normally have one connection inbound associated with another"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 766.6400000000001,
+      "end": 771.44,
+      "text": " connection to the backend, layer 7 typically have a different model where they terminate a connection"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 771.44,
+      "end": 774.6400000000001,
+      "text": " and then forward traffic to like a pool of connections to the backend server. So it can be"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 774.6400000000001,
+      "end": 781.44,
+      "text": " more efficient in terms of connection utilization as well. So that's layer 4, layer 7 load balancers."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 781.44,
+      "end": 784.96,
+      "text": " Where does this all fit into the world of AWS? We mentioned that there are four types. We're going"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 785.0400000000001,
+      "end": 789.6,
+      "text": " to talk about two, the network load balancer and the application load balancer in AWS."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 789.6,
+      "end": 795.0400000000001,
+      "text": " Yes."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 795.0400000000001,
+      "end": 802.72,
+      "text": " So in AWS, you can of course integrate any kind of third-party load balancer if you're willing to spend the time to set it up correctly on EC2 instances, for example. And of course, that can be"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 802.72,
+      "end": 806.88,
+      "text": " complicated. It can take a lot of time and you'll need to know how to do it correctly."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 806.88,
+      "end": 812.1600000000001,
+      "text": " So there are alternatives that AWS provides in the form of managed services. And this is probably"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 812.88,
+      "end": 818.16,
+      "text": " the most used load balancer you will see in AWS. There are actually four different types,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 818.16,
+      "end": 822.64,
+      "text": " and they are the classic load balancer, which is now deprecated, then network load balancers,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 822.64,
+      "end": 826.7199999999999,
+      "text": " which are the layer 4 that we described before. Then we have application load balancers,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 826.7199999999999,
+      "end": 830.56,
+      "text": " which is going to be layer 7. And then we have another kind of load balancers, which are called"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 830.56,
+      "end": 834.7199999999999,
+      "text": " gateway load balancers, which are generally used when you have a third-party security"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 834.7199999999999,
+      "end": 839.68,
+      "text": " prevention detection device, and you need all the traffic to go through that particular device."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 839.68,
+      "end": 843.76,
+      "text": " This is a little bit of a more niche use case that only makes sense when you have specific"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 843.76,
+      "end": 848.0799999999999,
+      "text": " security requirements and you are setting up this kind of third-party tools that need to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 848.0799999999999,
+      "end": 854.4799999999999,
+      "text": " live at the load balancer level. So we can use the short name NLB for network load balancer and ALB"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 854.4799999999999,
+      "end": 860.2399999999999,
+      "text": " for application load balancer. They can be either public or internal phasing. So that's a great"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 860.2399999999999,
+      "end": 864.64,
+      "text": " option to have because that means that if you are creating an application that needs to be internet"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 864.64,
+      "end": 869.28,
+      "text": " phasing, you can just put a load balancer there and it's going to handle all your incoming traffic."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 869.52,
+      "end": 874.8,
+      "text": " If you're building something internally, maybe this is an internal API or internal microservices,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 874.8,
+      "end": 879.68,
+      "text": " if you want, you can also use all the same features of both NLB and ALBs just for internal"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 879.68,
+      "end": 885.12,
+      "text": " traffic. So traffic that is only existing inside your own private VPC. So let's talk a little bit"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 885.12,
+      "end": 891.28,
+      "text": " more about network load balancers. As we said, they support layer 4 and these are great candidates"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 891.28,
+      "end": 896,
+      "text": " if you don't need all the features of layer 7. And these are generally the way to go because the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 896,
+      "end": 901.12,
+      "text": " latency is so much lower. So if you need to provide as low a latency as possible, you probably"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 901.12,
+      "end": 906.24,
+      "text": " want to use a network load balancer. They have some support for TLS termination and you can use"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 906.24,
+      "end": 912.32,
+      "text": " AWS certificate manager, but still that termination is already done at the TLS level. It doesn't"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 912.32,
+      "end": 921.2,
+      "text": " really understand, for instance, HTTPS. So it only unwraps the TLS traffic. Another thing that is"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 921.2,
+      "end": 927.44,
+      "text": " interesting is that because you are using certificate manager and it can use SNI, it can"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 927.44,
+      "end": 933.2,
+      "text": " support multiple domains. So that's another great feature to have for NLBs. So one more reason to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 933.2,
+      "end": 938.08,
+      "text": " consider a network load balancer is that a network load balancer will give you a fixed public IP"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 938.08,
+      "end": 943.44,
+      "text": " address. And either it will provision one for you or you can use an existing Elastic IP that you have"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 943.44,
+      "end": 949.5200000000001,
+      "text": " pre-allocated before. And this is great because sometimes you might need that for specific reasons"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 949.52,
+      "end": 955.04,
+      "text": " depending on your network needs. Instead, if you compare that with an application load balancer,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 955.04,
+      "end": 960.48,
+      "text": " an application load balancer will only give you a CNAME and that you can then configure,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 960.48,
+      "end": 966,
+      "text": " for instance, if you need to forward traffic from somewhere else, from like a DNS, you can point it"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 966,
+      "end": 971.52,
+      "text": " to that particular CNAME. But then behind the scene, the IP associated might change over time."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 971.52,
+      "end": 976.64,
+      "text": " So you can not rely on that IP being fixed. So if you really need a fixed IP, don't use"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 976.64,
+      "end": 981.4399999999999,
+      "text": " application load balancer, but use network load balancers. Now, what are some of the features of"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 981.4399999999999,
+      "end": 986.4,
+      "text": " application load balancer and why it might be worth considering those?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 986.4,
+      "end": 990.72,
+      "text": " Application load balancers are going to support everything we talked about in terms of layer 7 load balancer features are"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 990.72,
+      "end": 995.76,
+      "text": " supported really in application load balancers. So you got the path-based routing, etc. You can do"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 995.76,
+      "end": 1003.04,
+      "text": " web sockets, you can do HTTP version 2, not version 3 yet, and you could do gRPC over HTTP 2 as well."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1003.04,
+      "end": 1007.04,
+      "text": " You can also, again, like network load balancers, you can do your TLS termination,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1007.04,
+      "end": 1012.48,
+      "text": " and it's integrated with certificate manager and also supports server name identification. One of"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1012.48,
+      "end": 1017.52,
+      "text": " the unique features of application load balancers is that they support lambda functions as targets."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1017.52,
+      "end": 1022.7199999999999,
+      "text": " You can't do that with a network load balancer. And they have authorizers built in. So you can"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1022.7199999999999,
+      "end": 1029.6,
+      "text": " use an OADC provider, use an OADC authorizer, and you can also use Cognito user pool authorization."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1030.3999999999999,
+      "end": 1035.12,
+      "text": " They also integrate pretty well with ECS, like through ECS deployments. Containers are"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1035.12,
+      "end": 1039.12,
+      "text": " automatically added as targets to your load balancer and ECS will watch your health checks"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1039.12,
+      "end": 1044.24,
+      "text": " and make sure that the deployment is successful. And then you can integrate into AWS web application"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1044.24,
+      "end": 1049.1999999999998,
+      "text": " firewall or WAF to get your security rules applied, like IP address blocking or preventing"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1049.1999999999998,
+      "end": 1056.48,
+      "text": " SQL injection or cross site scripting attacks. Now, if we look at NLDs in terms of how you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1056.48,
+      "end": 1060.32,
+      "text": " create them at ALBs, it's actually very similar between the two. There's just a few subtle"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1060.32,
+      "end": 1064.88,
+      "text": " differences, even though the feature set is quite different. So let's just talk through the concepts"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1064.88,
+      "end": 1069.76,
+      "text": " and how you kind of construct an architecture around load balancers, whether you're using an"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1069.76,
+      "end": 1075.3600000000001,
+      "text": " NLD or an ALB. So you create your load balancer first. And once you have a load balancer,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1075.3600000000001,
+      "end": 1079.04,
+      "text": " it doesn't do anything on its own. You have to create a listener. And a listener is where you'll"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1079.04,
+      "end": 1083.76,
+      "text": " specify the port and the protocol. And if you want to use TLS termination on your load balancer,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1083.76,
+      "end": 1089.12,
+      "text": " you can specify your certificate as well, linking it into ECM. Now within the listener,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1089.12,
+      "end": 1096.4,
+      "text": " you can specify your default action and an action can either provide a fixed response like a 404"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1096.4,
+      "end": 1101.12,
+      "text": " or forward traffic to a target group. And target groups are really one of the most important"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1101.12,
+      "end": 1105.6,
+      "text": " concepts when it comes to load balancers, because this is where you route traffic from the load"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1105.6,
+      "end": 1111.84,
+      "text": " balancer to the backend. Target groups represent your fleet of backend things. Now it differs a"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1111.84,
+      "end": 1115.76,
+      "text": " little bit at this stage if you're using an application load balancer, because you don't"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1115.76,
+      "end": 1120.6399999999999,
+      "text": " just specify the default action, you can also specify additional listener rules. Each rule"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1120.6399999999999,
+      "end": 1125.76,
+      "text": " will have its own target group. And the listener rules can say, based on the path being slash"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1125.76,
+      "end": 1133.04,
+      "text": " login, go to this target group. Or if I've got a HTTP header, which matches this value,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1133.04,
+      "end": 1137.36,
+      "text": " then go to a different target group. And all of these rules are prioritized, like you give each"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1137.36,
+      "end": 1144.9599999999998,
+      "text": " one a unique priority number value, and they're evaluated in that order. If no rules match at all,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1144.9599999999998,
+      "end": 1149.9199999999998,
+      "text": " the default action will apply. So your default action might be to serve index.html, or it might"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1149.9199999999998,
+      "end": 1156.3999999999999,
+      "text": " be serving a 404. And you can have up to 100 rules in these application load balancer listeners as"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1156.3999999999999,
+      "end": 1161.6799999999998,
+      "text": " well by default, but it's only a soft limit. So you can get more if you ask nicely. And go back"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1161.68,
+      "end": 1167.1200000000001,
+      "text": " to the target groups, whether you're using an ALB or an NLB, these are groups of targets,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1167.1200000000001,
+      "end": 1171.8400000000001,
+      "text": " as the name suggests, but the targets can be IP addresses. And that IP address doesn't even have"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1171.8400000000001,
+      "end": 1177.92,
+      "text": " to be on AWS, it could also be on premises. And a lot of people use that as a gateway drug,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1177.92,
+      "end": 1183.3600000000001,
+      "text": " if you'll excuse the pun, to cloud migration. It's like using a load balancer with an on-premises"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1183.3600000000001,
+      "end": 1187.8400000000001,
+      "text": " server as the backend, and you can shift the traffic over to cloud instances over time."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1188.48,
+      "end": 1193.76,
+      "text": " You can also have application load balancers that are targets of load balancer listener rules."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1193.76,
+      "end": 1199.04,
+      "text": " So that means that you can have a hierarchy of load balancers. And it's not uncommon to do that."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1199.04,
+      "end": 1202.32,
+      "text": " A lot of people will have that kind of architecture where they find out traffic"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1202.32,
+      "end": 1206.8,
+      "text": " across multiple load balancers. You might have like a network load balancer in front of an ALB,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1206.8,
+      "end": 1211.76,
+      "text": " because you want a fixed IP address, for example. And that's not something that's uncommon at all."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1211.76,
+      "end": 1216.08,
+      "text": " It's pretty common. For application load balancers, we mentioned that you can have"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1216.8799999999999,
+      "end": 1221.52,
+      "text": " Lambda functions as targets. At scale, actually, application load balancers can be a much more"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1221.52,
+      "end": 1227.36,
+      "text": " cost-effective alternative to API gateway in front of Lambda, albeit with a reduced feature set,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1227.36,
+      "end": 1232.72,
+      "text": " because you don't have things like caching, rate limiting, and API keys, and various other features."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1232.72,
+      "end": 1235.9199999999998,
+      "text": " But the target group is also the place where you configure health checks,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1235.9199999999998,
+      "end": 1239.36,
+      "text": " which will make a request to the targets to determine whether they should be added to"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1239.36,
+      "end": 1244.56,
+      "text": " or removed from the target group based on their health. And you can specify the frequency,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1244.56,
+      "end": 1249.44,
+      "text": " the number of target group health checks that have to succeed in order for a target to be added"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1249.44,
+      "end": 1255.28,
+      "text": " to your pool. So Luciano, I think we covered quite a lot. Although there's probably quite a lot else"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1255.28,
+      "end": 1259.84,
+      "text": " we could cover. Is there anything else we need to know?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1259.84,
+      "end": 1264.3999999999999,
+      "text": " Maybe it's worth spending a few minutes on discussing pricing, because pricing can be a little bit difficult when it comes to, well,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1264.3999999999999,
+      "end": 1268.8,
+      "text": " probably when it comes to everything in AWS. But yeah, that doesn't change for load balancers."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1268.96,
+      "end": 1274.96,
+      "text": " What is the model for load balancer? There is a minimal unit of time, which is the hour. So"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1274.96,
+      "end": 1279.84,
+      "text": " you pay for... Actually, you can pay also for partial hours, I believe. Is that correct?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1279.84,
+      "end": 1286.6399999999999,
+      "text": " But yeah, you basically pay time and then the capacity unit. So this is not too much different"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1286.6399999999999,
+      "end": 1290.56,
+      "text": " from other pricing models that you can find in AWS, but there is this concept that you are using"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1290.56,
+      "end": 1294.72,
+      "text": " a service for a certain amount of time. And then depending on how much you use that service, you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1294.72,
+      "end": 1300.48,
+      "text": " have these units that try to represent the amount of, I guess, capacity that you are consuming per"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1300.48,
+      "end": 1307.84,
+      "text": " time. So we have different kinds of capacity units. For NLBs, we have NLCU, so Network Load"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1307.84,
+      "end": 1314.4,
+      "text": " Balancer Capacity Units. And for ALBs, you have LCUs. Now, there is quite a bit of complexity"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1314.4,
+      "end": 1320.32,
+      "text": " in these LCUs to be able to fully cover it here, but it's basically a formula that is based on new"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1320.32,
+      "end": 1325.84,
+      "text": " connections, active connection, process bytes, and dual evaluations. So if you're really curious,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1325.84,
+      "end": 1330,
+      "text": " I recommend checking out the documentation and trying to figure it out. You probably end up with"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1330,
+      "end": 1335.84,
+      "text": " a big spreadsheet if you really want to do a solid model to predict the cost. And keep in mind that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1335.84,
+      "end": 1340.6399999999999,
+      "text": " you also have to pay for data transfer out per gigabyte beyond 100 gigabytes to the internet."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1341.2,
+      "end": 1347.04,
+      "text": " But data transfer between ADs in the same AWS PPC is free. And by the way, you can enable or disable"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1347.04,
+      "end": 1354.1599999999999,
+      "text": " cross zone traffic in load balancers for LPs, but cross zone is always available, always enabled for"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1354.1599999999999,
+      "end": 1360,
+      "text": " ALBs. Now, another thing that might be worth covering very quickly is what are your alternatives?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1360,
+      "end": 1365.12,
+      "text": " What if you don't want to use AWS load balancers? What are your options? And we already mentioned"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1365.12,
+      "end": 1371.28,
+      "text": " at the beginning that you could effectively host anything on EC2. For instance, if you like Nginx,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1371.28,
+      "end": 1375.12,
+      "text": " of course, you can use Nginx as a load balancer. You just need to make sure you provision it"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1375.12,
+      "end": 1381.12,
+      "text": " correctly on AWS infrastructure. Similarly, you can use HAProxy or whatever else you like."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1381.12,
+      "end": 1385.4399999999998,
+      "text": " My caveat there would be that I think it's significantly complex to do that correctly"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1385.4399999999998,
+      "end": 1390.1599999999999,
+      "text": " and to make it scalable and secure. So do that only if you really have the skills and you are"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1390.1599999999999,
+      "end": 1394.56,
+      "text": " really knowledgeable about these tools and all the relevant networking configuration."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1394.56,
+      "end": 1395.84,
+      "text": " The pricing is simpler though."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1395.84,
+      "end": 1401.6,
+      "text": " Yeah, that's actually one reason maybe to consider that if you don't account for the amount of hours"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1401.6,
+      "end": 1406.32,
+      "text": " that you will be spending configuring all of that. But yeah, another option could be using"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1406.32,
+      "end": 1411.4399999999998,
+      "text": " DNS load balancing, which has interesting trade-offs. For instance, one thing you could"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1411.4399999999998,
+      "end": 1416.24,
+      "text": " do, you could do geographical distribution of traffic. Maybe you can distribute traffic across"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1416.24,
+      "end": 1422.24,
+      "text": " regions using DNS load balancing, but also you know that DNS is always the reason for problems"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1422.24,
+      "end": 1427.36,
+      "text": " in the web. So there is significant complexity there to do it right, to do DNS caching and"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1427.36,
+      "end": 1432,
+      "text": " validation and all that kind of stuff. So again, it's an option, but comes with its own trade-offs."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1432,
+      "end": 1437.04,
+      "text": " And another option that we have been discussing before is VPC lattice. And we have an entire"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1437.04,
+      "end": 1441.52,
+      "text": " episode and a blog post. So if you haven't seen that, we'll leave the link in the show notes so"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1441.52,
+      "end": 1448.56,
+      "text": " you can check those out. So hopefully this was a complete enough coverage of load balancers and"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1448.56,
+      "end": 1453.9199999999998,
+      "text": " how do you use load balancers on AWS. I'm sure that there is a lot we have missed. So let us know"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1453.92,
+      "end": 1458.4,
+      "text": " if you have any particular experience that might be worth sharing. What kind of load balancers do"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1458.4,
+      "end": 1463.3600000000001,
+      "text": " you like to use? Or maybe any other comments of question that you think is relevant here."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1463.3600000000001,
+      "end": 1467.2,
+      "text": " So that's all for today. Thank you for being with us. And as always, if you liked this episode,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1467.2,
+      "end": 1470.96,
+      "text": " consider sharing it and giving us a like. See you in the next one."
+    }
+  ]
+}

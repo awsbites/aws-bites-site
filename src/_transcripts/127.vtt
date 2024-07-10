@@ -1,0 +1,1501 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:04.720
+Hello there and welcome to episode 127 of AWS Bites.
+
+2
+00:00:04.720 --> 00:00:06.640
+My name is Luciano and I'm here with Eoin.
+
+3
+00:00:06.640 --> 00:00:09.760
+So cloud computing is all about elastic scalability,
+
+4
+00:00:09.760 --> 00:00:11.440
+high availability and security.
+
+5
+00:00:11.440 --> 00:00:13.760
+For most architecture to get all of that,
+
+6
+00:00:13.760 --> 00:00:15.200
+you'll need a load balancer.
+
+7
+00:00:15.200 --> 00:00:16.960
+But what is a load balancer really?
+
+8
+00:00:16.960 --> 00:00:19.200
+This is the topic of our podcast today.
+
+9
+00:00:19.200 --> 00:00:22.320
+So we are going to explore how does it work, a load balancer,
+
+10
+00:00:22.320 --> 00:00:24.240
+what type of load balancer should you choose
+
+11
+00:00:24.240 --> 00:00:26.800
+when it comes to performance, cost and flexibility.
+
+12
+00:00:26.800 --> 00:00:28.480
+And by the end of this episode,
+
+13
+00:00:28.480 --> 00:00:30.160
+hopefully you should have a clear idea
+
+14
+00:00:30.160 --> 00:00:33.360
+on which load balancer to choose when you need one on AWS.
+
+15
+00:00:41.440 --> 00:00:42.960
+So let's start with an example.
+
+16
+00:00:42.960 --> 00:00:45.840
+You have a client application that could be a web browser
+
+17
+00:00:45.840 --> 00:00:48.160
+or maybe another kind of application,
+
+18
+00:00:48.160 --> 00:00:49.840
+maybe running on a mobile phone.
+
+19
+00:00:49.840 --> 00:00:51.520
+It could be an IoT device.
+
+20
+00:00:51.520 --> 00:00:54.400
+This client is going to send a request to a server.
+
+21
+00:00:54.400 --> 00:00:56.240
+What kind of server is probably the first question
+
+22
+00:00:56.240 --> 00:00:57.200
+you should ask yourself?
+
+23
+00:00:57.680 --> 00:01:00.480
+Well, even if your application is running on a physical host,
+
+24
+00:01:00.480 --> 00:01:04.160
+maybe that can be a virtual machine running on EC2
+
+25
+00:01:04.160 --> 00:01:06.880
+or maybe a container running on Fargate,
+
+26
+00:01:06.880 --> 00:01:09.680
+it's unlikely that your traffic is going to be served directly
+
+27
+00:01:09.680 --> 00:01:11.440
+to that application server.
+
+28
+00:01:11.440 --> 00:01:14.000
+And because there will be a few problems with that approach.
+
+29
+00:01:14.000 --> 00:01:16.000
+First of all, it would expose your server directly
+
+30
+00:01:16.000 --> 00:01:17.360
+to the public internet,
+
+31
+00:01:17.360 --> 00:01:19.520
+which can cause some kind of security problems.
+
+32
+00:01:19.520 --> 00:01:23.040
+You generally don't want to put your web server
+
+33
+00:01:23.040 --> 00:01:24.880
+just in front on the public internet.
+
+34
+00:01:25.520 --> 00:01:27.600
+That would also mean that you have only one host.
+
+35
+00:01:27.600 --> 00:01:30.320
+So that means that if you start to get a lot of traffic,
+
+36
+00:01:30.320 --> 00:01:35.200
+your single instance machine is going to be overloaded very quickly.
+
+37
+00:01:35.200 --> 00:01:37.520
+And then you have limited options on how to scale it
+
+38
+00:01:37.520 --> 00:01:40.000
+in response to an increase of traffic, for example.
+
+39
+00:01:40.560 --> 00:01:43.760
+And you can also think that this is a single point of failure,
+
+40
+00:01:43.760 --> 00:01:45.280
+not just in terms of scalability,
+
+41
+00:01:45.280 --> 00:01:47.360
+but maybe if something else goes wrong,
+
+42
+00:01:47.360 --> 00:01:49.120
+maybe, I don't know, you install an update
+
+43
+00:01:49.120 --> 00:01:50.720
+and that update goes wrong,
+
+44
+00:01:50.720 --> 00:01:53.520
+or maybe your host fails because of an hardware failure.
+
+45
+00:01:53.520 --> 00:01:55.760
+At that point, your application just becomes unavailable
+
+46
+00:01:55.760 --> 00:01:57.840
+because your only server just died
+
+47
+00:01:57.840 --> 00:02:00.000
+and no traffic can be served anymore.
+
+48
+00:02:00.000 --> 00:02:02.640
+And again, if you want to deploy a new version of the software
+
+49
+00:02:02.640 --> 00:02:05.840
+or maybe upgrade something in the configuration of your server,
+
+50
+00:02:05.840 --> 00:02:06.720
+then you need to decide,
+
+51
+00:02:06.720 --> 00:02:08.560
+what am I going to do during the downtime?
+
+52
+00:02:08.560 --> 00:02:10.000
+I will have some kind of downtime.
+
+53
+00:02:10.000 --> 00:02:12.000
+How do I manage all of that?
+
+54
+00:02:12.000 --> 00:02:14.880
+And that's going to degrade the experience of your users.
+
+55
+00:02:14.880 --> 00:02:18.000
+So ideally, you don't want to have just one instance,
+
+56
+00:02:18.000 --> 00:02:21.600
+which brings us to the challenge that we need to do something
+
+57
+00:02:21.600 --> 00:02:26.880
+in our architecture that allows us to support multiple instances of an application.
+
+58
+00:02:26.880 --> 00:02:30.480
+And actually, this problem existed even before cloud computing.
+
+59
+00:02:30.480 --> 00:02:33.200
+So back in the days around the 1990s,
+
+60
+00:02:33.200 --> 00:02:37.440
+when people started to ship all kinds of server applications,
+
+61
+00:02:37.440 --> 00:02:39.760
+they started to have these problems even in their own data centers.
+
+62
+00:02:39.760 --> 00:02:44.080
+So how do we scale and make things highly available for our users?
+
+63
+00:02:44.080 --> 00:02:46.480
+And that's where softwares like NGINX,
+
+64
+00:02:46.480 --> 00:02:49.440
+Squid, HAProxy, Trafic, and many others,
+
+65
+00:02:49.440 --> 00:02:52.080
+were started to come up to help solve this problem.
+
+66
+00:02:52.080 --> 00:02:55.200
+So the idea is that you use one of this software
+
+67
+00:02:55.200 --> 00:02:58.960
+to effectively become the entry point into your application,
+
+68
+00:02:58.960 --> 00:03:01.600
+and they can distribute and manage multiple connections
+
+69
+00:03:01.600 --> 00:03:04.800
+and distribute those connections across a variety of servers
+
+70
+00:03:04.800 --> 00:03:09.200
+that exist behind the scenes of this specific application.
+
+71
+00:03:09.200 --> 00:03:13.680
+So this is where we can say that the idea of a load balancer was invented.
+
+72
+00:03:13.680 --> 00:03:17.760
+And we will discuss a little bit today about more of the details,
+
+73
+00:03:17.760 --> 00:03:20.240
+what is really the responsibility of a load balancer,
+
+74
+00:03:20.240 --> 00:03:22.160
+what different kinds of load balancers exist,
+
+75
+00:03:22.160 --> 00:03:25.440
+and then we'll talk a little bit more specifically about AWS.
+
+76
+00:03:25.440 --> 00:03:27.600
+What kind of load balancer do you have there,
+
+77
+00:03:27.600 --> 00:03:31.440
+and which ones should you choose depending on your specific use cases?
+
+78
+00:03:31.440 --> 00:03:35.120
+So maybe make sense to start with the features of a load balancer.
+
+79
+00:03:35.120 --> 00:03:37.120
+Eoin, do you want to talk a little bit about that?
+
+80
+00:03:41.040 --> 00:03:45.600
+Yeah, feature number one is the ability to distribute the traffic across multiple hosts and solve a lot of those problems you were talking about there.
+
+81
+00:03:45.600 --> 00:03:49.040
+And then load balancers will generally have different algorithms
+
+82
+00:03:49.040 --> 00:03:54.080
+for distributing the traffic, like simple round robin, weighted distribution, etc.
+
+83
+00:03:54.080 --> 00:03:56.480
+And often there's a lot more and a lot different edge cases
+
+84
+00:03:56.480 --> 00:03:58.320
+that load balancers will have to handle for you.
+
+85
+00:03:59.120 --> 00:04:01.920
+Then they'll need health checks because if you've got multiple hosts
+
+86
+00:04:01.920 --> 00:04:03.600
+and they need to be able to redirect traffic,
+
+87
+00:04:03.600 --> 00:04:05.120
+they want to direct it to healthy hosts,
+
+88
+00:04:05.120 --> 00:04:10.000
+so ones that are proven to be able to serve responses to requests effectively.
+
+89
+00:04:10.000 --> 00:04:12.080
+So health checks are an important feature.
+
+90
+00:04:12.800 --> 00:04:14.640
+TLS and SSL termination.
+
+91
+00:04:14.640 --> 00:04:18.000
+Normally TLS termination these days for HTTPS
+
+92
+00:04:18.000 --> 00:04:21.840
+or even any other protocol supporting securing encryption,
+
+93
+00:04:21.840 --> 00:04:23.200
+it's a really important feature.
+
+94
+00:04:23.200 --> 00:04:29.440
+And load balancers can offload the computational workload of TLS
+
+95
+00:04:29.440 --> 00:04:32.800
+from your server by handling it at the entry point into your network.
+
+96
+00:04:32.800 --> 00:04:34.880
+So if the route between your load balancer and the host
+
+97
+00:04:34.880 --> 00:04:36.800
+is secured via another mechanism,
+
+98
+00:04:36.800 --> 00:04:38.960
+like in the case with AWS VPCs,
+
+99
+00:04:38.960 --> 00:04:42.320
+which are already secured and encrypted traffic by default,
+
+100
+00:04:42.320 --> 00:04:44.240
+your hosts will then have a reduced workload.
+
+101
+00:04:44.400 --> 00:04:46.560
+Since they don't have to do that TLS handshaking,
+
+102
+00:04:46.560 --> 00:04:47.760
+encryption and decryption.
+
+103
+00:04:48.320 --> 00:04:51.520
+Other important features are things like DDoS protection
+
+104
+00:04:51.520 --> 00:04:55.440
+to protect against distributed denial of service attacks.
+
+105
+00:04:55.440 --> 00:04:56.720
+And then a firewall, right?
+
+106
+00:04:56.720 --> 00:04:59.600
+A web application firewall or other firewall rules
+
+107
+00:04:59.600 --> 00:05:04.800
+or software or hardware to detect intrusions and prevent intrusions.
+
+108
+00:05:05.360 --> 00:05:08.320
+Now there's a lot more features you can get with load balancers,
+
+109
+00:05:08.320 --> 00:05:11.600
+but it'll ultimately depend on the type of load balancer you have.
+
+110
+00:05:12.320 --> 00:05:15.040
+And it's probably a good idea now to start talking
+
+111
+00:05:15.040 --> 00:05:16.560
+about the different types of load balancers.
+
+112
+00:05:17.120 --> 00:05:21.360
+If we're going to do that, we should talk about the OSI networking model.
+
+113
+00:05:21.360 --> 00:05:22.720
+You might be very familiar with this.
+
+114
+00:05:22.720 --> 00:05:25.840
+Maybe you've heard about it, or you might have a vague memory
+
+115
+00:05:25.840 --> 00:05:29.280
+or flashback to your college days or somewhere
+
+116
+00:05:29.280 --> 00:05:30.480
+where you learned about it before.
+
+117
+00:05:31.040 --> 00:05:33.920
+So let's quickly revisit it, quick refresher,
+
+118
+00:05:33.920 --> 00:05:35.360
+just to make sure we're all on the same page.
+
+119
+00:05:36.320 --> 00:05:38.240
+The OSI model, it's a theoretical model.
+
+120
+00:05:38.240 --> 00:05:42.480
+It doesn't necessarily translate directly to physical implementations
+
+121
+00:05:42.480 --> 00:05:44.960
+or software implementations, but it's a good model
+
+122
+00:05:44.960 --> 00:05:46.880
+for talking about networking.
+
+123
+00:05:46.880 --> 00:05:48.720
+Because when we're talking about networking protocols,
+
+124
+00:05:48.720 --> 00:05:51.600
+we usually start defining about which layer they belong to
+
+125
+00:05:51.600 --> 00:05:52.960
+within this OSI model.
+
+126
+00:05:52.960 --> 00:05:55.280
+So it's useful for understanding what happens when traffic
+
+127
+00:05:55.280 --> 00:05:57.760
+is flowing between a source and a destination.
+
+128
+00:05:58.320 --> 00:06:01.840
+For load balancers, we're going to focus on layers four and seven,
+
+129
+00:06:01.840 --> 00:06:04.000
+and there are seven layers in the OSI model.
+
+130
+00:06:04.000 --> 00:06:05.600
+But let's quickly run through the layers
+
+131
+00:06:05.600 --> 00:06:07.200
+so we can understand where they fit.
+
+132
+00:06:07.200 --> 00:06:10.080
+And if we start from the bottom up, your first one is layer one,
+
+133
+00:06:10.080 --> 00:06:11.040
+that's the physical layer.
+
+134
+00:06:11.040 --> 00:06:13.120
+That's where your hardware devices are.
+
+135
+00:06:13.120 --> 00:06:16.400
+Above that, you'll have layer two, which is called the data link layer.
+
+136
+00:06:16.400 --> 00:06:19.120
+And this is like low-level communication protocols
+
+137
+00:06:19.120 --> 00:06:20.640
+like Ethernet or Wi-Fi.
+
+138
+00:06:20.640 --> 00:06:22.800
+And above that, you'll have your network layer,
+
+139
+00:06:22.800 --> 00:06:24.400
+which is routing and addressing.
+
+140
+00:06:24.400 --> 00:06:26.080
+And this is in TCP IP.
+
+141
+00:06:26.080 --> 00:06:28.480
+This is where IP sits, Internet Protocol.
+
+142
+00:06:28.480 --> 00:06:30.400
+So those are kind of low-level things.
+
+143
+00:06:30.400 --> 00:06:31.920
+Most people will be familiar with IP.
+
+144
+00:06:32.560 --> 00:06:34.160
+If you're dealing with things like load balancers,
+
+145
+00:06:34.160 --> 00:06:36.480
+you probably have some familiarity with that,
+
+146
+00:06:36.560 --> 00:06:39.040
+and you'll understand what an IP address is.
+
+147
+00:06:39.040 --> 00:06:41.520
+But above that, then you talk about your transport layer.
+
+148
+00:06:41.520 --> 00:06:42.720
+That's layer four.
+
+149
+00:06:42.720 --> 00:06:47.440
+And this is where things like TCP, UDP, and TLS more or less goes there.
+
+150
+00:06:47.440 --> 00:06:49.840
+TLS, I suppose you can almost put it anywhere
+
+151
+00:06:49.840 --> 00:06:52.240
+because it's like an encryption thing on top.
+
+152
+00:06:53.360 --> 00:06:56.640
+But transport layer is like TCP traffic or UDP traffic
+
+153
+00:06:56.640 --> 00:06:58.800
+between source and destination, usually.
+
+154
+00:06:58.800 --> 00:07:02.480
+Now, above that, you get into higher-level protocols.
+
+155
+00:07:02.480 --> 00:07:04.720
+Layer five, typically called the session layer.
+
+156
+00:07:05.680 --> 00:07:09.120
+This is for coordination of sessions, really, between two hosts.
+
+157
+00:07:09.120 --> 00:07:11.840
+And protocols like NFS will operate at that level.
+
+158
+00:07:11.840 --> 00:07:14.720
+Depending on the system, you don't necessarily have all the layers.
+
+159
+00:07:14.720 --> 00:07:16.800
+So a lot of systems don't have session layer,
+
+160
+00:07:16.800 --> 00:07:18.800
+so you don't have to worry about it too much.
+
+161
+00:07:18.800 --> 00:07:22.080
+Layer six also is something you don't typically have to think about too much.
+
+162
+00:07:22.080 --> 00:07:24.240
+It's called a presentation layer.
+
+163
+00:07:24.240 --> 00:07:26.000
+And that deals with the structure of the data itself,
+
+164
+00:07:26.000 --> 00:07:29.520
+like whether it's HTML or JSON or JPEG or text.
+
+165
+00:07:29.520 --> 00:07:32.080
+And also compression can fit in there too.
+
+166
+00:07:32.160 --> 00:07:35.760
+But then at layer seven, this starts to get relevant for most of us again,
+
+167
+00:07:35.760 --> 00:07:38.240
+because this is the application layer, and this is the highest level.
+
+168
+00:07:38.800 --> 00:07:41.040
+And it deals with the high-level application protocol.
+
+169
+00:07:41.040 --> 00:07:43.920
+This is where HTTP and HTTPS live.
+
+170
+00:07:45.120 --> 00:07:49.520
+And for other things like email, SMTP is also a protocol that fits into layer seven.
+
+171
+00:07:50.480 --> 00:07:53.520
+So now that that slightly torturous theory lesson is over,
+
+172
+00:07:53.520 --> 00:07:57.760
+let's get back to load balancers, knowing roughly where layer four,
+
+173
+00:07:57.760 --> 00:08:01.440
+the transport layer, and layer seven, application layer, sit.
+
+174
+00:08:02.160 --> 00:08:05.760
+And we can talk about layer four and layer seven load balancers.
+
+175
+00:08:05.760 --> 00:08:08.640
+So what's the deal with layer four load balancers, Luciano?
+
+176
+00:08:12.080 --> 00:08:16.880
+So since layer four load balancers operate at the transport layer, they don't really understand anything about what we might call the protocol.
+
+177
+00:08:16.880 --> 00:08:20.480
+Like, is it an HTTP request or is it maybe an SMTP?
+
+178
+00:08:20.480 --> 00:08:24.240
+Or they don't even understand whether you are trying to transmit,
+
+179
+00:08:24.240 --> 00:08:27.440
+I don't know, a JPG or an HTML page.
+
+180
+00:08:27.440 --> 00:08:28.960
+They are only dealing with transport.
+
+181
+00:08:28.960 --> 00:08:31.520
+So that generally means TCP or UDP.
+
+182
+00:08:31.520 --> 00:08:33.440
+And of course, this is a trade-off.
+
+183
+00:08:33.440 --> 00:08:36.000
+It comes with some advantages and some disadvantages.
+
+184
+00:08:36.000 --> 00:08:41.680
+And the main advantage is that because it focuses only at the TCP or UDP level,
+
+185
+00:08:41.680 --> 00:08:43.040
+there is very low latency.
+
+186
+00:08:43.040 --> 00:08:46.640
+Like it doesn't have to really unpack or pack any data
+
+187
+00:08:46.640 --> 00:08:50.400
+or trying to really understand the content of the packets,
+
+188
+00:08:50.400 --> 00:08:53.520
+but it can literally move packets from one place to another,
+
+189
+00:08:54.160 --> 00:08:58.400
+which means that it can move like millions of billions of packets
+
+190
+00:08:58.560 --> 00:09:03.600
+in the order of second with very little hardware costs, so to speak.
+
+191
+00:09:04.160 --> 00:09:10.000
+So that's why layer four load balancers generally are considered most performant.
+
+192
+00:09:10.000 --> 00:09:12.160
+And they can move massive amounts of traffic.
+
+193
+00:09:12.160 --> 00:09:14.320
+So that's definitely the main advantage.
+
+194
+00:09:14.320 --> 00:09:17.760
+But the disadvantage is that because they don't understand the actual traffic,
+
+195
+00:09:17.760 --> 00:09:23.200
+that the amount of features you can have at the protocol level, of course, is very limited.
+
+196
+00:09:23.200 --> 00:09:27.680
+And for instance, you cannot do things like, I don't know,
+
+197
+00:09:27.680 --> 00:09:30.720
+if you are doing an HTTP request to a specific path,
+
+198
+00:09:30.720 --> 00:09:34.240
+forward that request to maybe an endpoint, but not to another.
+
+199
+00:09:34.240 --> 00:09:36.800
+Of course, because you cannot even understand the concept of a path
+
+200
+00:09:36.800 --> 00:09:38.960
+because that exists at the HTTP level,
+
+201
+00:09:38.960 --> 00:09:42.640
+that's definitely a feature that cannot exist in this kind of load balancers.
+
+202
+00:09:42.640 --> 00:09:45.680
+Maybe the things that you can do, because you can understand IP,
+
+203
+00:09:45.680 --> 00:09:48.320
+so you can understand source IP and destination IP,
+
+204
+00:09:48.320 --> 00:09:54.080
+you can probably create rules on how to forward traffic based on IP information.
+
+205
+00:09:54.080 --> 00:09:56.160
+This is something that exists at the TCP level,
+
+206
+00:09:56.160 --> 00:10:02.080
+so you can use that and use it to do routing or maybe understand,
+
+207
+00:10:02.080 --> 00:10:05.280
+depending on the distribution of traffic that you want to use,
+
+208
+00:10:05.280 --> 00:10:08.800
+there can be an information you can take and apply to the specific protocol.
+
+209
+00:10:08.800 --> 00:10:14.080
+And there are some more modern load balancers that have this concept of a proxy protocol,
+
+210
+00:10:14.080 --> 00:10:18.000
+which is something that can add additional information into the packets themselves.
+
+211
+00:10:18.000 --> 00:10:23.280
+For instance, I know that some of them will allow you to see what was the originating IP address,
+
+212
+00:10:23.280 --> 00:10:28.880
+just because they embed that information into this particular space inside the TCP packet.
+
+213
+00:10:28.880 --> 00:10:33.600
+Because the idea is that since they will be normally rewriting TCP packets themselves,
+
+214
+00:10:33.600 --> 00:10:38.400
+from your server perspective, it looks like every request is being originated by the load balancer.
+
+215
+00:10:38.400 --> 00:10:41.920
+So if you actually want to know which one was the actual client IP,
+
+216
+00:10:41.920 --> 00:10:45.200
+you need to try to read this additional information from somewhere else,
+
+217
+00:10:45.200 --> 00:10:47.680
+and the proxy protocol helps with that.
+
+218
+00:10:47.680 --> 00:10:52.560
+So hopefully that gives you an idea of what layer 4 is good for, what are the pros and cons,
+
+219
+00:10:52.560 --> 00:10:54.480
+but let's talk about layer 7 now.
+
+220
+00:10:54.480 --> 00:10:58.400
+Yeah, if you're looking for some more control at the layer 7 layer,
+
+221
+00:10:58.400 --> 00:11:04.320
+then you'll need a layer 7 load balancer, because they can see the traffic at that HTTP or HTTPS
+
+222
+00:11:04.320 --> 00:11:09.040
+level. That means you can see the headers, the path, query parameters, and even the body.
+
+223
+00:11:09.760 --> 00:11:15.600
+Doing this, as you said, Luciano, it's going to introduce some latency, but with that,
+
+224
+00:11:15.600 --> 00:11:19.360
+you'll get a lot more useful features. And the list is a bit longer, like you can get
+
+225
+00:11:20.000 --> 00:11:26.240
+routing based on header, path, and query. You can even modify all of those things before you pass
+
+226
+00:11:26.240 --> 00:11:31.360
+the request to the backend. You can do HTTP compression in your load balancer, so you could do
+
+227
+00:11:31.360 --> 00:11:38.640
+gzip encoding at the load balancer level. You can do much finer-grained specific HTTP health checks,
+
+228
+00:11:38.640 --> 00:11:42.480
+like checking the health of a specific URL and inspecting the response in detail,
+
+229
+00:11:42.480 --> 00:11:48.560
+like the status code and the body or response headers. You can even do caching in the load
+
+230
+00:11:48.560 --> 00:11:53.440
+balancer. Another thing that is quite common in load balancers is to do authentication
+
+231
+00:11:53.440 --> 00:11:59.680
+and authorization at the load balancer level. Like layer 7 load balancers can also almost be used as
+
+232
+00:11:59.680 --> 00:12:03.920
+a very effective API gateway. When we're talking about security, we mentioned things like DDoS
+
+233
+00:12:03.920 --> 00:12:08.400
+protection, but when you're operating at layer 7, you can also have a web application firewall
+
+234
+00:12:08.400 --> 00:12:14.240
+linked to your load balancer so that you can do lots of more specific HTTP, like kind of OASP top
+
+235
+00:12:14.240 --> 00:12:19.600
+10 type attack detection. Because you can see headers, you can see cookies, and therefore you
+
+236
+00:12:19.600 --> 00:12:26.880
+can also do cookie-based stickiness in layer 7 load balancers. And you don't need that proxy
+
+237
+00:12:26.880 --> 00:12:32.800
+protocol thing that was added for network load balancers or layer 4 load balancers, Luciano,
+
+238
+00:12:32.800 --> 00:12:38.320
+because the X-forwarded for header is very typical with load balancers and reverse proxies.
+
+239
+00:12:38.320 --> 00:12:46.640
+Whereas layer 4 load balancers normally have one connection inbound associated with another
+
+240
+00:12:46.640 --> 00:12:51.440
+connection to the backend, layer 7 typically have a different model where they terminate a connection
+
+241
+00:12:51.440 --> 00:12:54.640
+and then forward traffic to like a pool of connections to the backend server. So it can be
+
+242
+00:12:54.640 --> 00:13:01.440
+more efficient in terms of connection utilization as well. So that's layer 4, layer 7 load balancers.
+
+243
+00:13:01.440 --> 00:13:04.960
+Where does this all fit into the world of AWS? We mentioned that there are four types. We're going
+
+244
+00:13:05.040 --> 00:13:09.600
+to talk about two, the network load balancer and the application load balancer in AWS.
+
+245
+00:13:09.600 --> 00:13:15.040
+Yes.
+
+246
+00:13:15.040 --> 00:13:22.720
+So in AWS, you can of course integrate any kind of third-party load balancer if you're willing to spend the time to set it up correctly on EC2 instances, for example. And of course, that can be
+
+247
+00:13:22.720 --> 00:13:26.880
+complicated. It can take a lot of time and you'll need to know how to do it correctly.
+
+248
+00:13:26.880 --> 00:13:32.160
+So there are alternatives that AWS provides in the form of managed services. And this is probably
+
+249
+00:13:32.880 --> 00:13:38.160
+the most used load balancer you will see in AWS. There are actually four different types,
+
+250
+00:13:38.160 --> 00:13:42.640
+and they are the classic load balancer, which is now deprecated, then network load balancers,
+
+251
+00:13:42.640 --> 00:13:46.720
+which are the layer 4 that we described before. Then we have application load balancers,
+
+252
+00:13:46.720 --> 00:13:50.560
+which is going to be layer 7. And then we have another kind of load balancers, which are called
+
+253
+00:13:50.560 --> 00:13:54.720
+gateway load balancers, which are generally used when you have a third-party security
+
+254
+00:13:54.720 --> 00:13:59.680
+prevention detection device, and you need all the traffic to go through that particular device.
+
+255
+00:13:59.680 --> 00:14:03.760
+This is a little bit of a more niche use case that only makes sense when you have specific
+
+256
+00:14:03.760 --> 00:14:08.080
+security requirements and you are setting up this kind of third-party tools that need to
+
+257
+00:14:08.080 --> 00:14:14.480
+live at the load balancer level. So we can use the short name NLB for network load balancer and ALB
+
+258
+00:14:14.480 --> 00:14:20.240
+for application load balancer. They can be either public or internal phasing. So that's a great
+
+259
+00:14:20.240 --> 00:14:24.640
+option to have because that means that if you are creating an application that needs to be internet
+
+260
+00:14:24.640 --> 00:14:29.280
+phasing, you can just put a load balancer there and it's going to handle all your incoming traffic.
+
+261
+00:14:29.520 --> 00:14:34.800
+If you're building something internally, maybe this is an internal API or internal microservices,
+
+262
+00:14:34.800 --> 00:14:39.680
+if you want, you can also use all the same features of both NLB and ALBs just for internal
+
+263
+00:14:39.680 --> 00:14:45.120
+traffic. So traffic that is only existing inside your own private VPC. So let's talk a little bit
+
+264
+00:14:45.120 --> 00:14:51.280
+more about network load balancers. As we said, they support layer 4 and these are great candidates
+
+265
+00:14:51.280 --> 00:14:56.000
+if you don't need all the features of layer 7. And these are generally the way to go because the
+
+266
+00:14:56.000 --> 00:15:01.120
+latency is so much lower. So if you need to provide as low a latency as possible, you probably
+
+267
+00:15:01.120 --> 00:15:06.240
+want to use a network load balancer. They have some support for TLS termination and you can use
+
+268
+00:15:06.240 --> 00:15:12.320
+AWS certificate manager, but still that termination is already done at the TLS level. It doesn't
+
+269
+00:15:12.320 --> 00:15:21.200
+really understand, for instance, HTTPS. So it only unwraps the TLS traffic. Another thing that is
+
+270
+00:15:21.200 --> 00:15:27.440
+interesting is that because you are using certificate manager and it can use SNI, it can
+
+271
+00:15:27.440 --> 00:15:33.200
+support multiple domains. So that's another great feature to have for NLBs. So one more reason to
+
+272
+00:15:33.200 --> 00:15:38.080
+consider a network load balancer is that a network load balancer will give you a fixed public IP
+
+273
+00:15:38.080 --> 00:15:43.440
+address. And either it will provision one for you or you can use an existing Elastic IP that you have
+
+274
+00:15:43.440 --> 00:15:49.520
+pre-allocated before. And this is great because sometimes you might need that for specific reasons
+
+275
+00:15:49.520 --> 00:15:55.040
+depending on your network needs. Instead, if you compare that with an application load balancer,
+
+276
+00:15:55.040 --> 00:16:00.480
+an application load balancer will only give you a CNAME and that you can then configure,
+
+277
+00:16:00.480 --> 00:16:06.000
+for instance, if you need to forward traffic from somewhere else, from like a DNS, you can point it
+
+278
+00:16:06.000 --> 00:16:11.520
+to that particular CNAME. But then behind the scene, the IP associated might change over time.
+
+279
+00:16:11.520 --> 00:16:16.640
+So you can not rely on that IP being fixed. So if you really need a fixed IP, don't use
+
+280
+00:16:16.640 --> 00:16:21.440
+application load balancer, but use network load balancers. Now, what are some of the features of
+
+281
+00:16:21.440 --> 00:16:26.400
+application load balancer and why it might be worth considering those?
+
+282
+00:16:26.400 --> 00:16:30.720
+Application load balancers are going to support everything we talked about in terms of layer 7 load balancer features are
+
+283
+00:16:30.720 --> 00:16:35.760
+supported really in application load balancers. So you got the path-based routing, etc. You can do
+
+284
+00:16:35.760 --> 00:16:43.040
+web sockets, you can do HTTP version 2, not version 3 yet, and you could do gRPC over HTTP 2 as well.
+
+285
+00:16:43.040 --> 00:16:47.040
+You can also, again, like network load balancers, you can do your TLS termination,
+
+286
+00:16:47.040 --> 00:16:52.480
+and it's integrated with certificate manager and also supports server name identification. One of
+
+287
+00:16:52.480 --> 00:16:57.520
+the unique features of application load balancers is that they support lambda functions as targets.
+
+288
+00:16:57.520 --> 00:17:02.720
+You can't do that with a network load balancer. And they have authorizers built in. So you can
+
+289
+00:17:02.720 --> 00:17:09.600
+use an OADC provider, use an OADC authorizer, and you can also use Cognito user pool authorization.
+
+290
+00:17:10.400 --> 00:17:15.120
+They also integrate pretty well with ECS, like through ECS deployments. Containers are
+
+291
+00:17:15.120 --> 00:17:19.120
+automatically added as targets to your load balancer and ECS will watch your health checks
+
+292
+00:17:19.120 --> 00:17:24.240
+and make sure that the deployment is successful. And then you can integrate into AWS web application
+
+293
+00:17:24.240 --> 00:17:29.200
+firewall or WAF to get your security rules applied, like IP address blocking or preventing
+
+294
+00:17:29.200 --> 00:17:36.480
+SQL injection or cross site scripting attacks. Now, if we look at NLDs in terms of how you
+
+295
+00:17:36.480 --> 00:17:40.320
+create them at ALBs, it's actually very similar between the two. There's just a few subtle
+
+296
+00:17:40.320 --> 00:17:44.880
+differences, even though the feature set is quite different. So let's just talk through the concepts
+
+297
+00:17:44.880 --> 00:17:49.760
+and how you kind of construct an architecture around load balancers, whether you're using an
+
+298
+00:17:49.760 --> 00:17:55.360
+NLD or an ALB. So you create your load balancer first. And once you have a load balancer,
+
+299
+00:17:55.360 --> 00:17:59.040
+it doesn't do anything on its own. You have to create a listener. And a listener is where you'll
+
+300
+00:17:59.040 --> 00:18:03.760
+specify the port and the protocol. And if you want to use TLS termination on your load balancer,
+
+301
+00:18:03.760 --> 00:18:09.120
+you can specify your certificate as well, linking it into ECM. Now within the listener,
+
+302
+00:18:09.120 --> 00:18:16.400
+you can specify your default action and an action can either provide a fixed response like a 404
+
+303
+00:18:16.400 --> 00:18:21.120
+or forward traffic to a target group. And target groups are really one of the most important
+
+304
+00:18:21.120 --> 00:18:25.600
+concepts when it comes to load balancers, because this is where you route traffic from the load
+
+305
+00:18:25.600 --> 00:18:31.840
+balancer to the backend. Target groups represent your fleet of backend things. Now it differs a
+
+306
+00:18:31.840 --> 00:18:35.760
+little bit at this stage if you're using an application load balancer, because you don't
+
+307
+00:18:35.760 --> 00:18:40.640
+just specify the default action, you can also specify additional listener rules. Each rule
+
+308
+00:18:40.640 --> 00:18:45.760
+will have its own target group. And the listener rules can say, based on the path being slash
+
+309
+00:18:45.760 --> 00:18:53.040
+login, go to this target group. Or if I've got a HTTP header, which matches this value,
+
+310
+00:18:53.040 --> 00:18:57.360
+then go to a different target group. And all of these rules are prioritized, like you give each
+
+311
+00:18:57.360 --> 00:19:04.960
+one a unique priority number value, and they're evaluated in that order. If no rules match at all,
+
+312
+00:19:04.960 --> 00:19:09.920
+the default action will apply. So your default action might be to serve index.html, or it might
+
+313
+00:19:09.920 --> 00:19:16.400
+be serving a 404. And you can have up to 100 rules in these application load balancer listeners as
+
+314
+00:19:16.400 --> 00:19:21.680
+well by default, but it's only a soft limit. So you can get more if you ask nicely. And go back
+
+315
+00:19:21.680 --> 00:19:27.120
+to the target groups, whether you're using an ALB or an NLB, these are groups of targets,
+
+316
+00:19:27.120 --> 00:19:31.840
+as the name suggests, but the targets can be IP addresses. And that IP address doesn't even have
+
+317
+00:19:31.840 --> 00:19:37.920
+to be on AWS, it could also be on premises. And a lot of people use that as a gateway drug,
+
+318
+00:19:37.920 --> 00:19:43.360
+if you'll excuse the pun, to cloud migration. It's like using a load balancer with an on-premises
+
+319
+00:19:43.360 --> 00:19:47.840
+server as the backend, and you can shift the traffic over to cloud instances over time.
+
+320
+00:19:48.480 --> 00:19:53.760
+You can also have application load balancers that are targets of load balancer listener rules.
+
+321
+00:19:53.760 --> 00:19:59.040
+So that means that you can have a hierarchy of load balancers. And it's not uncommon to do that.
+
+322
+00:19:59.040 --> 00:20:02.320
+A lot of people will have that kind of architecture where they find out traffic
+
+323
+00:20:02.320 --> 00:20:06.800
+across multiple load balancers. You might have like a network load balancer in front of an ALB,
+
+324
+00:20:06.800 --> 00:20:11.760
+because you want a fixed IP address, for example. And that's not something that's uncommon at all.
+
+325
+00:20:11.760 --> 00:20:16.080
+It's pretty common. For application load balancers, we mentioned that you can have
+
+326
+00:20:16.880 --> 00:20:21.520
+Lambda functions as targets. At scale, actually, application load balancers can be a much more
+
+327
+00:20:21.520 --> 00:20:27.360
+cost-effective alternative to API gateway in front of Lambda, albeit with a reduced feature set,
+
+328
+00:20:27.360 --> 00:20:32.720
+because you don't have things like caching, rate limiting, and API keys, and various other features.
+
+329
+00:20:32.720 --> 00:20:35.920
+But the target group is also the place where you configure health checks,
+
+330
+00:20:35.920 --> 00:20:39.360
+which will make a request to the targets to determine whether they should be added to
+
+331
+00:20:39.360 --> 00:20:44.560
+or removed from the target group based on their health. And you can specify the frequency,
+
+332
+00:20:44.560 --> 00:20:49.440
+the number of target group health checks that have to succeed in order for a target to be added
+
+333
+00:20:49.440 --> 00:20:55.280
+to your pool. So Luciano, I think we covered quite a lot. Although there's probably quite a lot else
+
+334
+00:20:55.280 --> 00:20:59.840
+we could cover. Is there anything else we need to know?
+
+335
+00:20:59.840 --> 00:21:04.400
+Maybe it's worth spending a few minutes on discussing pricing, because pricing can be a little bit difficult when it comes to, well,
+
+336
+00:21:04.400 --> 00:21:08.800
+probably when it comes to everything in AWS. But yeah, that doesn't change for load balancers.
+
+337
+00:21:08.960 --> 00:21:14.960
+What is the model for load balancer? There is a minimal unit of time, which is the hour. So
+
+338
+00:21:14.960 --> 00:21:19.840
+you pay for... Actually, you can pay also for partial hours, I believe. Is that correct?
+
+339
+00:21:19.840 --> 00:21:26.640
+But yeah, you basically pay time and then the capacity unit. So this is not too much different
+
+340
+00:21:26.640 --> 00:21:30.560
+from other pricing models that you can find in AWS, but there is this concept that you are using
+
+341
+00:21:30.560 --> 00:21:34.720
+a service for a certain amount of time. And then depending on how much you use that service, you
+
+342
+00:21:34.720 --> 00:21:40.480
+have these units that try to represent the amount of, I guess, capacity that you are consuming per
+
+343
+00:21:40.480 --> 00:21:47.840
+time. So we have different kinds of capacity units. For NLBs, we have NLCU, so Network Load
+
+344
+00:21:47.840 --> 00:21:54.400
+Balancer Capacity Units. And for ALBs, you have LCUs. Now, there is quite a bit of complexity
+
+345
+00:21:54.400 --> 00:22:00.320
+in these LCUs to be able to fully cover it here, but it's basically a formula that is based on new
+
+346
+00:22:00.320 --> 00:22:05.840
+connections, active connection, process bytes, and dual evaluations. So if you're really curious,
+
+347
+00:22:05.840 --> 00:22:10.000
+I recommend checking out the documentation and trying to figure it out. You probably end up with
+
+348
+00:22:10.000 --> 00:22:15.840
+a big spreadsheet if you really want to do a solid model to predict the cost. And keep in mind that
+
+349
+00:22:15.840 --> 00:22:20.640
+you also have to pay for data transfer out per gigabyte beyond 100 gigabytes to the internet.
+
+350
+00:22:21.200 --> 00:22:27.040
+But data transfer between ADs in the same AWS PPC is free. And by the way, you can enable or disable
+
+351
+00:22:27.040 --> 00:22:34.160
+cross zone traffic in load balancers for LPs, but cross zone is always available, always enabled for
+
+352
+00:22:34.160 --> 00:22:40.000
+ALBs. Now, another thing that might be worth covering very quickly is what are your alternatives?
+
+353
+00:22:40.000 --> 00:22:45.120
+What if you don't want to use AWS load balancers? What are your options? And we already mentioned
+
+354
+00:22:45.120 --> 00:22:51.280
+at the beginning that you could effectively host anything on EC2. For instance, if you like Nginx,
+
+355
+00:22:51.280 --> 00:22:55.120
+of course, you can use Nginx as a load balancer. You just need to make sure you provision it
+
+356
+00:22:55.120 --> 00:23:01.120
+correctly on AWS infrastructure. Similarly, you can use HAProxy or whatever else you like.
+
+357
+00:23:01.120 --> 00:23:05.440
+My caveat there would be that I think it's significantly complex to do that correctly
+
+358
+00:23:05.440 --> 00:23:10.160
+and to make it scalable and secure. So do that only if you really have the skills and you are
+
+359
+00:23:10.160 --> 00:23:14.560
+really knowledgeable about these tools and all the relevant networking configuration.
+
+360
+00:23:14.560 --> 00:23:15.840
+The pricing is simpler though.
+
+361
+00:23:15.840 --> 00:23:21.600
+Yeah, that's actually one reason maybe to consider that if you don't account for the amount of hours
+
+362
+00:23:21.600 --> 00:23:26.320
+that you will be spending configuring all of that. But yeah, another option could be using
+
+363
+00:23:26.320 --> 00:23:31.440
+DNS load balancing, which has interesting trade-offs. For instance, one thing you could
+
+364
+00:23:31.440 --> 00:23:36.240
+do, you could do geographical distribution of traffic. Maybe you can distribute traffic across
+
+365
+00:23:36.240 --> 00:23:42.240
+regions using DNS load balancing, but also you know that DNS is always the reason for problems
+
+366
+00:23:42.240 --> 00:23:47.360
+in the web. So there is significant complexity there to do it right, to do DNS caching and
+
+367
+00:23:47.360 --> 00:23:52.000
+validation and all that kind of stuff. So again, it's an option, but comes with its own trade-offs.
+
+368
+00:23:52.000 --> 00:23:57.040
+And another option that we have been discussing before is VPC lattice. And we have an entire
+
+369
+00:23:57.040 --> 00:24:01.520
+episode and a blog post. So if you haven't seen that, we'll leave the link in the show notes so
+
+370
+00:24:01.520 --> 00:24:08.560
+you can check those out. So hopefully this was a complete enough coverage of load balancers and
+
+371
+00:24:08.560 --> 00:24:13.920
+how do you use load balancers on AWS. I'm sure that there is a lot we have missed. So let us know
+
+372
+00:24:13.920 --> 00:24:18.400
+if you have any particular experience that might be worth sharing. What kind of load balancers do
+
+373
+00:24:18.400 --> 00:24:23.360
+you like to use? Or maybe any other comments of question that you think is relevant here.
+
+374
+00:24:23.360 --> 00:24:27.200
+So that's all for today. Thank you for being with us. And as always, if you liked this episode,
+
+375
+00:24:27.200 --> 00:24:30.960
+consider sharing it and giving us a like. See you in the next one.

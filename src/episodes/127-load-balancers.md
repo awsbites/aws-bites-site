@@ -1,7 +1,7 @@
 ---
 episode: 127
 title: "Load Balancers"
-youtube_id: "Y0jbI8Lm2q4 "
+youtube_id: "Y0jbI8Lm2q4"
 spotify_link: "https://podcasters.spotify.com/pod/show/aws-bites/episodes/127--Load-Balancers-e2lstmv"
 publish_date: 2024-07-12
 ---

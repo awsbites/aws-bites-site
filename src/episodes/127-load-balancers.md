@@ -14,4 +14,4 @@ An overview of load balancers, explaining how they distribute traffic across mul
 
 In this episode, we mentioned the following resource:
 
-- Our previous episode "88. What is VPC Lattice?": https://awsbites.com/88-what-is-vpc-lattice/
+- Our previous episode "[88. What is VPC Lattice?](https://awsbites.com/88-what-is-vpc-lattice/)" 

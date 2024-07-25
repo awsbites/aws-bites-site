@@ -1,0 +1,2645 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:03.400
+Hello and welcome to another episode of AWS Bites podcast.
+
+2
+00:00:03.400 --> 00:00:07.080
+My name is Luciano and I'm joined by Eoin to discuss a new side project.
+
+3
+00:00:07.080 --> 00:00:10.320
+I'm currently writing a book about Rust and Lambda.
+
+4
+00:00:10.320 --> 00:00:13.560
+So today I want to share with you some of the details about this project.
+
+5
+00:00:13.560 --> 00:00:16.600
+Why do I think that using the Rust programming language
+
+6
+00:00:16.600 --> 00:00:18.640
+to write Lambda functions is a great idea?
+
+7
+00:00:18.640 --> 00:00:22.480
+What you can expect from this book and a little bit about the publishing process.
+
+8
+00:00:22.480 --> 00:00:26.320
+I think that Rust is innovating many areas of the software engineering world
+
+9
+00:00:26.320 --> 00:00:29.680
+and my bet is that in the coming years we will see it innovating
+
+10
+00:00:29.680 --> 00:00:32.360
+and improving the world of AWS Lambda as well.
+
+11
+00:00:32.360 --> 00:00:36.160
+So I hope that this is going to be an interesting episode and let's get into it.
+
+12
+00:00:36.160 --> 00:00:46.560
+AWS Bites is brought to you by fourTheorem.
+
+13
+00:00:46.560 --> 00:00:50.800
+If you are looking for a partner to architect, develop and modernize on AWS,
+
+14
+00:00:50.800 --> 00:00:51.960
+give fourTheorem a call.
+
+15
+00:00:51.960 --> 00:00:55.120
+By the way, we have also been working with some of our customers,
+
+16
+00:00:55.120 --> 00:00:58.000
+rewriting some of their most used Lambda functions in Rust,
+
+17
+00:00:58.040 --> 00:01:01.120
+which is something that greatly reduces cost and improves performance.
+
+18
+00:01:01.120 --> 00:01:05.240
+So if all of this sounds interesting, check us out on fourTheorem.com.
+
+19
+00:01:05.240 --> 00:01:10.240
+Okay, I remember episode 64 where we talked about writing Lambda functions in Rust.
+
+20
+00:01:10.240 --> 00:01:12.480
+So that's not the goal today, I think.
+
+21
+00:01:12.480 --> 00:01:15.920
+We want to talk a little bit more about the book,
+
+22
+00:01:15.920 --> 00:01:18.800
+but at the same time, maybe it's worth a quick recap
+
+23
+00:01:18.800 --> 00:01:20.200
+because that was about a year and a half ago.
+
+24
+00:01:20.200 --> 00:01:24.920
+I think a lot happens in a year and a half in the Rust and in the Lambda ecosystems.
+
+25
+00:01:24.920 --> 00:01:28.600
+So do you want to remind us why it might be a good fit for Lambda functions?
+
+26
+00:01:31.160 --> 00:01:34.040
+Yes, I'll try to do a quick recap about Rust first, and then we'll talk about Rust in the context of Lambda.
+
+27
+00:01:34.040 --> 00:01:35.840
+Maybe people are not familiar with Rust.
+
+28
+00:01:35.840 --> 00:01:38.160
+So Rust is a relatively new programming language,
+
+29
+00:01:38.160 --> 00:01:42.200
+was born to compete with C and C++, mostly in terms of performance,
+
+30
+00:01:42.200 --> 00:01:44.880
+but the idea was to try to provide a better experience
+
+31
+00:01:44.880 --> 00:01:47.680
+in terms of a language that is memory safe by default.
+
+32
+00:01:47.680 --> 00:01:51.320
+And that kind of memory safety is built into the language and the compiler.
+
+33
+00:01:51.320 --> 00:01:54.280
+It does have a very good and modern toolchain,
+
+34
+00:01:54.280 --> 00:01:56.680
+and the language itself is very modern as well,
+
+35
+00:01:56.680 --> 00:02:00.120
+and it takes inspiration by many other languages.
+
+36
+00:02:00.120 --> 00:02:04.320
+And because it also provides a few different high-level abstractions,
+
+37
+00:02:04.320 --> 00:02:07.960
+these days Rust has become more of a general-purpose programming language.
+
+38
+00:02:07.960 --> 00:02:11.000
+So it's not being considered as a system programming language anymore
+
+39
+00:02:11.000 --> 00:02:14.400
+because you can write from firmware and an operative system and video games,
+
+40
+00:02:14.400 --> 00:02:17.040
+but also you can write more high-level applications
+
+41
+00:02:17.040 --> 00:02:20.600
+such as web backends and even web frontends using WebAssembly.
+
+42
+00:02:20.600 --> 00:02:23.080
+So it's kind of a language that has become general purpose
+
+43
+00:02:23.080 --> 00:02:25.120
+and you can use it for a variety of projects.
+
+44
+00:02:25.120 --> 00:02:28.120
+And one of the main things is that software written Rust
+
+45
+00:02:28.120 --> 00:02:31.080
+can be very memory efficient and very performant
+
+46
+00:02:31.080 --> 00:02:34.360
+and also based on some research that has been done,
+
+47
+00:02:34.360 --> 00:02:38.040
+if we look at the consumption in terms of electricity consumption
+
+48
+00:02:38.040 --> 00:02:41.920
+and CO2 emissions, Rust can also be environmentally friendly,
+
+49
+00:02:41.920 --> 00:02:45.840
+and it's considered to be one of the most environmentally friendly languages out there.
+
+50
+00:02:45.840 --> 00:02:49.440
+Now, in the context of Lambda, why Rust is an interesting choice?
+
+51
+00:02:49.440 --> 00:02:52.480
+We said already that it can be very memory efficient and fast,
+
+52
+00:02:52.520 --> 00:02:56.560
+so that means that you can lower down the cost,
+
+53
+00:02:56.560 --> 00:03:00.240
+the execution cost of Lambda function if you write them in Rust.
+
+54
+00:03:00.240 --> 00:03:03.200
+And just to remind you what's the execution cost,
+
+55
+00:03:03.200 --> 00:03:06.800
+you basically have to take a unit cost based on the amount of memory
+
+56
+00:03:06.800 --> 00:03:08.640
+that you allocate for your Lambda function
+
+57
+00:03:08.640 --> 00:03:13.280
+and multiply that by the number of milliseconds that your execution is lasting.
+
+58
+00:03:13.280 --> 00:03:16.200
+So with Rust, you generally get Lambda functions
+
+59
+00:03:16.200 --> 00:03:18.480
+that don't require a lot of memory,
+
+60
+00:03:18.480 --> 00:03:20.240
+depending of course on the problem that you're solving,
+
+61
+00:03:20.240 --> 00:03:23.280
+but if you compare an equivalent implementation between,
+
+62
+00:03:23.280 --> 00:03:26.040
+for instance, JavaScript or Python and Rust,
+
+63
+00:03:26.040 --> 00:03:29.120
+generally the Rust implementation doesn't require nearly as much memory.
+
+64
+00:03:29.120 --> 00:03:32.000
+So you can save a lot in terms of allocated memory,
+
+65
+00:03:32.000 --> 00:03:33.840
+which reduces one unit of cost.
+
+66
+00:03:33.840 --> 00:03:36.560
+Then, generally speaking, Rust can execute very fast,
+
+67
+00:03:36.560 --> 00:03:39.760
+especially when you have CPU-bound computation.
+
+68
+00:03:39.760 --> 00:03:43.520
+So in that case, you are also reducing the number of milliseconds,
+
+69
+00:03:43.520 --> 00:03:45.280
+most likely, that your execution is going to last.
+
+70
+00:03:45.280 --> 00:03:47.880
+So basically, you are optimizing on both dimensions
+
+71
+00:03:47.880 --> 00:03:49.640
+for the Lambda execution cost,
+
+72
+00:03:49.640 --> 00:03:51.320
+which generally means that if you have a Lambda
+
+73
+00:03:51.320 --> 00:03:54.440
+that you are executing thousands or even millions of times per day,
+
+74
+00:03:54.440 --> 00:03:56.520
+if you rewrite that one in Rust,
+
+75
+00:03:56.520 --> 00:03:58.040
+you are going to probably save a lot of money.
+
+76
+00:03:58.040 --> 00:04:01.400
+Now, this is of course not the only reason why you should consider Rust.
+
+77
+00:04:01.400 --> 00:04:03.920
+There are other few reasons that I think are interesting.
+
+78
+00:04:03.920 --> 00:04:07.440
+Another one is that if you have, let's say, user-facing Lambdas
+
+79
+00:04:07.440 --> 00:04:11.160
+or Lambdas where you expect to have a very low latency in the response,
+
+80
+00:04:11.160 --> 00:04:12.840
+you might have occasional cold starts,
+
+81
+00:04:12.840 --> 00:04:16.040
+and that might be a problem if there is a user waiting for that cold start.
+
+82
+00:04:16.040 --> 00:04:17.840
+Imagine you are writing like an API
+
+83
+00:04:17.840 --> 00:04:22.440
+and you want this API to be consistently very responsive and very low latency.
+
+84
+00:04:22.440 --> 00:04:25.400
+With Rust, you don't avoid the cold start,
+
+85
+00:04:25.400 --> 00:04:27.240
+but the cold starts are so low,
+
+86
+00:04:27.240 --> 00:04:30.000
+I've seen in the order of 20 to 40 milliseconds,
+
+87
+00:04:30.000 --> 00:04:32.120
+that they are becoming basically negligible.
+
+88
+00:04:32.120 --> 00:04:35.320
+So that's another good use case for considering Rust.
+
+89
+00:04:35.320 --> 00:04:38.240
+And then there are another few interesting reasons.
+
+90
+00:04:38.240 --> 00:04:40.760
+One is that, as I mentioned, the language is very modern
+
+91
+00:04:40.760 --> 00:04:43.680
+and imporals some constructs in the type systems
+
+92
+00:04:43.680 --> 00:04:46.800
+that will help you to prevent a certain cluster of bugs.
+
+93
+00:04:46.800 --> 00:04:50.160
+So, for instance, there is the result type,
+
+94
+00:04:50.160 --> 00:04:52.520
+which basically helps you to manage exceptions,
+
+95
+00:04:52.520 --> 00:04:53.960
+or the option type,
+
+96
+00:04:53.960 --> 00:04:57.120
+which avoids the classic null pointer exception
+
+97
+00:04:57.120 --> 00:04:58.840
+that you have in other languages.
+
+98
+00:04:58.840 --> 00:05:02.040
+So, generally speaking, the programming language itself
+
+99
+00:05:02.040 --> 00:05:04.320
+helps you to prevent a large class of bugs
+
+100
+00:05:04.320 --> 00:05:06.480
+and write code that can be generally more correct.
+
+101
+00:05:06.480 --> 00:05:08.360
+So if you have business-critical applications
+
+102
+00:05:08.360 --> 00:05:10.880
+where you want to have, I guess, extra peace of mind
+
+103
+00:05:10.880 --> 00:05:14.360
+that the code that you are writing is probably not going to be bug-free,
+
+104
+00:05:14.360 --> 00:05:16.480
+but as close to bug-free as possible,
+
+105
+00:05:16.480 --> 00:05:19.040
+I think Rust can help as well in that direction.
+
+106
+00:05:19.040 --> 00:05:21.640
+And we also mentioned reducing CO2 emissions.
+
+107
+00:05:21.640 --> 00:05:24.040
+Lambda is already a great platform for that.
+
+108
+00:05:24.040 --> 00:05:25.720
+But if you combine that with Rust,
+
+109
+00:05:25.720 --> 00:05:28.520
+I think you get an even better, I guess, stance
+
+110
+00:05:28.520 --> 00:05:32.000
+on being environmentally friendly when it comes to compute in the cloud.
+
+111
+00:05:32.000 --> 00:05:35.000
+Now, again, I want to remind you that we have been speaking a lot
+
+112
+00:05:35.000 --> 00:05:37.760
+in that previous episode about the whole experience,
+
+113
+00:05:37.760 --> 00:05:41.720
+how do you get started, the tooling, the pros and cons of using Rust.
+
+114
+00:05:41.720 --> 00:05:44.880
+So if you're curious about, like, actually, how do you get started
+
+115
+00:05:44.880 --> 00:05:47.440
+and how do you write your first Lambda in Rust,
+
+116
+00:05:47.440 --> 00:05:50.720
+I would recommend people to check out that previous episode.
+
+117
+00:05:50.720 --> 00:05:52.800
+All right, let's talk about your book then.
+
+118
+00:05:52.800 --> 00:05:55.920
+So what is the title and who's it for?
+
+119
+00:05:55.920 --> 00:05:57.280
+What's your intended audience?
+
+120
+00:05:57.280 --> 00:05:59.680
+Or have you thought that much about that so far?
+
+121
+00:05:59.680 --> 00:06:01.040
+Because a lot of people don't.
+
+122
+00:06:01.040 --> 00:06:02.400
+Yeah, I would probably say a little bit.
+
+123
+00:06:02.400 --> 00:06:04.320
+It's probably something subject to change,
+
+124
+00:06:04.320 --> 00:06:06.680
+but we'll get to the details of that.
+
+125
+00:06:06.680 --> 00:06:11.160
+The title of the book is called Crafting Lambda Functions in Rust.
+
+126
+00:06:11.200 --> 00:06:15.600
+There is a website that provides all kinds of information,
+
+127
+00:06:15.600 --> 00:06:19.120
+and the website is reachable at rust-lambda.com.
+
+128
+00:06:19.120 --> 00:06:21.240
+The link will be in the show notes as always.
+
+129
+00:06:21.240 --> 00:06:23.320
+So what is the expected audience?
+
+130
+00:06:23.320 --> 00:06:26.320
+And this is a bit of a guess at this stage of the book,
+
+131
+00:06:26.320 --> 00:06:29.880
+but we are imagining the book to be something that is designed
+
+132
+00:06:29.880 --> 00:06:33.800
+to be accessible to readers that have a very basic knowledge of Rust
+
+133
+00:06:33.800 --> 00:06:38.200
+and AWS, so not meant to be consumed only by experts,
+
+134
+00:06:38.200 --> 00:06:40.480
+but also by people that are a little bit entry level
+
+135
+00:06:40.520 --> 00:06:42.320
+on both Rust and AWS.
+
+136
+00:06:42.320 --> 00:06:45.280
+We want to try to provide a gentle introduction
+
+137
+00:06:45.280 --> 00:06:47.800
+to the serverless ecosystem in AWS,
+
+138
+00:06:47.800 --> 00:06:49.600
+which also means that you don't need to be proficient
+
+139
+00:06:49.600 --> 00:06:53.560
+with serverless in general, Lambda, or DynamoDB,
+
+140
+00:06:53.560 --> 00:06:56.640
+and all the other classic serverless services in AWS.
+
+141
+00:06:56.640 --> 00:06:59.200
+The idea is that, of course, you need to have your own AWS account
+
+142
+00:06:59.200 --> 00:07:03.240
+and have some very basic knowledge about what you can do with AWS.
+
+143
+00:07:03.240 --> 00:07:05.120
+So you need to be able to access the dashboard,
+
+144
+00:07:05.120 --> 00:07:07.120
+maybe know a little bit about IAM,
+
+145
+00:07:07.120 --> 00:07:10.640
+but you are not expected to be an expert in all things AWS.
+
+146
+00:07:10.640 --> 00:07:11.760
+And in fact, throughout the book,
+
+147
+00:07:11.760 --> 00:07:14.040
+we try to introduce all the necessary concepts,
+
+148
+00:07:14.040 --> 00:07:16.200
+so not just explain what Lambda is,
+
+149
+00:07:16.200 --> 00:07:18.880
+how does it work internally and how do you start using it,
+
+150
+00:07:18.880 --> 00:07:21.640
+but then as soon as we start to use Lambda with API Gateway
+
+151
+00:07:21.640 --> 00:07:24.280
+and DynamoDB and other services like EventBridge,
+
+152
+00:07:24.280 --> 00:07:26.240
+maybe we introduce those services,
+
+153
+00:07:26.240 --> 00:07:28.120
+giving, I guess, the fundamental knowledge
+
+154
+00:07:28.120 --> 00:07:29.560
+that you need to have to understand
+
+155
+00:07:29.560 --> 00:07:32.280
+how to build something practical with those services.
+
+156
+00:07:32.280 --> 00:07:34.640
+And we also touch a little bit on infrastructure as code
+
+157
+00:07:34.640 --> 00:07:36.800
+and we use AWS sum for that.
+
+158
+00:07:36.800 --> 00:07:39.280
+As I mentioned, you don't need to be an expert in Rust either,
+
+159
+00:07:39.280 --> 00:07:42.080
+but of course, we cannot explain everything about Rust
+
+160
+00:07:42.080 --> 00:07:45.360
+because that would make the book probably thousands of pages.
+
+161
+00:07:45.360 --> 00:07:47.440
+So just to be practical and pragmatic,
+
+162
+00:07:47.440 --> 00:07:49.880
+what we suggest is that people should understand
+
+163
+00:07:49.880 --> 00:07:51.440
+a little bit of the syntax.
+
+164
+00:07:51.440 --> 00:07:53.680
+And if that's something that you don't know yet,
+
+165
+00:07:53.680 --> 00:07:55.400
+probably the best thing you can do
+
+166
+00:07:55.400 --> 00:07:58.480
+is to look at the official Rust book, which is available for free.
+
+167
+00:07:58.480 --> 00:08:01.520
+And we will have the link at the show notes as a starting point
+
+168
+00:08:01.520 --> 00:08:03.480
+just to get familiar with the syntax.
+
+169
+00:08:03.480 --> 00:08:05.840
+So just to summarize, this book is for you
+
+170
+00:08:05.880 --> 00:08:09.000
+if you are a cloud developer with a passion for serverless,
+
+171
+00:08:09.000 --> 00:08:11.520
+you have a very basic understanding of the Rust programming language,
+
+172
+00:08:11.520 --> 00:08:14.120
+at least from a syntax understanding perspective,
+
+173
+00:08:14.120 --> 00:08:16.120
+you have a basic knowledge of AWS,
+
+174
+00:08:16.120 --> 00:08:19.520
+and you basically are trying to figure out a new way to build greener,
+
+175
+00:08:19.520 --> 00:08:22.400
+more efficient and cost-effective serverless solutions.
+
+176
+00:08:22.400 --> 00:08:25.000
+By the way, I mentioned the we a few times,
+
+177
+00:08:25.000 --> 00:08:30.200
+so it's definitely worth stating that it's not my own Solosite project.
+
+178
+00:08:30.200 --> 00:08:33.320
+I've actually been working with a co-author for this,
+
+179
+00:08:33.320 --> 00:08:35.280
+and the co-author is James Eastham.
+
+180
+00:08:35.280 --> 00:08:37.520
+And James is an amazing author with lots of experience
+
+181
+00:08:37.520 --> 00:08:39.520
+with serverless and event-driven systems.
+
+182
+00:08:39.520 --> 00:08:43.040
+He, by the way, used to work for AWS and recently moved to Datadog,
+
+183
+00:08:43.040 --> 00:08:47.080
+and he has an amazing YouTube channel that talks a lot about serverless,
+
+184
+00:08:47.080 --> 00:08:49.080
+AWS, event-driven architecture.
+
+185
+00:08:49.080 --> 00:08:51.680
+So if all these topics interest you, you should check it out,
+
+186
+00:08:51.680 --> 00:08:53.840
+and we will have the link in the show notes as well.
+
+187
+00:08:53.840 --> 00:08:55.600
+So what's the current status of the book?
+
+188
+00:08:55.600 --> 00:08:57.520
+Is it a work in progress?
+
+189
+00:08:57.520 --> 00:08:59.880
+How far have you progressed so far?
+
+190
+00:08:59.880 --> 00:09:03.200
+Yeah, the book is heavily work in progress at this stage.
+
+191
+00:09:03.200 --> 00:09:06.280
+We started, I think, about two months ago now,
+
+192
+00:09:06.280 --> 00:09:09.680
+so it's still relatively, it's a good progress project.
+
+193
+00:09:09.680 --> 00:09:13.880
+And another thing worth mentioning is that it is self-published.
+
+194
+00:09:13.880 --> 00:09:16.000
+Probably we'll get more into that later.
+
+195
+00:09:16.000 --> 00:09:19.880
+And the current version, what we have so far is four chapters,
+
+196
+00:09:19.880 --> 00:09:23.600
+which is about 110 pages or something like that,
+
+197
+00:09:23.600 --> 00:09:25.400
+around 100 pages, more or less.
+
+198
+00:09:25.400 --> 00:09:27.560
+And we have the book already available online.
+
+199
+00:09:27.560 --> 00:09:30.320
+So you can buy it today as an early preview,
+
+200
+00:09:30.320 --> 00:09:33.920
+and you get about 50% of discount on the expected final price.
+
+201
+00:09:33.920 --> 00:09:37.200
+And that means that you can download what we have written so far,
+
+202
+00:09:37.200 --> 00:09:40.440
+and then you will receive all the future updates of the book for free.
+
+203
+00:09:40.440 --> 00:09:43.000
+And since it's an e-book, you get a few different formats.
+
+204
+00:09:43.000 --> 00:09:46.720
+So there is a PDF, which also comes in dark mode, if you prefer that.
+
+205
+00:09:46.720 --> 00:09:50.720
+There is an e-book format, and there is even an HTML format.
+
+206
+00:09:50.720 --> 00:09:53.720
+So you can read it in whichever format you prefer.
+
+207
+00:09:53.720 --> 00:09:57.520
+Right now we have four chapters, and those chapters cover,
+
+208
+00:09:57.520 --> 00:10:00.400
+In the first chapter, we do an introduction to what Lambda is,
+
+209
+00:10:00.400 --> 00:10:03.120
+what is Rust, why the two together make sense,
+
+210
+00:10:03.120 --> 00:10:06.120
+which is more or less what we described at the beginning of this episode,
+
+211
+00:10:06.120 --> 00:10:10.800
+plus a detailed introduction about serverless AWS Lambda,
+
+212
+00:10:10.800 --> 00:10:13.040
+and how AWS Lambda works under the hood,
+
+213
+00:10:13.040 --> 00:10:16.240
+because we believe that it's important for you to understand
+
+214
+00:10:16.240 --> 00:10:18.440
+a few important details about Lambda,
+
+215
+00:10:18.440 --> 00:10:21.080
+like the internals of Lambda, like what is a runtime,
+
+216
+00:10:21.080 --> 00:10:25.000
+how different environments are created and reused and destroyed.
+
+217
+00:10:25.000 --> 00:10:28.080
+So we try to explain all of that just to give you a good context
+
+218
+00:10:28.080 --> 00:10:29.600
+to understand the computation model.
+
+219
+00:10:29.600 --> 00:10:33.360
+On chapter two, we start to build a first Lambda function.
+
+220
+00:10:33.360 --> 00:10:36.800
+It's kind of an L award, and it's just to get familiar with the toolchain,
+
+221
+00:10:36.800 --> 00:10:39.960
+including Cargo Lambda, which is a CLI tool that you can use to do
+
+222
+00:10:39.960 --> 00:10:42.800
+scaffolding of new Lambdas, local testing,
+
+223
+00:10:42.800 --> 00:10:45.560
+building the Lambda for different architectures,
+
+224
+00:10:45.560 --> 00:10:47.680
+and even publishing the Lambda to AWS.
+
+225
+00:10:47.680 --> 00:10:50.680
+Then in chapter three, we start to build a more realistic application,
+
+226
+00:10:50.680 --> 00:10:53.600
+a URL shortener, and we use this opportunity
+
+227
+00:10:53.600 --> 00:10:56.520
+to start to introduce infrastructure as code and explain what SAM is
+
+228
+00:10:56.520 --> 00:10:59.800
+and how to use SAM together with Cargo Lambda.
+
+229
+00:10:59.800 --> 00:11:03.200
+And then in chapter four, which is currently the last chapter we have,
+
+230
+00:11:03.200 --> 00:11:05.720
+we continue developing that application,
+
+231
+00:11:05.720 --> 00:11:09.080
+and we bring it to a state where it's more or less working
+
+232
+00:11:09.080 --> 00:11:11.760
+because we start to persist the data in DynamoDB,
+
+233
+00:11:11.760 --> 00:11:13.680
+so you can actually create a short URL
+
+234
+00:11:13.680 --> 00:11:16.480
+and use it across different implications of Lambdas.
+
+235
+00:11:16.480 --> 00:11:19.400
+And in the process, of course, we need to learn what DynamoDB is,
+
+236
+00:11:19.400 --> 00:11:21.240
+what are the trade-offs of DynamoDB,
+
+237
+00:11:21.240 --> 00:11:25.000
+how to use the SDK for Rust to interact with DynamoDB,
+
+238
+00:11:25.000 --> 00:11:29.200
+and we also learn how to make arbitrary HTTP requests from Lambda
+
+239
+00:11:29.200 --> 00:11:33.920
+because we want to effectively crawl the URL
+
+240
+00:11:33.920 --> 00:11:35.720
+for which we are creating the short URL
+
+241
+00:11:35.720 --> 00:11:39.040
+to establish a title and a description from the page metadata.
+
+242
+00:11:39.040 --> 00:11:41.920
+So this is just a nice example to see that in a Lambda,
+
+243
+00:11:41.920 --> 00:11:44.440
+you generally will need to do some kind of HTTP request.
+
+244
+00:11:44.440 --> 00:11:45.560
+So how do you do that?
+
+245
+00:11:45.560 --> 00:11:47.960
+What are the different pieces of configuration and libraries
+
+246
+00:11:47.960 --> 00:11:49.400
+that you can use to do all of that?
+
+247
+00:11:49.400 --> 00:11:51.520
+So I think this is what we have so far,
+
+248
+00:11:51.520 --> 00:11:52.920
+and by the end of chapter four,
+
+249
+00:11:52.920 --> 00:11:55.560
+you have a working implementation of a URL shortener.
+
+250
+00:11:55.560 --> 00:11:58.080
+It's not perfect because it's still very airborne
+
+251
+00:11:58.080 --> 00:12:00.920
+and there are lots of corners that we've got to get there,
+
+252
+00:12:00.920 --> 00:12:02.240
+but at least it's something working
+
+253
+00:12:02.240 --> 00:12:04.840
+that you can deploy in your own account and use it.
+
+254
+00:12:04.840 --> 00:12:07.720
+That sounds great. You've made a lot of progress in two months,
+
+255
+00:12:07.720 --> 00:12:09.640
+I think, to have those four chapters out there,
+
+256
+00:12:09.640 --> 00:12:10.920
+and people can have a look already.
+
+257
+00:12:10.920 --> 00:12:13.120
+That's really one of the benefits of self-publishing, I guess.
+
+258
+00:12:13.120 --> 00:12:15.040
+But what about the whole scope?
+
+259
+00:12:15.040 --> 00:12:17.240
+Do you have an idea of what the whole shape is going to be
+
+260
+00:12:17.240 --> 00:12:18.360
+by the time you've finished?
+
+261
+00:12:18.360 --> 00:12:19.880
+What else do you expect to cover?
+
+262
+00:12:19.880 --> 00:12:21.880
+Yeah, I think ideally what we want to cover
+
+263
+00:12:21.880 --> 00:12:24.440
+throughout the entire book is not just an introduction
+
+264
+00:12:24.440 --> 00:12:27.600
+to serverless and Rust in the context of AWS Lambda,
+
+265
+00:12:27.600 --> 00:12:30.760
+but more making sure we touch on all the things
+
+266
+00:12:30.760 --> 00:12:32.640
+that you need to be aware if you want to do something
+
+267
+00:12:32.640 --> 00:12:34.320
+that we can consider production-ready.
+
+268
+00:12:34.320 --> 00:12:37.560
+So that means that now that we have kind of a skeleton
+
+269
+00:12:37.560 --> 00:12:38.400
+of an application,
+
+270
+00:12:38.400 --> 00:12:40.920
+which is definitely not production-ready at this stage,
+
+271
+00:12:40.920 --> 00:12:42.920
+what is missing to make that production-ready?
+
+272
+00:12:42.920 --> 00:12:45.000
+And what we see that we should be covering
+
+273
+00:12:45.000 --> 00:12:47.480
+is things like best practices
+
+274
+00:12:47.480 --> 00:12:49.320
+in terms of structuring the code.
+
+275
+00:12:49.320 --> 00:12:51.360
+For instance, if you have multiple Lambda functions
+
+276
+00:12:51.360 --> 00:12:53.320
+in the same project, which is very common,
+
+277
+00:12:53.320 --> 00:12:56.200
+how do you organize those in the context of Rust?
+
+278
+00:12:56.200 --> 00:12:57.680
+And then if you have shared libraries,
+
+279
+00:12:57.680 --> 00:12:58.720
+which is also very common,
+
+280
+00:12:58.720 --> 00:13:00.640
+that you need to reuse across these Lambdas,
+
+281
+00:13:00.640 --> 00:13:02.240
+what is the best way to do that?
+
+282
+00:13:02.240 --> 00:13:04.760
+And similarly, how do you make your code testable,
+
+283
+00:13:04.760 --> 00:13:06.800
+especially in an environment like Lambda,
+
+284
+00:13:06.800 --> 00:13:09.520
+where you generally interact with a lot of external systems,
+
+285
+00:13:09.520 --> 00:13:11.000
+like for instance, even DynamoDB,
+
+286
+00:13:11.000 --> 00:13:13.000
+we can imagine it's an external system.
+
+287
+00:13:13.000 --> 00:13:16.080
+How can you write, for instance, unit tests to cover,
+
+288
+00:13:16.080 --> 00:13:18.800
+basically, to make sure that your code is working correctly
+
+289
+00:13:18.800 --> 00:13:21.080
+and run this test and have the kind of extra confidence
+
+290
+00:13:21.080 --> 00:13:22.240
+that you are doing the right thing?
+
+291
+00:13:22.240 --> 00:13:24.360
+And also touch about integration tests
+
+292
+00:13:24.360 --> 00:13:26.120
+and end-to-end tests as well.
+
+293
+00:13:26.120 --> 00:13:28.920
+Then right now we are only covering HTTP events.
+
+294
+00:13:28.920 --> 00:13:30.360
+So you are building an API.
+
+295
+00:13:30.360 --> 00:13:33.160
+So your URL shortener is just effectively an API.
+
+296
+00:13:33.160 --> 00:13:35.400
+You can use it as an API and that's it.
+
+297
+00:13:35.400 --> 00:13:38.720
+But what if you want to use other event sources,
+
+298
+00:13:38.720 --> 00:13:41.360
+for instance, DynamoDB Streams or EventBridge,
+
+299
+00:13:41.360 --> 00:13:42.720
+or maybe even custom events,
+
+300
+00:13:42.760 --> 00:13:45.280
+maybe you are building a step function and you have a step,
+
+301
+00:13:45.280 --> 00:13:46.920
+which is a Lambda written in Rust.
+
+302
+00:13:46.920 --> 00:13:48.600
+So we want to cover some examples
+
+303
+00:13:48.600 --> 00:13:51.040
+about these different kinds of events that you can get
+
+304
+00:13:51.040 --> 00:13:52.640
+and different kinds of integrations
+
+305
+00:13:52.640 --> 00:13:54.440
+with different AWS services.
+
+306
+00:13:54.440 --> 00:13:56.360
+And then there is the topic of observability.
+
+307
+00:13:56.360 --> 00:13:59.600
+So we need to cover how to do good logging, tracing,
+
+308
+00:13:59.600 --> 00:14:00.760
+integrated with CloudWatch,
+
+309
+00:14:00.760 --> 00:14:02.720
+maybe explore open telemetry as well,
+
+310
+00:14:02.720 --> 00:14:06.240
+which seems to be a topic that is more and more discussed
+
+311
+00:14:06.240 --> 00:14:07.400
+in the context of Lambda.
+
+312
+00:14:07.400 --> 00:14:08.640
+And it's definitely well supported
+
+313
+00:14:08.640 --> 00:14:10.080
+in general in the Rust ecosystem.
+
+314
+00:14:10.080 --> 00:14:12.720
+So trying to see how you can use it together with Lambda
+
+315
+00:14:12.720 --> 00:14:13.880
+could be interesting.
+
+316
+00:14:13.880 --> 00:14:16.120
+And then finally, configuration management
+
+317
+00:14:16.120 --> 00:14:17.600
+and handling secrets.
+
+318
+00:14:17.600 --> 00:14:19.840
+There are some other topics that we are considering
+
+319
+00:14:19.840 --> 00:14:23.280
+maybe as an appendix or maybe as advanced chapters.
+
+320
+00:14:23.280 --> 00:14:25.680
+We'll probably see what happens as we get there.
+
+321
+00:14:25.680 --> 00:14:27.720
+But there is an interesting middleware system
+
+322
+00:14:27.720 --> 00:14:30.000
+that is built in in the Rust runtime.
+
+323
+00:14:30.000 --> 00:14:32.200
+So it could be interesting to show that,
+
+324
+00:14:32.200 --> 00:14:33.800
+like the capabilities that you have,
+
+325
+00:14:33.800 --> 00:14:36.160
+to show how you can use existing middlewares,
+
+326
+00:14:36.160 --> 00:14:37.960
+but even creating your own middleware.
+
+327
+00:14:37.960 --> 00:14:40.920
+And you can also write Lambda extensions in Rust.
+
+328
+00:14:40.920 --> 00:14:41.840
+And this is very interesting
+
+329
+00:14:41.840 --> 00:14:43.360
+because you can use those extensions
+
+330
+00:14:43.360 --> 00:14:46.920
+even in Lambda functions written in other languages,
+
+331
+00:14:46.920 --> 00:14:48.840
+like Python or Node.js.
+
+332
+00:14:48.840 --> 00:14:51.160
+And this is something that, for instance,
+
+333
+00:14:51.160 --> 00:14:54.040
+if you are somebody that is creating something like Datadog
+
+334
+00:14:54.040 --> 00:14:57.000
+or other system where you want to collect telemetry
+
+335
+00:14:57.000 --> 00:14:58.720
+or maybe send data
+
+336
+00:14:58.720 --> 00:15:01.280
+as part of your Lambda execution life cycle,
+
+337
+00:15:01.280 --> 00:15:03.680
+you could create a Lambda extension written in Rust,
+
+338
+00:15:03.680 --> 00:15:06.640
+which will be very efficient and have a minimal impact
+
+339
+00:15:06.640 --> 00:15:08.880
+on whoever is installing that extension.
+
+340
+00:15:08.880 --> 00:15:10.080
+So that's something that could be interesting
+
+341
+00:15:10.080 --> 00:15:11.080
+to explore as well.
+
+342
+00:15:11.080 --> 00:15:13.440
+And then finally, there are other topics such as
+
+343
+00:15:13.440 --> 00:15:15.520
+if you want to create like a CI-CD pipeline,
+
+344
+00:15:15.520 --> 00:15:18.080
+maybe using GitHub action, providing some example
+
+345
+00:15:18.080 --> 00:15:20.040
+of how you can tie everything together.
+
+346
+00:15:20.040 --> 00:15:23.080
+And finally, maybe considering alternatives to some,
+
+347
+00:15:23.080 --> 00:15:24.680
+like using CDK or Terraform
+
+348
+00:15:24.680 --> 00:15:26.720
+because everyone has its own preference.
+
+349
+00:15:26.720 --> 00:15:28.000
+Of course, we have to pick one
+
+350
+00:15:28.000 --> 00:15:30.600
+and some seems to be the easiest to explain.
+
+351
+00:15:30.600 --> 00:15:32.680
+But if you are already familiar with CDK and Terraform,
+
+352
+00:15:32.680 --> 00:15:34.360
+it might be worth explaining
+
+353
+00:15:34.360 --> 00:15:36.160
+or at least showing some examples
+
+354
+00:15:36.560 --> 00:15:37.800
+of how you can achieve the same things
+
+355
+00:15:37.800 --> 00:15:40.160
+by using your favorite infrastructure as code tool.
+
+356
+00:15:40.160 --> 00:15:42.600
+So it's important to mention that this schedule is not final.
+
+357
+00:15:42.600 --> 00:15:45.760
+We are trying to get as much feedback as possible
+
+358
+00:15:45.760 --> 00:15:47.400
+and use that feedback to understand,
+
+359
+00:15:47.400 --> 00:15:49.160
+okay, what should we be covering next?
+
+360
+00:15:49.160 --> 00:15:52.160
+Maybe we should focus more on one topic rather than others.
+
+361
+00:15:52.160 --> 00:15:54.440
+Yeah, look, that sounds fair enough.
+
+362
+00:15:54.440 --> 00:15:56.200
+A long time ago, well, maybe not that long ago,
+
+363
+00:15:56.200 --> 00:15:59.880
+but a while back, I wrote a book with Peter Elger
+
+364
+00:15:59.880 --> 00:16:03.000
+and it was kind of published with Manning.
+
+365
+00:16:03.000 --> 00:16:04.560
+So there was also an early access program,
+
+366
+00:16:04.560 --> 00:16:06.400
+but I guess it wasn't self-published.
+
+367
+00:16:06.400 --> 00:16:09.720
+So we had editorial support along the way.
+
+368
+00:16:09.720 --> 00:16:11.400
+You've also written a book,
+
+369
+00:16:11.400 --> 00:16:13.640
+Node.js Design Patterns with Packed.
+
+370
+00:16:13.640 --> 00:16:15.320
+So what do you think the trade-offs are then
+
+371
+00:16:15.320 --> 00:16:17.880
+between self-publishing versus going with a publisher?
+
+372
+00:16:17.880 --> 00:16:20.520
+And why in this instance, with your experience,
+
+373
+00:16:20.520 --> 00:16:21.880
+did you go for this model?
+
+374
+00:16:21.880 --> 00:16:25.880
+Yeah, you're definitely saying that there are trade-offs.
+
+375
+00:16:25.880 --> 00:16:26.720
+I totally agree with that.
+
+376
+00:16:26.720 --> 00:16:28.600
+There's not like one model is necessarily
+
+377
+00:16:28.600 --> 00:16:29.720
+better than the other.
+
+378
+00:16:29.720 --> 00:16:32.560
+I think you need to evaluate the pros and cons
+
+379
+00:16:32.560 --> 00:16:34.320
+and decide which one is the best.
+
+380
+00:16:34.920 --> 00:16:36.760
+So I definitely don't regret going with a publisher
+
+381
+00:16:36.760 --> 00:16:38.320
+for Node.js Design Patterns,
+
+382
+00:16:38.320 --> 00:16:41.160
+but I was also curious to see what it would look like
+
+383
+00:16:41.160 --> 00:16:43.160
+to try to do a self-published book.
+
+384
+00:16:43.160 --> 00:16:45.920
+And I think in general, when you go with a publisher,
+
+385
+00:16:45.920 --> 00:16:49.680
+the publisher will take care of many aspects of the process.
+
+386
+00:16:49.680 --> 00:16:51.480
+So you can focus most of your time
+
+387
+00:16:51.480 --> 00:16:53.040
+on basically the content itself.
+
+388
+00:16:53.040 --> 00:16:56.080
+So writing down the content and making sure the content
+
+389
+00:16:56.080 --> 00:16:59.160
+is up to the standards that you want to provide.
+
+390
+00:16:59.160 --> 00:17:01.360
+So in that case, when you have a publisher,
+
+391
+00:17:01.360 --> 00:17:02.800
+the publisher will help you a lot,
+
+392
+00:17:02.800 --> 00:17:05.600
+first of all, to define the structure of the book,
+
+393
+00:17:05.600 --> 00:17:08.360
+more or less what is in terms of like broad strokes,
+
+394
+00:17:08.360 --> 00:17:10.320
+that the topic that should be covered
+
+395
+00:17:10.320 --> 00:17:12.960
+and how to distill down the topic
+
+396
+00:17:12.960 --> 00:17:14.800
+based on a target audience.
+
+397
+00:17:14.800 --> 00:17:16.480
+So the publisher will also help you a lot
+
+398
+00:17:16.480 --> 00:17:17.800
+to make sure that you understand
+
+399
+00:17:17.800 --> 00:17:19.400
+what is your target audience
+
+400
+00:17:19.400 --> 00:17:22.360
+and to tune that content to that target audience.
+
+401
+00:17:22.360 --> 00:17:24.720
+Then one of the things that the publisher does best
+
+402
+00:17:24.720 --> 00:17:26.000
+is establishing a timeline
+
+403
+00:17:26.000 --> 00:17:28.120
+and making sure that you stick to that timeline.
+
+404
+00:17:28.120 --> 00:17:31.280
+They also help you to find reviewers and editors.
+
+405
+00:17:31.280 --> 00:17:34.440
+They will help you with graphics, layouts, publishing,
+
+406
+00:17:34.440 --> 00:17:35.480
+all that kind of stuff.
+
+407
+00:17:35.480 --> 00:17:38.000
+And of course, the big element is also marketing
+
+408
+00:17:38.000 --> 00:17:39.920
+and branding because of course, with a publisher,
+
+409
+00:17:39.920 --> 00:17:42.720
+there is a little bit of extra trust that you get
+
+410
+00:17:42.720 --> 00:17:45.360
+because if people know Manning or Puck,
+
+411
+00:17:45.360 --> 00:17:47.400
+they will trust that brand probably more
+
+412
+00:17:47.400 --> 00:17:50.440
+than they will trust an author that they've never seen before.
+
+413
+00:17:51.480 --> 00:17:54.560
+So as I said, they also make sure that you don't get stuck.
+
+414
+00:17:54.560 --> 00:17:55.920
+So sometimes when you write a book,
+
+415
+00:17:55.920 --> 00:17:58.880
+you realize that maybe there is something you don't like
+
+416
+00:17:58.880 --> 00:18:00.640
+and you want to take a very big change.
+
+417
+00:18:00.640 --> 00:18:03.240
+I think the publisher will make sure that you evaluate
+
+418
+00:18:03.240 --> 00:18:04.720
+those kinds of changes really, really well
+
+419
+00:18:04.720 --> 00:18:06.760
+and you don't end up spinning up in circles
+
+420
+00:18:06.760 --> 00:18:08.600
+and not really focusing on delivering something
+
+421
+00:18:08.600 --> 00:18:10.400
+because maybe you keep changing ideas.
+
+422
+00:18:10.400 --> 00:18:12.440
+So that's also very good for focus
+
+423
+00:18:12.440 --> 00:18:15.640
+and making sure you actually deliver a complete project
+
+424
+00:18:15.640 --> 00:18:16.840
+rather than, I don't know,
+
+425
+00:18:16.840 --> 00:18:19.080
+maybe trying a few different things and then giving up.
+
+426
+00:18:19.080 --> 00:18:20.680
+And I think all these things are great
+
+427
+00:18:20.680 --> 00:18:22.480
+if you are a first time book author
+
+428
+00:18:22.480 --> 00:18:25.520
+because you will need to understand that kind of process.
+
+429
+00:18:25.520 --> 00:18:26.800
+You'll need to have the diligence.
+
+430
+00:18:26.800 --> 00:18:28.680
+You'll need to have somebody to support you
+
+431
+00:18:28.680 --> 00:18:30.960
+and also push you when you need to be pushed.
+
+432
+00:18:30.960 --> 00:18:31.960
+But on the other end,
+
+433
+00:18:31.960 --> 00:18:36.480
+there are some other cons to having a publisher.
+
+434
+00:18:36.480 --> 00:18:38.520
+One that I think is very important
+
+435
+00:18:38.520 --> 00:18:40.360
+is that you don't really have a lot of flexibility.
+
+436
+00:18:40.360 --> 00:18:42.360
+So you have to stick to that particular process
+
+437
+00:18:42.360 --> 00:18:43.360
+that they have in place.
+
+438
+00:18:43.360 --> 00:18:45.560
+And sometimes that process can be a little bit annoying.
+
+439
+00:18:45.560 --> 00:18:47.120
+For instance, with Packed,
+
+440
+00:18:47.120 --> 00:18:48.960
+it means that you need to use Microsoft Word
+
+441
+00:18:48.960 --> 00:18:50.680
+and all the templates that they provide
+
+442
+00:18:50.680 --> 00:18:53.160
+without the styling that they have already established,
+
+443
+00:18:53.160 --> 00:18:54.360
+which of course is good for them
+
+444
+00:18:54.360 --> 00:18:56.480
+because they want to be consistent with their branding
+
+445
+00:18:56.480 --> 00:18:58.400
+and they want to be sure the final product
+
+446
+00:18:58.960 --> 00:18:59.800
+is going to look as they expect.
+
+447
+00:18:59.800 --> 00:19:01.400
+But if you don't like the kind of tooling
+
+448
+00:19:01.400 --> 00:19:03.720
+and the kind of way of writing,
+
+449
+00:19:03.720 --> 00:19:05.040
+it can become very annoying,
+
+450
+00:19:05.040 --> 00:19:07.560
+especially when you have to write hundreds of pages.
+
+451
+00:19:07.560 --> 00:19:11.000
+So that's one thing that is worth considering.
+
+452
+00:19:11.000 --> 00:19:12.640
+Then there is also the financial perspective.
+
+453
+00:19:12.640 --> 00:19:15.520
+So the publisher takes the bigger share of the revenue.
+
+454
+00:19:15.520 --> 00:19:17.400
+And even if you are an established author,
+
+455
+00:19:17.400 --> 00:19:19.760
+maybe you can negotiate a little bit of a better deal,
+
+456
+00:19:19.760 --> 00:19:22.720
+but it's not going to change the equation significantly.
+
+457
+00:19:22.720 --> 00:19:24.560
+So that's something to keep into account.
+
+458
+00:19:24.560 --> 00:19:25.760
+I still think that writing a book
+
+459
+00:19:25.800 --> 00:19:28.880
+is not something that you do for getting rich.
+
+460
+00:19:28.880 --> 00:19:31.080
+Realistically, you are not going to pay,
+
+461
+00:19:31.080 --> 00:19:32.440
+you're not going to get paid
+
+462
+00:19:32.440 --> 00:19:33.640
+as much as you would get paid
+
+463
+00:19:33.640 --> 00:19:35.200
+if you were spending the same amount of time
+
+464
+00:19:35.200 --> 00:19:37.200
+just doing your software engineering job.
+
+465
+00:19:37.200 --> 00:19:40.360
+So the value of writing a book is not, I guess,
+
+466
+00:19:40.360 --> 00:19:42.120
+the financial return that you might get from it.
+
+467
+00:19:42.120 --> 00:19:43.280
+But if you do self-publish,
+
+468
+00:19:43.280 --> 00:19:45.760
+I think that equation changed significantly
+
+469
+00:19:45.760 --> 00:19:49.520
+where at least I think you can get your time paid off
+
+470
+00:19:49.520 --> 00:19:51.440
+well enough if the book is successful.
+
+471
+00:19:51.440 --> 00:19:53.240
+So that's something else worth considering.
+
+472
+00:19:53.240 --> 00:19:55.120
+Like if you're looking for a slightly better return,
+
+473
+00:19:55.320 --> 00:19:57.400
+self-publishing can give you all of that.
+
+474
+00:19:57.400 --> 00:20:00.440
+But that also means that you have to do all the extra work
+
+475
+00:20:00.440 --> 00:20:02.400
+that the publisher is doing for you.
+
+476
+00:20:02.400 --> 00:20:06.200
+So the process itself is more complicated
+
+477
+00:20:06.200 --> 00:20:08.800
+because you need to spend all that extra time
+
+478
+00:20:08.800 --> 00:20:10.960
+to do all the things that the publisher
+
+479
+00:20:10.960 --> 00:20:12.000
+will be doing for you.
+
+480
+00:20:12.000 --> 00:20:14.480
+In terms of our process,
+
+481
+00:20:14.480 --> 00:20:16.960
+I'm really happy that we are not using Word
+
+482
+00:20:16.960 --> 00:20:18.160
+for this particular project,
+
+483
+00:20:18.160 --> 00:20:21.160
+but we figured out a different tool chain.
+
+484
+00:20:21.160 --> 00:20:23.040
+In particular, we are using AsciiDoc,
+
+485
+00:20:23.040 --> 00:20:25.040
+which if people are not familiar with it,
+
+486
+00:20:25.920 --> 00:20:28.000
+is a language that is somewhat similar to Markdown,
+
+487
+00:20:28.000 --> 00:20:29.120
+but much more powerful
+
+488
+00:20:29.120 --> 00:20:31.680
+because it was built effectively to write books.
+
+489
+00:20:31.680 --> 00:20:33.240
+So there are so many more features
+
+490
+00:20:33.240 --> 00:20:35.280
+that you don't have in Markdown.
+
+491
+00:20:35.280 --> 00:20:37.640
+And we found a very good starter template
+
+492
+00:20:37.640 --> 00:20:39.040
+provided by Liran Tal.
+
+493
+00:20:39.040 --> 00:20:40.520
+We will have the link in the show notes.
+
+494
+00:20:40.520 --> 00:20:43.360
+If anyone is curious to see what that looks like,
+
+495
+00:20:43.360 --> 00:20:45.120
+maybe I think you need to write a book as well.
+
+496
+00:20:45.120 --> 00:20:46.760
+I think that could be something that saves you
+
+497
+00:20:46.760 --> 00:20:49.560
+a lot of time because it's already a structure
+
+498
+00:20:49.560 --> 00:20:51.440
+for you to take care of most of the things,
+
+499
+00:20:51.440 --> 00:20:54.080
+including for instance, the publishing in different formats
+
+500
+00:20:54.120 --> 00:20:56.160
+and supporting dark mode for PDFs.
+
+501
+00:20:56.160 --> 00:20:59.520
+Can I just ask about the build process Luciano?
+
+502
+00:20:59.520 --> 00:21:01.640
+Actually, I remember that with Manning,
+
+503
+00:21:01.640 --> 00:21:04.120
+they did, while they had a word option for doing editing,
+
+504
+00:21:04.120 --> 00:21:05.520
+they also had an AsciiDoc option
+
+505
+00:21:05.520 --> 00:21:07.000
+where they give you templates
+
+506
+00:21:07.000 --> 00:21:09.960
+and it was easy enough then to, you know,
+
+507
+00:21:09.960 --> 00:21:11.920
+build, create a source code repository,
+
+508
+00:21:11.920 --> 00:21:15.080
+build your book with a GitHub action or whatever
+
+509
+00:21:15.080 --> 00:21:16.080
+that worked pretty well.
+
+510
+00:21:16.080 --> 00:21:17.280
+But one of the things I remember
+
+511
+00:21:17.280 --> 00:21:18.880
+that's really quite time consuming
+
+512
+00:21:18.880 --> 00:21:20.120
+when you're doing this kind of process
+
+513
+00:21:20.120 --> 00:21:22.920
+is taking, merging your code samples
+
+514
+00:21:22.920 --> 00:21:26.440
+and your book content and images as well.
+
+515
+00:21:26.440 --> 00:21:30.120
+So we were doing an AWS book, so we had code samples,
+
+516
+00:21:30.120 --> 00:21:33.320
+we had then the source code for the book text itself,
+
+517
+00:21:33.320 --> 00:21:34.600
+and then we had screenshots,
+
+518
+00:21:34.600 --> 00:21:36.640
+which were manually screen grabbing,
+
+519
+00:21:36.640 --> 00:21:39.160
+you know, high DPI, copying in,
+
+520
+00:21:39.160 --> 00:21:41.720
+having to like manipulate them in various different ways
+
+521
+00:21:41.720 --> 00:21:42.560
+to make them look right.
+
+522
+00:21:42.560 --> 00:21:45.040
+And that's actually quite a slow process.
+
+523
+00:21:45.040 --> 00:21:46.840
+I remember hearing Dave Thomas
+
+524
+00:21:46.840 --> 00:21:49.160
+from the Pragmatic Programmer
+
+525
+00:21:49.160 --> 00:21:51.040
+and he has his own publishing company.
+
+526
+00:21:51.040 --> 00:21:53.600
+And I remember him saying that they set up a build process
+
+527
+00:21:53.600 --> 00:21:56.360
+that would actually build and test the code in the book
+
+528
+00:21:56.360 --> 00:21:57.400
+as you're building the book.
+
+529
+00:21:57.400 --> 00:21:59.920
+So I'm just wondering if you've got any neat tricks
+
+530
+00:21:59.920 --> 00:22:02.120
+or if you're also just taking a manual approach
+
+531
+00:22:02.120 --> 00:22:04.600
+when it comes to incorporating those snippets.
+
+532
+00:22:04.600 --> 00:22:06.040
+Yeah, I know that in AsciiDoc,
+
+533
+00:22:06.040 --> 00:22:09.440
+you can include snippets from source code directly.
+
+534
+00:22:09.440 --> 00:22:11.160
+So there is a way to do that.
+
+535
+00:22:11.160 --> 00:22:13.120
+We are not leveraging that yet
+
+536
+00:22:13.120 --> 00:22:15.960
+because since we are building like a real application
+
+537
+00:22:15.960 --> 00:22:19.880
+and we show like a few steps to get to something working,
+
+538
+00:22:19.880 --> 00:22:22.840
+then if you go on the book repo where you see all the code,
+
+539
+00:22:22.840 --> 00:22:25.000
+the code is more or less like the final state
+
+540
+00:22:25.000 --> 00:22:26.560
+of that particular chapter.
+
+541
+00:22:26.560 --> 00:22:27.960
+So it is a little bit tricky.
+
+542
+00:22:27.960 --> 00:22:29.640
+Like we cannot just include the final state.
+
+543
+00:22:29.640 --> 00:22:31.800
+We need to explain all the different steps.
+
+544
+00:22:31.800 --> 00:22:33.760
+So it is a little bit tricky to reconcile
+
+545
+00:22:33.760 --> 00:22:37.200
+the actual working code with a step-by-step explanation
+
+546
+00:22:37.200 --> 00:22:38.960
+of how do you get to write that code.
+
+547
+00:22:38.960 --> 00:22:42.040
+So right now we are still doing mostly manual things
+
+548
+00:22:42.040 --> 00:22:42.880
+in that sense.
+
+549
+00:22:42.880 --> 00:22:45.840
+And yeah, also the other thing is that you might want
+
+550
+00:22:45.840 --> 00:22:46.800
+to highlight, for instance,
+
+551
+00:22:46.800 --> 00:22:49.520
+the differences between step one and step two.
+
+552
+00:22:49.520 --> 00:22:51.960
+And again, that's not something that you implicitly have
+
+553
+00:22:51.960 --> 00:22:53.400
+in a working code base.
+
+554
+00:22:53.400 --> 00:22:56.600
+So you need to apply all the formatting in that sense.
+
+555
+00:22:56.600 --> 00:22:58.760
+And thankfully, AsciiDoc makes that relatively easy,
+
+556
+00:22:58.760 --> 00:23:01.320
+but there is still a significant amount of manual work
+
+557
+00:23:01.320 --> 00:23:02.600
+to do all of that.
+
+558
+00:23:02.600 --> 00:23:04.760
+And it can be painful if at some point you decide
+
+559
+00:23:04.760 --> 00:23:06.160
+to do a big refactoring.
+
+560
+00:23:06.160 --> 00:23:08.760
+That means that you need to go back in all the steps
+
+561
+00:23:08.760 --> 00:23:10.120
+and figure out how do I apply.
+
+562
+00:23:10.120 --> 00:23:11.400
+Do it all again.
+
+563
+00:23:11.400 --> 00:23:12.560
+Exactly.
+
+564
+00:23:12.560 --> 00:23:16.320
+In terms of images, so far we've been using only SVGs
+
+565
+00:23:16.320 --> 00:23:18.640
+because we don't really have screenshots.
+
+566
+00:23:18.680 --> 00:23:21.800
+And we created a little tool that allows us to convert
+
+567
+00:23:21.800 --> 00:23:23.960
+an SVG to the equivalent dark mode.
+
+568
+00:23:23.960 --> 00:23:26.800
+So basically what it does, inverts the colors,
+
+569
+00:23:26.800 --> 00:23:30.440
+and then you can specify in the SVG markup
+
+570
+00:23:30.440 --> 00:23:32.440
+when you don't want the color to be inverted,
+
+571
+00:23:32.440 --> 00:23:33.480
+for instance, I don't know.
+
+572
+00:23:33.480 --> 00:23:35.400
+If it's the orange of the lambda icon,
+
+573
+00:23:35.400 --> 00:23:38.400
+we probably don't want that to be inverted in the dark mode.
+
+574
+00:23:38.400 --> 00:23:40.120
+So we have a way to do that.
+
+575
+00:23:40.120 --> 00:23:41.840
+But if we regenerate the base image,
+
+576
+00:23:41.840 --> 00:23:43.600
+it's just a command line that we need to run
+
+577
+00:23:43.600 --> 00:23:46.240
+to regenerate the dark mode version.
+
+578
+00:23:46.240 --> 00:23:48.560
+So that helps a little bit to speed things up.
+
+579
+00:23:50.160 --> 00:23:52.760
+Nice, so where is the shop front and how are you processing the money side of things
+
+580
+00:23:52.760 --> 00:23:53.600
+for the book?
+
+581
+00:23:53.600 --> 00:23:55.400
+Yeah, that's something that we had to research
+
+582
+00:23:55.400 --> 00:23:56.240
+a little bit.
+
+583
+00:23:56.240 --> 00:23:57.600
+We ended up choosing Gumroad,
+
+584
+00:23:57.600 --> 00:23:59.800
+which I don't know if it's the best in terms of pricing
+
+585
+00:23:59.800 --> 00:24:02.680
+because I think they take a flat 10% of revenue.
+
+586
+00:24:02.680 --> 00:24:05.080
+And I know that there are other shops
+
+587
+00:24:05.080 --> 00:24:06.560
+where you can get a better deal.
+
+588
+00:24:06.560 --> 00:24:08.280
+10% is not necessarily a lot,
+
+589
+00:24:08.280 --> 00:24:10.120
+depending on the price that you have.
+
+590
+00:24:10.120 --> 00:24:11.040
+Compared to Apple!
+
+591
+00:24:11.040 --> 00:24:14.040
+Exactly, but I know that there is, for instance,
+
+592
+00:24:14.040 --> 00:24:17.360
+Lemon Squeezey, it gives you a better deal in that sense.
+
+593
+00:24:17.360 --> 00:24:20.480
+But what we were looking for is to have something
+
+594
+00:24:20.480 --> 00:24:21.760
+that is simple enough to use,
+
+595
+00:24:21.760 --> 00:24:23.800
+and at the same time that could automatically
+
+596
+00:24:23.800 --> 00:24:25.800
+split the revenue between the authors.
+
+597
+00:24:25.800 --> 00:24:28.360
+And apparently Gumroad is the only one we found
+
+598
+00:24:28.360 --> 00:24:30.360
+where this feature exists.
+
+599
+00:24:30.360 --> 00:24:32.560
+And this is amazing because from a tax perspective,
+
+600
+00:24:32.560 --> 00:24:34.800
+everyone receives their own share of the money,
+
+601
+00:24:34.800 --> 00:24:36.800
+everyone is liable to do their own tax report
+
+602
+00:24:36.800 --> 00:24:39.240
+if we don't have to create like an intermediate company
+
+603
+00:24:39.240 --> 00:24:41.280
+or do, I don't know, invoicing
+
+604
+00:24:41.280 --> 00:24:43.440
+or moving money between the authors.
+
+605
+00:24:43.440 --> 00:24:45.040
+So all of that management,
+
+606
+00:24:45.040 --> 00:24:47.360
+which honestly, Sunday, I was a little bit scared about,
+
+607
+00:24:47.360 --> 00:24:48.800
+is taken care by Gumroad.
+
+608
+00:24:48.800 --> 00:24:51.080
+So I'm really happy about that aspect.
+
+609
+00:24:51.080 --> 00:24:52.760
+So the other thing is that in Gumroad
+
+610
+00:24:52.760 --> 00:24:55.440
+it's very easy to generate discounts if you want,
+
+611
+00:24:55.440 --> 00:24:57.760
+for instance, maybe you are attending a conference
+
+612
+00:24:57.760 --> 00:25:00.600
+and you want to create a discount code just for that day
+
+613
+00:25:00.600 --> 00:25:03.000
+to incentivize people to buy the book
+
+614
+00:25:03.000 --> 00:25:04.600
+after they hear your talk.
+
+615
+00:25:04.600 --> 00:25:06.720
+Gumroad makes all of that extremely easy.
+
+616
+00:25:06.720 --> 00:25:09.200
+So that's another thing that I wasn't missing
+
+617
+00:25:09.200 --> 00:25:11.240
+from the relationship with the publisher
+
+618
+00:25:11.240 --> 00:25:13.240
+where you can get discount codes,
+
+619
+00:25:13.240 --> 00:25:15.880
+but you need to be very careful to ask way in advance.
+
+620
+00:25:15.880 --> 00:25:18.240
+And sometimes it just doesn't work out
+
+621
+00:25:18.240 --> 00:25:19.640
+and you lose opportunities.
+
+622
+00:25:19.640 --> 00:25:21.760
+So yeah, generally speaking right now,
+
+623
+00:25:21.760 --> 00:25:26.320
+I'm very happy with the whole self-published experience.
+
+624
+00:25:26.320 --> 00:25:29.320
+I think that the only tricky thing is to try to stick
+
+625
+00:25:29.320 --> 00:25:32.280
+with some kind of timeline or at least to have a good cadence
+
+626
+00:25:32.280 --> 00:25:34.680
+even if you don't really have a strict deadline,
+
+627
+00:25:34.680 --> 00:25:36.880
+but at least make sure that you are progressing steadily
+
+628
+00:25:36.880 --> 00:25:37.720
+on the book.
+
+629
+00:25:37.720 --> 00:25:39.560
+And I think being two authors helps a lot
+
+630
+00:25:39.560 --> 00:25:41.360
+because we can kind of push each other
+
+631
+00:25:41.360 --> 00:25:43.280
+and try to keep each other accountable.
+
+632
+00:25:43.280 --> 00:25:45.840
+And that makes sure that we keep progressing
+
+633
+00:25:45.840 --> 00:25:47.680
+with some kind of a reliable pace.
+
+634
+00:25:47.680 --> 00:25:49.800
+So I don't know if you have other questions,
+
+635
+00:25:49.800 --> 00:25:51.080
+otherwise this is, I think,
+
+636
+00:25:51.080 --> 00:25:53.160
+everything I wanted to share so far.
+
+637
+00:25:53.160 --> 00:25:54.680
+I'm curious, maybe in the future,
+
+638
+00:25:54.680 --> 00:25:56.960
+when you're closer to the finish, we can talk about it
+
+639
+00:25:56.960 --> 00:25:58.560
+and we can go through some of the contents
+
+640
+00:25:58.560 --> 00:26:00.400
+in a bit more detail and maybe have James on as well.
+
+641
+00:26:00.400 --> 00:26:02.000
+But that was really interesting.
+
+642
+00:26:02.000 --> 00:26:03.800
+All I can say is best of luck with it.
+
+643
+00:26:03.800 --> 00:26:04.640
+Thank you.
+
+644
+00:26:04.640 --> 00:26:05.720
+Yeah, I'm going to get reading.
+
+645
+00:26:05.720 --> 00:26:06.640
+Nice, yeah.
+
+646
+00:26:06.640 --> 00:26:09.680
+We'll definitely have all the links in the show notes again.
+
+647
+00:26:09.680 --> 00:26:12.320
+And if you end up getting the book,
+
+648
+00:26:12.320 --> 00:26:14.000
+I'd be really curious to get the feedback,
+
+649
+00:26:14.000 --> 00:26:16.840
+because again, we are trying to use as much early feedback
+
+650
+00:26:16.840 --> 00:26:19.480
+as possible to try to drive basically the evolution
+
+651
+00:26:19.480 --> 00:26:20.600
+of the content itself.
+
+652
+00:26:20.600 --> 00:26:22.600
+So also I'm curious in general,
+
+653
+00:26:22.600 --> 00:26:25.280
+if people have considered writing Lambdas and Rust
+
+654
+00:26:25.280 --> 00:26:27.440
+and why, if they actually tried it,
+
+655
+00:26:27.440 --> 00:26:29.560
+what the experience was like for them.
+
+656
+00:26:29.560 --> 00:26:31.480
+So if that's something that you have done
+
+657
+00:26:31.480 --> 00:26:33.760
+or even just consider, leave us a comment
+
+658
+00:26:33.760 --> 00:26:36.560
+because I'd be really curious to read about that experience.
+
+659
+00:26:36.560 --> 00:26:39.600
+So thanks again for being with us today for another episode.
+
+660
+00:26:39.600 --> 00:26:42.080
+And we look forward to seeing you in the next one.
+
+661
+00:26:42.080 --> 00:26:42.920
+Bye.

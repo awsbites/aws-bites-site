@@ -1,0 +1,2714 @@
+{
+  "speakers": {
+    "spk_0": "Eoin",
+    "spk_1": "Luciano"
+  },
+  "segments": [
+    {
+      "speakerLabel": "spk_0",
+      "start": 0,
+      "end": 3.44,
+      "text": " Ever had one of those days when a cloud deployment just refuses to play nice?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 3.44,
+      "end": 7.68,
+      "text": " We sure did, thanks to some quirky issues with Lambda's provisioned concurrency."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 7.68,
+      "end": 10,
+      "text": " Every issue is an opportunity to learn something new."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 10,
+      "end": 15.200000000000001,
+      "text": " And after some deep digging, we uncovered some insights about Lambda provisioned concurrency,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 15.200000000000001,
+      "end": 17.28,
+      "text": " and we just thought we'd share them with you today."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 17.28,
+      "end": 20.56,
+      "text": " So we're going to talk about the joy of cold starts, Lambda concurrency,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 20.56,
+      "end": 25.44,
+      "text": " and the different concurrency control features available, how provisioned concurrency works"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 25.44,
+      "end": 30.8,
+      "text": " itself, some of its limitations, common problems, and of course, those pesky pricing details."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 30.8,
+      "end": 35.36,
+      "text": " I'm Eoin, I'm here with Luciano, and this is another exciting episode of the AWS Bites podcast."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 43.52,
+      "end": 46.480000000000004,
+      "text": " This episode of AWS Bites is powered by fourTheorem."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 46.480000000000004,
+      "end": 50.56,
+      "text": " Whether you're looking to architect, develop, or modernize on AWS, fourTheorem has you covered."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 50.56,
+      "end": 54.24,
+      "text": " If you want to take your cloud game to the next level, then head over to fourtheorem.com"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 54.24,
+      "end": 59.36,
+      "text": " and check out our articles, case studies, and see how we can help transform your AWS journey."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 59.36,
+      "end": 63.52,
+      "text": " Luciano, take it away. What have we got to say about Lambda and provisioned concurrency?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 63.52,
+      "end": 65.36,
+      "text": " Yeah, let's start with a little bit of an introduction."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 65.36,
+      "end": 70.48,
+      "text": " Of course, we spoke before about how Lambda works in general and what is a cold start."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 70.48,
+      "end": 74.72,
+      "text": " And there are a few episodes that you can check out if you want to review these topics."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 74.72,
+      "end": 77.04,
+      "text": " One is number 60, what is AWS Lambda."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 77.04,
+      "end": 79.84,
+      "text": " 104, explaining how Lambda runtimes work."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 79.84,
+      "end": 83.04,
+      "text": " 108, how to solve cold starts, specifically in Python."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 83.04,
+      "end": 87.28,
+      "text": " And then we also have an entire episode dedicated to Lambda best practices, which is episode 120."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 87.28,
+      "end": 92.64,
+      "text": " So definitely review those if you're interested in really going deep down into the rabbit hole"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 92.64,
+      "end": 94.4,
+      "text": " of all things at AWS Lambda."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 94.4,
+      "end": 98.80000000000001,
+      "text": " But of course, it's probably worth doing a super quick recap of the things that are important today."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 98.80000000000001,
+      "end": 103.60000000000001,
+      "text": " And I think it's important to mention what happens when a Lambda function starts."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 103.60000000000001,
+      "end": 107.44000000000001,
+      "text": " And a Lambda function basically needs an environment that is created on demand"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 107.44000000000001,
+      "end": 108.72,
+      "text": " when a specific event occur."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 109.28,
+      "end": 114.72,
+      "text": " And if you have multiple concurrent events, more Lambda environments are created as needed"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 114.72,
+      "end": 116.56,
+      "text": " just to try to keep up with the load."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 116.56,
+      "end": 119.2,
+      "text": " Remember that AWS Lambda will create environments"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 119.2,
+      "end": 122.24,
+      "text": " and each environment will process only one event at a time."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 122.24,
+      "end": 125.2,
+      "text": " So if you have two events, a new environment needs to be created."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 125.2,
+      "end": 128.56,
+      "text": " And of course, these environments are totally dynamic."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 128.56,
+      "end": 133.36,
+      "text": " If there isn't really lots going on, maybe the throughput of event decreases"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 133.36,
+      "end": 135.84,
+      "text": " or at some point you have a period of total inactivity,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 135.84,
+      "end": 140,
+      "text": " AWS will start to reclaim resources and it will destroy those environments."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 140,
+      "end": 142.96,
+      "text": " And you have to think that of course, creating one of those environments"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 142.96,
+      "end": 144.96,
+      "text": " is not a trivial operation."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 144.96,
+      "end": 147.68,
+      "text": " So it kind of requires some work on the AWS side."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 147.68,
+      "end": 151.52,
+      "text": " And just to simplify, you can imagine that this execution environment"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 151.52,
+      "end": 152.8,
+      "text": " needs to be created somewhere."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 152.8,
+      "end": 155.84,
+      "text": " And specifically, these are micro VM running on Firecracker,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 155.84,
+      "end": 158.48000000000002,
+      "text": " which behind the scenes is deployed on EC2 instances."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 159.2,
+      "end": 164.08,
+      "text": " And when all of that is created, of course, the code that you want to provision"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 164.08,
+      "end": 166.48000000000002,
+      "text": " into your Lambda function needs to be pulled from somewhere."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 166.48000000000002,
+      "end": 168.88000000000002,
+      "text": " So that can be either S3 or a container registry."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 168.88000000000002,
+      "end": 172.32000000000002,
+      "text": " Then at that point, the instance is ready to be initialized"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 172.32000000000002,
+      "end": 175.12,
+      "text": " and the initialization phase has multiple steps."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 175.12,
+      "end": 177.76000000000002,
+      "text": " For instance, if you have Lambda extensions enabled,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 177.76000000000002,
+      "end": 179.52,
+      "text": " those need to be initialized first."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 179.52,
+      "end": 181.36,
+      "text": " Then depending on the specific runtime you're using,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 181.36,
+      "end": 185.28,
+      "text": " for instance, if you're using Node.js, the interpreter itself needs to start"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 185.28,
+      "end": 188.64000000000001,
+      "text": " and maybe it's going to do things like loading libraries,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 188.64000000000001,
+      "end": 191.44,
+      "text": " doing JIT compilation and whatever makes sense"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 191.44,
+      "end": 193.44,
+      "text": " for that particular runtime that you're using."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 193.44,
+      "end": 196.16,
+      "text": " And then finally, your code starts to be initialized."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 196.16,
+      "end": 198.48,
+      "text": " And you know that in your code, you generally have two parts."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 198.48,
+      "end": 201.92,
+      "text": " There is an init code, which is where you can do all the things"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 201.92,
+      "end": 204.48,
+      "text": " that you want to do the first time that the environment is initialized."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 204.48,
+      "end": 205.84,
+      "text": " And this is what's going to happen."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 205.84,
+      "end": 209.52,
+      "text": " And then you have the under code, that's the code that gets executed for every event."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 209.52,
+      "end": 213.68,
+      "text": " So the init of your code is what happens when the environment is created."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 213.68,
+      "end": 215.68,
+      "text": " And of course, all of this stuff can take some time."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 215.68,
+      "end": 219.44,
+      "text": " And when this happens and you are trying to process an event,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 219.44,
+      "end": 222.16,
+      "text": " all this extra delay is called a cold start."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 222.16,
+      "end": 224.24,
+      "text": " Now, you might be wondering, is this something bad?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 224.24,
+      "end": 227.04,
+      "text": " And the answer is that it really depends the way you look at it,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 227.04,
+      "end": 229.2,
+      "text": " because on one side, cold starts are actually cool"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 229.2,
+      "end": 231.12,
+      "text": " because they are the necessary trade off"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 231.12,
+      "end": 234.16,
+      "text": " that allows Lambda as a service to scale to zero."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 234.16,
+      "end": 236.32,
+      "text": " So if we didn't have cold starts, we probably had something"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 236.32,
+      "end": 237.6,
+      "text": " that was running all the time."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 237.6,
+      "end": 241.35999999999999,
+      "text": " And the pricing behind Lambda would be very different from what it is today."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 241.35999999999999,
+      "end": 243.92,
+      "text": " So in a way, they are kind of a necessary evil."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 243.92,
+      "end": 246.48,
+      "text": " And the other thing is that sometimes they are very negligible,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 246.48,
+      "end": 249.35999999999999,
+      "text": " because if you're doing some kind of background processing"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 249.36,
+      "end": 252.32000000000002,
+      "text": " and it might be not very particularly time sensitive,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 252.32000000000002,
+      "end": 256.40000000000003,
+      "text": " if you have to wait a few milliseconds or a few seconds even extra,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 256.40000000000003,
+      "end": 257.92,
+      "text": " it's probably not going to be the end of the world."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 257.92,
+      "end": 260.40000000000003,
+      "text": " Imagine you are just sending an email in the background"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 260.40000000000003,
+      "end": 262,
+      "text": " or maybe resizing a picture."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 262,
+      "end": 265.04,
+      "text": " It's probably fine if that particular process happens"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 265.04,
+      "end": 267.68,
+      "text": " a few milliseconds later rather than happening immediately."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 267.68,
+      "end": 270.56,
+      "text": " But of course, if you have a use case, maybe, for instance,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 270.56,
+      "end": 274,
+      "text": " like an API request with a user, like maybe using a browser"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 274,
+      "end": 278.08000000000004,
+      "text": " that triggers that API request, and that request is handled by Lambda,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 278.08,
+      "end": 281.76,
+      "text": " if there is a cold start, the user might actually perceive that slowness"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 281.76,
+      "end": 283.68,
+      "text": " and it might affect the user experience."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 283.68,
+      "end": 286.24,
+      "text": " In that case, you need to be a little bit careful with cold starts."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 286.24,
+      "end": 289.03999999999996,
+      "text": " And if you are in one of those cases, you probably want to know,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 289.03999999999996,
+      "end": 291.59999999999997,
+      "text": " okay, what are my options for reducing the cold starts?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 291.59999999999997,
+      "end": 294.24,
+      "text": " And one of such options is provision concurrency,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 294.24,
+      "end": 296.32,
+      "text": " which is what we are going to talk about today."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 296.32,
+      "end": 298.4,
+      "text": " Yeah."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 298.4,
+      "end": 301.03999999999996,
+      "text": " And maybe before we go further, I mean, I always feel a little bit reluctant to talk about topics like this,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 301.59999999999997,
+      "end": 304.79999999999995,
+      "text": " because I think cold start problems are generally overstated,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 304.8,
+      "end": 308.48,
+      "text": " especially by people who don't use Lambda really in anger."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 308.48,
+      "end": 311.44,
+      "text": " So it's really an advanced topic. It's something that's useful to know about,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 311.44,
+      "end": 314.64,
+      "text": " but I wouldn't fret about knowing all the different options"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 314.64,
+      "end": 318.16,
+      "text": " and hyper-optimizing functions that probably don't need to be optimized"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 318.16,
+      "end": 321.2,
+      "text": " in a lot of cases. Simpler is generally the better approach"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 321.2,
+      "end": 324.08000000000004,
+      "text": " if you can get away without all of these fine-tuning options."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 324.08000000000004,
+      "end": 327.44,
+      "text": " I actually remember that there was a case studied by AWS"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 327.44,
+      "end": 330.32,
+      "text": " where they looked at all the Lambda invocations"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 330.32,
+      "end": 332,
+      "text": " that they have across all their customers,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 332.56,
+      "end": 335.68,
+      "text": " and they came up with a percentage that I don't remember exactly how it is,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 335.68,
+      "end": 340.64,
+      "text": " but I think it was in the order of like 1% of all the function invocations is a cold start."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 340.64,
+      "end": 344.08,
+      "text": " So generally speaking, this is a problem across all the customers."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 344.08,
+      "end": 349.04,
+      "text": " It doesn't happen so often. Then of course, if you have very sparse workloads,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 349.04,
+      "end": 351.44,
+      "text": " maybe you might be more affected than customers"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 351.44,
+      "end": 353.6,
+      "text": " with lots of events coming in all the time."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 353.6,
+      "end": 357.2,
+      "text": " Yeah. Yeah."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 357.2,
+      "end": 361.04,
+      "text": " But look, these are useful things to know so that you've got these configuration options in your back pocket"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 361.04,
+      "end": 363.44,
+      "text": " if you ever really do need to take advantage of them."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 363.44,
+      "end": 367.6,
+      "text": " So let's first clarify that there is a quota on the number of Lambda environments"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 367.6,
+      "end": 370.64000000000004,
+      "text": " you can have running in a given AWS account in a region."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 370.64000000000004,
+      "end": 373.84000000000003,
+      "text": " The documented default is 1000 concurrent executions"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 373.84000000000003,
+      "end": 376.24,
+      "text": " across all functions in an account in a region,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 376.24,
+      "end": 378.56,
+      "text": " but that's a soft limit and can be increased if needed."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 378.56,
+      "end": 380.56,
+      "text": " Now, a lot of people have been seeing for a while now"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 380.56,
+      "end": 382.64000000000004,
+      "text": " that new accounts have a limit of 10."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 383.20000000000005,
+      "end": 385.44,
+      "text": " We suspect that this is for abuse prevention"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 385.44,
+      "end": 387.12,
+      "text": " to prevent people spinning up new accounts"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 387.12,
+      "end": 390,
+      "text": " and managing to mine Bitcoin before they pay the bill."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 391.04,
+      "end": 392.88,
+      "text": " But if that is your case, it can be raised."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 392.88,
+      "end": 396.48,
+      "text": " You just need to request a support quota change."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 396.48,
+      "end": 398.32,
+      "text": " Now, let's talk about concurrency then."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 398.32,
+      "end": 399.6,
+      "text": " So if the number of in..."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 399.6,
+      "end": 401.36,
+      "text": " This is the number of in-flight requests"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 401.36,
+      "end": 403.76000000000005,
+      "text": " that your function is currently handling,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 403.76000000000005,
+      "end": 408.08000000000004,
+      "text": " generally matches the number of active execution environments for Lambda."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 408.08000000000004,
+      "end": 410.72,
+      "text": " Now, there are two types of concurrency controls available."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 410.72,
+      "end": 413.52000000000004,
+      "text": " You've got reserved concurrency and provisioned concurrency."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 413.52000000000004,
+      "end": 414.72,
+      "text": " They can be confusing."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 414.72,
+      "end": 419.36,
+      "text": " Reserved concurrency is the maximum number of concurrent instances"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 419.36,
+      "end": 420.72,
+      "text": " allocated to your function."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 420.8,
+      "end": 423.04,
+      "text": " And when a function has reserved concurrency,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 423.04,
+      "end": 424.72,
+      "text": " it is reserved for that function."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 424.72,
+      "end": 427.20000000000005,
+      "text": " So no other function can use that concurrency."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 427.20000000000005,
+      "end": 428.32000000000005,
+      "text": " If you've got lots of traffic,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 428.32000000000005,
+      "end": 430.32000000000005,
+      "text": " or maybe you've got both the triggers,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 430.32000000000005,
+      "end": 431.68,
+      "text": " tons of unnecessary invocations,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 431.68,
+      "end": 432.8,
+      "text": " you might end up in a scenario"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 432.8,
+      "end": 434.72,
+      "text": " where you spin up enough Lambda environments"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 434.72,
+      "end": 437.44000000000005,
+      "text": " to reach the account level concurrent execution limit."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 437.44000000000005,
+      "end": 440.32000000000005,
+      "text": " And that means no more Lambda environments can be created."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 440.32000000000005,
+      "end": 442,
+      "text": " And if you consider that environments are created"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 442,
+      "end": 443.44000000000005,
+      "text": " for specific Lambda functions,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 443.44000000000005,
+      "end": 446.56,
+      "text": " you might end up in a scenario where you can't even process events"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 446.56,
+      "end": 449.20000000000005,
+      "text": " because you can't spin up new Lambda function environments"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 449.20000000000005,
+      "end": 450.48,
+      "text": " to handle new events."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 450.96000000000004,
+      "end": 453.28000000000003,
+      "text": " So reserved concurrency is just useful to ensure that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 453.28000000000003,
+      "end": 457.84000000000003,
+      "text": " you've both got a cap on the number of concurrent executions for a function,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 457.84000000000003,
+      "end": 461.52000000000004,
+      "text": " but you also ensure that other functions can't steal an allocation"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 461.52000000000004,
+      "end": 463.36,
+      "text": " for a specific function."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 463.36,
+      "end": 466.8,
+      "text": " And of course, that has the impact of other Lambda functions"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 466.8,
+      "end": 468.08000000000004,
+      "text": " having less capacity available."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 468.08000000000004,
+      "end": 469.04,
+      "text": " So it's a trade-off."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 469.04,
+      "end": 471.28000000000003,
+      "text": " Now, reserved concurrency is just something"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 471.28000000000003,
+      "end": 472.48,
+      "text": " you can configure for a function."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 472.48,
+      "end": 474.40000000000003,
+      "text": " It doesn't have any additional charge."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 474.40000000000003,
+      "end": 477.12,
+      "text": " It's just a question of putting that cap on a function."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 477.12,
+      "end": 479.6,
+      "text": " It's also used in some cases,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 479.6,
+      "end": 481.12,
+      "text": " if you've got an errant function,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 481.12,
+      "end": 482.64000000000004,
+      "text": " something that's causing a lot of problems."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 482.64000000000004,
+      "end": 486.24,
+      "text": " Maybe you've got a recursive loop"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 486.24,
+      "end": 490,
+      "text": " or something that's triggering a lot of errors or a cost issue."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 490,
+      "end": 491.84000000000003,
+      "text": " You can just set your reserved concurrency to zero"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 491.84000000000003,
+      "end": 494.24,
+      "text": " and that will stop your function from being invoked altogether."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 494.24,
+      "end": 495.20000000000005,
+      "text": " That's a useful tip."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 495.84000000000003,
+      "end": 497.6,
+      "text": " Now, this one doesn't really help with cold starts."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 497.6,
+      "end": 500.32000000000005,
+      "text": " It just really helps you to make sure you can clean up,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 500.32000000000005,
+      "end": 502.88,
+      "text": " you can keep scaling up specific functions up to a certain point."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 502.88,
+      "end": 504.72,
+      "text": " Environments are still created on demand"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 504.72,
+      "end": 507.20000000000005,
+      "text": " and cold starts are still part of the picture in that case."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 507.2,
+      "end": 511.44,
+      "text": " Now, provisioned concurrency is something that AWS added a good bit later."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 511.44,
+      "end": 514.8,
+      "text": " And this is something that a lot of people welcomed."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 514.8,
+      "end": 516.4,
+      "text": " I'm not sure, to be honest,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 516.4,
+      "end": 518.88,
+      "text": " but it essentially means that you've got a number"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 518.88,
+      "end": 521.68,
+      "text": " of pre-initialized execution environments for your function."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 521.68,
+      "end": 523.92,
+      "text": " And these ones are ready, once you've deployed them"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 523.92,
+      "end": 525.2,
+      "text": " and they're in an active state,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 525.2,
+      "end": 528.4,
+      "text": " they're ready to respond immediately to incoming events."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 528.4,
+      "end": 530.4,
+      "text": " So this is something that can be useful"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 530.4,
+      "end": 532.56,
+      "text": " for reducing cold start latencies for a function."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 532.8,
+      "end": 537.5999999999999,
+      "text": " And of course it does because you've got these environments"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 537.5999999999999,
+      "end": 539.5999999999999,
+      "text": " running essentially ready."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 539.5999999999999,
+      "end": 540.7199999999999,
+      "text": " They've started warm."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 540.7199999999999,
+      "end": 542.0799999999999,
+      "text": " There is a cost impact on that."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 542.0799999999999,
+      "end": 543.3599999999999,
+      "text": " So there are additional charges."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 543.3599999999999,
+      "end": 546.88,
+      "text": " So let's talk about how provisioned concurrency works then."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 548.56,
+      "end": 552.0799999999999,
+      "text": " Yeah, provisioned concurrency, as you said, keeps a certain number of Lambda execution environments warm for you."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 552.0799999999999,
+      "end": 555.5999999999999,
+      "text": " So this basically means that as soon as you have enabled provisioned concurrency"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 555.5999999999999,
+      "end": 557.76,
+      "text": " and set a specific amount for a function,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 557.76,
+      "end": 561.4399999999999,
+      "text": " AWS will need to spin up that number of execution environments for you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 561.44,
+      "end": 564.48,
+      "text": " so that they are ready and warm for whenever new events come in."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 564.48,
+      "end": 566.72,
+      "text": " So basically if you receive a request,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 566.72,
+      "end": 569.12,
+      "text": " you will have this Lambda environment already available."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 569.12,
+      "end": 573.7600000000001,
+      "text": " And also this environment not going to be eventually disposed by AWS,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 573.7600000000001,
+      "end": 575.5200000000001,
+      "text": " even though you might have a period of time"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 575.5200000000001,
+      "end": 578.08,
+      "text": " where you don't receive enough events,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 578.08,
+      "end": 580.1600000000001,
+      "text": " or maybe you have even zero traffic."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 580.1600000000001,
+      "end": 582.08,
+      "text": " If you have provisioned concurrency,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 582.08,
+      "end": 584.32,
+      "text": " your instances will still be there and available,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 584.32,
+      "end": 586.08,
+      "text": " even if nothing happening in your account."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 586.08,
+      "end": 588.96,
+      "text": " So in a way, this is going to help you to fight cold starts,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 588.96,
+      "end": 592.48,
+      "text": " but it doesn't necessarily mean that you won't have cold starts anymore."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 592.48,
+      "end": 594.1600000000001,
+      "text": " In fact, if you think about that,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 594.1600000000001,
+      "end": 597.6800000000001,
+      "text": " you are just setting a number of instances that are ready for you."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 597.6800000000001,
+      "end": 600.48,
+      "text": " But then if you start to have more events than you anticipated,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 600.48,
+      "end": 602.5600000000001,
+      "text": " then Lambda still needs to scale up even more."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 602.5600000000001,
+      "end": 605.6,
+      "text": " And that means that even beyond the amount of provision instances,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 605.6,
+      "end": 607.9200000000001,
+      "text": " AWS will start to create new instances."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 607.9200000000001,
+      "end": 611.76,
+      "text": " And that means that those new instances will incur in a cold start."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 611.76,
+      "end": 613.52,
+      "text": " So you might still see cold starts"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 613.52,
+      "end": 617.76,
+      "text": " if you didn't really predict exactly the number of warm instances"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 617.76,
+      "end": 619.2,
+      "text": " that you needed in the first place."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 619.2,
+      "end": 621.84,
+      "text": " So just be aware that there's not like a universal solution"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 621.84,
+      "end": 624,
+      "text": " that's going to totally eliminate cold starts,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 624,
+      "end": 626.8,
+      "text": " but it's something that might help you to reduce the amount of cold starts"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 626.8,
+      "end": 628.8,
+      "text": " that you will see for specific Lambda functions."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 628.8,
+      "end": 633.68,
+      "text": " And another thing is that you can also set the provision concurrency to zero,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 633.68,
+      "end": 636.56,
+      "text": " and this is going to have the same effect that you described before."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 636.56,
+      "end": 638,
+      "text": " So it's something you can use"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 638,
+      "end": 641.92,
+      "text": " if you want to basically stop a function from running altogether."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 641.92,
+      "end": 644.64,
+      "text": " Now, how do you enable provision concurrency?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 644.64,
+      "end": 646.3199999999999,
+      "text": " It's probably something that we should discuss,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 646.32,
+      "end": 648.32,
+      "text": " and I'll let you all talk about that."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 648.32,
+      "end": 651.2800000000001,
+      "text": " Enabling provision concurrency theoretically is quite simple."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 651.2800000000001,
+      "end": 652.96,
+      "text": " It's just a number, an integer property"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 652.96,
+      "end": 655.0400000000001,
+      "text": " that you're associating with a Lambda function"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 655.0400000000001,
+      "end": 657.44,
+      "text": " through the web console or through APIs."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 658.48,
+      "end": 662.8000000000001,
+      "text": " You can configure up to the unreserved concurrency"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 662.8000000000001,
+      "end": 664.24,
+      "text": " in your account minus 100."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 664.8000000000001,
+      "end": 667.6800000000001,
+      "text": " So this is a reservation of 100 units of concurrency"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 667.6800000000001,
+      "end": 670.1600000000001,
+      "text": " for functions that aren't using reserved concurrency."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 670.1600000000001,
+      "end": 673.36,
+      "text": " For example, if your account has a limit of 1,000"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 673.36,
+      "end": 675.84,
+      "text": " and you haven't assigned any reserved or provision concurrency"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 675.9200000000001,
+      "end": 677.12,
+      "text": " to any of your other functions,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 677.6800000000001,
+      "end": 680.88,
+      "text": " you can configure a maximum of 900 provision concurrency units"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 680.88,
+      "end": 681.6800000000001,
+      "text": " to a single function."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 682.32,
+      "end": 686.5600000000001,
+      "text": " Now, with Lambda functions, you have different versions and aliases."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 686.5600000000001,
+      "end": 690.96,
+      "text": " So generally, you can get away with using the $latest default alias"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 690.96,
+      "end": 692.24,
+      "text": " for version for a function."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 692.24,
+      "end": 694.64,
+      "text": " But when you're using provisioned concurrency,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 694.64,
+      "end": 697.6800000000001,
+      "text": " you need to create an explicit function version with an alias."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 697.6800000000001,
+      "end": 701.84,
+      "text": " And it's on this alias where you set the provision concurrency value,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 701.84,
+      "end": 703.12,
+      "text": " not on the function itself."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 703.12,
+      "end": 706.16,
+      "text": " So this is something that can introduce a little bit more complexity."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 706.16,
+      "end": 707.76,
+      "text": " And this is a reason why you shouldn't just jump"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 707.76,
+      "end": 710,
+      "text": " for these optimizations by default."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 710,
+      "end": 712.08,
+      "text": " For example, if your function has an event source mapping,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 712.08,
+      "end": 713.92,
+      "text": " you have to make sure that the event source mapping"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 713.92,
+      "end": 715.84,
+      "text": " points to the correct function alias."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 715.84,
+      "end": 719.44,
+      "text": " Otherwise, your function won't use provisioned concurrency environments."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 720.32,
+      "end": 723.36,
+      "text": " Again, it's worth remembering that configuring provisioned concurrency"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 723.36,
+      "end": 725.76,
+      "text": " for a function has an impact on the reserved concurrency pool"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 725.76,
+      "end": 726.88,
+      "text": " for other functions."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 726.88,
+      "end": 728.8,
+      "text": " So if you've got function A and function B,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 729.4399999999999,
+      "end": 733.3599999999999,
+      "text": " you configure 100 units of provisioned currency for function A,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 733.3599999999999,
+      "end": 737.04,
+      "text": " other functions in your account must share the remaining 900 units of concurrency."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 737.04,
+      "end": 740.56,
+      "text": " So this is true even if function A isn't being invoked,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 740.56,
+      "end": 743.1999999999999,
+      "text": " and you're not making use of those 100 units."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 743.1999999999999,
+      "end": 745.8399999999999,
+      "text": " And this is very similar with reserved concurrency,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 745.8399999999999,
+      "end": 747.92,
+      "text": " because when you reserve concurrency,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 747.92,
+      "end": 749.92,
+      "text": " you're also not making it available for other functions."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 749.92,
+      "end": 752,
+      "text": " The difference is that with provisioned concurrency,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 752,
+      "end": 753.8399999999999,
+      "text": " you have warm Lambdas running all the time."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 754.4,
+      "end": 756.16,
+      "text": " With reserved concurrency, you don't."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 756.16,
+      "end": 758.3199999999999,
+      "text": " Now, it's possible to allocate both reserved concurrency"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 758.4000000000001,
+      "end": 760.32,
+      "text": " and provisioned concurrency for the same function."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 760.32,
+      "end": 763.2800000000001,
+      "text": " And if you do that, the provisioned concurrency can't be greater"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 763.2800000000001,
+      "end": 764.5600000000001,
+      "text": " than the reserved concurrency."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 764.5600000000001,
+      "end": 766.72,
+      "text": " Now, if you're using all of this stuff,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 766.72,
+      "end": 769.12,
+      "text": " you probably want to monitor your metrics."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 769.12,
+      "end": 772.1600000000001,
+      "text": " And with Cloud Web Metrics, you have a concurrent executions metric"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 772.1600000000001,
+      "end": 775.2800000000001,
+      "text": " that will show you the number of concurrent executions for your account."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 775.2800000000001,
+      "end": 779.6800000000001,
+      "text": " And you should look at that and tweak your settings accordingly."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 779.6800000000001,
+      "end": 783.12,
+      "text": " And it's something you could use once you're looking at concurrent executions"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 783.12,
+      "end": 783.7600000000001,
+      "text": " for any function."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 784.32,
+      "end": 788.1600000000001,
+      "text": " You can use that to figure out what the optimal provisioned concurrency might be."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 789.04,
+      "end": 790.88,
+      "text": " Then you're more likely to reduce cold starts"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 790.88,
+      "end": 793.36,
+      "text": " and balance that with the cost impact."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 793.36,
+      "end": 795.6,
+      "text": " There's a good video actually by James Easton"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 795.6,
+      "end": 797.68,
+      "text": " with a good walkthrough and some code examples."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 797.68,
+      "end": 799.6,
+      "text": " And we'll definitely have that link in the show notes."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 799.6,
+      "end": 802.48,
+      "text": " So that's configuration. Let's talk about money."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 802.48,
+      "end": 807.28,
+      "text": " Yes."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 807.28,
+      "end": 809.76,
+      "text": " So provision concurrency cost is calculated from the time you enable it for a specific function until you disable it,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 809.76,
+      "end": 811.76,
+      "text": " if you, of course, ever disable it."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 811.76,
+      "end": 814.0799999999999,
+      "text": " And it's rounded up to the nearest five minutes."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 814.0799999999999,
+      "end": 817.6,
+      "text": " So imagine that you, I don't know, enable it for seven minutes"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 817.6,
+      "end": 820.32,
+      "text": " before disabling it, you will be paying for 10 minutes."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 820.96,
+      "end": 823.84,
+      "text": " The price depends on the amount of memory you allocate."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 823.84,
+      "end": 826.72,
+      "text": " So similar to the invocation cost of a Lambda."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 826.72,
+      "end": 832,
+      "text": " And of course, the amount of concurrency you configure on it."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 832.72,
+      "end": 835.9200000000001,
+      "text": " Duration is calculated from the time your code begins executing"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 835.9200000000001,
+      "end": 838.8000000000001,
+      "text": " until it returns, otherwise terminates,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 838.8000000000001,
+      "end": 840.72,
+      "text": " rounded up to the nearest one millisecond."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 840.72,
+      "end": 846.72,
+      "text": " So basically you are paying an extra cost on top of the usual invocation cost"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 846.72,
+      "end": 850.48,
+      "text": " that you would have to pay if you were not using provision concurrency."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 850.48,
+      "end": 852.48,
+      "text": " And that in a way makes sense because, of course,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 852.48,
+      "end": 856.48,
+      "text": " AWS is keeping those instances for you reserved"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 856.48,
+      "end": 858.5600000000001,
+      "text": " and nobody else can use those instances,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 858.5600000000001,
+      "end": 860.24,
+      "text": " even if you are not processing any event."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 860.24,
+      "end": 862.24,
+      "text": " So of course, there is a cost associated"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 862.24,
+      "end": 864.5600000000001,
+      "text": " to have all this infrastructure reserved for you."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 864.5600000000001,
+      "end": 869.84,
+      "text": " We'll be linking the full pricing documentation in the show notes"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 869.84,
+      "end": 873.76,
+      "text": " if you want to review exactly what is the fee for your specific region"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 873.84,
+      "end": 878.3199999999999,
+      "text": " and also changes depending on the architecture that you use and the memory."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 878.3199999999999,
+      "end": 880.24,
+      "text": " So if you really want to do some simulation"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 880.24,
+      "end": 883.76,
+      "text": " or have a better understanding of how this might impact your cost,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 883.76,
+      "end": 887.2,
+      "text": " definitely check out the official documentation for all the official numbers."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 887.2,
+      "end": 890.48,
+      "text": " Now, what are some common issues and maybe suggestions"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 890.48,
+      "end": 892.72,
+      "text": " for troubleshooting based on our experience?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 893.28,
+      "end": 895.84,
+      "text": " Yeah, there are definitely things to look out for."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 896.64,
+      "end": 898.96,
+      "text": " One is over provisioning or under provisioning."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 898.96,
+      "end": 902.16,
+      "text": " If you over provision, you're going to end up paying for compute you won't use."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 902.16,
+      "end": 905.8399999999999,
+      "text": " It seems like you're getting away from the goal of using Lambda in the first place."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 905.8399999999999,
+      "end": 909.12,
+      "text": " And if you're under provision, you may still see cold starts."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 909.12,
+      "end": 911.8399999999999,
+      "text": " So you really have to think about whether you want to get into this or not."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 911.8399999999999,
+      "end": 913.12,
+      "text": " Scaling limitations as well."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 913.12,
+      "end": 916,
+      "text": " So if you abuse reserve concurrency, you might end up in a situation"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 916,
+      "end": 919.92,
+      "text": " where you can just erode the total Lambda concurrency pool"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 919.92,
+      "end": 921.76,
+      "text": " available to a given account or region."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 921.76,
+      "end": 923.4399999999999,
+      "text": " Same goes for provision concurrency."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 923.4399999999999,
+      "end": 926.64,
+      "text": " This can make it very hard for you and your team to keep using Lambda functions"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 926.64,
+      "end": 930.72,
+      "text": " and it can affect the capacity you have for Lambda functions"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 930.72,
+      "end": 932.48,
+      "text": " that don't have provision concurrency."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 933.44,
+      "end": 937.12,
+      "text": " Now, when we mentioned an issue we encountered recently,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 938.4,
+      "end": 943.28,
+      "text": " essentially it was a deployment error when we were deploying with provision concurrency"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 943.28,
+      "end": 947.44,
+      "text": " with an alias and the error, I think we got it surfaced through cloud formation,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 947.44,
+      "end": 950.5600000000001,
+      "text": " just said handler error code not stabilized."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 950.5600000000001,
+      "end": 955.28,
+      "text": " And this is AWS telling you that it was trying to warm up an execution environment"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 955.28,
+      "end": 958.4,
+      "text": " for a Lambda with provision concurrency, but it failed to do so."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 958.4,
+      "end": 962.9599999999999,
+      "text": " The error is pretty vague, but there are actually a number of reasons why this can happen."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 962.9599999999999,
+      "end": 966.64,
+      "text": " So it can happen because the specific version can't be deployed."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 966.64,
+      "end": 970.16,
+      "text": " Maybe your Lambda zip size is bigger than the 50 megabyte limit"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 970.16,
+      "end": 973.04,
+      "text": " or the total 250 megabyte limit."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 973.04,
+      "end": 977.4399999999999,
+      "text": " Your Lambda is deployed correctly, but the initialization code fails."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 977.4399999999999,
+      "end": 981.52,
+      "text": " So maybe you've got a bug or a typo in your code, it fails to import a dependency"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 981.52,
+      "end": 984.56,
+      "text": " or to initialize a client, permissions error, that kind of thing."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 984.56,
+      "end": 988.3199999999999,
+      "text": " So it makes sense, of course, that this can fail your entire deployment"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 988.3199999999999,
+      "end": 992.7199999999999,
+      "text": " because AWS cannot fulfill its contract of warming up these functions"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 992.7199999999999,
+      "end": 996.2399999999999,
+      "text": " as you have requested and creating this provisioned concurrency."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 996.2399999999999,
+      "end": 998.16,
+      "text": " But it's something that you mightn't think of"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 998.16,
+      "end": 1001.04,
+      "text": " if you're just moving from a non-provisioned concurrency setup"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1001.04,
+      "end": 1003.52,
+      "text": " where you don't have to worry about failures in your code"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1003.52,
+      "end": 1005.28,
+      "text": " until the function is actually invoked."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1005.28,
+      "end": 1007.5999999999999,
+      "text": " So you just have to be a little bit more careful about that."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1008.7199999999999,
+      "end": 1012.8,
+      "text": " Right. So I think we've given a good overview of provision concurrency,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1012.8,
+      "end": 1013.8399999999999,
+      "text": " talked about pros and cons."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1013.8399999999999,
+      "end": 1017.68,
+      "text": " It's not as simple as you might like. It's just the nature of it."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1017.68,
+      "end": 1020.56,
+      "text": " What are some alternatives if we've put people off?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1020.56,
+      "end": 1023.5999999999999,
+      "text": " Yeah, I think it's definitely worth mentioning that it's not a silver bullet"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1023.5999999999999,
+      "end": 1027.04,
+      "text": " and there are lots of trade-offs that you need to carefully analyze"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1027.04,
+      "end": 1029.2,
+      "text": " and take a decision on whether this is the solution"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1029.2,
+      "end": 1032.96,
+      "text": " that is going to solve your problems or maybe you want to look at other solutions."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1032.96,
+      "end": 1036.1599999999999,
+      "text": " So let's just try to give you some alternative ideas"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1036.1599999999999,
+      "end": 1039.44,
+      "text": " to try to fight cold starts because that's our premise today."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1039.44,
+      "end": 1041.9199999999998,
+      "text": " We are trying to think if I am annoyed by cold starts"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1041.92,
+      "end": 1045.44,
+      "text": " because they are affecting my applications in a way or another,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1045.44,
+      "end": 1048.96,
+      "text": " what can I do to reduce or totally eliminate cold starts?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1049.6000000000001,
+      "end": 1054.16,
+      "text": " And the first thing that comes to mind is that you can do your own warm-up as needed."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1054.16,
+      "end": 1056.64,
+      "text": " And this is actually something that people used to do"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1056.64,
+      "end": 1060.88,
+      "text": " before this provision concurrency feature was enabled in Lambda."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1060.88,
+      "end": 1065.76,
+      "text": " And actually, when I was working in the very first version of MIDI,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1065.76,
+      "end": 1067.3600000000001,
+      "text": " this is something that didn't exist."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1067.3600000000001,
+      "end": 1070.72,
+      "text": " And in MIDI itself, one of the very first middleware we created"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1070.72,
+      "end": 1075.68,
+      "text": " was a middleware that would help you to basically use event bridge as a scheduler"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1075.68,
+      "end": 1080.08,
+      "text": " to effectively send a ping every sometime, maybe every five minutes, every 10 minutes,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1080.08,
+      "end": 1082.16,
+      "text": " whatever made the most sense for you,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1082.16,
+      "end": 1085.1200000000001,
+      "text": " to effectively wake up a Lambda environment for you,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1085.1200000000001,
+      "end": 1087.52,
+      "text": " make sure that there was at least one Lambda environment."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1087.52,
+      "end": 1089.52,
+      "text": " And then the middleware would basically check,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1089.52,
+      "end": 1092,
+      "text": " okay, if this is an event coming from event bridge,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1092,
+      "end": 1096.08,
+      "text": " I'm just going to ignore it because I know that was only used to wake me up."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1096.08,
+      "end": 1099.2,
+      "text": " But if another kind of event comes in, maybe an API request,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1099.2,
+      "end": 1101.76,
+      "text": " then of course your own handle project is going to run."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1101.76,
+      "end": 1104.8,
+      "text": " And of course, you don't have to use MIDI to do this."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1104.8,
+      "end": 1106.32,
+      "text": " You can do this on your own."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1106.32,
+      "end": 1110.56,
+      "text": " The amount of code you need to write, it's relatively simple and small."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1110.56,
+      "end": 1113.76,
+      "text": " But yeah, and you can even do that without using event bridge."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1113.76,
+      "end": 1116,
+      "text": " So whatever is going to trigger your Lambda,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1116,
+      "end": 1118.48,
+      "text": " of course, is going to create potentially a new environment."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1118.48,
+      "end": 1120.4,
+      "text": " So if you can do that recuringly,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1120.4,
+      "end": 1123.68,
+      "text": " you are going to create instances that will be around for a little bit"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1123.68,
+      "end": 1126.4,
+      "text": " and they will be warm to handle real events."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1126.4,
+      "end": 1127.52,
+      "text": " So that's just an idea."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1127.52,
+      "end": 1131.6,
+      "text": " Of course, it's also very tricky that this particular approach"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1131.6,
+      "end": 1133.76,
+      "text": " will avoid cold starts entirely."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1133.76,
+      "end": 1136.32,
+      "text": " It's just a way to try to reduce cold starts."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1136.32,
+      "end": 1140.8799999999999,
+      "text": " Then depending on how well you can predict traffic coming in,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1140.8799999999999,
+      "end": 1142.8,
+      "text": " you might have different type of results."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1142.8,
+      "end": 1144.32,
+      "text": " You will see more or less cold starts."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1145.04,
+      "end": 1147.84,
+      "text": " Another interesting approach is Lambda's napstart."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1147.84,
+      "end": 1149.84,
+      "text": " This is more relevant if you're using Java."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1149.84,
+      "end": 1153.04,
+      "text": " And again, it doesn't really solve cold starts per se,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1153.04,
+      "end": 1156.72,
+      "text": " but it can greatly reduce the duration of a cold start,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1156.72,
+      "end": 1158.56,
+      "text": " especially for languages like Java,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1158.56,
+      "end": 1162.32,
+      "text": " where the cold starts can be more significant than with other runtimes."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1162.32,
+      "end": 1165.44,
+      "text": " So if you're using Java and you want to reduce the cold start duration,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1165.44,
+      "end": 1166.88,
+      "text": " definitely check out snapstart."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1166.88,
+      "end": 1170.8,
+      "text": " And then the other approach is that you might want to consider other AWS services,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1170.8,
+      "end": 1173.44,
+      "text": " because of course, if you really are in a situation"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1173.44,
+      "end": 1175.6000000000001,
+      "text": " where you cannot tolerate cold starts,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1175.6000000000001,
+      "end": 1178.16,
+      "text": " maybe Lambda is not the solution for your problem."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1178.16,
+      "end": 1180.08,
+      "text": " Maybe you need to use something like a container,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1180.08,
+      "end": 1182.16,
+      "text": " maybe running on Fargate if you still want to have"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1182.16,
+      "end": 1184.48,
+      "text": " kind of a serverless deployment experience."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1184.48,
+      "end": 1187.76,
+      "text": " And in that case, you will have an instance that is running all the time,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1187.76,
+      "end": 1192.32,
+      "text": " and therefore you are not going to have that particular problem of seeing cold starts."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1192.32,
+      "end": 1195.52,
+      "text": " Of course, in that case, you might have the problem of how do I scale up?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1195.52,
+      "end": 1198.48,
+      "text": " And then you need to see what that service is going to offer you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1198.48,
+      "end": 1202.88,
+      "text": " to being able to scale in the case that you start to get more and more traffic."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1202.88,
+      "end": 1206.32,
+      "text": " And then another final suggestion, which maybe can feel a little bit funny,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1206.32,
+      "end": 1210.08,
+      "text": " but it's actually serious, is that you could consider using Rust with Lambda."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1210.08,
+      "end": 1214.4,
+      "text": " And the reason is that with Rust, we have seen really amazing performances"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1214.4,
+      "end": 1216,
+      "text": " especially when it comes to cold start."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1216,
+      "end": 1219.76,
+      "text": " They can be 10 or 20 milliseconds for the majority of times"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1219.76,
+      "end": 1221.8400000000001,
+      "text": " if your Lambdas are still relatively small."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1222.48,
+      "end": 1228.72,
+      "text": " So that's maybe an amount of time that is basically making the cold start negligible."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1228.72,
+      "end": 1232.8000000000002,
+      "text": " So if you're interested in this approach, we have actually two podcast episodes,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1232.8000000000002,
+      "end": 1237.52,
+      "text": " number 64 and 128, where we talk about creating Lambda function Rust"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1237.52,
+      "end": 1238.96,
+      "text": " and what all of that entails."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1238.96,
+      "end": 1240.64,
+      "text": " So you might check out those."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1240.64,
+      "end": 1242.96,
+      "text": " So that's all I have for suggestions."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1242.96,
+      "end": 1244.48,
+      "text": " What else do we want to share?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1250,
+      "end": 1253.76,
+      "text": " I'd like to remind before we finish up that AWS keeps introducing optimizations under the hood, even things so that you don't necessarily have to change to get performance improvements."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1253.76,
+      "end": 1258.08,
+      "text": " And one thing we didn't talk about, maybe we can find a link for the show notes,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1258.08,
+      "end": 1262.72,
+      "text": " but I think people discovered about a year or so ago that AWS was doing some pre-warming"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1262.72,
+      "end": 1266.48,
+      "text": " of functions that didn't have provision concurrency turned on as well."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1266.48,
+      "end": 1270.08,
+      "text": " So they're doing things to try and make sure that your cold starts are as low as possible."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1270.08,
+      "end": 1271.52,
+      "text": " And I think that's going to continue."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1271.52,
+      "end": 1276.16,
+      "text": " We've seen it with Snap Start, and I think we can expect even with that optimization"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1276.16,
+      "end": 1279.52,
+      "text": " of Python functions episode, we talked about how container images are optimized"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1279.52,
+      "end": 1281.12,
+      "text": " for lower cold starts now."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1281.12,
+      "end": 1285.04,
+      "text": " So I would say again, just think a little bit before you invest too much time in all"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1285.04,
+      "end": 1288.24,
+      "text": " the complexity of configuring provision concurrency, if you really don't need it."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1288.24,
+      "end": 1289.92,
+      "text": " But I think that wraps up our deep dive."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1289.92,
+      "end": 1293.68,
+      "text": " And hopefully now you've got a clear understanding of how it works, its benefits"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1293.68,
+      "end": 1294.8799999999999,
+      "text": " and potential pitfalls."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1295.92,
+      "end": 1300.6399999999999,
+      "text": " I think it's provision concurrency is definitely a useful tool in your AWS arsenal."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1300.64,
+      "end": 1304.8000000000002,
+      "text": " Now, if you enjoyed the episode, do like, subscribe and share it with your fellow cloud"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1304.8000000000002,
+      "end": 1305.5200000000002,
+      "text": " enthusiasts."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1305.5200000000002,
+      "end": 1307.5200000000002,
+      "text": " Don't forget, we really love hearing from you."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1307.5200000000002,
+      "end": 1311.1200000000001,
+      "text": " And thanks very much to everyone who does reach out to us and gives us comments, questions,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1311.1200000000001,
+      "end": 1313.0400000000002,
+      "text": " and just lets us know that they like the podcast."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1313.0400000000002,
+      "end": 1314.72,
+      "text": " So do drop us a comment or question."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1314.72,
+      "end": 1317.44,
+      "text": " Your feedback does help shape our future episodes."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1317.44,
+      "end": 1321.2800000000002,
+      "text": " So thanks for tuning in and we'll catch you in the next episode of AWS Bites."
+    }
+  ]
+}

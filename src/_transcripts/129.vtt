@@ -1,0 +1,1805 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:03.440
+Ever had one of those days when a cloud deployment just refuses to play nice?
+
+2
+00:00:03.440 --> 00:00:07.680
+We sure did, thanks to some quirky issues with Lambda's provisioned concurrency.
+
+3
+00:00:07.680 --> 00:00:10.000
+Every issue is an opportunity to learn something new.
+
+4
+00:00:10.000 --> 00:00:15.200
+And after some deep digging, we uncovered some insights about Lambda provisioned concurrency,
+
+5
+00:00:15.200 --> 00:00:17.280
+and we just thought we'd share them with you today.
+
+6
+00:00:17.280 --> 00:00:20.560
+So we're going to talk about the joy of cold starts, Lambda concurrency,
+
+7
+00:00:20.560 --> 00:00:25.440
+and the different concurrency control features available, how provisioned concurrency works
+
+8
+00:00:25.440 --> 00:00:30.800
+itself, some of its limitations, common problems, and of course, those pesky pricing details.
+
+9
+00:00:30.800 --> 00:00:35.360
+I'm Eoin, I'm here with Luciano, and this is another exciting episode of the AWS Bites podcast.
+
+10
+00:00:43.520 --> 00:00:46.480
+This episode of AWS Bites is powered by fourTheorem.
+
+11
+00:00:46.480 --> 00:00:50.560
+Whether you're looking to architect, develop, or modernize on AWS, fourTheorem has you covered.
+
+12
+00:00:50.560 --> 00:00:54.240
+If you want to take your cloud game to the next level, then head over to fourtheorem.com
+
+13
+00:00:54.240 --> 00:00:59.360
+and check out our articles, case studies, and see how we can help transform your AWS journey.
+
+14
+00:00:59.360 --> 00:01:03.520
+Luciano, take it away. What have we got to say about Lambda and provisioned concurrency?
+
+15
+00:01:03.520 --> 00:01:05.360
+Yeah, let's start with a little bit of an introduction.
+
+16
+00:01:05.360 --> 00:01:10.480
+Of course, we spoke before about how Lambda works in general and what is a cold start.
+
+17
+00:01:10.480 --> 00:01:14.720
+And there are a few episodes that you can check out if you want to review these topics.
+
+18
+00:01:14.720 --> 00:01:17.040
+One is number 60, what is AWS Lambda.
+
+19
+00:01:17.040 --> 00:01:19.840
+104, explaining how Lambda runtimes work.
+
+20
+00:01:19.840 --> 00:01:23.040
+108, how to solve cold starts, specifically in Python.
+
+21
+00:01:23.040 --> 00:01:27.280
+And then we also have an entire episode dedicated to Lambda best practices, which is episode 120.
+
+22
+00:01:27.280 --> 00:01:32.640
+So definitely review those if you're interested in really going deep down into the rabbit hole
+
+23
+00:01:32.640 --> 00:01:34.400
+of all things at AWS Lambda.
+
+24
+00:01:34.400 --> 00:01:38.800
+But of course, it's probably worth doing a super quick recap of the things that are important today.
+
+25
+00:01:38.800 --> 00:01:43.600
+And I think it's important to mention what happens when a Lambda function starts.
+
+26
+00:01:43.600 --> 00:01:47.440
+And a Lambda function basically needs an environment that is created on demand
+
+27
+00:01:47.440 --> 00:01:48.720
+when a specific event occur.
+
+28
+00:01:49.280 --> 00:01:54.720
+And if you have multiple concurrent events, more Lambda environments are created as needed
+
+29
+00:01:54.720 --> 00:01:56.560
+just to try to keep up with the load.
+
+30
+00:01:56.560 --> 00:01:59.200
+Remember that AWS Lambda will create environments
+
+31
+00:01:59.200 --> 00:02:02.240
+and each environment will process only one event at a time.
+
+32
+00:02:02.240 --> 00:02:05.200
+So if you have two events, a new environment needs to be created.
+
+33
+00:02:05.200 --> 00:02:08.560
+And of course, these environments are totally dynamic.
+
+34
+00:02:08.560 --> 00:02:13.360
+If there isn't really lots going on, maybe the throughput of event decreases
+
+35
+00:02:13.360 --> 00:02:15.840
+or at some point you have a period of total inactivity,
+
+36
+00:02:15.840 --> 00:02:20.000
+AWS will start to reclaim resources and it will destroy those environments.
+
+37
+00:02:20.000 --> 00:02:22.960
+And you have to think that of course, creating one of those environments
+
+38
+00:02:22.960 --> 00:02:24.960
+is not a trivial operation.
+
+39
+00:02:24.960 --> 00:02:27.680
+So it kind of requires some work on the AWS side.
+
+40
+00:02:27.680 --> 00:02:31.520
+And just to simplify, you can imagine that this execution environment
+
+41
+00:02:31.520 --> 00:02:32.800
+needs to be created somewhere.
+
+42
+00:02:32.800 --> 00:02:35.840
+And specifically, these are micro VM running on Firecracker,
+
+43
+00:02:35.840 --> 00:02:38.480
+which behind the scenes is deployed on EC2 instances.
+
+44
+00:02:39.200 --> 00:02:44.080
+And when all of that is created, of course, the code that you want to provision
+
+45
+00:02:44.080 --> 00:02:46.480
+into your Lambda function needs to be pulled from somewhere.
+
+46
+00:02:46.480 --> 00:02:48.880
+So that can be either S3 or a container registry.
+
+47
+00:02:48.880 --> 00:02:52.320
+Then at that point, the instance is ready to be initialized
+
+48
+00:02:52.320 --> 00:02:55.120
+and the initialization phase has multiple steps.
+
+49
+00:02:55.120 --> 00:02:57.760
+For instance, if you have Lambda extensions enabled,
+
+50
+00:02:57.760 --> 00:02:59.520
+those need to be initialized first.
+
+51
+00:02:59.520 --> 00:03:01.360
+Then depending on the specific runtime you're using,
+
+52
+00:03:01.360 --> 00:03:05.280
+for instance, if you're using Node.js, the interpreter itself needs to start
+
+53
+00:03:05.280 --> 00:03:08.640
+and maybe it's going to do things like loading libraries,
+
+54
+00:03:08.640 --> 00:03:11.440
+doing JIT compilation and whatever makes sense
+
+55
+00:03:11.440 --> 00:03:13.440
+for that particular runtime that you're using.
+
+56
+00:03:13.440 --> 00:03:16.160
+And then finally, your code starts to be initialized.
+
+57
+00:03:16.160 --> 00:03:18.480
+And you know that in your code, you generally have two parts.
+
+58
+00:03:18.480 --> 00:03:21.920
+There is an init code, which is where you can do all the things
+
+59
+00:03:21.920 --> 00:03:24.480
+that you want to do the first time that the environment is initialized.
+
+60
+00:03:24.480 --> 00:03:25.840
+And this is what's going to happen.
+
+61
+00:03:25.840 --> 00:03:29.520
+And then you have the under code, that's the code that gets executed for every event.
+
+62
+00:03:29.520 --> 00:03:33.680
+So the init of your code is what happens when the environment is created.
+
+63
+00:03:33.680 --> 00:03:35.680
+And of course, all of this stuff can take some time.
+
+64
+00:03:35.680 --> 00:03:39.440
+And when this happens and you are trying to process an event,
+
+65
+00:03:39.440 --> 00:03:42.160
+all this extra delay is called a cold start.
+
+66
+00:03:42.160 --> 00:03:44.240
+Now, you might be wondering, is this something bad?
+
+67
+00:03:44.240 --> 00:03:47.040
+And the answer is that it really depends the way you look at it,
+
+68
+00:03:47.040 --> 00:03:49.200
+because on one side, cold starts are actually cool
+
+69
+00:03:49.200 --> 00:03:51.120
+because they are the necessary trade off
+
+70
+00:03:51.120 --> 00:03:54.160
+that allows Lambda as a service to scale to zero.
+
+71
+00:03:54.160 --> 00:03:56.320
+So if we didn't have cold starts, we probably had something
+
+72
+00:03:56.320 --> 00:03:57.600
+that was running all the time.
+
+73
+00:03:57.600 --> 00:04:01.360
+And the pricing behind Lambda would be very different from what it is today.
+
+74
+00:04:01.360 --> 00:04:03.920
+So in a way, they are kind of a necessary evil.
+
+75
+00:04:03.920 --> 00:04:06.480
+And the other thing is that sometimes they are very negligible,
+
+76
+00:04:06.480 --> 00:04:09.360
+because if you're doing some kind of background processing
+
+77
+00:04:09.360 --> 00:04:12.320
+and it might be not very particularly time sensitive,
+
+78
+00:04:12.320 --> 00:04:16.400
+if you have to wait a few milliseconds or a few seconds even extra,
+
+79
+00:04:16.400 --> 00:04:17.920
+it's probably not going to be the end of the world.
+
+80
+00:04:17.920 --> 00:04:20.400
+Imagine you are just sending an email in the background
+
+81
+00:04:20.400 --> 00:04:22.000
+or maybe resizing a picture.
+
+82
+00:04:22.000 --> 00:04:25.040
+It's probably fine if that particular process happens
+
+83
+00:04:25.040 --> 00:04:27.680
+a few milliseconds later rather than happening immediately.
+
+84
+00:04:27.680 --> 00:04:30.560
+But of course, if you have a use case, maybe, for instance,
+
+85
+00:04:30.560 --> 00:04:34.000
+like an API request with a user, like maybe using a browser
+
+86
+00:04:34.000 --> 00:04:38.080
+that triggers that API request, and that request is handled by Lambda,
+
+87
+00:04:38.080 --> 00:04:41.760
+if there is a cold start, the user might actually perceive that slowness
+
+88
+00:04:41.760 --> 00:04:43.680
+and it might affect the user experience.
+
+89
+00:04:43.680 --> 00:04:46.240
+In that case, you need to be a little bit careful with cold starts.
+
+90
+00:04:46.240 --> 00:04:49.040
+And if you are in one of those cases, you probably want to know,
+
+91
+00:04:49.040 --> 00:04:51.600
+okay, what are my options for reducing the cold starts?
+
+92
+00:04:51.600 --> 00:04:54.240
+And one of such options is provision concurrency,
+
+93
+00:04:54.240 --> 00:04:56.320
+which is what we are going to talk about today.
+
+94
+00:04:56.320 --> 00:04:58.400
+Yeah.
+
+95
+00:04:58.400 --> 00:05:01.040
+And maybe before we go further, I mean, I always feel a little bit reluctant to talk about topics like this,
+
+96
+00:05:01.600 --> 00:05:04.800
+because I think cold start problems are generally overstated,
+
+97
+00:05:04.800 --> 00:05:08.480
+especially by people who don't use Lambda really in anger.
+
+98
+00:05:08.480 --> 00:05:11.440
+So it's really an advanced topic. It's something that's useful to know about,
+
+99
+00:05:11.440 --> 00:05:14.640
+but I wouldn't fret about knowing all the different options
+
+100
+00:05:14.640 --> 00:05:18.160
+and hyper-optimizing functions that probably don't need to be optimized
+
+101
+00:05:18.160 --> 00:05:21.200
+in a lot of cases. Simpler is generally the better approach
+
+102
+00:05:21.200 --> 00:05:24.080
+if you can get away without all of these fine-tuning options.
+
+103
+00:05:24.080 --> 00:05:27.440
+I actually remember that there was a case studied by AWS
+
+104
+00:05:27.440 --> 00:05:30.320
+where they looked at all the Lambda invocations
+
+105
+00:05:30.320 --> 00:05:32.000
+that they have across all their customers,
+
+106
+00:05:32.560 --> 00:05:35.680
+and they came up with a percentage that I don't remember exactly how it is,
+
+107
+00:05:35.680 --> 00:05:40.640
+but I think it was in the order of like 1% of all the function invocations is a cold start.
+
+108
+00:05:40.640 --> 00:05:44.080
+So generally speaking, this is a problem across all the customers.
+
+109
+00:05:44.080 --> 00:05:49.040
+It doesn't happen so often. Then of course, if you have very sparse workloads,
+
+110
+00:05:49.040 --> 00:05:51.440
+maybe you might be more affected than customers
+
+111
+00:05:51.440 --> 00:05:53.600
+with lots of events coming in all the time.
+
+112
+00:05:53.600 --> 00:05:57.200
+Yeah. Yeah.
+
+113
+00:05:57.200 --> 00:06:01.040
+But look, these are useful things to know so that you've got these configuration options in your back pocket
+
+114
+00:06:01.040 --> 00:06:03.440
+if you ever really do need to take advantage of them.
+
+115
+00:06:03.440 --> 00:06:07.600
+So let's first clarify that there is a quota on the number of Lambda environments
+
+116
+00:06:07.600 --> 00:06:10.640
+you can have running in a given AWS account in a region.
+
+117
+00:06:10.640 --> 00:06:13.840
+The documented default is 1000 concurrent executions
+
+118
+00:06:13.840 --> 00:06:16.240
+across all functions in an account in a region,
+
+119
+00:06:16.240 --> 00:06:18.560
+but that's a soft limit and can be increased if needed.
+
+120
+00:06:18.560 --> 00:06:20.560
+Now, a lot of people have been seeing for a while now
+
+121
+00:06:20.560 --> 00:06:22.640
+that new accounts have a limit of 10.
+
+122
+00:06:23.200 --> 00:06:25.440
+We suspect that this is for abuse prevention
+
+123
+00:06:25.440 --> 00:06:27.120
+to prevent people spinning up new accounts
+
+124
+00:06:27.120 --> 00:06:30.000
+and managing to mine Bitcoin before they pay the bill.
+
+125
+00:06:31.040 --> 00:06:32.880
+But if that is your case, it can be raised.
+
+126
+00:06:32.880 --> 00:06:36.480
+You just need to request a support quota change.
+
+127
+00:06:36.480 --> 00:06:38.320
+Now, let's talk about concurrency then.
+
+128
+00:06:38.320 --> 00:06:39.600
+So if the number of in...
+
+129
+00:06:39.600 --> 00:06:41.360
+This is the number of in-flight requests
+
+130
+00:06:41.360 --> 00:06:43.760
+that your function is currently handling,
+
+131
+00:06:43.760 --> 00:06:48.080
+generally matches the number of active execution environments for Lambda.
+
+132
+00:06:48.080 --> 00:06:50.720
+Now, there are two types of concurrency controls available.
+
+133
+00:06:50.720 --> 00:06:53.520
+You've got reserved concurrency and provisioned concurrency.
+
+134
+00:06:53.520 --> 00:06:54.720
+They can be confusing.
+
+135
+00:06:54.720 --> 00:06:59.360
+Reserved concurrency is the maximum number of concurrent instances
+
+136
+00:06:59.360 --> 00:07:00.720
+allocated to your function.
+
+137
+00:07:00.800 --> 00:07:03.040
+And when a function has reserved concurrency,
+
+138
+00:07:03.040 --> 00:07:04.720
+it is reserved for that function.
+
+139
+00:07:04.720 --> 00:07:07.200
+So no other function can use that concurrency.
+
+140
+00:07:07.200 --> 00:07:08.320
+If you've got lots of traffic,
+
+141
+00:07:08.320 --> 00:07:10.320
+or maybe you've got both the triggers,
+
+142
+00:07:10.320 --> 00:07:11.680
+tons of unnecessary invocations,
+
+143
+00:07:11.680 --> 00:07:12.800
+you might end up in a scenario
+
+144
+00:07:12.800 --> 00:07:14.720
+where you spin up enough Lambda environments
+
+145
+00:07:14.720 --> 00:07:17.440
+to reach the account level concurrent execution limit.
+
+146
+00:07:17.440 --> 00:07:20.320
+And that means no more Lambda environments can be created.
+
+147
+00:07:20.320 --> 00:07:22.000
+And if you consider that environments are created
+
+148
+00:07:22.000 --> 00:07:23.440
+for specific Lambda functions,
+
+149
+00:07:23.440 --> 00:07:26.560
+you might end up in a scenario where you can't even process events
+
+150
+00:07:26.560 --> 00:07:29.200
+because you can't spin up new Lambda function environments
+
+151
+00:07:29.200 --> 00:07:30.480
+to handle new events.
+
+152
+00:07:30.960 --> 00:07:33.280
+So reserved concurrency is just useful to ensure that
+
+153
+00:07:33.280 --> 00:07:37.840
+you've both got a cap on the number of concurrent executions for a function,
+
+154
+00:07:37.840 --> 00:07:41.520
+but you also ensure that other functions can't steal an allocation
+
+155
+00:07:41.520 --> 00:07:43.360
+for a specific function.
+
+156
+00:07:43.360 --> 00:07:46.800
+And of course, that has the impact of other Lambda functions
+
+157
+00:07:46.800 --> 00:07:48.080
+having less capacity available.
+
+158
+00:07:48.080 --> 00:07:49.040
+So it's a trade-off.
+
+159
+00:07:49.040 --> 00:07:51.280
+Now, reserved concurrency is just something
+
+160
+00:07:51.280 --> 00:07:52.480
+you can configure for a function.
+
+161
+00:07:52.480 --> 00:07:54.400
+It doesn't have any additional charge.
+
+162
+00:07:54.400 --> 00:07:57.120
+It's just a question of putting that cap on a function.
+
+163
+00:07:57.120 --> 00:07:59.600
+It's also used in some cases,
+
+164
+00:07:59.600 --> 00:08:01.120
+if you've got an errant function,
+
+165
+00:08:01.120 --> 00:08:02.640
+something that's causing a lot of problems.
+
+166
+00:08:02.640 --> 00:08:06.240
+Maybe you've got a recursive loop
+
+167
+00:08:06.240 --> 00:08:10.000
+or something that's triggering a lot of errors or a cost issue.
+
+168
+00:08:10.000 --> 00:08:11.840
+You can just set your reserved concurrency to zero
+
+169
+00:08:11.840 --> 00:08:14.240
+and that will stop your function from being invoked altogether.
+
+170
+00:08:14.240 --> 00:08:15.200
+That's a useful tip.
+
+171
+00:08:15.840 --> 00:08:17.600
+Now, this one doesn't really help with cold starts.
+
+172
+00:08:17.600 --> 00:08:20.320
+It just really helps you to make sure you can clean up,
+
+173
+00:08:20.320 --> 00:08:22.880
+you can keep scaling up specific functions up to a certain point.
+
+174
+00:08:22.880 --> 00:08:24.720
+Environments are still created on demand
+
+175
+00:08:24.720 --> 00:08:27.200
+and cold starts are still part of the picture in that case.
+
+176
+00:08:27.200 --> 00:08:31.440
+Now, provisioned concurrency is something that AWS added a good bit later.
+
+177
+00:08:31.440 --> 00:08:34.800
+And this is something that a lot of people welcomed.
+
+178
+00:08:34.800 --> 00:08:36.400
+I'm not sure, to be honest,
+
+179
+00:08:36.400 --> 00:08:38.880
+but it essentially means that you've got a number
+
+180
+00:08:38.880 --> 00:08:41.680
+of pre-initialized execution environments for your function.
+
+181
+00:08:41.680 --> 00:08:43.920
+And these ones are ready, once you've deployed them
+
+182
+00:08:43.920 --> 00:08:45.200
+and they're in an active state,
+
+183
+00:08:45.200 --> 00:08:48.400
+they're ready to respond immediately to incoming events.
+
+184
+00:08:48.400 --> 00:08:50.400
+So this is something that can be useful
+
+185
+00:08:50.400 --> 00:08:52.560
+for reducing cold start latencies for a function.
+
+186
+00:08:52.800 --> 00:08:57.600
+And of course it does because you've got these environments
+
+187
+00:08:57.600 --> 00:08:59.600
+running essentially ready.
+
+188
+00:08:59.600 --> 00:09:00.720
+They've started warm.
+
+189
+00:09:00.720 --> 00:09:02.080
+There is a cost impact on that.
+
+190
+00:09:02.080 --> 00:09:03.360
+So there are additional charges.
+
+191
+00:09:03.360 --> 00:09:06.880
+So let's talk about how provisioned concurrency works then.
+
+192
+00:09:08.560 --> 00:09:12.080
+Yeah, provisioned concurrency, as you said, keeps a certain number of Lambda execution environments warm for you.
+
+193
+00:09:12.080 --> 00:09:15.600
+So this basically means that as soon as you have enabled provisioned concurrency
+
+194
+00:09:15.600 --> 00:09:17.760
+and set a specific amount for a function,
+
+195
+00:09:17.760 --> 00:09:21.440
+AWS will need to spin up that number of execution environments for you
+
+196
+00:09:21.440 --> 00:09:24.480
+so that they are ready and warm for whenever new events come in.
+
+197
+00:09:24.480 --> 00:09:26.720
+So basically if you receive a request,
+
+198
+00:09:26.720 --> 00:09:29.120
+you will have this Lambda environment already available.
+
+199
+00:09:29.120 --> 00:09:33.760
+And also this environment not going to be eventually disposed by AWS,
+
+200
+00:09:33.760 --> 00:09:35.520
+even though you might have a period of time
+
+201
+00:09:35.520 --> 00:09:38.080
+where you don't receive enough events,
+
+202
+00:09:38.080 --> 00:09:40.160
+or maybe you have even zero traffic.
+
+203
+00:09:40.160 --> 00:09:42.080
+If you have provisioned concurrency,
+
+204
+00:09:42.080 --> 00:09:44.320
+your instances will still be there and available,
+
+205
+00:09:44.320 --> 00:09:46.080
+even if nothing happening in your account.
+
+206
+00:09:46.080 --> 00:09:48.960
+So in a way, this is going to help you to fight cold starts,
+
+207
+00:09:48.960 --> 00:09:52.480
+but it doesn't necessarily mean that you won't have cold starts anymore.
+
+208
+00:09:52.480 --> 00:09:54.160
+In fact, if you think about that,
+
+209
+00:09:54.160 --> 00:09:57.680
+you are just setting a number of instances that are ready for you.
+
+210
+00:09:57.680 --> 00:10:00.480
+But then if you start to have more events than you anticipated,
+
+211
+00:10:00.480 --> 00:10:02.560
+then Lambda still needs to scale up even more.
+
+212
+00:10:02.560 --> 00:10:05.600
+And that means that even beyond the amount of provision instances,
+
+213
+00:10:05.600 --> 00:10:07.920
+AWS will start to create new instances.
+
+214
+00:10:07.920 --> 00:10:11.760
+And that means that those new instances will incur in a cold start.
+
+215
+00:10:11.760 --> 00:10:13.520
+So you might still see cold starts
+
+216
+00:10:13.520 --> 00:10:17.760
+if you didn't really predict exactly the number of warm instances
+
+217
+00:10:17.760 --> 00:10:19.200
+that you needed in the first place.
+
+218
+00:10:19.200 --> 00:10:21.840
+So just be aware that there's not like a universal solution
+
+219
+00:10:21.840 --> 00:10:24.000
+that's going to totally eliminate cold starts,
+
+220
+00:10:24.000 --> 00:10:26.800
+but it's something that might help you to reduce the amount of cold starts
+
+221
+00:10:26.800 --> 00:10:28.800
+that you will see for specific Lambda functions.
+
+222
+00:10:28.800 --> 00:10:33.680
+And another thing is that you can also set the provision concurrency to zero,
+
+223
+00:10:33.680 --> 00:10:36.560
+and this is going to have the same effect that you described before.
+
+224
+00:10:36.560 --> 00:10:38.000
+So it's something you can use
+
+225
+00:10:38.000 --> 00:10:41.920
+if you want to basically stop a function from running altogether.
+
+226
+00:10:41.920 --> 00:10:44.640
+Now, how do you enable provision concurrency?
+
+227
+00:10:44.640 --> 00:10:46.320
+It's probably something that we should discuss,
+
+228
+00:10:46.320 --> 00:10:48.320
+and I'll let you all talk about that.
+
+229
+00:10:48.320 --> 00:10:51.280
+Enabling provision concurrency theoretically is quite simple.
+
+230
+00:10:51.280 --> 00:10:52.960
+It's just a number, an integer property
+
+231
+00:10:52.960 --> 00:10:55.040
+that you're associating with a Lambda function
+
+232
+00:10:55.040 --> 00:10:57.440
+through the web console or through APIs.
+
+233
+00:10:58.480 --> 00:11:02.800
+You can configure up to the unreserved concurrency
+
+234
+00:11:02.800 --> 00:11:04.240
+in your account minus 100.
+
+235
+00:11:04.800 --> 00:11:07.680
+So this is a reservation of 100 units of concurrency
+
+236
+00:11:07.680 --> 00:11:10.160
+for functions that aren't using reserved concurrency.
+
+237
+00:11:10.160 --> 00:11:13.360
+For example, if your account has a limit of 1,000
+
+238
+00:11:13.360 --> 00:11:15.840
+and you haven't assigned any reserved or provision concurrency
+
+239
+00:11:15.920 --> 00:11:17.120
+to any of your other functions,
+
+240
+00:11:17.680 --> 00:11:20.880
+you can configure a maximum of 900 provision concurrency units
+
+241
+00:11:20.880 --> 00:11:21.680
+to a single function.
+
+242
+00:11:22.320 --> 00:11:26.560
+Now, with Lambda functions, you have different versions and aliases.
+
+243
+00:11:26.560 --> 00:11:30.960
+So generally, you can get away with using the $latest default alias
+
+244
+00:11:30.960 --> 00:11:32.240
+for version for a function.
+
+245
+00:11:32.240 --> 00:11:34.640
+But when you're using provisioned concurrency,
+
+246
+00:11:34.640 --> 00:11:37.680
+you need to create an explicit function version with an alias.
+
+247
+00:11:37.680 --> 00:11:41.840
+And it's on this alias where you set the provision concurrency value,
+
+248
+00:11:41.840 --> 00:11:43.120
+not on the function itself.
+
+249
+00:11:43.120 --> 00:11:46.160
+So this is something that can introduce a little bit more complexity.
+
+250
+00:11:46.160 --> 00:11:47.760
+And this is a reason why you shouldn't just jump
+
+251
+00:11:47.760 --> 00:11:50.000
+for these optimizations by default.
+
+252
+00:11:50.000 --> 00:11:52.080
+For example, if your function has an event source mapping,
+
+253
+00:11:52.080 --> 00:11:53.920
+you have to make sure that the event source mapping
+
+254
+00:11:53.920 --> 00:11:55.840
+points to the correct function alias.
+
+255
+00:11:55.840 --> 00:11:59.440
+Otherwise, your function won't use provisioned concurrency environments.
+
+256
+00:12:00.320 --> 00:12:03.360
+Again, it's worth remembering that configuring provisioned concurrency
+
+257
+00:12:03.360 --> 00:12:05.760
+for a function has an impact on the reserved concurrency pool
+
+258
+00:12:05.760 --> 00:12:06.880
+for other functions.
+
+259
+00:12:06.880 --> 00:12:08.800
+So if you've got function A and function B,
+
+260
+00:12:09.440 --> 00:12:13.360
+you configure 100 units of provisioned currency for function A,
+
+261
+00:12:13.360 --> 00:12:17.040
+other functions in your account must share the remaining 900 units of concurrency.
+
+262
+00:12:17.040 --> 00:12:20.560
+So this is true even if function A isn't being invoked,
+
+263
+00:12:20.560 --> 00:12:23.200
+and you're not making use of those 100 units.
+
+264
+00:12:23.200 --> 00:12:25.840
+And this is very similar with reserved concurrency,
+
+265
+00:12:25.840 --> 00:12:27.920
+because when you reserve concurrency,
+
+266
+00:12:27.920 --> 00:12:29.920
+you're also not making it available for other functions.
+
+267
+00:12:29.920 --> 00:12:32.000
+The difference is that with provisioned concurrency,
+
+268
+00:12:32.000 --> 00:12:33.840
+you have warm Lambdas running all the time.
+
+269
+00:12:34.400 --> 00:12:36.160
+With reserved concurrency, you don't.
+
+270
+00:12:36.160 --> 00:12:38.320
+Now, it's possible to allocate both reserved concurrency
+
+271
+00:12:38.400 --> 00:12:40.320
+and provisioned concurrency for the same function.
+
+272
+00:12:40.320 --> 00:12:43.280
+And if you do that, the provisioned concurrency can't be greater
+
+273
+00:12:43.280 --> 00:12:44.560
+than the reserved concurrency.
+
+274
+00:12:44.560 --> 00:12:46.720
+Now, if you're using all of this stuff,
+
+275
+00:12:46.720 --> 00:12:49.120
+you probably want to monitor your metrics.
+
+276
+00:12:49.120 --> 00:12:52.160
+And with Cloud Web Metrics, you have a concurrent executions metric
+
+277
+00:12:52.160 --> 00:12:55.280
+that will show you the number of concurrent executions for your account.
+
+278
+00:12:55.280 --> 00:12:59.680
+And you should look at that and tweak your settings accordingly.
+
+279
+00:12:59.680 --> 00:13:03.120
+And it's something you could use once you're looking at concurrent executions
+
+280
+00:13:03.120 --> 00:13:03.760
+for any function.
+
+281
+00:13:04.320 --> 00:13:08.160
+You can use that to figure out what the optimal provisioned concurrency might be.
+
+282
+00:13:09.040 --> 00:13:10.880
+Then you're more likely to reduce cold starts
+
+283
+00:13:10.880 --> 00:13:13.360
+and balance that with the cost impact.
+
+284
+00:13:13.360 --> 00:13:15.600
+There's a good video actually by James Easton
+
+285
+00:13:15.600 --> 00:13:17.680
+with a good walkthrough and some code examples.
+
+286
+00:13:17.680 --> 00:13:19.600
+And we'll definitely have that link in the show notes.
+
+287
+00:13:19.600 --> 00:13:22.480
+So that's configuration. Let's talk about money.
+
+288
+00:13:22.480 --> 00:13:27.280
+Yes.
+
+289
+00:13:27.280 --> 00:13:29.760
+So provision concurrency cost is calculated from the time you enable it for a specific function until you disable it,
+
+290
+00:13:29.760 --> 00:13:31.760
+if you, of course, ever disable it.
+
+291
+00:13:31.760 --> 00:13:34.080
+And it's rounded up to the nearest five minutes.
+
+292
+00:13:34.080 --> 00:13:37.600
+So imagine that you, I don't know, enable it for seven minutes
+
+293
+00:13:37.600 --> 00:13:40.320
+before disabling it, you will be paying for 10 minutes.
+
+294
+00:13:40.960 --> 00:13:43.840
+The price depends on the amount of memory you allocate.
+
+295
+00:13:43.840 --> 00:13:46.720
+So similar to the invocation cost of a Lambda.
+
+296
+00:13:46.720 --> 00:13:52.000
+And of course, the amount of concurrency you configure on it.
+
+297
+00:13:52.720 --> 00:13:55.920
+Duration is calculated from the time your code begins executing
+
+298
+00:13:55.920 --> 00:13:58.800
+until it returns, otherwise terminates,
+
+299
+00:13:58.800 --> 00:14:00.720
+rounded up to the nearest one millisecond.
+
+300
+00:14:00.720 --> 00:14:06.720
+So basically you are paying an extra cost on top of the usual invocation cost
+
+301
+00:14:06.720 --> 00:14:10.480
+that you would have to pay if you were not using provision concurrency.
+
+302
+00:14:10.480 --> 00:14:12.480
+And that in a way makes sense because, of course,
+
+303
+00:14:12.480 --> 00:14:16.480
+AWS is keeping those instances for you reserved
+
+304
+00:14:16.480 --> 00:14:18.560
+and nobody else can use those instances,
+
+305
+00:14:18.560 --> 00:14:20.240
+even if you are not processing any event.
+
+306
+00:14:20.240 --> 00:14:22.240
+So of course, there is a cost associated
+
+307
+00:14:22.240 --> 00:14:24.560
+to have all this infrastructure reserved for you.
+
+308
+00:14:24.560 --> 00:14:29.840
+We'll be linking the full pricing documentation in the show notes
+
+309
+00:14:29.840 --> 00:14:33.760
+if you want to review exactly what is the fee for your specific region
+
+310
+00:14:33.840 --> 00:14:38.320
+and also changes depending on the architecture that you use and the memory.
+
+311
+00:14:38.320 --> 00:14:40.240
+So if you really want to do some simulation
+
+312
+00:14:40.240 --> 00:14:43.760
+or have a better understanding of how this might impact your cost,
+
+313
+00:14:43.760 --> 00:14:47.200
+definitely check out the official documentation for all the official numbers.
+
+314
+00:14:47.200 --> 00:14:50.480
+Now, what are some common issues and maybe suggestions
+
+315
+00:14:50.480 --> 00:14:52.720
+for troubleshooting based on our experience?
+
+316
+00:14:53.280 --> 00:14:55.840
+Yeah, there are definitely things to look out for.
+
+317
+00:14:56.640 --> 00:14:58.960
+One is over provisioning or under provisioning.
+
+318
+00:14:58.960 --> 00:15:02.160
+If you over provision, you're going to end up paying for compute you won't use.
+
+319
+00:15:02.160 --> 00:15:05.840
+It seems like you're getting away from the goal of using Lambda in the first place.
+
+320
+00:15:05.840 --> 00:15:09.120
+And if you're under provision, you may still see cold starts.
+
+321
+00:15:09.120 --> 00:15:11.840
+So you really have to think about whether you want to get into this or not.
+
+322
+00:15:11.840 --> 00:15:13.120
+Scaling limitations as well.
+
+323
+00:15:13.120 --> 00:15:16.000
+So if you abuse reserve concurrency, you might end up in a situation
+
+324
+00:15:16.000 --> 00:15:19.920
+where you can just erode the total Lambda concurrency pool
+
+325
+00:15:19.920 --> 00:15:21.760
+available to a given account or region.
+
+326
+00:15:21.760 --> 00:15:23.440
+Same goes for provision concurrency.
+
+327
+00:15:23.440 --> 00:15:26.640
+This can make it very hard for you and your team to keep using Lambda functions
+
+328
+00:15:26.640 --> 00:15:30.720
+and it can affect the capacity you have for Lambda functions
+
+329
+00:15:30.720 --> 00:15:32.480
+that don't have provision concurrency.
+
+330
+00:15:33.440 --> 00:15:37.120
+Now, when we mentioned an issue we encountered recently,
+
+331
+00:15:38.400 --> 00:15:43.280
+essentially it was a deployment error when we were deploying with provision concurrency
+
+332
+00:15:43.280 --> 00:15:47.440
+with an alias and the error, I think we got it surfaced through cloud formation,
+
+333
+00:15:47.440 --> 00:15:50.560
+just said handler error code not stabilized.
+
+334
+00:15:50.560 --> 00:15:55.280
+And this is AWS telling you that it was trying to warm up an execution environment
+
+335
+00:15:55.280 --> 00:15:58.400
+for a Lambda with provision concurrency, but it failed to do so.
+
+336
+00:15:58.400 --> 00:16:02.960
+The error is pretty vague, but there are actually a number of reasons why this can happen.
+
+337
+00:16:02.960 --> 00:16:06.640
+So it can happen because the specific version can't be deployed.
+
+338
+00:16:06.640 --> 00:16:10.160
+Maybe your Lambda zip size is bigger than the 50 megabyte limit
+
+339
+00:16:10.160 --> 00:16:13.040
+or the total 250 megabyte limit.
+
+340
+00:16:13.040 --> 00:16:17.440
+Your Lambda is deployed correctly, but the initialization code fails.
+
+341
+00:16:17.440 --> 00:16:21.520
+So maybe you've got a bug or a typo in your code, it fails to import a dependency
+
+342
+00:16:21.520 --> 00:16:24.560
+or to initialize a client, permissions error, that kind of thing.
+
+343
+00:16:24.560 --> 00:16:28.320
+So it makes sense, of course, that this can fail your entire deployment
+
+344
+00:16:28.320 --> 00:16:32.720
+because AWS cannot fulfill its contract of warming up these functions
+
+345
+00:16:32.720 --> 00:16:36.240
+as you have requested and creating this provisioned concurrency.
+
+346
+00:16:36.240 --> 00:16:38.160
+But it's something that you mightn't think of
+
+347
+00:16:38.160 --> 00:16:41.040
+if you're just moving from a non-provisioned concurrency setup
+
+348
+00:16:41.040 --> 00:16:43.520
+where you don't have to worry about failures in your code
+
+349
+00:16:43.520 --> 00:16:45.280
+until the function is actually invoked.
+
+350
+00:16:45.280 --> 00:16:47.600
+So you just have to be a little bit more careful about that.
+
+351
+00:16:48.720 --> 00:16:52.800
+Right. So I think we've given a good overview of provision concurrency,
+
+352
+00:16:52.800 --> 00:16:53.840
+talked about pros and cons.
+
+353
+00:16:53.840 --> 00:16:57.680
+It's not as simple as you might like. It's just the nature of it.
+
+354
+00:16:57.680 --> 00:17:00.560
+What are some alternatives if we've put people off?
+
+355
+00:17:00.560 --> 00:17:03.600
+Yeah, I think it's definitely worth mentioning that it's not a silver bullet
+
+356
+00:17:03.600 --> 00:17:07.040
+and there are lots of trade-offs that you need to carefully analyze
+
+357
+00:17:07.040 --> 00:17:09.200
+and take a decision on whether this is the solution
+
+358
+00:17:09.200 --> 00:17:12.960
+that is going to solve your problems or maybe you want to look at other solutions.
+
+359
+00:17:12.960 --> 00:17:16.160
+So let's just try to give you some alternative ideas
+
+360
+00:17:16.160 --> 00:17:19.440
+to try to fight cold starts because that's our premise today.
+
+361
+00:17:19.440 --> 00:17:21.920
+We are trying to think if I am annoyed by cold starts
+
+362
+00:17:21.920 --> 00:17:25.440
+because they are affecting my applications in a way or another,
+
+363
+00:17:25.440 --> 00:17:28.960
+what can I do to reduce or totally eliminate cold starts?
+
+364
+00:17:29.600 --> 00:17:34.160
+And the first thing that comes to mind is that you can do your own warm-up as needed.
+
+365
+00:17:34.160 --> 00:17:36.640
+And this is actually something that people used to do
+
+366
+00:17:36.640 --> 00:17:40.880
+before this provision concurrency feature was enabled in Lambda.
+
+367
+00:17:40.880 --> 00:17:45.760
+And actually, when I was working in the very first version of MIDI,
+
+368
+00:17:45.760 --> 00:17:47.360
+this is something that didn't exist.
+
+369
+00:17:47.360 --> 00:17:50.720
+And in MIDI itself, one of the very first middleware we created
+
+370
+00:17:50.720 --> 00:17:55.680
+was a middleware that would help you to basically use event bridge as a scheduler
+
+371
+00:17:55.680 --> 00:18:00.080
+to effectively send a ping every sometime, maybe every five minutes, every 10 minutes,
+
+372
+00:18:00.080 --> 00:18:02.160
+whatever made the most sense for you,
+
+373
+00:18:02.160 --> 00:18:05.120
+to effectively wake up a Lambda environment for you,
+
+374
+00:18:05.120 --> 00:18:07.520
+make sure that there was at least one Lambda environment.
+
+375
+00:18:07.520 --> 00:18:09.520
+And then the middleware would basically check,
+
+376
+00:18:09.520 --> 00:18:12.000
+okay, if this is an event coming from event bridge,
+
+377
+00:18:12.000 --> 00:18:16.080
+I'm just going to ignore it because I know that was only used to wake me up.
+
+378
+00:18:16.080 --> 00:18:19.200
+But if another kind of event comes in, maybe an API request,
+
+379
+00:18:19.200 --> 00:18:21.760
+then of course your own handle project is going to run.
+
+380
+00:18:21.760 --> 00:18:24.800
+And of course, you don't have to use MIDI to do this.
+
+381
+00:18:24.800 --> 00:18:26.320
+You can do this on your own.
+
+382
+00:18:26.320 --> 00:18:30.560
+The amount of code you need to write, it's relatively simple and small.
+
+383
+00:18:30.560 --> 00:18:33.760
+But yeah, and you can even do that without using event bridge.
+
+384
+00:18:33.760 --> 00:18:36.000
+So whatever is going to trigger your Lambda,
+
+385
+00:18:36.000 --> 00:18:38.480
+of course, is going to create potentially a new environment.
+
+386
+00:18:38.480 --> 00:18:40.400
+So if you can do that recuringly,
+
+387
+00:18:40.400 --> 00:18:43.680
+you are going to create instances that will be around for a little bit
+
+388
+00:18:43.680 --> 00:18:46.400
+and they will be warm to handle real events.
+
+389
+00:18:46.400 --> 00:18:47.520
+So that's just an idea.
+
+390
+00:18:47.520 --> 00:18:51.600
+Of course, it's also very tricky that this particular approach
+
+391
+00:18:51.600 --> 00:18:53.760
+will avoid cold starts entirely.
+
+392
+00:18:53.760 --> 00:18:56.320
+It's just a way to try to reduce cold starts.
+
+393
+00:18:56.320 --> 00:19:00.880
+Then depending on how well you can predict traffic coming in,
+
+394
+00:19:00.880 --> 00:19:02.800
+you might have different type of results.
+
+395
+00:19:02.800 --> 00:19:04.320
+You will see more or less cold starts.
+
+396
+00:19:05.040 --> 00:19:07.840
+Another interesting approach is Lambda's napstart.
+
+397
+00:19:07.840 --> 00:19:09.840
+This is more relevant if you're using Java.
+
+398
+00:19:09.840 --> 00:19:13.040
+And again, it doesn't really solve cold starts per se,
+
+399
+00:19:13.040 --> 00:19:16.720
+but it can greatly reduce the duration of a cold start,
+
+400
+00:19:16.720 --> 00:19:18.560
+especially for languages like Java,
+
+401
+00:19:18.560 --> 00:19:22.320
+where the cold starts can be more significant than with other runtimes.
+
+402
+00:19:22.320 --> 00:19:25.440
+So if you're using Java and you want to reduce the cold start duration,
+
+403
+00:19:25.440 --> 00:19:26.880
+definitely check out snapstart.
+
+404
+00:19:26.880 --> 00:19:30.800
+And then the other approach is that you might want to consider other AWS services,
+
+405
+00:19:30.800 --> 00:19:33.440
+because of course, if you really are in a situation
+
+406
+00:19:33.440 --> 00:19:35.600
+where you cannot tolerate cold starts,
+
+407
+00:19:35.600 --> 00:19:38.160
+maybe Lambda is not the solution for your problem.
+
+408
+00:19:38.160 --> 00:19:40.080
+Maybe you need to use something like a container,
+
+409
+00:19:40.080 --> 00:19:42.160
+maybe running on Fargate if you still want to have
+
+410
+00:19:42.160 --> 00:19:44.480
+kind of a serverless deployment experience.
+
+411
+00:19:44.480 --> 00:19:47.760
+And in that case, you will have an instance that is running all the time,
+
+412
+00:19:47.760 --> 00:19:52.320
+and therefore you are not going to have that particular problem of seeing cold starts.
+
+413
+00:19:52.320 --> 00:19:55.520
+Of course, in that case, you might have the problem of how do I scale up?
+
+414
+00:19:55.520 --> 00:19:58.480
+And then you need to see what that service is going to offer you
+
+415
+00:19:58.480 --> 00:20:02.880
+to being able to scale in the case that you start to get more and more traffic.
+
+416
+00:20:02.880 --> 00:20:06.320
+And then another final suggestion, which maybe can feel a little bit funny,
+
+417
+00:20:06.320 --> 00:20:10.080
+but it's actually serious, is that you could consider using Rust with Lambda.
+
+418
+00:20:10.080 --> 00:20:14.400
+And the reason is that with Rust, we have seen really amazing performances
+
+419
+00:20:14.400 --> 00:20:16.000
+especially when it comes to cold start.
+
+420
+00:20:16.000 --> 00:20:19.760
+They can be 10 or 20 milliseconds for the majority of times
+
+421
+00:20:19.760 --> 00:20:21.840
+if your Lambdas are still relatively small.
+
+422
+00:20:22.480 --> 00:20:28.720
+So that's maybe an amount of time that is basically making the cold start negligible.
+
+423
+00:20:28.720 --> 00:20:32.800
+So if you're interested in this approach, we have actually two podcast episodes,
+
+424
+00:20:32.800 --> 00:20:37.520
+number 64 and 128, where we talk about creating Lambda function Rust
+
+425
+00:20:37.520 --> 00:20:38.960
+and what all of that entails.
+
+426
+00:20:38.960 --> 00:20:40.640
+So you might check out those.
+
+427
+00:20:40.640 --> 00:20:42.960
+So that's all I have for suggestions.
+
+428
+00:20:42.960 --> 00:20:44.480
+What else do we want to share?
+
+429
+00:20:50.000 --> 00:20:53.760
+I'd like to remind before we finish up that AWS keeps introducing optimizations under the hood, even things so that you don't necessarily have to change to get performance improvements.
+
+430
+00:20:53.760 --> 00:20:58.080
+And one thing we didn't talk about, maybe we can find a link for the show notes,
+
+431
+00:20:58.080 --> 00:21:02.720
+but I think people discovered about a year or so ago that AWS was doing some pre-warming
+
+432
+00:21:02.720 --> 00:21:06.480
+of functions that didn't have provision concurrency turned on as well.
+
+433
+00:21:06.480 --> 00:21:10.080
+So they're doing things to try and make sure that your cold starts are as low as possible.
+
+434
+00:21:10.080 --> 00:21:11.520
+And I think that's going to continue.
+
+435
+00:21:11.520 --> 00:21:16.160
+We've seen it with Snap Start, and I think we can expect even with that optimization
+
+436
+00:21:16.160 --> 00:21:19.520
+of Python functions episode, we talked about how container images are optimized
+
+437
+00:21:19.520 --> 00:21:21.120
+for lower cold starts now.
+
+438
+00:21:21.120 --> 00:21:25.040
+So I would say again, just think a little bit before you invest too much time in all
+
+439
+00:21:25.040 --> 00:21:28.240
+the complexity of configuring provision concurrency, if you really don't need it.
+
+440
+00:21:28.240 --> 00:21:29.920
+But I think that wraps up our deep dive.
+
+441
+00:21:29.920 --> 00:21:33.680
+And hopefully now you've got a clear understanding of how it works, its benefits
+
+442
+00:21:33.680 --> 00:21:34.880
+and potential pitfalls.
+
+443
+00:21:35.920 --> 00:21:40.640
+I think it's provision concurrency is definitely a useful tool in your AWS arsenal.
+
+444
+00:21:40.640 --> 00:21:44.800
+Now, if you enjoyed the episode, do like, subscribe and share it with your fellow cloud
+
+445
+00:21:44.800 --> 00:21:45.520
+enthusiasts.
+
+446
+00:21:45.520 --> 00:21:47.520
+Don't forget, we really love hearing from you.
+
+447
+00:21:47.520 --> 00:21:51.120
+And thanks very much to everyone who does reach out to us and gives us comments, questions,
+
+448
+00:21:51.120 --> 00:21:53.040
+and just lets us know that they like the podcast.
+
+449
+00:21:53.040 --> 00:21:54.720
+So do drop us a comment or question.
+
+450
+00:21:54.720 --> 00:21:57.440
+Your feedback does help shape our future episodes.
+
+451
+00:21:57.440 --> 00:22:01.280
+So thanks for tuning in and we'll catch you in the next episode of AWS Bites.

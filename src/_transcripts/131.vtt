@@ -1,0 +1,1513 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:02.900
+Have you ever deployed infrastructure with CloudFormation,
+
+2
+00:00:02.900 --> 00:00:06.300
+only to notice later that things weren't quite lining up as they should?
+
+3
+00:00:06.300 --> 00:00:09.500
+Well, you might be experiencing CloudFormation Drift.
+
+4
+00:00:09.500 --> 00:00:12.000
+We've all been there. Deployments look fine initially,
+
+5
+00:00:12.000 --> 00:00:15.200
+but gradually drift away from their original configuration over time.
+
+6
+00:00:15.200 --> 00:00:17.300
+This can lead to very unpredictable results
+
+7
+00:00:17.300 --> 00:00:19.300
+when you try and update your stack later on,
+
+8
+00:00:19.300 --> 00:00:21.300
+and it can really end in disaster.
+
+9
+00:00:21.300 --> 00:00:24.400
+So today, we're diving deep into CloudFormation Drift,
+
+10
+00:00:24.400 --> 00:00:26.900
+what causes it, how to detect it and fix it,
+
+11
+00:00:26.900 --> 00:00:29.500
+and most importantly, how to prevent it in the future.
+
+12
+00:00:29.500 --> 00:00:31.800
+And we're going to cover what it is,
+
+13
+00:00:31.800 --> 00:00:35.400
+how it relates to CloudFormation and other infrastructure as code tools,
+
+14
+00:00:35.400 --> 00:00:37.300
+why it happens, how to resolve it,
+
+15
+00:00:37.300 --> 00:00:40.200
+some best practices on detecting drift as soon as possible,
+
+16
+00:00:40.200 --> 00:00:42.200
+and to try and avoid it entirely.
+
+17
+00:00:42.200 --> 00:00:45.000
+I'm Eoin, I'm here as usual with Luciano,
+
+18
+00:00:45.000 --> 00:00:47.700
+and this is another episode of AWS Bites.
+
+19
+00:00:55.900 --> 00:00:58.700
+This episode of AWS Bites is brought to you by fourTheorem.
+
+20
+00:00:58.700 --> 00:01:02.200
+Need to modernize your infrastructure or build scalable cloud solutions?
+
+21
+00:01:02.200 --> 00:01:04.700
+fourTheorem brings the experience to build high quality,
+
+22
+00:01:04.700 --> 00:01:07.200
+maintainable and scalable cloud applications
+
+23
+00:01:07.200 --> 00:01:08.900
+that evolve with your business needs.
+
+24
+00:01:08.900 --> 00:01:13.200
+Visit fourTheorem to see how we can help take your cloud journey to the next level.
+
+25
+00:01:13.200 --> 00:01:15.700
+We might just start with a quick CloudFormation summary.
+
+26
+00:01:15.700 --> 00:01:18.900
+We've talked about it before, but let's rapidly go through it again.
+
+27
+00:01:18.900 --> 00:01:23.700
+CloudFormation is an infrastructure as code or IaC service from AWS
+
+28
+00:01:23.700 --> 00:01:27.800
+that allows you to define and manage all of your AWS resources and configuration
+
+29
+00:01:27.800 --> 00:01:30.500
+using templates that are written in either JSON or YAML.
+
+30
+00:01:30.500 --> 00:01:34.500
+So you can use it to provision, model and manage all of the resources
+
+31
+00:01:34.500 --> 00:01:37.100
+for your application in a fairly safe and repeatable way.
+
+32
+00:01:37.100 --> 00:01:39.800
+So instead of creating things ad hoc manually,
+
+33
+00:01:39.800 --> 00:01:41.700
+you define them in code using a template
+
+34
+00:01:41.700 --> 00:01:45.800
+and CloudFormation is the service that handles provisioning and updating it for you.
+
+35
+00:01:45.800 --> 00:01:48.100
+So it's perfect when you need repeatability
+
+36
+00:01:48.100 --> 00:01:52.300
+because it allows you to define a consistent repeatable infrastructure setup.
+
+37
+00:01:52.300 --> 00:01:55.000
+And also if you've got complex environments.
+
+38
+00:01:55.000 --> 00:01:58.000
+So if you've got projects involving multiple resources
+
+39
+00:01:58.000 --> 00:02:02.300
+like EC2, RDS, VPCs and Lambda,
+
+40
+00:02:02.300 --> 00:02:05.900
+CloudFormation can handle all the dependencies between them fairly seamlessly.
+
+41
+00:02:05.900 --> 00:02:09.100
+It's also really good if you want to automate infrastructure management.
+
+42
+00:02:09.100 --> 00:02:11.400
+And this is almost table stakes these days,
+
+43
+00:02:11.400 --> 00:02:14.400
+but you can automate the entire lifecycle of your infrastructure,
+
+44
+00:02:14.400 --> 00:02:18.300
+creating, updating and deleting resources without manual intervention.
+
+45
+00:02:18.300 --> 00:02:22.100
+And it allows you to provide support for best practices
+
+46
+00:02:22.100 --> 00:02:24.500
+like versioning enrolled back as well.
+
+47
+00:02:24.500 --> 00:02:27.700
+So it has automatic rollbacks if something goes wrong during deployment.
+
+48
+00:02:27.700 --> 00:02:30.400
+By the way, if you want to dive a bit deeper on CloudFormation,
+
+49
+00:02:30.400 --> 00:02:32.200
+we have spoken about it before.
+
+50
+00:02:32.200 --> 00:02:34.400
+So in the show notes in the description below,
+
+51
+00:02:34.400 --> 00:02:36.300
+you'll see links to episode 31,
+
+52
+00:02:36.300 --> 00:02:39.000
+the battle between CloudFormation or Terraform
+
+53
+00:02:39.000 --> 00:02:41.200
+and episode 121,
+
+54
+00:02:41.200 --> 00:02:44.000
+where we talked about five ways to extend CloudFormation.
+
+55
+00:02:44.000 --> 00:02:48.300
+And that's the overview of CloudFormation and infrastructure as code.
+
+56
+00:02:48.300 --> 00:02:49.900
+But we're here to talk about Drift.
+
+57
+00:02:49.900 --> 00:02:51.700
+So what is the concept of Drift?
+
+58
+00:02:51.700 --> 00:02:54.700
+The concept of Drift is not unique to CloudFormation.
+
+59
+00:02:54.700 --> 00:02:58.700
+In fact, it's something that can occur even with other infrastructure as code tools.
+
+60
+00:02:58.700 --> 00:03:01.800
+For instance, you mentioned Terraform, even with Terraform.
+
+61
+00:03:01.800 --> 00:03:05.600
+If you don't do things correctly or by the book, as they say,
+
+62
+00:03:05.600 --> 00:03:07.200
+you can have Drift as well.
+
+63
+00:03:07.200 --> 00:03:11.400
+So it's not necessarily an issue only with CloudFormation,
+
+64
+00:03:11.400 --> 00:03:15.200
+but something that you need to keep into account every time you do infrastructure as code.
+
+65
+00:03:15.200 --> 00:03:18.600
+And today, of course, we are going to focus a little bit more on CloudFormation
+
+66
+00:03:18.600 --> 00:03:20.200
+and the tooling around it
+
+67
+00:03:20.200 --> 00:03:23.400
+and some of the tips that are maybe a little bit more specific to CloudFormation.
+
+68
+00:03:23.400 --> 00:03:26.800
+But I think the general concepts and the advice that we are going to give
+
+69
+00:03:26.800 --> 00:03:30.100
+can be applied also to another ISC tool.
+
+70
+00:03:30.100 --> 00:03:32.200
+So if you prefer to use Terraform,
+
+71
+00:03:32.200 --> 00:03:34.500
+I think you're still going to find value in this episode.
+
+72
+00:03:34.500 --> 00:03:35.800
+So back to Drift,
+
+73
+00:03:35.800 --> 00:03:38.800
+it happens when the current state of your infrastructure
+
+74
+00:03:38.800 --> 00:03:42.700
+diverge from the defined configuration in your templates.
+
+75
+00:03:42.700 --> 00:03:46.700
+So in other words, if you have defined something using infrastructure as code
+
+76
+00:03:46.700 --> 00:03:49.300
+and at some point what you have defined there
+
+77
+00:03:49.300 --> 00:03:52.500
+doesn't exactly match what's in your AWS environment.
+
+78
+00:03:52.500 --> 00:03:54.600
+So you have, if you just look at your templates,
+
+79
+00:03:54.600 --> 00:03:56.700
+you think the reality should look in a certain way,
+
+80
+00:03:56.700 --> 00:03:58.900
+but then if you actually look at your deployed stack,
+
+81
+00:03:58.900 --> 00:04:02.300
+it doesn't really look exactly like you defined in your template.
+
+82
+00:04:02.300 --> 00:04:05.000
+So you might be wondering how is this even possible
+
+83
+00:04:05.000 --> 00:04:10.100
+because we just say that CloudFormation infrastructure as code in general
+
+84
+00:04:10.100 --> 00:04:13.300
+is a way to get reproducible and deterministic deployments.
+
+85
+00:04:13.300 --> 00:04:17.900
+So how is it possible that all of a sudden it doesn't really match anymore
+
+86
+00:04:17.900 --> 00:04:20.000
+what was defined in a template?
+
+87
+00:04:20.000 --> 00:04:22.400
+And this is something that can happen as we said
+
+88
+00:04:22.400 --> 00:04:26.400
+and generally happens when you start to misuse infrastructure as code.
+
+89
+00:04:26.400 --> 00:04:29.200
+So again, let's maybe try to do a little bit of a step back
+
+90
+00:04:29.200 --> 00:04:32.700
+trying to describe what's the idea of infrastructure as code.
+
+91
+00:04:32.700 --> 00:04:37.400
+In general, when you use tools such as CloudFormation or Terraform,
+
+92
+00:04:37.400 --> 00:04:40.200
+those are declarative tools we can say.
+
+93
+00:04:40.200 --> 00:04:43.600
+So tools where in a way they provide you with a language
+
+94
+00:04:43.600 --> 00:04:46.100
+that you can use to define or describe
+
+95
+00:04:46.100 --> 00:04:48.700
+what's the desired state of a given stack.
+
+96
+00:04:48.700 --> 00:04:52.300
+So you never tell the infrastructure as code tool
+
+97
+00:04:52.300 --> 00:04:56.200
+what is the sequence of steps that it needs to do to get to a certain state.
+
+98
+00:04:56.200 --> 00:04:58.700
+You just define what is that state
+
+99
+00:04:58.700 --> 00:05:01.900
+and you let the tool figure it out by itself
+
+100
+00:05:01.900 --> 00:05:05.900
+how to get from the current state to the new desired state.
+
+101
+00:05:05.900 --> 00:05:11.700
+And the problem is that most of these infrastructure as code tools,
+
+102
+00:05:11.700 --> 00:05:16.300
+they don't necessarily query upfront your current environment.
+
+103
+00:05:16.300 --> 00:05:18.600
+For instance, your current AWS account.
+
+104
+00:05:18.600 --> 00:05:22.400
+They will just store the state of the last deployment somewhere.
+
+105
+00:05:22.400 --> 00:05:24.900
+In the case of CloudFormation, this is entirely managed
+
+106
+00:05:24.900 --> 00:05:27.000
+by the CloudFormation service itself.
+
+107
+00:05:27.000 --> 00:05:30.400
+If you use something like Terraform, Terraform is actually quite flexible.
+
+108
+00:05:30.400 --> 00:05:32.500
+It gives you visibility of the state file.
+
+109
+00:05:32.500 --> 00:05:35.500
+You can decide to store it in a simple file in the file system.
+
+110
+00:05:35.500 --> 00:05:38.300
+You can store it in DynamoDB, you can store it in S3.
+
+111
+00:05:38.300 --> 00:05:40.800
+Actually, Terraform, it's quite open about that.
+
+112
+00:05:40.800 --> 00:05:44.900
+CloudFormation is a little bit more opaque, but the same principle applies.
+
+113
+00:05:44.900 --> 00:05:47.700
+So what happens the next time that you do a deployment
+
+114
+00:05:47.700 --> 00:05:51.400
+is that rather than reassessing what's the current state,
+
+115
+00:05:51.400 --> 00:05:55.000
+the tool is just going to take the latest state recorded
+
+116
+00:05:55.000 --> 00:05:57.900
+during the previous deployment as the starting point.
+
+117
+00:05:57.900 --> 00:06:02.100
+So it's going to try to understand, okay, what was that starting point?
+
+118
+00:06:02.100 --> 00:06:04.200
+What is the new state that you want to go to
+
+119
+00:06:04.200 --> 00:06:06.100
+and make a number of assumptions
+
+120
+00:06:06.100 --> 00:06:08.900
+and figure out what is a good plan to go from A to B.
+
+121
+00:06:08.900 --> 00:06:12.600
+But the problem is that if you did something wrong,
+
+122
+00:06:12.600 --> 00:06:15.200
+and we'll talk a little bit more about that in a second,
+
+123
+00:06:15.200 --> 00:06:18.600
+what the infrastructure tool thinks it's A
+
+124
+00:06:18.600 --> 00:06:21.500
+is not exactly matching the current reality.
+
+125
+00:06:21.500 --> 00:06:23.200
+So it might actually be something else
+
+126
+00:06:23.200 --> 00:06:27.100
+and therefore the plan to go from A to B is not necessarily a good plan
+
+127
+00:06:27.100 --> 00:06:29.800
+for what concerns the reality of your stack.
+
+128
+00:06:29.800 --> 00:06:33.000
+So maybe we should mention some more practical examples
+
+129
+00:06:33.000 --> 00:06:36.400
+of what can actually introduce this kind of situation
+
+130
+00:06:36.400 --> 00:06:38.700
+that we are calling effective drift.
+
+131
+00:06:38.700 --> 00:06:41.300
+I think the most common case for drift
+
+132
+00:06:41.300 --> 00:06:44.300
+is just when you're making manual changes.
+
+133
+00:06:44.300 --> 00:06:46.600
+So someone might manually update a resource
+
+134
+00:06:46.600 --> 00:06:49.200
+without updating that CloudFormation template.
+
+135
+00:06:49.200 --> 00:06:52.600
+That could be like tweaking an EC2 instance setting,
+
+136
+00:06:52.600 --> 00:06:54.100
+changing some security groups
+
+137
+00:06:54.100 --> 00:06:56.600
+while trying to debug a connection issue
+
+138
+00:06:56.600 --> 00:07:00.300
+or changing an IAM policy to try and resolve some permissions issues.
+
+139
+00:07:00.300 --> 00:07:02.500
+You can also have things that are a little bit more subtle
+
+140
+00:07:02.500 --> 00:07:07.300
+like changing the number of desired tasks in a Fargate service.
+
+141
+00:07:07.300 --> 00:07:10.300
+And that's something that is quite common to happen
+
+142
+00:07:10.300 --> 00:07:13.600
+actually outside your infrastructure's code tooling.
+
+143
+00:07:13.600 --> 00:07:15.600
+So manual changes, probably very common.
+
+144
+00:07:15.600 --> 00:07:16.900
+Then you've got third-party tools.
+
+145
+00:07:16.900 --> 00:07:20.400
+So sometimes external automation tools may modify resources
+
+146
+00:07:20.400 --> 00:07:22.200
+without CloudFormation being aware of it.
+
+147
+00:07:22.200 --> 00:07:24.400
+These can be tools that try to assess compliance
+
+148
+00:07:24.400 --> 00:07:27.000
+and that might apply resources on your behalf
+
+149
+00:07:27.000 --> 00:07:29.100
+to apply specific best practices.
+
+150
+00:07:29.100 --> 00:07:32.800
+And it can also be internal, not necessarily third-party tools,
+
+151
+00:07:32.800 --> 00:07:34.100
+but just external automation.
+
+152
+00:07:34.100 --> 00:07:36.700
+You might have set up specific automation
+
+153
+00:07:36.700 --> 00:07:38.000
+that can alter resources.
+
+154
+00:07:38.000 --> 00:07:40.500
+Like you might have a script that helps saving cost
+
+155
+00:07:40.500 --> 00:07:42.900
+by turning or scaling down EC2
+
+156
+00:07:42.900 --> 00:07:46.700
+or turning it on and off just to match your expected load.
+
+157
+00:07:46.700 --> 00:07:48.300
+Or you might just have some internal tooling
+
+158
+00:07:48.300 --> 00:07:51.700
+that applies security best practices like turning encryption on.
+
+159
+00:07:51.700 --> 00:07:55.300
+Using a mixture of IaC tools as well can cause drift.
+
+160
+00:07:55.300 --> 00:07:57.700
+So if you use a mix of different tools
+
+161
+00:07:57.700 --> 00:07:59.500
+and stacks managed by different tools
+
+162
+00:07:59.500 --> 00:08:01.900
+happen to share the same resources, this might cause drift.
+
+163
+00:08:01.900 --> 00:08:04.000
+This is a dangerous area, I would say.
+
+164
+00:08:04.000 --> 00:08:07.600
+The shared resources state might look very different to every tool
+
+165
+00:08:07.600 --> 00:08:09.600
+depending on the order of deployments
+
+166
+00:08:09.600 --> 00:08:13.000
+and when it took its perception of state, if you like.
+
+167
+00:08:13.000 --> 00:08:14.700
+So effectively, each tool won't be able to know
+
+168
+00:08:14.700 --> 00:08:17.600
+what the changes are applied by the other two.
+
+169
+00:08:17.600 --> 00:08:20.400
+So that's how it can happen, but how do we avoid it?
+
+170
+00:08:20.400 --> 00:08:22.800
+Yeah, I think at this point, it should be very clear
+
+171
+00:08:22.800 --> 00:08:25.700
+what can actually introduce drift, what drift is.
+
+172
+00:08:25.700 --> 00:08:29.700
+So in a way, we can start to guess and working backwards
+
+173
+00:08:29.700 --> 00:08:33.400
+and try to think, okay, how can we avoid it, right?
+
+174
+00:08:33.400 --> 00:08:37.300
+And one thing is that we should try to avoid manual changes
+
+175
+00:08:37.300 --> 00:08:40.900
+as much as possible, unless you know what you're doing.
+
+176
+00:08:40.900 --> 00:08:45.900
+Like, I think there are some cases where you might still need to do manual changes
+
+177
+00:08:45.900 --> 00:08:48.900
+because maybe you are trying to do certain things that
+
+178
+00:08:48.900 --> 00:08:51.900
+in that particular moment, it's just easier to do it manually.
+
+179
+00:08:51.900 --> 00:08:56.300
+We mentioned, for example, trying to resolve an issue with a security group.
+
+180
+00:08:56.300 --> 00:09:00.100
+It is, I think, totally legit to try to figure out exactly
+
+181
+00:09:00.100 --> 00:09:01.700
+what is the correct configuration.
+
+182
+00:09:01.700 --> 00:09:06.000
+And then, of course, you need to remember to apply that correct configuration
+
+183
+00:09:06.000 --> 00:09:10.300
+to your infrastructure as code to make sure that maybe you had a little bit of a drift
+
+184
+00:09:10.300 --> 00:09:14.800
+for a few minutes, but then that drift is immediately reconciled
+
+185
+00:09:14.800 --> 00:09:19.000
+and your confirmation stack is effectively in line with the reality
+
+186
+00:09:19.000 --> 00:09:21.600
+of your stack deployed on AWS.
+
+187
+00:09:21.600 --> 00:09:25.200
+So again, manual changes generally to be avoided.
+
+188
+00:09:25.200 --> 00:09:29.900
+You can still do it, and in some cases, it can be useful to do manual changes,
+
+189
+00:09:29.900 --> 00:09:33.300
+but always remember that manual changes will introduce drift
+
+190
+00:09:33.300 --> 00:09:36.300
+unless you propagate them back into your stack.
+
+191
+00:09:36.300 --> 00:09:39.200
+Then the other advice is always use IaC.
+
+192
+00:09:39.200 --> 00:09:43.500
+So try to avoid hybrid mode deployments, we would call them,
+
+193
+00:09:43.500 --> 00:09:49.500
+which is sometimes you have this situation where different teams have different practices.
+
+194
+00:09:49.500 --> 00:09:52.300
+So you might have teams that still do things manually,
+
+195
+00:09:52.300 --> 00:09:54.300
+other teams that use infrastructure as code,
+
+196
+00:09:54.300 --> 00:09:58.100
+and then somehow you end up with this kind of mixed stack
+
+197
+00:09:58.100 --> 00:10:00.700
+that has some resources that are managed manually,
+
+198
+00:10:00.700 --> 00:10:04.900
+other resources that are fully managed by IaC.
+
+199
+00:10:04.900 --> 00:10:07.800
+And yeah, things can get messy really quickly
+
+200
+00:10:07.800 --> 00:10:11.400
+and it's going to be very hard then to tell when a drift is going to happen.
+
+201
+00:10:11.400 --> 00:10:14.400
+It's eventually going to happen, but then how it's going to happen
+
+202
+00:10:14.400 --> 00:10:18.200
+and then what kind of results you can have as a consequence of that.
+
+203
+00:10:18.200 --> 00:10:22.200
+And we also mentioned not to mix different IaC tools.
+
+204
+00:10:22.200 --> 00:10:24.900
+So you can use different IaC tools together.
+
+205
+00:10:24.900 --> 00:10:27.700
+There are ways to do that safely.
+
+206
+00:10:27.700 --> 00:10:32.800
+I think the risk is when different IaC tools are actually sharing the same resources,
+
+207
+00:10:32.800 --> 00:10:37.800
+but you can have a mix of IaC tools when they manage different stacks.
+
+208
+00:10:37.800 --> 00:10:42.800
+And other things are if you're using external automations,
+
+209
+00:10:42.800 --> 00:10:47.300
+ideally you want this automation to either update your templates
+
+210
+00:10:47.300 --> 00:10:48.800
+and not the resource directly,
+
+211
+00:10:48.800 --> 00:10:53.200
+or if it's not easy for you to let the automation update the templates,
+
+212
+00:10:53.200 --> 00:10:55.200
+maybe you can have some kind of reporting
+
+213
+00:10:55.200 --> 00:10:59.500
+that then you can manually take and apply into your infrastructure as code
+
+214
+00:10:59.500 --> 00:11:05.500
+rather than letting the automation change resources and then ending up with drift.
+
+215
+00:11:05.500 --> 00:11:09.500
+So it might be of course more complex to set up automation this way,
+
+216
+00:11:09.500 --> 00:11:16.400
+but I think you always need to prefer the safety rather than maximum automation
+
+217
+00:11:16.400 --> 00:11:19.100
+and then end up with something that can be inconsistent.
+
+218
+00:11:19.100 --> 00:11:23.500
+So now that we know some ways that we can avoid drift,
+
+219
+00:11:23.500 --> 00:11:25.200
+how can we detect it?
+
+220
+00:11:25.200 --> 00:11:28.200
+How do we really know if we have drift in one of our stacks?
+
+221
+00:11:28.200 --> 00:11:33.200
+Yeah, it's very important to have some sort of ability to detect that you've got drift
+
+222
+00:11:33.200 --> 00:11:35.800
+and then obviously take remediation steps.
+
+223
+00:11:35.800 --> 00:11:38.700
+I mean, you might also have a degree of acceptable drift.
+
+224
+00:11:38.700 --> 00:11:41.400
+I think when you're talking about automation tools,
+
+225
+00:11:41.400 --> 00:11:44.000
+you know, updating security configuration or applying tags,
+
+226
+00:11:44.000 --> 00:11:48.600
+sometimes organizations just take the view that the infrastructure as code tools
+
+227
+00:11:48.600 --> 00:11:53.000
+update the resources and the automation continually aligns them to comply.
+
+228
+00:11:53.000 --> 00:11:55.700
+And that's acceptable drift, I guess to a degree.
+
+229
+00:11:55.700 --> 00:11:57.700
+But if you have other kinds of drift,
+
+230
+00:11:57.700 --> 00:12:01.600
+then you might just realize too late because the deployment fails in a weird way,
+
+231
+00:12:01.600 --> 00:12:04.700
+like tries to modify a resource that doesn't exist anymore.
+
+232
+00:12:04.700 --> 00:12:09.300
+So luckily, CloudFormation for the past few years has a feature to detect drift
+
+233
+00:12:09.300 --> 00:12:13.400
+and you can use it from the management console by just going to a stack.
+
+234
+00:12:13.400 --> 00:12:16.200
+You click on stack actions and select detect drift.
+
+235
+00:12:16.200 --> 00:12:19.200
+And I think this is supported for most configurations now.
+
+236
+00:12:19.200 --> 00:12:22.800
+When it launched, it didn't support everything, didn't detect everything.
+
+237
+00:12:22.800 --> 00:12:27.900
+It's going to start a background scan and CloudFormation will compare the known state
+
+238
+00:12:27.900 --> 00:12:31.200
+with the actual state of all of the resources in the stack.
+
+239
+00:12:31.200 --> 00:12:34.600
+And then once it's finished, you can visualize the results of the operation
+
+240
+00:12:34.600 --> 00:12:38.500
+by clicking on view drift results under stack actions.
+
+241
+00:12:38.500 --> 00:12:41.800
+So in that page then after a few minutes, you'll see if your stack has drifted
+
+242
+00:12:41.800 --> 00:12:45.600
+and if it has, it'll also give you a diff of the current stack state
+
+243
+00:12:45.600 --> 00:12:47.300
+and what CloudFormation expected.
+
+244
+00:12:47.300 --> 00:12:50.700
+Now, luckily, you can automate this process to some degree
+
+245
+00:12:50.700 --> 00:12:55.000
+and trigger an alarm if one of your stacks has drifted and that's a good idea.
+
+246
+00:12:55.000 --> 00:12:57.600
+I think if you're concerned about drift and going to take it seriously,
+
+247
+00:12:57.600 --> 00:13:00.600
+there is a tutorial by AWS that explains you how to do that
+
+248
+00:13:00.600 --> 00:13:02.600
+and we'll have a link in the notes below.
+
+249
+00:13:02.600 --> 00:13:05.200
+So we've got some drift, we've seen it, we've detected it.
+
+250
+00:13:05.200 --> 00:13:06.200
+What do we do?
+
+251
+00:13:06.200 --> 00:13:08.500
+Yeah, I don't think there is a universal solution
+
+252
+00:13:08.500 --> 00:13:10.600
+and to be fair, it's always a little bit of a pain.
+
+253
+00:13:10.600 --> 00:13:14.400
+There are situations where maybe you just created that drift
+
+254
+00:13:14.400 --> 00:13:17.200
+like the example we mentioned about the security groups
+
+255
+00:13:17.200 --> 00:13:20.500
+and therefore in that case, it's very easy to reconcile your stack
+
+256
+00:13:20.500 --> 00:13:23.700
+and fix the drift because you know exactly what did you change
+
+257
+00:13:23.700 --> 00:13:27.200
+and you can easily reapply the same changes into your infrastructure as code.
+
+258
+00:13:27.200 --> 00:13:30.500
+And in the case of a security group, that's probably going to be a few properties.
+
+259
+00:13:30.500 --> 00:13:32.600
+Maybe you're going to open different ports,
+
+260
+00:13:32.600 --> 00:13:36.200
+but it's very limited to a specific area of your stack.
+
+261
+00:13:36.200 --> 00:13:39.000
+But in some cases, it might be much more complex
+
+262
+00:13:39.000 --> 00:13:44.200
+and you probably need to be a little bit creative in trying to figure out exactly
+
+263
+00:13:44.200 --> 00:13:46.200
+first of all, why the drift happened,
+
+264
+00:13:46.200 --> 00:13:49.700
+what is exactly the desired state versus the current state
+
+265
+00:13:49.700 --> 00:13:51.700
+and how to reconcile the two.
+
+266
+00:13:51.700 --> 00:13:58.100
+And the general problem is that you might think about a very simple solution.
+
+267
+00:13:58.100 --> 00:14:01.300
+The simplest solution is probably, okay, I'm just going to destroy the stack
+
+268
+00:14:01.300 --> 00:14:05.700
+and recreate it entirely with a well-known, well-defined end state,
+
+269
+00:14:05.700 --> 00:14:07.000
+which is something that works.
+
+270
+00:14:07.000 --> 00:14:09.700
+But of course, if you have an application that is running in production,
+
+271
+00:14:09.700 --> 00:14:11.800
+you probably cannot afford to do that
+
+272
+00:14:11.800 --> 00:14:13.800
+because of course, you are going to create downtime.
+
+273
+00:14:13.800 --> 00:14:18.300
+So it gets really tricky when you want to try to reconcile drift
+
+274
+00:14:18.300 --> 00:14:20.100
+while not creating downtimes.
+
+275
+00:14:20.100 --> 00:14:23.100
+And that's why sometimes you need to be a little bit creative.
+
+276
+00:14:23.100 --> 00:14:26.000
+And recently, for instance, we had a use case at work
+
+277
+00:14:26.000 --> 00:14:29.600
+where we had some drift related to a load balancer.
+
+278
+00:14:29.600 --> 00:14:32.100
+So we needed to do some changes to this load balancer,
+
+279
+00:14:32.100 --> 00:14:35.900
+but doing the changes will recreate the load balancer entirely.
+
+280
+00:14:35.900 --> 00:14:37.600
+And because in that particular stack,
+
+281
+00:14:37.600 --> 00:14:40.700
+the DNS entries were not managed by that stack,
+
+282
+00:14:40.700 --> 00:14:42.100
+but were managed externally,
+
+283
+00:14:42.100 --> 00:14:45.200
+doing the changes will basically recreate a new load balancer
+
+284
+00:14:45.200 --> 00:14:48.600
+with a different IP address or a different DNS record,
+
+285
+00:14:48.600 --> 00:14:51.000
+and therefore we will have downtimes.
+
+286
+00:14:51.000 --> 00:14:52.900
+And to solve that particular use case,
+
+287
+00:14:52.900 --> 00:14:56.700
+we basically needed to keep the existing load balancer as it was,
+
+288
+00:14:56.700 --> 00:15:01.300
+spin up a new load balancer with basically exactly the same targets,
+
+289
+00:15:01.300 --> 00:15:04.000
+then change the DNS in the other stack,
+
+290
+00:15:04.000 --> 00:15:07.200
+and effectively we kind of switch load balancers that way.
+
+291
+00:15:07.200 --> 00:15:11.000
+So we had a moment of time where we had two different load balancers
+
+292
+00:15:11.000 --> 00:15:13.500
+that led time to the DNS to propagate correctly,
+
+293
+00:15:13.500 --> 00:15:16.400
+and then at that point we could delete the old load balancer.
+
+294
+00:15:16.400 --> 00:15:18.900
+So in that sense, this is just an example that shows you
+
+295
+00:15:18.900 --> 00:15:20.800
+that sometimes you need to think about
+
+296
+00:15:20.800 --> 00:15:23.000
+a little bit more involved and complex solutions
+
+297
+00:15:23.000 --> 00:15:27.100
+just to make sure you slowly converge to the desired state
+
+298
+00:15:27.100 --> 00:15:30.600
+by trying to avoid to destroy resources that might be used in production,
+
+299
+00:15:30.600 --> 00:15:34.300
+and therefore if you just destroy them, you might end up with downtimes.
+
+300
+00:15:34.300 --> 00:15:38.300
+So yeah, I guess in general, what you want to do is try to apply,
+
+301
+00:15:38.300 --> 00:15:40.800
+to figure out, first of all, what happened,
+
+302
+00:15:40.800 --> 00:15:44.400
+figure out how do I get to the specific target state,
+
+303
+00:15:44.400 --> 00:15:47.400
+and then try to create a plan where step by step
+
+304
+00:15:47.400 --> 00:15:49.400
+you understand what's going to happen,
+
+305
+00:15:49.400 --> 00:15:51.000
+what is going to be the new state,
+
+306
+00:15:51.000 --> 00:15:54.600
+and then slowly make sure that that state converges to the desired one.
+
+307
+00:15:54.600 --> 00:15:59.700
+Now at that point, you hopefully are going to end up with a new version of your stack
+
+308
+00:15:59.700 --> 00:16:03.300
+where your actual state described in the stack
+
+309
+00:16:03.300 --> 00:16:06.500
+and the state present in AWS matches.
+
+310
+00:16:06.500 --> 00:16:09.600
+So from that moment on, if you keep doing changes correctly,
+
+311
+00:16:09.600 --> 00:16:13.300
+only using infrastructure as code, that situation shouldn't happen again.
+
+312
+00:16:13.300 --> 00:16:17.500
+So yeah, this is, I guess, one of the approaches.
+
+313
+00:16:17.500 --> 00:16:19.900
+Do you have other ideas, Eoin, that you want to share?
+
+314
+00:16:19.900 --> 00:16:23.300
+I would suggest maybe using change sets in CloudFormation
+
+315
+00:16:23.300 --> 00:16:26.100
+as a way to help with that, because with change sets,
+
+316
+00:16:26.100 --> 00:16:28.300
+it's a bit like a Terraform plan.
+
+317
+00:16:28.300 --> 00:16:29.800
+It's not going to apply changes.
+
+318
+00:16:29.800 --> 00:16:31.800
+It'll just create a change set for you with the diff,
+
+319
+00:16:31.800 --> 00:16:35.200
+and it'll show you what changes are going to happen beforehand.
+
+320
+00:16:35.200 --> 00:16:38.600
+Now you can also enable deletion protection on resources that you want to protect.
+
+321
+00:16:38.600 --> 00:16:42.500
+Of course, if you can't afford downtime or some data loss,
+
+322
+00:16:42.500 --> 00:16:44.800
+sometimes the simplest solution when you have drift
+
+323
+00:16:44.800 --> 00:16:46.700
+is just to destroy the stack and recreate it.
+
+324
+00:16:46.700 --> 00:16:49.700
+So in the development environment or pre-production environment,
+
+325
+00:16:49.700 --> 00:16:50.800
+that might be the way you go.
+
+326
+00:16:50.800 --> 00:16:53.800
+Otherwise, you'll have to come up with a plan with multiple incremental steps
+
+327
+00:16:53.800 --> 00:16:55.300
+that can help you to minimize damage
+
+328
+00:16:55.300 --> 00:16:59.400
+as you convert your infrastructure as code state to the actual state of the stack.
+
+329
+00:16:59.400 --> 00:17:01.400
+And that can seem like a lot of work,
+
+330
+00:17:01.400 --> 00:17:04.800
+but at the same time, if you don't do it very frequently, it is an awful lot of work.
+
+331
+00:17:04.800 --> 00:17:06.400
+But if it's something you get used to,
+
+332
+00:17:06.400 --> 00:17:09.900
+it's a good practice to just get into the habit of.
+
+333
+00:17:09.900 --> 00:17:14.200
+Other times, it might just be safer to bring up an entirely new stack in parallel.
+
+334
+00:17:14.200 --> 00:17:16.300
+Do all the necessary data migration, if any,
+
+335
+00:17:16.300 --> 00:17:18.500
+and then shift the traffic to the new stack
+
+336
+00:17:18.500 --> 00:17:20.900
+and then finally remove the old drifted stack.
+
+337
+00:17:20.900 --> 00:17:24.500
+So yeah, I mean, resolving drift might be tedious and costly.
+
+338
+00:17:24.500 --> 00:17:29.400
+That's why you want to avoid it as much as possible in the first place.
+
+339
+00:17:29.400 --> 00:17:34.400
+Maybe another worthy mention is that if drift includes new resources,
+
+340
+00:17:34.400 --> 00:17:37.900
+if you were to consider that other resources might have been added as well,
+
+341
+00:17:37.900 --> 00:17:39.800
+that should have been in that stack.
+
+342
+00:17:39.800 --> 00:17:41.700
+You can also use CloudFormation import.
+
+343
+00:17:41.700 --> 00:17:43.300
+And that's another way to manage drift.
+
+344
+00:17:43.300 --> 00:17:46.100
+We mentioned this in our way back in episode 11.
+
+345
+00:17:46.100 --> 00:17:47.900
+How do you move away from the management console
+
+346
+00:17:47.900 --> 00:17:51.300
+and how to get stuff that isn't managed by infrastructure as code into it?
+
+347
+00:17:51.300 --> 00:17:52.800
+So that's one dimension as well.
+
+348
+00:17:52.800 --> 00:17:54.800
+Just on drift detection as well, as you know,
+
+349
+00:17:54.800 --> 00:17:57.800
+we should probably add that drift detection itself
+
+350
+00:17:57.800 --> 00:18:00.900
+doesn't have any cost or charge associated with it.
+
+351
+00:18:00.900 --> 00:18:04.300
+But depending on the resources involved, correcting it might, of course.
+
+352
+00:18:04.300 --> 00:18:08.200
+So changing resource types or scaling can trigger charges.
+
+353
+00:18:08.200 --> 00:18:10.200
+Of course, factor in the cost of downtime
+
+354
+00:18:10.200 --> 00:18:14.000
+or potential security risks from unmanaged changes as well.
+
+355
+00:18:14.000 --> 00:18:14.800
+Absolutely.
+
+356
+00:18:14.800 --> 00:18:19.500
+I think this covers more or less everything we wanted to share for today.
+
+357
+00:18:19.500 --> 00:18:24.400
+To summarize, CloudFormation drift is an issue that can be very tricky
+
+358
+00:18:24.400 --> 00:18:26.400
+and can be unexpected sometimes.
+
+359
+00:18:26.400 --> 00:18:31.400
+So even if you do an effort to maintain your stacks well
+
+360
+00:18:31.400 --> 00:18:33.100
+or using infrastructure as code,
+
+361
+00:18:33.100 --> 00:18:37.900
+there are always so many different factors that can sneak in and cause drift.
+
+362
+00:18:37.900 --> 00:18:41.800
+So I think it's just a good practice to try to stay vigilant
+
+363
+00:18:41.800 --> 00:18:44.900
+and maybe come up with some automation like the one we mentioned
+
+364
+00:18:44.900 --> 00:18:48.100
+from the tutorial by AWS that we have in the link in the show notes
+
+365
+00:18:48.100 --> 00:18:52.500
+to try to give you some kind of alarm as soon as possible
+
+366
+00:18:52.500 --> 00:18:55.900
+when drift is detected so that you can action sooner rather than later.
+
+367
+00:18:55.900 --> 00:18:58.500
+Because of course, the more drift compounds,
+
+368
+00:18:58.500 --> 00:19:01.400
+the more challenging it's going to get to resolve that drift.
+
+369
+00:19:01.400 --> 00:19:03.500
+So that's everything we have.
+
+370
+00:19:03.500 --> 00:19:07.600
+And we actually are curious to know if you had any interesting story
+
+371
+00:19:07.600 --> 00:19:10.100
+of stack drifting and maybe you had to come up
+
+372
+00:19:10.100 --> 00:19:12.600
+with some very creative resolution strategy.
+
+373
+00:19:12.600 --> 00:19:15.300
+If that's the case, please share it with us,
+
+374
+00:19:15.300 --> 00:19:18.600
+either by reach out to us individually on our social channels
+
+375
+00:19:18.600 --> 00:19:21.600
+or maybe by leaving a comment on YouTube
+
+376
+00:19:21.600 --> 00:19:24.300
+or rather in your podcast player of choice.
+
+377
+00:19:24.300 --> 00:19:26.800
+So with that, thank you very much for staying with us
+
+378
+00:19:26.800 --> 00:19:28.500
+and we'll see you in the next one.

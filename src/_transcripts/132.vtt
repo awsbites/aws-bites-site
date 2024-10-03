@@ -1,0 +1,4181 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:04.360
+Hello and welcome to episode 132 of AWS Bites.
+
+2
+00:00:04.620 --> 00:00:08.480
+In today's episode, we're diving into GitHub Action Runners on AWS.
+
+3
+00:00:08.780 --> 00:00:11.560
+GitHub Actions is a fantastic tool for automating CICD workflows
+
+4
+00:00:11.560 --> 00:00:13.980
+and its runners handles all the heavy lifting.
+
+5
+00:00:14.240 --> 00:00:15.800
+While GitHub offers hosted runners,
+
+6
+00:00:15.980 --> 00:00:19.000
+using self-hosted runners on AWS gives you more control,
+
+7
+00:00:19.320 --> 00:00:20.760
+lower latency and cost benefits.
+
+8
+00:00:20.960 --> 00:00:24.320
+We will explore today how AWS services like EC2 and CodeBuild
+
+9
+00:00:24.320 --> 00:00:27.000
+can be used to power your GitHub Actions runners
+
+10
+00:00:27.000 --> 00:00:30.100
+and how to set up self-hosted runners to optimize your workflows.
+
+11
+00:00:30.400 --> 00:00:33.740
+I'm Luciano and today I'm joined by Eoin for another episode of AWS Bites.
+
+12
+00:00:38.120 --> 00:00:40.300
+AWS Bites is sponsored by fourTheorem,
+
+13
+00:00:40.480 --> 00:00:43.200
+an advanced AWS partner that works collaboratively with you
+
+14
+00:00:43.200 --> 00:00:45.620
+and sets you up for long-term success on AWS.
+
+15
+00:00:45.920 --> 00:00:48.040
+Find out more at fourtheorem.com.
+
+16
+00:00:48.240 --> 00:00:52.440
+So Eoin, let's maybe start by explaining what are GitHub Actions runners.
+
+17
+00:00:54.540 --> 00:00:57.520
+Well, a lot of people will know GitHub Actions as the fairly powerful automation tool integrated into GitHub
+
+18
+00:00:57.520 --> 00:01:00.880
+that allows you to automate tasks like testing, building,
+
+19
+00:01:01.100 --> 00:01:03.400
+deploying applications directly from their repositories.
+
+20
+00:01:03.800 --> 00:01:05.480
+It's become, I think, the leader.
+
+21
+00:01:05.620 --> 00:01:07.760
+Everybody's rushing to it in some form or another,
+
+22
+00:01:08.000 --> 00:01:12.040
+but it allows for custom workflows triggered by events like code commits,
+
+23
+00:01:12.440 --> 00:01:14.100
+pushes, pull requests and releases,
+
+24
+00:01:14.740 --> 00:01:17.800
+making CICD processes more streamlined and manageable.
+
+25
+00:01:18.320 --> 00:01:20.100
+There's a lot you can do with GitHub Actions,
+
+26
+00:01:20.100 --> 00:01:23.460
+but GitHub Action Runners are the underlying compute instances
+
+27
+00:01:23.460 --> 00:01:27.360
+that execute the jobs that are defined in GitHub Actions workflows.
+
+28
+00:01:27.680 --> 00:01:29.660
+Now, GitHub itself provides hosted runners
+
+29
+00:01:29.660 --> 00:01:32.140
+and you will see them used on open source projects
+
+30
+00:01:32.140 --> 00:01:34.080
+and anything on GitHub out there.
+
+31
+00:01:34.220 --> 00:01:37.000
+But users can actually also set up self-hosted runners,
+
+32
+00:01:37.360 --> 00:01:39.120
+giving them more control over the environment
+
+33
+00:01:39.120 --> 00:01:41.300
+and the software and the hardware.
+
+34
+00:01:41.580 --> 00:01:44.100
+So there are people out there using GitHub-hosted runners
+
+35
+00:01:44.100 --> 00:01:46.140
+and using self-hosted runners.
+
+36
+00:01:46.140 --> 00:01:49.880
+But why would you want to go to the trouble of running runners on AWS?
+
+37
+00:01:51.360 --> 00:01:54.340
+Yeah, before I answer that, one thing I want to mention as well is that I really like that
+
+38
+00:01:54.340 --> 00:01:57.200
+when you said events, that's really broad.
+
+39
+00:01:57.360 --> 00:01:59.820
+You can capture all sorts of events inside GitHub.
+
+40
+00:02:00.340 --> 00:02:01.740
+So if you use GitHub extensively,
+
+41
+00:02:01.900 --> 00:02:03.900
+maybe you even create, I don't know, software releases
+
+42
+00:02:03.900 --> 00:02:06.120
+or even track comments on PRs.
+
+43
+00:02:06.380 --> 00:02:07.500
+All of these things are events
+
+44
+00:02:07.500 --> 00:02:10.460
+and you can run workflows as a response to that event.
+
+45
+00:02:10.560 --> 00:02:12.960
+And I've seen lots of very interesting use cases.
+
+46
+00:02:13.120 --> 00:02:14.500
+Like recently, we use Release Please,
+
+47
+00:02:14.500 --> 00:02:16.740
+which is a tool that helps you to automate releases.
+
+48
+00:02:17.120 --> 00:02:19.220
+And it kind of uses all of these different events
+
+49
+00:02:19.220 --> 00:02:21.400
+when you create a PR, when you merge domain,
+
+50
+00:02:21.540 --> 00:02:23.240
+when people comment on your PRs
+
+51
+00:02:23.240 --> 00:02:26.420
+to kind of help you to automate most of the release workflow.
+
+52
+00:02:26.680 --> 00:02:28.820
+So this is just to mention that one more reason,
+
+53
+00:02:28.920 --> 00:02:31.160
+I think, why people are moving to GitHub Action
+
+54
+00:02:31.160 --> 00:02:33.020
+if they use GitHub as a repo.
+
+55
+00:02:33.540 --> 00:02:37.380
+And yeah, integrates well with all parts of the software,
+
+56
+00:02:37.520 --> 00:02:38.740
+like lifecycle management.
+
+57
+00:02:39.300 --> 00:02:41.000
+So yeah, to go back to your question,
+
+58
+00:02:41.120 --> 00:02:42.580
+why should you use runners on AWS?
+
+59
+00:02:42.580 --> 00:02:45.020
+We just mentioned that running self-hosted runners
+
+60
+00:02:45.020 --> 00:02:46.640
+means getting more control.
+
+61
+00:02:46.960 --> 00:02:50.580
+And some specific reasons why we should do that on AWS
+
+62
+00:02:50.580 --> 00:02:53.160
+is that if you're using AWS anyway,
+
+63
+00:02:53.400 --> 00:02:55.480
+you can leverage IAM permissions model.
+
+64
+00:02:55.660 --> 00:02:58.900
+So for instance, if you are maybe deploying stuff on AWS
+
+65
+00:02:58.900 --> 00:02:59.820
+from your workflows,
+
+66
+00:03:00.240 --> 00:03:03.260
+you can have all of these credentials set up in your runners.
+
+67
+00:03:03.620 --> 00:03:05.560
+And therefore, when your workflows are running,
+
+68
+00:03:05.700 --> 00:03:07.000
+they already are out and together
+
+69
+00:03:07.000 --> 00:03:08.720
+rather than using other mechanisms
+
+70
+00:03:08.720 --> 00:03:12.220
+to propagate credentials to the GitHub-hosted runners.
+
+71
+00:03:12.660 --> 00:03:13.960
+Another approach is that you...
+
+72
+00:03:13.960 --> 00:03:15.980
+Sorry, another reason is that your runners
+
+73
+00:03:15.980 --> 00:03:18.300
+are co-located within the infrastructure.
+
+74
+00:03:18.900 --> 00:03:20.900
+So at that point, if you have everything running on AWS,
+
+75
+00:03:21.180 --> 00:03:22.940
+most likely you're going to have lower latency.
+
+76
+00:03:23.540 --> 00:03:27.340
+And yeah, you can effectively use the same regions
+
+77
+00:03:27.340 --> 00:03:28.820
+that you use for your workloads.
+
+78
+00:03:29.160 --> 00:03:31.280
+And therefore, any action that you perform there,
+
+79
+00:03:31.360 --> 00:03:33.780
+deploying resources, connecting to specific resources
+
+80
+00:03:33.780 --> 00:03:35.900
+you might have available should be much faster
+
+81
+00:03:35.900 --> 00:03:40.340
+than just using the self-hosted one by GitHub,
+
+82
+00:03:40.680 --> 00:03:42.080
+which I believe run on Azure.
+
+83
+00:03:42.320 --> 00:03:44.100
+So it might be a totally different network
+
+84
+00:03:44.100 --> 00:03:45.140
+on a totally different region.
+
+85
+00:03:45.520 --> 00:03:47.360
+And therefore, you might see increased latency.
+
+86
+00:03:47.660 --> 00:03:48.260
+And another point,
+
+87
+00:03:48.400 --> 00:03:50.720
+which is probably the main one for people is cost.
+
+88
+00:03:50.940 --> 00:03:53.900
+Because of course, when you are hosting your own runners,
+
+89
+00:03:53.900 --> 00:03:56.800
+you can find lots of different ways to optimize for cost.
+
+90
+00:03:57.300 --> 00:04:02.620
+And effectively, when you use the hosted ones by GitHub,
+
+91
+00:04:02.620 --> 00:04:05.940
+you get a certain amount of free capacity.
+
+92
+00:04:06.260 --> 00:04:08.260
+But then at some point, you need to start paying.
+
+93
+00:04:08.820 --> 00:04:13.780
+And so when you host your own runners on AWS,
+
+94
+00:04:14.100 --> 00:04:15.860
+of course, you can pick specific instances
+
+95
+00:04:15.860 --> 00:04:16.920
+that can be cheaper.
+
+96
+00:04:17.460 --> 00:04:20.780
+You can switch instances on and off depending on capacity.
+
+97
+00:04:20.960 --> 00:04:22.320
+And therefore, you have more opportunities
+
+98
+00:04:22.320 --> 00:04:23.540
+to optimize for cost.
+
+99
+00:04:23.760 --> 00:04:25.240
+And one final reason is that sometimes
+
+100
+00:04:25.240 --> 00:04:26.740
+you might have special requirements
+
+101
+00:04:26.740 --> 00:04:28.900
+in terms of hardware or operative system.
+
+102
+00:04:29.460 --> 00:04:31.740
+Maybe you need a GPU to perform certain tasks.
+
+103
+00:04:31.740 --> 00:04:34.260
+So if you have control on the type of machines
+
+104
+00:04:34.260 --> 00:04:36.340
+where you are running your workflows,
+
+105
+00:04:36.500 --> 00:04:38.720
+of course, you can pick the more specialized hardware
+
+106
+00:04:38.720 --> 00:04:39.640
+that you might need.
+
+107
+00:04:39.900 --> 00:04:41.240
+So the next question is,
+
+108
+00:04:41.320 --> 00:04:42.440
+if all of that sounds appealing,
+
+109
+00:04:42.820 --> 00:04:45.640
+how do you do self-hosted runners on AWS?
+
+110
+00:04:46.040 --> 00:04:47.100
+Well, in general, right?
+
+111
+00:04:47.120 --> 00:04:48.860
+If you want to add self-hosted runners,
+
+112
+00:04:49.020 --> 00:04:50.820
+you can do it at an organization level
+
+113
+00:04:50.820 --> 00:04:52.900
+or for specific repositories.
+
+114
+00:04:53.220 --> 00:04:55.420
+And if you have like a GitHub enterprise level setup,
+
+115
+00:04:55.680 --> 00:04:56.920
+you can actually also add them
+
+116
+00:04:56.920 --> 00:04:59.140
+at the enterprise level for all organizations.
+
+117
+00:04:59.140 --> 00:05:01.880
+Now, to add a self-hosted runner in your GitHub setup,
+
+118
+00:05:02.040 --> 00:05:03.560
+you need to run the runner application
+
+119
+00:05:03.560 --> 00:05:05.060
+with which GitHub will provide.
+
+120
+00:05:05.360 --> 00:05:07.600
+And that can run on Linux, Windows, and macOS.
+
+121
+00:05:08.000 --> 00:05:11.480
+And it can run on x86-64 or ARM architectures.
+
+122
+00:05:12.060 --> 00:05:13.680
+Now, if you have existing machines,
+
+123
+00:05:13.780 --> 00:05:15.380
+you can just follow the guided process
+
+124
+00:05:15.380 --> 00:05:18.200
+through the repository organization runners option
+
+125
+00:05:18.200 --> 00:05:19.920
+in your GitHub console.
+
+126
+00:05:20.440 --> 00:05:21.880
+And there'll be a link to the documentation
+
+127
+00:05:21.880 --> 00:05:22.640
+there in the show notes.
+
+128
+00:05:23.220 --> 00:05:24.760
+Once you have that runner application running,
+
+129
+00:05:25.420 --> 00:05:27.340
+GitHub will tell you how to set it up with credentials
+
+130
+00:05:27.340 --> 00:05:29.240
+so that it could talk to GitHub.
+
+131
+00:05:29.480 --> 00:05:32.380
+It basically long poles GitHub for build events,
+
+132
+00:05:32.560 --> 00:05:34.000
+all those different event types you talked about,
+
+133
+00:05:34.300 --> 00:05:35.680
+and just starts builds as required,
+
+134
+00:05:35.940 --> 00:05:38.440
+sending the status and log information back to GitHub,
+
+135
+00:05:38.680 --> 00:05:41.240
+as well as like pulling and pushing cache data to GitHub.
+
+136
+00:05:41.480 --> 00:05:43.280
+You don't actually have to keep all of those runners
+
+137
+00:05:43.280 --> 00:05:44.060
+running all the time.
+
+138
+00:05:44.400 --> 00:05:45.760
+So you have options there.
+
+139
+00:05:45.920 --> 00:05:47.200
+You can have a small pool running
+
+140
+00:05:47.200 --> 00:05:49.460
+or even no runners running all the time at all.
+
+141
+00:05:49.460 --> 00:05:52.220
+GitHub allows you to then scale up by using webhooks
+
+142
+00:05:52.220 --> 00:05:54.420
+to let you know when a workflow job has been queued.
+
+143
+00:05:54.420 --> 00:05:56.460
+In the GitHub docs, you'll see that referred to
+
+144
+00:05:56.460 --> 00:05:57.800
+as ephemeral runners.
+
+145
+00:05:58.100 --> 00:05:59.800
+Now, ephemeral runners have the advantage
+
+146
+00:05:59.800 --> 00:06:01.900
+of just running one job generally at a time.
+
+147
+00:06:02.160 --> 00:06:04.820
+So you have build isolation and increased security
+
+148
+00:06:04.820 --> 00:06:06.940
+since a short-lived runner has less risk
+
+149
+00:06:06.940 --> 00:06:08.780
+of intrusion and data leakage.
+
+150
+00:06:09.000 --> 00:06:11.260
+So you can run the runner application on EC2,
+
+151
+00:06:11.660 --> 00:06:13.260
+on premises, in containers,
+
+152
+00:06:13.440 --> 00:06:16.320
+or even like on a fleet of Raspberry Pis under your bed.
+
+153
+00:06:16.780 --> 00:06:17.980
+The limit is just your imagination.
+
+154
+00:06:18.840 --> 00:06:20.920
+Now, a fairly common approach is to run it on Kubernetes.
+
+155
+00:06:21.280 --> 00:06:23.140
+There is an Actions Runner Controller
+
+156
+00:06:23.140 --> 00:06:25.440
+that helps with scaling and orchestrating runners as needed.
+
+157
+00:06:25.820 --> 00:06:26.560
+That's quite common.
+
+158
+00:06:26.840 --> 00:06:28.300
+If you are a Kubernetes shop
+
+159
+00:06:28.300 --> 00:06:30.100
+and you have a team to run and support that infrastructure,
+
+160
+00:06:30.720 --> 00:06:32.100
+this is a good option to follow.
+
+161
+00:06:32.100 --> 00:06:34.940
+But another common approach is just simply running on EC2.
+
+162
+00:06:35.260 --> 00:06:37.100
+So maybe we could talk, Luciano,
+
+163
+00:06:37.220 --> 00:06:38.500
+what are some of the options there?
+
+164
+00:06:38.640 --> 00:06:39.980
+You're thinking about running on EC2,
+
+165
+00:06:40.380 --> 00:06:41.900
+you just have to run this application.
+
+166
+00:06:42.180 --> 00:06:44.240
+But as we know, running a fleet of EC2 instances
+
+167
+00:06:44.240 --> 00:06:46.900
+and scaling up and down, not necessarily trivial.
+
+168
+00:06:47.140 --> 00:06:47.860
+What are our options?
+
+169
+00:06:48.200 --> 00:06:48.740
+Yeah, absolutely.
+
+170
+00:06:48.740 --> 00:06:51.920
+I agree that it's maybe something tempting
+
+171
+00:06:51.920 --> 00:06:54.280
+to start to set up everything from scratch.
+
+172
+00:06:54.560 --> 00:06:55.460
+You set up your own VPC,
+
+173
+00:06:55.880 --> 00:06:59.280
+you set up EC2 instances with auto-scaling rules,
+
+174
+00:06:59.420 --> 00:07:01.800
+but then over time, this is something you'll need to maintain.
+
+175
+00:07:02.000 --> 00:07:03.560
+And there is a lot of moving parts.
+
+176
+00:07:03.980 --> 00:07:05.520
+So it might become something that requires
+
+177
+00:07:05.520 --> 00:07:07.060
+a significant amount of maintenance.
+
+178
+00:07:07.400 --> 00:07:08.840
+And maybe at that point,
+
+179
+00:07:09.060 --> 00:07:10.380
+maybe you have many advantages,
+
+180
+00:07:10.600 --> 00:07:11.520
+but on the other side,
+
+181
+00:07:11.540 --> 00:07:13.320
+you need to consider the total cost of ownership
+
+182
+00:07:13.320 --> 00:07:15.040
+that is going to start to build up.
+
+183
+00:07:15.260 --> 00:07:16.560
+So be aware of all of that.
+
+184
+00:07:16.560 --> 00:07:18.740
+But thankfully, there are some solutions
+
+185
+00:07:18.740 --> 00:07:20.920
+that try to make all of this easier.
+
+186
+00:07:21.240 --> 00:07:24.720
+One is called HyperEnv for GitHub Actions Runner,
+
+187
+00:07:25.020 --> 00:07:28.420
+and it's produced by Andreas and Michael Wittig
+
+188
+00:07:28.420 --> 00:07:30.940
+from the Cloudonaut podcast as well.
+
+189
+00:07:31.040 --> 00:07:33.040
+We mentioned them a few times in some other episodes.
+
+190
+00:07:33.360 --> 00:07:34.560
+So definitely worth checking it out.
+
+191
+00:07:34.720 --> 00:07:37.260
+This is a product that you can find in the AWS marketplace,
+
+192
+00:07:37.640 --> 00:07:41.840
+and it manages all the scaling in and out of instances for you,
+
+193
+00:07:41.840 --> 00:07:43.900
+but lets you use your own AWS account
+
+194
+00:07:43.900 --> 00:07:45.900
+and runs EC2 instances on demand.
+
+195
+00:07:45.900 --> 00:07:48.140
+And you pay per vCPU minute.
+
+196
+00:07:48.940 --> 00:07:50.360
+There is a little fee, I mean,
+
+197
+00:07:50.420 --> 00:07:53.600
+that you pay on top per virtual CPU minute usage.
+
+198
+00:07:53.840 --> 00:07:55.980
+Another option that we discovered quite recently
+
+199
+00:07:55.980 --> 00:07:59.060
+is called runs-on.com or runs-on.
+
+200
+00:07:59.320 --> 00:08:01.660
+And it's quite similar to HyperEnv,
+
+201
+00:08:02.100 --> 00:08:05.720
+but it basically lets you run everything yourself.
+
+202
+00:08:05.900 --> 00:08:06.960
+You are using it commercially,
+
+203
+00:08:07.320 --> 00:08:08.660
+but basically you buy it
+
+204
+00:08:08.660 --> 00:08:11.840
+and then configure a license for a reasonable small fee.
+
+205
+00:08:11.840 --> 00:08:14.400
+And effectively, this can be a nice option
+
+206
+00:08:14.400 --> 00:08:15.980
+for non-commercial projects,
+
+207
+00:08:16.280 --> 00:08:19.680
+especially if you are looking for something
+
+208
+00:08:19.680 --> 00:08:21.600
+that allows you to drastically save cost.
+
+209
+00:08:21.800 --> 00:08:23.440
+One of these options may be something
+
+210
+00:08:23.440 --> 00:08:26.820
+that can help you to basically get the best of both worlds.
+
+211
+00:08:26.880 --> 00:08:29.140
+You are running and managing your own EC2 instances,
+
+212
+00:08:29.500 --> 00:08:32.940
+but with a limited amount of management effort on your side.
+
+213
+00:08:33.040 --> 00:08:33.760
+And at the same time,
+
+214
+00:08:33.760 --> 00:08:35.100
+it should help you to save cost
+
+215
+00:08:35.100 --> 00:08:38.380
+compared to the hosted option directly by GitHub.
+
+216
+00:08:38.380 --> 00:08:40.080
+The other question is like,
+
+217
+00:08:40.140 --> 00:08:41.660
+are you willing to pay another vendor?
+
+218
+00:08:41.960 --> 00:08:43.980
+Of course, this is something you need to commercially decide
+
+219
+00:08:43.980 --> 00:08:46.020
+if it's worth doing for you.
+
+220
+00:08:46.340 --> 00:08:47.360
+But yeah, on the other side,
+
+221
+00:08:47.400 --> 00:08:49.160
+you are buying more control and flexibility.
+
+222
+00:08:49.660 --> 00:08:50.660
+And there is another option,
+
+223
+00:08:50.800 --> 00:08:54.540
+of course, we mentioned already in the intro
+
+224
+00:08:54.540 --> 00:08:56.140
+that is using CodeBuild.
+
+225
+00:08:56.460 --> 00:08:57.960
+So what about CodeBuild?
+
+226
+00:08:58.120 --> 00:08:59.880
+Is it a good option, a bad option?
+
+227
+00:08:59.980 --> 00:09:01.940
+Is it easy or difficult to set up?
+
+228
+00:09:02.100 --> 00:09:02.820
+Well, that's a good question.
+
+229
+00:09:02.980 --> 00:09:05.160
+I mean, it's one that really intrigued me
+
+230
+00:09:05.160 --> 00:09:07.180
+when they announced that you could do this last year.
+
+231
+00:09:07.180 --> 00:09:10.220
+First, CodeBuild, for anyone who isn't really familiar with it,
+
+232
+00:09:10.300 --> 00:09:11.740
+because I think a lot of people have given CodeBuild
+
+233
+00:09:11.740 --> 00:09:12.740
+a bit of a pass,
+
+234
+00:09:13.480 --> 00:09:16.200
+it's AWS's continuous integration service.
+
+235
+00:09:16.600 --> 00:09:18.700
+And it lets you run, build, and test workloads
+
+236
+00:09:18.700 --> 00:09:19.700
+on lots of different compute types.
+
+237
+00:09:20.020 --> 00:09:22.940
+It's been around a good while and is fairly mature.
+
+238
+00:09:23.560 --> 00:09:25.780
+It doesn't have the workflow and orchestration support
+
+239
+00:09:25.780 --> 00:09:27.680
+that you get with things like GitHub Actions,
+
+240
+00:09:27.820 --> 00:09:29.560
+GitLab CI, or say CircleCI.
+
+241
+00:09:29.900 --> 00:09:32.880
+But I think it's quite underappreciated, actually, CodeBuild,
+
+242
+00:09:32.960 --> 00:09:34.920
+because it's quite simple in what it can do,
+
+243
+00:09:34.980 --> 00:09:35.760
+but it's really powerful.
+
+244
+00:09:35.760 --> 00:09:38.800
+It doesn't let you orchestrate workflows
+
+245
+00:09:38.800 --> 00:09:40.840
+like those other tools do, as I mentioned,
+
+246
+00:09:41.120 --> 00:09:43.080
+but AWS has a separate service for that,
+
+247
+00:09:43.200 --> 00:09:44.560
+which isn't as good, I would say,
+
+248
+00:09:44.620 --> 00:09:45.680
+which is CodePipeline.
+
+249
+00:09:46.040 --> 00:09:47.920
+Now, you can check out episode 44 on that
+
+250
+00:09:47.920 --> 00:09:50.560
+when we did kind of a CodePipeline
+
+251
+00:09:50.560 --> 00:09:52.060
+versus GitHub Actions episode.
+
+252
+00:09:52.840 --> 00:09:54.820
+But CodeBuild itself is quite powerful, right?
+
+253
+00:09:54.840 --> 00:09:56.000
+It supports Linux, Windows.
+
+254
+00:09:56.340 --> 00:09:57.180
+You can do Android builds.
+
+255
+00:09:57.280 --> 00:09:58.300
+You can do macOS builds.
+
+256
+00:09:58.420 --> 00:10:00.120
+And you can run really large instances
+
+257
+00:10:00.120 --> 00:10:03.380
+like with 72 vCPUs and 145 gigs of RAM.
+
+258
+00:10:03.380 --> 00:10:05.380
+You can do ARM and x86 on it.
+
+259
+00:10:05.620 --> 00:10:07.360
+And recently, it has added the ability
+
+260
+00:10:07.360 --> 00:10:09.660
+to run on AWS Lambda under the hood,
+
+261
+00:10:09.860 --> 00:10:11.380
+which can make scale up much faster
+
+262
+00:10:11.380 --> 00:10:12.880
+if your build is suitable for Lambda.
+
+263
+00:10:13.120 --> 00:10:14.520
+And it even has GPU support.
+
+264
+00:10:14.640 --> 00:10:16.320
+So it's useful for training and inference
+
+265
+00:10:16.320 --> 00:10:17.560
+in your builds as well.
+
+266
+00:10:18.120 --> 00:10:20.240
+So it doesn't have to be a choice of CodeBuild
+
+267
+00:10:20.240 --> 00:10:21.920
+or GitHub Actions these days.
+
+268
+00:10:21.920 --> 00:10:24.760
+Because CodeBuild now has support for GitHub Actions,
+
+269
+00:10:25.060 --> 00:10:26.920
+that means you can actually use CodeBuild
+
+270
+00:10:26.920 --> 00:10:29.080
+as your runners and get all the orchestration
+
+271
+00:10:29.080 --> 00:10:30.080
+and all the integration
+
+272
+00:10:30.080 --> 00:10:31.560
+and all of the action support
+
+273
+00:10:31.560 --> 00:10:33.380
+from the whole GitHub Actions ecosystem.
+
+274
+00:10:34.020 --> 00:10:36.360
+But surprisingly, it's not very complex.
+
+275
+00:10:36.660 --> 00:10:38.340
+In fact, it's a very small amount of work
+
+276
+00:10:38.340 --> 00:10:39.220
+to set this up.
+
+277
+00:10:39.480 --> 00:10:40.980
+And I think people should really try it
+
+278
+00:10:40.980 --> 00:10:42.460
+if they're looking at one of these options
+
+279
+00:10:42.460 --> 00:10:44.300
+and thinking, how can I improve cost,
+
+280
+00:10:44.380 --> 00:10:45.620
+get better integration with AWS
+
+281
+00:10:45.620 --> 00:10:46.780
+in my GitHub Actions?
+
+282
+00:10:46.940 --> 00:10:48.720
+I'd definitely say, give this a try.
+
+283
+00:10:48.900 --> 00:10:49.680
+And we have some help,
+
+284
+00:10:49.780 --> 00:10:51.240
+lots of resources for you to check out.
+
+285
+00:10:51.240 --> 00:10:52.760
+There are plenty of subtle things
+
+286
+00:10:52.760 --> 00:10:53.700
+that can go wrong in the setup.
+
+287
+00:10:53.860 --> 00:10:55.060
+So we will share a code example
+
+288
+00:10:55.060 --> 00:10:56.160
+that will help here,
+
+289
+00:10:56.260 --> 00:10:57.720
+as well as some repositories
+
+290
+00:10:57.720 --> 00:10:58.720
+that other people have created
+
+291
+00:10:58.720 --> 00:11:00.680
+that will help you to get it right first time,
+
+292
+00:11:00.880 --> 00:11:01.340
+not like us.
+
+293
+00:11:02.460 --> 00:11:03.740
+So the first thing you need to do
+
+294
+00:11:03.740 --> 00:11:05.500
+is to configure authorization for CodeBuild
+
+295
+00:11:05.500 --> 00:11:07.360
+to connect to your GitHub account,
+
+296
+00:11:07.560 --> 00:11:09.180
+like be it a repo, an organization,
+
+297
+00:11:09.280 --> 00:11:10.020
+or your whole enterprise.
+
+298
+00:11:10.680 --> 00:11:11.800
+Now there's three ways of doing that.
+
+299
+00:11:11.960 --> 00:11:13.200
+You can use OAuth in the console,
+
+300
+00:11:13.580 --> 00:11:15.020
+you can use a personal access token,
+
+301
+00:11:15.140 --> 00:11:16.840
+or you can use CodeConnections.
+
+302
+00:11:17.440 --> 00:11:19.000
+I prefer the CodeConnections approach,
+
+303
+00:11:19.000 --> 00:11:21.180
+keeping personal access tokens up to date
+
+304
+00:11:21.180 --> 00:11:22.560
+and securing them and sharing them
+
+305
+00:11:22.560 --> 00:11:23.860
+is something I'd rather avoid.
+
+306
+00:11:24.260 --> 00:11:26.240
+So CodeConnections is a method
+
+307
+00:11:26.240 --> 00:11:27.440
+that uses GitHub apps,
+
+308
+00:11:27.740 --> 00:11:29.780
+and AWS basically automates the process
+
+309
+00:11:29.780 --> 00:11:31.160
+of installing a GitHub app
+
+310
+00:11:31.160 --> 00:11:32.400
+into your GitHub account
+
+311
+00:11:32.400 --> 00:11:34.300
+that has the right permissions for the repos.
+
+312
+00:11:34.740 --> 00:11:35.900
+And you can create this
+
+313
+00:11:35.900 --> 00:11:36.800
+with infrastructure as code.
+
+314
+00:11:37.020 --> 00:11:37.940
+So in our code example,
+
+315
+00:11:38.040 --> 00:11:38.940
+that will link in the show notes,
+
+316
+00:11:39.200 --> 00:11:41.600
+it'll create your CodeConnection.
+
+317
+00:11:41.860 --> 00:11:43.500
+This used to be known as CodeStar Connections.
+
+318
+00:11:43.740 --> 00:11:45.240
+So you will see in the documentation
+
+319
+00:11:45.240 --> 00:11:46.260
+both terms being used.
+
+320
+00:11:46.420 --> 00:11:47.220
+And that basically creates
+
+321
+00:11:47.220 --> 00:11:48.940
+this connection resource in a pending state.
+
+322
+00:11:48.940 --> 00:11:50.440
+You then need to go into the console
+
+323
+00:11:50.440 --> 00:11:52.220
+and activate it and link it
+
+324
+00:11:52.220 --> 00:11:53.580
+into your GitHub account
+
+325
+00:11:53.580 --> 00:11:54.480
+with an OAuth flow.
+
+326
+00:11:54.680 --> 00:11:55.920
+And you just need to do this once.
+
+327
+00:11:56.280 --> 00:11:57.320
+If you've already done it,
+
+328
+00:11:57.320 --> 00:11:58.600
+you can just reuse an existing one.
+
+329
+00:11:58.700 --> 00:12:00.420
+So once you have that CodeConnection set up,
+
+330
+00:12:00.560 --> 00:12:01.440
+then you can actually create
+
+331
+00:12:01.440 --> 00:12:02.320
+a code build project.
+
+332
+00:12:02.600 --> 00:12:03.780
+And the code build project creation
+
+333
+00:12:03.780 --> 00:12:04.900
+is pretty simple.
+
+334
+00:12:05.320 --> 00:12:06.680
+There are a few gotchas
+
+335
+00:12:06.680 --> 00:12:07.360
+with the documentation.
+
+336
+00:12:08.360 --> 00:12:10.400
+So again, look at our code examples.
+
+337
+00:12:10.680 --> 00:12:11.920
+Hopefully it'll make it easier for you.
+
+338
+00:12:12.040 --> 00:12:13.200
+You just need to set up your source.
+
+339
+00:12:13.540 --> 00:12:14.740
+Normally with code build projects,
+
+340
+00:12:14.960 --> 00:12:16.240
+you're linking it to a repo,
+
+341
+00:12:16.240 --> 00:12:18.940
+but you can also make it a generic one
+
+342
+00:12:18.940 --> 00:12:20.360
+that isn't linked to a specific repo,
+
+343
+00:12:20.500 --> 00:12:22.380
+but instead is linked to your organization.
+
+344
+00:12:22.620 --> 00:12:23.920
+And then you just set your authorizer
+
+345
+00:12:23.920 --> 00:12:25.420
+to the CodeConnection ARN
+
+346
+00:12:25.420 --> 00:12:26.340
+you've just created.
+
+347
+00:12:26.580 --> 00:12:28.020
+You need to enable webhook triggers
+
+348
+00:12:28.020 --> 00:12:30.440
+so that it can create GitHub webhooks
+
+349
+00:12:30.440 --> 00:12:32.200
+and link AWS and GitHub together.
+
+350
+00:12:32.380 --> 00:12:34.520
+And then you'll need your IAM role as normal.
+
+351
+00:12:34.840 --> 00:12:35.720
+And that'll need permissions
+
+352
+00:12:35.720 --> 00:12:36.980
+to access CodeConnection,
+
+353
+00:12:37.460 --> 00:12:38.120
+CloudWatch logs,
+
+354
+00:12:38.180 --> 00:12:39.220
+and whatever else you might need
+
+355
+00:12:39.220 --> 00:12:39.820
+for your scenario.
+
+356
+00:12:40.080 --> 00:12:41.140
+So this is one of the advantages
+
+357
+00:12:41.140 --> 00:12:42.800
+is that rather than having to do
+
+358
+00:12:42.800 --> 00:12:44.740
+an OIDC integration
+
+359
+00:12:44.740 --> 00:12:46.360
+or some vault shenanigans,
+
+360
+00:12:46.740 --> 00:12:48.020
+you can just use IAM
+
+361
+00:12:48.020 --> 00:12:48.940
+for your permissions
+
+362
+00:12:48.940 --> 00:12:50.180
+in your code build job.
+
+363
+00:12:50.300 --> 00:12:50.820
+And you can still do
+
+364
+00:12:50.820 --> 00:12:51.900
+all those other methods as well,
+
+365
+00:12:51.940 --> 00:12:52.220
+of course.
+
+366
+00:12:52.940 --> 00:12:53.980
+In your build project,
+
+367
+00:12:53.980 --> 00:12:55.980
+you can also set the default compute type,
+
+368
+00:12:56.200 --> 00:12:57.160
+like the operating system,
+
+369
+00:12:57.500 --> 00:12:58.100
+container image,
+
+370
+00:12:58.380 --> 00:12:59.280
+the CPU architecture,
+
+371
+00:12:59.540 --> 00:13:00.440
+and whether you're using
+
+372
+00:13:00.440 --> 00:13:02.540
+standard Linux or AWS Lambda.
+
+373
+00:13:02.740 --> 00:13:04.140
+The nice thing here, however,
+
+374
+00:13:04.200 --> 00:13:05.000
+is that you can actually
+
+375
+00:13:05.000 --> 00:13:06.260
+override those values
+
+376
+00:13:06.260 --> 00:13:08.380
+in your GitHub workflow YAML files as well.
+
+377
+00:13:08.520 --> 00:13:09.980
+And you can switch the instance size
+
+378
+00:13:09.980 --> 00:13:11.560
+and the operating system as needed.
+
+379
+00:13:11.560 --> 00:13:13.100
+And you can even do matrix builds
+
+380
+00:13:13.100 --> 00:13:15.600
+with all the different CPU architectures
+
+381
+00:13:15.600 --> 00:13:17.280
+and operating systems too.
+
+382
+00:13:17.480 --> 00:13:19.900
+And then you can set a build concurrency
+
+383
+00:13:19.900 --> 00:13:20.600
+within your project.
+
+384
+00:13:20.860 --> 00:13:21.480
+It is worth mentioning
+
+385
+00:13:21.480 --> 00:13:22.640
+that the default code build
+
+386
+00:13:22.640 --> 00:13:23.860
+concurrency limits are quite low,
+
+387
+00:13:24.040 --> 00:13:24.940
+like sometimes one.
+
+388
+00:13:25.280 --> 00:13:26.600
+So that's a soft limit.
+
+389
+00:13:26.820 --> 00:13:28.140
+You just need to go into the service quote
+
+390
+00:13:28.140 --> 00:13:29.360
+as part of the AWS console
+
+391
+00:13:29.360 --> 00:13:30.420
+and request one.
+
+392
+00:13:30.620 --> 00:13:31.620
+They're just trying to save you
+
+393
+00:13:31.620 --> 00:13:32.580
+from running up a big build.
+
+394
+00:13:32.940 --> 00:13:35.020
+Now, the code build project name
+
+395
+00:13:35.020 --> 00:13:36.120
+you give is important
+
+396
+00:13:36.120 --> 00:13:37.380
+as this is what links it
+
+397
+00:13:37.380 --> 00:13:38.700
+to your GitHub workflow YAML.
+
+398
+00:13:38.980 --> 00:13:39.740
+So in your workflow,
+
+399
+00:13:39.940 --> 00:13:41.160
+you just set your runs on.
+
+400
+00:13:41.160 --> 00:13:42.780
+If you've used self-hosted runners,
+
+401
+00:13:42.900 --> 00:13:44.120
+you'll be used to setting runs
+
+402
+00:13:44.120 --> 00:13:45.400
+on something like self-hosted.
+
+403
+00:13:45.620 --> 00:13:46.120
+That's a property
+
+404
+00:13:46.120 --> 00:13:47.060
+in your workflow YAML.
+
+405
+00:13:47.340 --> 00:13:48.140
+And you just need to use
+
+406
+00:13:48.140 --> 00:13:48.800
+a special syntax,
+
+407
+00:13:48.920 --> 00:13:49.760
+which is like code build
+
+408
+00:13:49.760 --> 00:13:51.080
+dash project name dash
+
+409
+00:13:51.080 --> 00:13:52.180
+a couple of variables
+
+410
+00:13:52.180 --> 00:13:53.700
+that come from your GitHub run.
+
+411
+00:13:53.980 --> 00:13:55.280
+And then you just use
+
+412
+00:13:55.280 --> 00:13:56.580
+your GitHub actions as normal, right?
+
+413
+00:13:56.620 --> 00:13:57.820
+You'll commit this workflow.
+
+414
+00:13:58.100 --> 00:13:58.900
+It should start running
+
+415
+00:13:58.900 --> 00:14:00.500
+directly on code build.
+
+416
+00:14:00.760 --> 00:14:02.020
+Your actions should look like
+
+417
+00:14:02.020 --> 00:14:03.320
+any other GitHub actions running
+
+418
+00:14:03.320 --> 00:14:04.520
+and your pull requests
+
+419
+00:14:04.520 --> 00:14:05.200
+and deployments
+
+420
+00:14:05.200 --> 00:14:06.880
+are all running in GitHub actions.
+
+421
+00:14:06.880 --> 00:14:08.460
+But the actual build
+
+422
+00:14:08.460 --> 00:14:09.800
+is running on code build.
+
+423
+00:14:10.080 --> 00:14:11.460
+And your GitHub action caches,
+
+424
+00:14:11.620 --> 00:14:12.220
+as we mentioned,
+
+425
+00:14:12.420 --> 00:14:13.020
+are still there.
+
+426
+00:14:13.220 --> 00:14:13.720
+Might be worthwhile
+
+427
+00:14:13.720 --> 00:14:15.420
+talking about why you'd use
+
+428
+00:14:15.420 --> 00:14:17.540
+code build for GitHub actions.
+
+429
+00:14:17.940 --> 00:14:19.060
+I'd say like we talked about
+
+430
+00:14:19.060 --> 00:14:19.560
+some of the reasons
+
+431
+00:14:19.560 --> 00:14:20.380
+for running on AWS,
+
+432
+00:14:20.640 --> 00:14:21.820
+but for code build specifically,
+
+433
+00:14:22.060 --> 00:14:22.800
+I was generally
+
+434
+00:14:22.800 --> 00:14:23.860
+pretty impressed by it.
+
+435
+00:14:24.040 --> 00:14:25.100
+It's quite simple to set up
+
+436
+00:14:25.100 --> 00:14:26.100
+and gives you a lot of flexibility.
+
+437
+00:14:26.460 --> 00:14:27.480
+Setting up all the stuff
+
+438
+00:14:27.480 --> 00:14:28.180
+on EC2,
+
+439
+00:14:28.580 --> 00:14:29.780
+managing a third party vendor,
+
+440
+00:14:30.140 --> 00:14:31.060
+another one
+
+441
+00:14:31.060 --> 00:14:32.380
+might be a bit of friction
+
+442
+00:14:32.380 --> 00:14:33.520
+for you and your organization
+
+443
+00:14:33.520 --> 00:14:34.060
+to do that.
+
+444
+00:14:34.060 --> 00:14:35.080
+So code build is definitely
+
+445
+00:14:35.080 --> 00:14:35.800
+worth checking out.
+
+446
+00:14:36.000 --> 00:14:37.320
+So if you have like a VPC
+
+447
+00:14:37.320 --> 00:14:38.140
+in AWS
+
+448
+00:14:38.140 --> 00:14:39.380
+and you want your build environment
+
+449
+00:14:39.380 --> 00:14:40.200
+to access this network
+
+450
+00:14:40.200 --> 00:14:40.820
+and keep everything
+
+451
+00:14:40.820 --> 00:14:42.520
+within that AWS network boundary,
+
+452
+00:14:42.720 --> 00:14:43.460
+code build is a good way
+
+453
+00:14:43.460 --> 00:14:43.860
+to do that.
+
+454
+00:14:44.060 --> 00:14:44.540
+If you want to use
+
+455
+00:14:44.540 --> 00:14:45.500
+IAM roles for permissions
+
+456
+00:14:45.500 --> 00:14:46.720
+and don't want to use
+
+457
+00:14:46.720 --> 00:14:48.400
+the OIDC credentials flow
+
+458
+00:14:48.400 --> 00:14:49.160
+or something else,
+
+459
+00:14:49.500 --> 00:14:50.060
+that's a good reason
+
+460
+00:14:50.060 --> 00:14:50.640
+to use code build.
+
+461
+00:14:51.020 --> 00:14:52.080
+Or maybe you've already
+
+462
+00:14:52.080 --> 00:14:52.920
+got GitHub runners
+
+463
+00:14:52.920 --> 00:14:54.040
+and you're just struggling
+
+464
+00:14:54.040 --> 00:14:54.840
+to cope with capacity.
+
+465
+00:14:55.040 --> 00:14:55.920
+So you'd want some extra
+
+466
+00:14:55.920 --> 00:14:57.460
+on-demand paper use capacity
+
+467
+00:14:57.460 --> 00:14:58.240
+and you can just add
+
+468
+00:14:58.240 --> 00:14:58.760
+some code build
+
+469
+00:14:58.760 --> 00:14:59.500
+into the mix as well.
+
+470
+00:14:59.580 --> 00:15:00.580
+Or you might actually have
+
+471
+00:15:00.580 --> 00:15:01.980
+reserved code build capacity
+
+472
+00:15:01.980 --> 00:15:02.980
+because you can use,
+
+473
+00:15:03.240 --> 00:15:03.860
+you can create
+
+474
+00:15:03.860 --> 00:15:05.380
+code build reserved capacity
+
+475
+00:15:05.380 --> 00:15:06.420
+fleets that are cheaper
+
+476
+00:15:06.420 --> 00:15:08.260
+and always available for you
+
+477
+00:15:08.260 --> 00:15:09.060
+and you could utilize
+
+478
+00:15:09.060 --> 00:15:10.460
+those in your actions as well.
+
+479
+00:15:10.580 --> 00:15:11.320
+Should we describe
+
+480
+00:15:11.320 --> 00:15:13.180
+our experience in general?
+
+481
+00:15:13.280 --> 00:15:14.280
+We have our code repository.
+
+482
+00:15:14.660 --> 00:15:15.480
+What do you think, Luciano?
+
+483
+00:15:15.660 --> 00:15:16.880
+How would you assess it?
+
+484
+00:15:17.920 --> 00:15:18.740
+Yeah, I think we spent some time experimenting
+
+485
+00:15:18.740 --> 00:15:19.560
+with this
+
+486
+00:15:19.560 --> 00:15:21.460
+and getting to understand
+
+487
+00:15:21.460 --> 00:15:22.000
+the limitations.
+
+488
+00:15:22.900 --> 00:15:23.560
+We, as you said,
+
+489
+00:15:23.620 --> 00:15:24.320
+we have a link
+
+490
+00:15:24.320 --> 00:15:24.960
+to our repo
+
+491
+00:15:24.960 --> 00:15:25.620
+in the show notes.
+
+492
+00:15:25.760 --> 00:15:26.500
+So definitely worth
+
+493
+00:15:26.500 --> 00:15:27.280
+checking that out
+
+494
+00:15:27.280 --> 00:15:28.140
+to see exactly
+
+495
+00:15:28.140 --> 00:15:29.100
+what did we try.
+
+496
+00:15:29.560 --> 00:15:30.240
+And this repo
+
+497
+00:15:30.240 --> 00:15:31.620
+contains a CDK stack
+
+498
+00:15:31.620 --> 00:15:32.520
+that sets up
+
+499
+00:15:32.520 --> 00:15:33.420
+everything for you,
+
+500
+00:15:33.580 --> 00:15:34.140
+which means
+
+501
+00:15:34.140 --> 00:15:34.800
+it's going to create
+
+502
+00:15:34.800 --> 00:15:35.580
+the CodeConnection,
+
+503
+00:15:35.900 --> 00:15:37.780
+it's going to create
+
+504
+00:15:37.780 --> 00:15:39.420
+two different code build projects.
+
+505
+00:15:39.660 --> 00:15:40.340
+One is using
+
+506
+00:15:40.340 --> 00:15:41.940
+a small size code build runner
+
+507
+00:15:41.940 --> 00:15:43.120
+and another one
+
+508
+00:15:43.120 --> 00:15:44.180
+is using Lambda runners
+
+509
+00:15:44.180 --> 00:15:45.920
+with four gigabytes of RAM.
+
+510
+00:15:46.020 --> 00:15:47.040
+So you can see effectively
+
+511
+00:15:47.040 --> 00:15:47.900
+that the difference
+
+512
+00:15:47.900 --> 00:15:48.580
+between the two
+
+513
+00:15:48.580 --> 00:15:49.480
+when you run
+
+514
+00:15:49.480 --> 00:15:50.340
+this particular stack
+
+515
+00:15:50.340 --> 00:15:51.140
+or maybe you can use it
+
+516
+00:15:51.140 --> 00:15:51.680
+as a reference
+
+517
+00:15:51.680 --> 00:15:52.560
+and just pick one
+
+518
+00:15:52.560 --> 00:15:53.040
+or the other
+
+519
+00:15:53.040 --> 00:15:53.760
+and copy paste
+
+520
+00:15:53.760 --> 00:15:54.720
+that particular piece
+
+521
+00:15:54.720 --> 00:15:55.180
+of configuration
+
+522
+00:15:55.180 --> 00:15:56.060
+into your own
+
+523
+00:15:56.060 --> 00:15:56.780
+specific project.
+
+524
+00:15:57.000 --> 00:15:57.300
+To be fair,
+
+525
+00:15:57.380 --> 00:15:58.100
+getting the configuration
+
+526
+00:15:58.100 --> 00:15:59.340
+right was a little bit
+
+527
+00:15:59.340 --> 00:15:59.760
+challenging.
+
+528
+00:16:00.060 --> 00:16:00.560
+The documentation
+
+529
+00:16:00.560 --> 00:16:01.960
+isn't too bad,
+
+530
+00:16:02.300 --> 00:16:03.380
+but it doesn't cover
+
+531
+00:16:03.380 --> 00:16:04.880
+all the configuration options,
+
+532
+00:16:05.060 --> 00:16:05.760
+particularly if you want
+
+533
+00:16:05.760 --> 00:16:06.380
+to set it up
+
+534
+00:16:06.380 --> 00:16:07.520
+for an organization
+
+535
+00:16:07.520 --> 00:16:08.120
+and not just
+
+536
+00:16:08.120 --> 00:16:09.020
+for a single repository.
+
+537
+00:16:09.460 --> 00:16:10.140
+I think there are
+
+538
+00:16:10.140 --> 00:16:11.340
+some blind spots there
+
+539
+00:16:11.340 --> 00:16:12.320
+and we were left
+
+540
+00:16:12.320 --> 00:16:13.200
+to figure it out
+
+541
+00:16:13.200 --> 00:16:14.420
+exactly how to do it.
+
+542
+00:16:14.560 --> 00:16:15.500
+Not the end of the world.
+
+543
+00:16:15.580 --> 00:16:16.140
+I think eventually
+
+544
+00:16:16.140 --> 00:16:16.900
+we figure it out,
+
+545
+00:16:17.000 --> 00:16:17.800
+but just something
+
+546
+00:16:17.800 --> 00:16:18.540
+that can be maybe
+
+547
+00:16:18.540 --> 00:16:19.240
+improved on.
+
+548
+00:16:19.400 --> 00:16:20.540
+So if someone from AWS
+
+549
+00:16:20.540 --> 00:16:21.120
+is listening,
+
+550
+00:16:21.440 --> 00:16:22.300
+please make that
+
+551
+00:16:22.300 --> 00:16:23.020
+a little bit better
+
+552
+00:16:23.020 --> 00:16:24.540
+for future users.
+
+553
+00:16:24.540 --> 00:16:25.500
+So the examples
+
+554
+00:16:25.500 --> 00:16:26.940
+also don't provide
+
+555
+00:16:26.940 --> 00:16:28.160
+a good CloudFormation,
+
+556
+00:16:28.160 --> 00:16:29.820
+CDK or Terraform example.
+
+557
+00:16:30.000 --> 00:16:30.380
+So it's,
+
+558
+00:16:30.860 --> 00:16:31.440
+as always,
+
+559
+00:16:31.520 --> 00:16:32.400
+a little bit more
+
+560
+00:16:32.400 --> 00:16:33.740
+you go in the web UI
+
+561
+00:16:33.740 --> 00:16:35.220
+and click stuff around,
+
+562
+00:16:35.480 --> 00:16:35.940
+which I mean,
+
+563
+00:16:36.000 --> 00:16:37.240
+it's a good way
+
+564
+00:16:37.240 --> 00:16:37.820
+of starting,
+
+565
+00:16:38.000 --> 00:16:38.900
+but in general,
+
+566
+00:16:39.180 --> 00:16:40.060
+we all know
+
+567
+00:16:40.060 --> 00:16:40.560
+that it's better
+
+568
+00:16:40.560 --> 00:16:41.140
+to do things
+
+569
+00:16:41.140 --> 00:16:42.140
+in infrastructure as code.
+
+570
+00:16:42.480 --> 00:16:43.120
+So it would be nice
+
+571
+00:16:43.120 --> 00:16:43.840
+to start to see
+
+572
+00:16:43.840 --> 00:16:44.880
+more examples
+
+573
+00:16:44.880 --> 00:16:45.720
+in that direction
+
+574
+00:16:45.720 --> 00:16:46.480
+coming directly
+
+575
+00:16:46.480 --> 00:16:47.600
+from the official documentation.
+
+576
+00:16:48.020 --> 00:16:48.400
+Of course,
+
+577
+00:16:48.580 --> 00:16:49.140
+the community
+
+578
+00:16:49.140 --> 00:16:49.900
+is always great.
+
+579
+00:16:50.120 --> 00:16:50.860
+There are other people
+
+580
+00:16:50.860 --> 00:16:51.640
+that have tried
+
+581
+00:16:51.640 --> 00:16:52.940
+things like this already
+
+582
+00:16:52.940 --> 00:16:53.780
+and they have shared
+
+583
+00:16:53.780 --> 00:16:54.600
+their own solutions
+
+584
+00:16:54.600 --> 00:16:56.240
+and you can find
+
+585
+00:16:56.240 --> 00:16:57.720
+examples using Terraform
+
+586
+00:16:57.720 --> 00:16:59.060
+or even CDK-TF.
+
+587
+00:16:59.640 --> 00:17:00.780
+So it was easy
+
+588
+00:17:00.780 --> 00:17:01.980
+to just look at those
+
+589
+00:17:01.980 --> 00:17:03.120
+and try to figure out
+
+590
+00:17:03.120 --> 00:17:04.500
+exactly what we were doing wrong
+
+591
+00:17:04.500 --> 00:17:05.780
+and what we should change
+
+592
+00:17:05.780 --> 00:17:06.280
+in our setup.
+
+593
+00:17:06.480 --> 00:17:07.460
+We will have some links
+
+594
+00:17:07.460 --> 00:17:08.760
+for other repos
+
+595
+00:17:08.760 --> 00:17:09.820
+as well in the show notes.
+
+596
+00:17:10.000 --> 00:17:11.020
+In terms of performance,
+
+597
+00:17:11.160 --> 00:17:11.580
+the performance
+
+598
+00:17:11.580 --> 00:17:12.600
+that we saw
+
+599
+00:17:12.600 --> 00:17:13.620
+was actually pretty good,
+
+600
+00:17:14.020 --> 00:17:15.560
+but not as fast
+
+601
+00:17:15.560 --> 00:17:16.480
+as you will get
+
+602
+00:17:16.480 --> 00:17:17.600
+with runners
+
+603
+00:17:17.600 --> 00:17:18.580
+that are always running
+
+604
+00:17:18.580 --> 00:17:19.640
+directly on GitHub.
+
+605
+00:17:20.380 --> 00:17:21.220
+That's especially
+
+606
+00:17:21.220 --> 00:17:21.820
+the latency
+
+607
+00:17:21.820 --> 00:17:22.500
+to start
+
+608
+00:17:22.500 --> 00:17:24.040
+a new workflow.
+
+609
+00:17:24.500 --> 00:17:24.900
+In general,
+
+610
+00:17:24.900 --> 00:17:25.900
+we saw about
+
+611
+00:17:25.900 --> 00:17:26.540
+30 seconds
+
+612
+00:17:26.540 --> 00:17:27.220
+of overhead
+
+613
+00:17:27.220 --> 00:17:28.400
+just to start
+
+614
+00:17:28.400 --> 00:17:29.320
+a new run
+
+615
+00:17:29.320 --> 00:17:30.340
+of a specific workflow.
+
+616
+00:17:30.840 --> 00:17:31.280
+And we tested
+
+617
+00:17:31.280 --> 00:17:32.500
+with a very simple workflow
+
+618
+00:17:32.500 --> 00:17:33.160
+that just did
+
+619
+00:17:33.160 --> 00:17:34.400
+60 seconds of sleep
+
+620
+00:17:34.400 --> 00:17:35.280
+and the minimum
+
+621
+00:17:35.280 --> 00:17:36.000
+end-to-end time
+
+622
+00:17:36.000 --> 00:17:36.680
+that we observed
+
+623
+00:17:36.680 --> 00:17:37.460
+was 90 seconds.
+
+624
+00:17:37.560 --> 00:17:38.120
+So this is how
+
+625
+00:17:38.120 --> 00:17:38.640
+we noticed
+
+626
+00:17:38.640 --> 00:17:39.560
+that there was
+
+627
+00:17:39.560 --> 00:17:40.200
+some delay
+
+628
+00:17:40.200 --> 00:17:41.500
+just outside
+
+629
+00:17:41.500 --> 00:17:43.260
+our business logic
+
+630
+00:17:43.260 --> 00:17:44.420
+for the workflow itself.
+
+631
+00:17:44.920 --> 00:17:45.300
+Of course,
+
+632
+00:17:45.360 --> 00:17:45.880
+in that delay,
+
+633
+00:17:45.980 --> 00:17:46.980
+we need to assume
+
+634
+00:17:46.980 --> 00:17:47.560
+that there is
+
+635
+00:17:47.560 --> 00:17:48.540
+lots of stuff going on,
+
+636
+00:17:48.640 --> 00:17:49.120
+for instance,
+
+637
+00:17:49.320 --> 00:17:50.640
+provisioning the ephemeral runner,
+
+638
+00:17:50.920 --> 00:17:51.540
+which of course
+
+639
+00:17:51.540 --> 00:17:52.120
+is going to add
+
+640
+00:17:52.120 --> 00:17:52.720
+that overhead,
+
+641
+00:17:52.720 --> 00:17:53.820
+but I don't know,
+
+642
+00:17:53.880 --> 00:17:54.740
+30 seconds feels
+
+643
+00:17:54.740 --> 00:17:55.920
+maybe a little bit too much.
+
+644
+00:17:56.120 --> 00:17:56.420
+Hopefully,
+
+645
+00:17:56.520 --> 00:17:57.300
+something that
+
+646
+00:17:57.300 --> 00:17:58.260
+you can somehow
+
+647
+00:17:58.260 --> 00:17:58.880
+fine-tune
+
+648
+00:17:58.880 --> 00:17:59.980
+and reduce that latency
+
+649
+00:17:59.980 --> 00:18:00.940
+because sometimes
+
+650
+00:18:00.940 --> 00:18:01.720
+if you have
+
+651
+00:18:01.720 --> 00:18:03.020
+very short-lived
+
+652
+00:18:03.020 --> 00:18:03.720
+workflows,
+
+653
+00:18:04.080 --> 00:18:04.880
+it might be nice
+
+654
+00:18:04.880 --> 00:18:05.380
+to see them
+
+655
+00:18:05.380 --> 00:18:06.300
+starting straight away
+
+656
+00:18:06.300 --> 00:18:07.020
+and get a result
+
+657
+00:18:07.020 --> 00:18:07.620
+straight away.
+
+658
+00:18:07.860 --> 00:18:08.440
+Very commonly,
+
+659
+00:18:08.580 --> 00:18:09.480
+one thing that I do a lot,
+
+660
+00:18:09.600 --> 00:18:10.240
+especially for
+
+661
+00:18:10.240 --> 00:18:11.200
+open source projects
+
+662
+00:18:11.200 --> 00:18:11.840
+is to have,
+
+663
+00:18:11.920 --> 00:18:12.240
+I don't know,
+
+664
+00:18:12.300 --> 00:18:12.960
+a workflow that just
+
+665
+00:18:12.960 --> 00:18:13.680
+does linting
+
+666
+00:18:13.680 --> 00:18:14.320
+and some other
+
+667
+00:18:14.320 --> 00:18:15.700
+very small checks
+
+668
+00:18:15.700 --> 00:18:17.160
+for code quality
+
+669
+00:18:17.160 --> 00:18:18.160
+and those tests
+
+670
+00:18:18.160 --> 00:18:19.100
+can run in like
+
+671
+00:18:19.100 --> 00:18:19.720
+seconds.
+
+672
+00:18:19.720 --> 00:18:20.780
+So it would be nice
+
+673
+00:18:20.780 --> 00:18:21.400
+to just see
+
+674
+00:18:21.400 --> 00:18:22.120
+a green tick
+
+675
+00:18:22.120 --> 00:18:23.040
+for every commit
+
+676
+00:18:23.040 --> 00:18:24.000
+in a matter
+
+677
+00:18:24.000 --> 00:18:24.660
+of a few seconds.
+
+678
+00:18:24.920 --> 00:18:25.380
+So hopefully
+
+679
+00:18:25.380 --> 00:18:26.180
+something worth
+
+680
+00:18:26.180 --> 00:18:26.920
+looking at
+
+681
+00:18:26.920 --> 00:18:27.320
+and maybe
+
+682
+00:18:27.320 --> 00:18:27.680
+something that
+
+683
+00:18:27.680 --> 00:18:28.260
+can be improved.
+
+684
+00:18:28.460 --> 00:18:28.940
+In our case,
+
+685
+00:18:28.980 --> 00:18:29.800
+we tested 100
+
+686
+00:18:29.800 --> 00:18:30.600
+concurrent jobs
+
+687
+00:18:30.600 --> 00:18:31.460
+on each runner.
+
+688
+00:18:31.880 --> 00:18:32.640
+Most of them
+
+689
+00:18:32.640 --> 00:18:33.860
+took around 90 seconds,
+
+690
+00:18:34.120 --> 00:18:34.660
+but we had
+
+691
+00:18:34.660 --> 00:18:35.300
+high degrees
+
+692
+00:18:35.300 --> 00:18:36.420
+of concurrency,
+
+693
+00:18:36.680 --> 00:18:37.920
+so 60 of them
+
+694
+00:18:37.920 --> 00:18:38.420
+more or less
+
+695
+00:18:38.420 --> 00:18:38.840
+were running
+
+696
+00:18:38.840 --> 00:18:39.480
+simultaneously
+
+697
+00:18:39.480 --> 00:18:40.520
+and some of them
+
+698
+00:18:40.520 --> 00:18:41.620
+took over 3 minutes.
+
+699
+00:18:42.100 --> 00:18:42.300
+Now,
+
+700
+00:18:42.500 --> 00:18:43.540
+probably it's because
+
+701
+00:18:43.540 --> 00:18:44.180
+they were left
+
+702
+00:18:44.180 --> 00:18:45.040
+in a queue
+
+703
+00:18:45.040 --> 00:18:45.620
+for a while,
+
+704
+00:18:45.860 --> 00:18:46.200
+but yeah,
+
+705
+00:18:46.280 --> 00:18:47.080
+I don't know
+
+706
+00:18:47.080 --> 00:18:48.200
+if you have
+
+707
+00:18:48.200 --> 00:18:49.280
+more details on that,
+
+708
+00:18:49.280 --> 00:18:50.640
+or if we should
+
+709
+00:18:50.640 --> 00:18:51.660
+just talk about
+
+710
+00:18:51.660 --> 00:18:52.200
+pricing.
+
+711
+00:18:52.320 --> 00:18:53.280
+Very difficult to know,
+
+712
+00:18:53.380 --> 00:18:53.720
+I think,
+
+713
+00:18:53.900 --> 00:18:54.660
+where all that time
+
+714
+00:18:54.660 --> 00:18:55.020
+is going.
+
+715
+00:18:55.380 --> 00:18:55.940
+If you look at,
+
+716
+00:18:56.040 --> 00:18:56.500
+because you can look
+
+717
+00:18:56.500 --> 00:18:57.260
+at the code build
+
+718
+00:18:57.260 --> 00:18:58.800
+job execution timings
+
+719
+00:18:58.800 --> 00:18:59.160
+as well,
+
+720
+00:18:59.240 --> 00:18:59.880
+and in general
+
+721
+00:18:59.880 --> 00:19:00.640
+it shows like
+
+722
+00:19:00.640 --> 00:19:01.320
+three seconds
+
+723
+00:19:01.320 --> 00:19:02.680
+to provision a runner.
+
+724
+00:19:03.200 --> 00:19:04.180
+I think there's also
+
+725
+00:19:04.180 --> 00:19:05.600
+some just communication
+
+726
+00:19:05.600 --> 00:19:07.780
+delay between
+
+727
+00:19:07.780 --> 00:19:08.620
+code build
+
+728
+00:19:08.620 --> 00:19:09.060
+and GitHub
+
+729
+00:19:09.060 --> 00:19:09.600
+and I don't know
+
+730
+00:19:09.600 --> 00:19:10.420
+who's responsible
+
+731
+00:19:10.420 --> 00:19:11.640
+or if it's just like
+
+732
+00:19:11.640 --> 00:19:12.220
+there's a queue
+
+733
+00:19:12.220 --> 00:19:12.660
+and the queue
+
+734
+00:19:12.660 --> 00:19:13.460
+has to drain
+
+735
+00:19:13.460 --> 00:19:14.380
+or what,
+
+736
+00:19:14.700 --> 00:19:15.140
+some of it
+
+737
+00:19:15.140 --> 00:19:15.680
+you don't see,
+
+738
+00:19:15.820 --> 00:19:16.280
+but basically
+
+739
+00:19:16.280 --> 00:19:17.040
+the times we're reporting
+
+740
+00:19:17.040 --> 00:19:17.760
+that 90 seconds
+
+741
+00:19:17.760 --> 00:19:18.820
+is everything
+
+742
+00:19:18.820 --> 00:19:19.740
+in your GitHub
+
+743
+00:19:19.740 --> 00:19:20.960
+actions workflow
+
+744
+00:19:20.960 --> 00:19:22.040
+and code build
+
+745
+00:19:22.040 --> 00:19:23.300
+will often be finished
+
+746
+00:19:23.300 --> 00:19:23.980
+but it still seems
+
+747
+00:19:23.980 --> 00:19:24.820
+to take some time
+
+748
+00:19:24.820 --> 00:19:25.660
+for GitHub to say,
+
+749
+00:19:25.780 --> 00:19:25.880
+okay,
+
+750
+00:19:25.960 --> 00:19:26.660
+your job workflow
+
+751
+00:19:26.660 --> 00:19:27.120
+is finished.
+
+752
+00:19:27.320 --> 00:19:27.740
+So your job
+
+753
+00:19:27.740 --> 00:19:28.700
+might actually be done,
+
+754
+00:19:28.780 --> 00:19:29.560
+it's just not reporting
+
+755
+00:19:29.560 --> 00:19:30.120
+it as done.
+
+756
+00:19:30.380 --> 00:19:31.420
+I don't have all the details.
+
+757
+00:19:31.680 --> 00:19:31.880
+Now,
+
+758
+00:19:32.260 --> 00:19:33.740
+we should talk about pricing.
+
+759
+00:19:34.060 --> 00:19:34.860
+It's interesting to compare.
+
+760
+00:19:35.000 --> 00:19:35.120
+Now,
+
+761
+00:19:35.200 --> 00:19:36.460
+it's also quite difficult
+
+762
+00:19:36.460 --> 00:19:37.260
+because you're not always
+
+763
+00:19:37.260 --> 00:19:38.200
+comparing apples with apples
+
+764
+00:19:38.200 --> 00:19:40.000
+but if you exclude
+
+765
+00:19:40.000 --> 00:19:41.100
+the AWS free tier
+
+766
+00:19:41.100 --> 00:19:42.100
+which has like
+
+767
+00:19:42.100 --> 00:19:43.560
+a good code build junk
+
+768
+00:19:43.560 --> 00:19:44.200
+and the free minutes
+
+769
+00:19:44.200 --> 00:19:44.780
+you get with your
+
+770
+00:19:44.780 --> 00:19:45.460
+GitHub subscription,
+
+771
+00:19:45.940 --> 00:19:46.600
+we can just do
+
+772
+00:19:46.600 --> 00:19:47.440
+a fairly simple
+
+773
+00:19:47.440 --> 00:19:48.200
+pricing comparison.
+
+774
+00:19:48.400 --> 00:19:49.240
+If we take a fairly
+
+775
+00:19:49.240 --> 00:19:51.340
+modest 2vCPU instance
+
+776
+00:19:51.340 --> 00:19:52.620
+and try to pick something
+
+777
+00:19:52.620 --> 00:19:53.700
+that's relatively similar
+
+778
+00:19:53.700 --> 00:19:54.840
+across the different options,
+
+779
+00:19:55.020 --> 00:19:56.220
+maybe looking at the cheapest
+
+780
+00:19:56.220 --> 00:19:56.720
+which is just
+
+781
+00:19:56.720 --> 00:19:57.500
+on-demand EC2.
+
+782
+00:19:57.760 --> 00:19:57.860
+Now,
+
+783
+00:19:57.880 --> 00:19:58.320
+you could also do
+
+784
+00:19:58.320 --> 00:19:58.960
+spot EC2,
+
+785
+00:19:59.020 --> 00:19:59.320
+of course.
+
+786
+00:19:59.520 --> 00:20:00.720
+That's probably
+
+787
+00:20:00.720 --> 00:20:02.540
+your best cheapest option
+
+788
+00:20:02.540 --> 00:20:03.180
+is to use spot
+
+789
+00:20:03.180 --> 00:20:03.820
+and I think
+
+790
+00:20:03.820 --> 00:20:04.940
+the runs-on tool
+
+791
+00:20:04.940 --> 00:20:05.340
+we mentioned
+
+792
+00:20:05.340 --> 00:20:06.360
+allows you to do spot
+
+793
+00:20:06.360 --> 00:20:07.240
+as far as I remember.
+
+794
+00:20:07.500 --> 00:20:08.000
+If we take
+
+795
+00:20:08.000 --> 00:20:09.180
+an EC2 medium
+
+796
+00:20:09.180 --> 00:20:10.700
+and then compare it
+
+797
+00:20:10.700 --> 00:20:11.860
+with a code build
+
+798
+00:20:11.860 --> 00:20:12.480
+small,
+
+799
+00:20:12.480 --> 00:20:14.300
+the price for code build
+
+800
+00:20:14.300 --> 00:20:15.780
+is about seven times EC2.
+
+801
+00:20:15.780 --> 00:20:16.080
+Now,
+
+802
+00:20:16.180 --> 00:20:16.840
+but if you compare that
+
+803
+00:20:16.840 --> 00:20:17.880
+to GitHub Actions
+
+804
+00:20:17.880 --> 00:20:19.400
+on a standard 2-core,
+
+805
+00:20:19.700 --> 00:20:20.160
+GitHub Actions
+
+806
+00:20:20.160 --> 00:20:21.360
+is about 11 times
+
+807
+00:20:21.360 --> 00:20:22.240
+the cost of EC2.
+
+808
+00:20:22.560 --> 00:20:22.840
+Now,
+
+809
+00:20:22.880 --> 00:20:23.320
+if you go to
+
+810
+00:20:23.320 --> 00:20:24.560
+reserved code build instances,
+
+811
+00:20:24.760 --> 00:20:25.980
+it's only about 4x the price
+
+812
+00:20:25.980 --> 00:20:27.580
+and lambda is not too bad
+
+813
+00:20:27.580 --> 00:20:27.960
+actually.
+
+814
+00:20:28.300 --> 00:20:30.100
+It's even slightly cheaper
+
+815
+00:20:30.100 --> 00:20:31.340
+than code build standard.
+
+816
+00:20:31.780 --> 00:20:33.220
+It's about 6.4 times
+
+817
+00:20:33.220 --> 00:20:33.680
+the price
+
+818
+00:20:33.680 --> 00:20:34.780
+for a 4 gigabyte lambda
+
+819
+00:20:34.780 --> 00:20:35.740
+which is roughly similar.
+
+820
+00:20:36.020 --> 00:20:36.480
+So you can choose
+
+821
+00:20:36.480 --> 00:20:37.300
+different size lambdas.
+
+822
+00:20:37.560 --> 00:20:37.660
+Now,
+
+823
+00:20:37.700 --> 00:20:37.960
+of course,
+
+824
+00:20:38.220 --> 00:20:39.160
+you're not really comparing
+
+825
+00:20:39.160 --> 00:20:39.620
+the same thing
+
+826
+00:20:39.620 --> 00:20:40.240
+because with EC2
+
+827
+00:20:40.240 --> 00:20:40.820
+you're going to have
+
+828
+00:20:40.820 --> 00:20:42.360
+more of a rectangular
+
+829
+00:20:42.360 --> 00:20:43.460
+utilization graph
+
+830
+00:20:43.460 --> 00:20:45.680
+which often has
+
+831
+00:20:45.680 --> 00:20:46.560
+a lot of waste in it,
+
+832
+00:20:46.640 --> 00:20:46.800
+right?
+
+833
+00:20:47.020 --> 00:20:47.980
+So you might end up
+
+834
+00:20:47.980 --> 00:20:49.060
+running your EC2
+
+835
+00:20:49.060 --> 00:20:50.700
+for five minutes
+
+836
+00:20:50.700 --> 00:20:51.760
+in order to run
+
+837
+00:20:51.760 --> 00:20:52.460
+a two-minute job.
+
+838
+00:20:52.620 --> 00:20:53.280
+So there's always going
+
+839
+00:20:53.280 --> 00:20:55.100
+to be a bit of extra waste
+
+840
+00:20:55.100 --> 00:20:56.340
+when you use EC2
+
+841
+00:20:56.340 --> 00:20:57.380
+compared to using something
+
+842
+00:20:57.380 --> 00:20:58.320
+that's very on-demand
+
+843
+00:20:58.320 --> 00:20:59.240
+and per second
+
+844
+00:20:59.240 --> 00:21:00.160
+like code build
+
+845
+00:21:00.160 --> 00:21:00.600
+or lambda
+
+846
+00:21:00.600 --> 00:21:01.620
+or GitHub Actions.
+
+847
+00:21:02.480 --> 00:21:03.380
+And of course,
+
+848
+00:21:03.420 --> 00:21:04.500
+you have the extra overhead
+
+849
+00:21:04.500 --> 00:21:05.120
+with EC2
+
+850
+00:21:05.120 --> 00:21:05.960
+just in terms of setup
+
+851
+00:21:05.960 --> 00:21:06.440
+and maintenance.
+
+852
+00:21:06.440 --> 00:21:09.200
+It doesn't really make sense
+
+853
+00:21:09.200 --> 00:21:10.160
+to always just compare
+
+854
+00:21:10.160 --> 00:21:11.840
+on a cost basis like this
+
+855
+00:21:11.840 --> 00:21:13.260
+because when you have
+
+856
+00:21:13.260 --> 00:21:15.060
+very bursty demands
+
+857
+00:21:15.060 --> 00:21:15.760
+for your builds
+
+858
+00:21:15.760 --> 00:21:16.560
+and sometimes you've got
+
+859
+00:21:16.560 --> 00:21:17.080
+nothing running,
+
+860
+00:21:17.200 --> 00:21:17.700
+most of the time
+
+861
+00:21:17.700 --> 00:21:18.360
+you've got nothing running
+
+862
+00:21:18.360 --> 00:21:19.820
+but then you've got
+
+863
+00:21:19.820 --> 00:21:20.540
+a hive of activity
+
+864
+00:21:20.540 --> 00:21:21.340
+when people need
+
+865
+00:21:21.340 --> 00:21:22.140
+lots of concurrency
+
+866
+00:21:22.140 --> 00:21:23.340
+and maybe you don't want
+
+867
+00:21:23.340 --> 00:21:24.720
+to wait for lots of EC2s
+
+868
+00:21:24.720 --> 00:21:26.240
+to spin up and react.
+
+869
+00:21:26.400 --> 00:21:27.180
+You want things that are
+
+870
+00:21:27.180 --> 00:21:28.500
+really very suitable
+
+871
+00:21:28.500 --> 00:21:29.580
+for the specific workflows
+
+872
+00:21:29.580 --> 00:21:30.100
+you need,
+
+873
+00:21:30.340 --> 00:21:31.480
+lots of different compute types,
+
+874
+00:21:32.000 --> 00:21:32.580
+some on Lambda,
+
+875
+00:21:32.860 --> 00:21:33.940
+some on Linux,
+
+876
+00:21:34.080 --> 00:21:34.760
+some on Windows,
+
+877
+00:21:34.900 --> 00:21:35.100
+whatever.
+
+878
+00:21:35.100 --> 00:21:36.700
+So it might just make more sense
+
+879
+00:21:36.700 --> 00:21:37.720
+to use something like code build
+
+880
+00:21:37.720 --> 00:21:38.920
+or something else.
+
+881
+00:21:39.160 --> 00:21:39.420
+Of course,
+
+882
+00:21:39.540 --> 00:21:41.400
+I'm talking about pricing there.
+
+883
+00:21:41.780 --> 00:21:42.580
+If you're using ARM,
+
+884
+00:21:42.900 --> 00:21:44.260
+it's half the price on code build.
+
+885
+00:21:44.480 --> 00:21:44.880
+With EC2,
+
+886
+00:21:44.960 --> 00:21:46.020
+it depends on the instance type
+
+887
+00:21:46.020 --> 00:21:47.740
+but if you can get away with ARM,
+
+888
+00:21:48.020 --> 00:21:48.780
+definitely go for that.
+
+889
+00:21:48.880 --> 00:21:49.840
+You get 50% saving
+
+890
+00:21:49.840 --> 00:21:50.880
+out of the box.
+
+891
+00:21:51.120 --> 00:21:51.860
+Now, we talked about
+
+892
+00:21:51.860 --> 00:21:52.440
+running on Lambda
+
+893
+00:21:52.440 --> 00:21:53.380
+and it's quite interesting
+
+894
+00:21:53.380 --> 00:21:54.260
+when you actually see
+
+895
+00:21:54.260 --> 00:21:55.300
+your GitHub Actions
+
+896
+00:21:55.300 --> 00:21:55.900
+running on Lambda.
+
+897
+00:21:56.160 --> 00:21:57.320
+It's almost surprising
+
+898
+00:21:57.320 --> 00:21:58.360
+to see it just succeed
+
+899
+00:21:58.360 --> 00:21:59.780
+when it's like cloning your repo,
+
+900
+00:21:59.940 --> 00:22:00.820
+doing NPM install.
+
+901
+00:22:01.160 --> 00:22:01.740
+Even though these are
+
+902
+00:22:01.740 --> 00:22:02.520
+just node processes,
+
+903
+00:22:02.720 --> 00:22:03.800
+of course they should run on Lambda
+
+904
+00:22:03.800 --> 00:22:05.460
+but in the testing we did,
+
+905
+00:22:05.520 --> 00:22:06.220
+we didn't come across
+
+906
+00:22:06.220 --> 00:22:07.540
+any major limitations.
+
+907
+00:22:07.760 --> 00:22:08.540
+Everything we did,
+
+908
+00:22:08.640 --> 00:22:08.860
+in fact,
+
+909
+00:22:08.880 --> 00:22:09.700
+we just took an existing
+
+910
+00:22:09.700 --> 00:22:10.940
+open source project we had,
+
+911
+00:22:11.180 --> 00:22:11.900
+the SLIC Watch project
+
+912
+00:22:11.900 --> 00:22:12.860
+we've talked about before.
+
+913
+00:22:13.080 --> 00:22:14.640
+It's got quite a few build steps in it,
+
+914
+00:22:14.880 --> 00:22:15.740
+doing code coverage,
+
+915
+00:22:15.900 --> 00:22:16.280
+tests,
+
+916
+00:22:16.440 --> 00:22:16.920
+unit tests,
+
+917
+00:22:17.020 --> 00:22:18.500
+running lots of different NPM builds,
+
+918
+00:22:18.800 --> 00:22:20.700
+TypeScript transpilation
+
+919
+00:22:20.700 --> 00:22:21.160
+and everything.
+
+920
+00:22:21.480 --> 00:22:21.960
+It just worked.
+
+921
+00:22:21.960 --> 00:22:22.940
+There are some limitations
+
+922
+00:22:22.940 --> 00:22:23.920
+with Lambda.
+
+923
+00:22:24.240 --> 00:22:25.260
+You can use custom images
+
+924
+00:22:25.260 --> 00:22:26.960
+but you can't do things
+
+925
+00:22:26.960 --> 00:22:27.380
+like root,
+
+926
+00:22:27.440 --> 00:22:28.200
+use root.
+
+927
+00:22:28.320 --> 00:22:29.000
+So you can't use
+
+928
+00:22:29.000 --> 00:22:29.680
+package manners
+
+929
+00:22:29.680 --> 00:22:30.600
+like yum and RPM.
+
+930
+00:22:30.600 --> 00:22:32.360
+You can't do Docker in Docker
+
+931
+00:22:32.360 --> 00:22:33.080
+because you don't have
+
+932
+00:22:33.080 --> 00:22:33.860
+privileged mode
+
+933
+00:22:33.860 --> 00:22:34.960
+and it's not a proper
+
+934
+00:22:34.960 --> 00:22:35.520
+Docker runtime.
+
+935
+00:22:35.920 --> 00:22:36.680
+You don't have any
+
+936
+00:22:36.680 --> 00:22:37.380
+file system access
+
+937
+00:22:37.380 --> 00:22:38.360
+outside slash TMP.
+
+938
+00:22:38.620 --> 00:22:40.460
+You don't have the GPU option.
+
+939
+00:22:40.780 --> 00:22:41.580
+You don't have caching
+
+940
+00:22:41.580 --> 00:22:43.500
+and you don't have a VPC.
+
+941
+00:22:43.700 --> 00:22:44.600
+So if you want to use a VPC,
+
+942
+00:22:44.740 --> 00:22:45.140
+you have to use
+
+943
+00:22:45.140 --> 00:22:46.320
+a standard runtime
+
+944
+00:22:46.320 --> 00:22:47.120
+in CodeBuild.
+
+945
+00:22:47.380 --> 00:22:47.800
+But still,
+
+946
+00:22:47.940 --> 00:22:48.360
+I would say,
+
+947
+00:22:48.860 --> 00:22:49.480
+like you just mentioned,
+
+948
+00:22:49.600 --> 00:22:50.620
+linting Luciano.
+
+949
+00:22:50.940 --> 00:22:52.040
+That's a perfect example
+
+950
+00:22:52.040 --> 00:22:52.520
+of a workflow
+
+951
+00:22:52.520 --> 00:22:53.580
+that can run very easily
+
+952
+00:22:53.580 --> 00:22:53.980
+in Lambda.
+
+953
+00:22:54.280 --> 00:22:55.440
+And the chances
+
+954
+00:22:55.440 --> 00:22:56.480
+of you having to wait
+
+955
+00:22:56.480 --> 00:22:57.320
+for CodeBuild
+
+956
+00:22:57.320 --> 00:22:58.340
+to provision a container
+
+957
+00:22:58.340 --> 00:22:59.140
+is much less
+
+958
+00:22:59.140 --> 00:22:59.940
+if you're just using Lambda.
+
+959
+00:23:00.080 --> 00:23:00.660
+So it should be
+
+960
+00:23:00.660 --> 00:23:01.220
+up and running
+
+961
+00:23:01.220 --> 00:23:01.820
+in a few seconds
+
+962
+00:23:01.820 --> 00:23:02.580
+and you should have
+
+963
+00:23:02.580 --> 00:23:03.020
+your results
+
+964
+00:23:03.020 --> 00:23:04.200
+a few seconds later.
+
+965
+00:23:04.420 --> 00:23:04.660
+Actually,
+
+966
+00:23:04.740 --> 00:23:05.660
+I was using the Biome
+
+967
+00:23:05.660 --> 00:23:07.420
+JavaScript TypeScript linter
+
+968
+00:23:07.420 --> 00:23:08.720
+in one of these tests
+
+969
+00:23:08.720 --> 00:23:09.660
+and the whole thing
+
+970
+00:23:09.660 --> 00:23:10.960
+just ran in a couple of seconds.
+
+971
+00:23:11.220 --> 00:23:12.640
+Yeah, Biome is amazing,
+
+972
+00:23:12.780 --> 00:23:14.400
+especially for large projects.
+
+973
+00:23:14.680 --> 00:23:15.200
+It can do
+
+974
+00:23:15.200 --> 00:23:16.400
+all the linting
+
+975
+00:23:16.400 --> 00:23:17.000
+and formatting
+
+976
+00:23:17.000 --> 00:23:18.860
+in literally seconds
+
+977
+00:23:18.860 --> 00:23:19.400
+or less.
+
+978
+00:23:19.860 --> 00:23:20.300
+Anyway,
+
+979
+00:23:20.440 --> 00:23:22.020
+I think we have covered
+
+980
+00:23:22.020 --> 00:23:22.840
+everything we wanted
+
+981
+00:23:22.840 --> 00:23:24.060
+to cover for today.
+
+982
+00:23:24.380 --> 00:23:24.680
+Hopefully,
+
+983
+00:23:24.820 --> 00:23:25.540
+we gave you
+
+984
+00:23:25.540 --> 00:23:26.660
+a good overview
+
+985
+00:23:26.660 --> 00:23:28.220
+of what is
+
+986
+00:23:28.220 --> 00:23:29.680
+GitHub Action Runners,
+
+987
+00:23:30.040 --> 00:23:30.580
+why should you
+
+988
+00:23:30.580 --> 00:23:31.360
+consider running
+
+989
+00:23:31.360 --> 00:23:32.980
+your own hosted runners
+
+990
+00:23:32.980 --> 00:23:33.500
+on AWS.
+
+991
+00:23:34.100 --> 00:23:35.200
+And yeah,
+
+992
+00:23:35.280 --> 00:23:35.620
+hopefully,
+
+993
+00:23:35.760 --> 00:23:36.500
+we gave you an idea
+
+994
+00:23:36.500 --> 00:23:37.800
+of the different options,
+
+995
+00:23:38.040 --> 00:23:38.800
+pricing comparisons.
+
+996
+00:23:39.320 --> 00:23:40.140
+So let us know
+
+997
+00:23:40.140 --> 00:23:40.940
+if you found
+
+998
+00:23:40.940 --> 00:23:42.040
+all of that interesting
+
+999
+00:23:42.040 --> 00:23:43.040
+or if you have
+
+1000
+00:23:43.040 --> 00:23:43.860
+other questions
+
+1001
+00:23:43.860 --> 00:23:44.420
+about things
+
+1002
+00:23:44.420 --> 00:23:45.440
+maybe we didn't cover
+
+1003
+00:23:45.440 --> 00:23:46.620
+or if you tried yourself,
+
+1004
+00:23:46.740 --> 00:23:47.180
+maybe you know
+
+1005
+00:23:47.180 --> 00:23:47.840
+other tools,
+
+1006
+00:23:47.980 --> 00:23:48.320
+maybe you have
+
+1007
+00:23:48.320 --> 00:23:49.680
+your other resources
+
+1008
+00:23:49.680 --> 00:23:50.580
+that you came across
+
+1009
+00:23:50.580 --> 00:23:51.600
+and use them
+
+1010
+00:23:51.600 --> 00:23:52.540
+to set things up.
+
+1011
+00:23:52.720 --> 00:23:53.160
+Please definitely
+
+1012
+00:23:53.160 --> 00:23:54.040
+share them with us
+
+1013
+00:23:54.040 --> 00:23:54.700
+because, of course,
+
+1014
+00:23:54.880 --> 00:23:55.560
+we are happy
+
+1015
+00:23:55.560 --> 00:23:57.280
+to compare other options
+
+1016
+00:23:57.280 --> 00:23:57.760
+and, of course,
+
+1017
+00:23:57.780 --> 00:23:58.780
+make all of these resources
+
+1018
+00:23:58.780 --> 00:23:59.960
+available to other people.
+
+1019
+00:24:00.280 --> 00:24:00.980
+Speaking of which,
+
+1020
+00:24:01.080 --> 00:24:01.260
+again,
+
+1021
+00:24:01.340 --> 00:24:02.220
+all the things
+
+1022
+00:24:02.220 --> 00:24:03.000
+we mentioned today,
+
+1023
+00:24:03.120 --> 00:24:03.860
+we will have links
+
+1024
+00:24:03.860 --> 00:24:04.600
+in the show notes.
+
+1025
+00:24:04.780 --> 00:24:05.400
+We will also have
+
+1026
+00:24:05.400 --> 00:24:06.500
+a few additional links
+
+1027
+00:24:06.500 --> 00:24:07.640
+about other resources
+
+1028
+00:24:07.640 --> 00:24:08.380
+that we used
+
+1029
+00:24:08.380 --> 00:24:09.860
+during our experiments.
+
+1030
+00:24:10.300 --> 00:24:11.040
+So hopefully,
+
+1031
+00:24:11.120 --> 00:24:11.940
+all of that together
+
+1032
+00:24:11.940 --> 00:24:12.620
+will give you
+
+1033
+00:24:12.620 --> 00:24:13.840
+a very good starting point
+
+1034
+00:24:13.840 --> 00:24:14.760
+for whichever option
+
+1035
+00:24:14.760 --> 00:24:15.640
+you are going to choose
+
+1036
+00:24:15.640 --> 00:24:16.800
+if you end up playing
+
+1037
+00:24:16.800 --> 00:24:17.680
+with the idea
+
+1038
+00:24:17.680 --> 00:24:19.040
+of running your own
+
+1039
+00:24:19.040 --> 00:24:20.480
+GitHub Runners
+
+1040
+00:24:20.480 --> 00:24:21.280
+on EC2
+
+1041
+00:24:21.280 --> 00:24:21.880
+or Lambda
+
+1042
+00:24:21.880 --> 00:24:23.240
+or maybe using CodeBuild.
+
+1043
+00:24:23.240 --> 00:24:24.340
+So thank you very much
+
+1044
+00:24:24.340 --> 00:24:25.220
+and we'll see you
+
+1045
+00:24:25.220 --> 00:24:26.220
+in the next episode.

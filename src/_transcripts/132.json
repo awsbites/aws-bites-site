@@ -1,0 +1,6278 @@
+{
+  "speakers": {
+    "spk_0": "Luciano",
+    "spk_1": "Eoin"
+  },
+  "segments": [
+    {
+      "speakerLabel": "spk_0",
+      "start": 0,
+      "end": 4.36,
+      "text": " Hello and welcome to episode 132 of AWS Bites."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 4.62,
+      "end": 8.48,
+      "text": " In today's episode, we're diving into GitHub Action Runners on AWS."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 8.78,
+      "end": 11.56,
+      "text": " GitHub Actions is a fantastic tool for automating CICD workflows"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 11.56,
+      "end": 13.98,
+      "text": " and its runners handles all the heavy lifting."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 14.24,
+      "end": 15.8,
+      "text": " While GitHub offers hosted runners,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 15.98,
+      "end": 19,
+      "text": " using self-hosted runners on AWS gives you more control,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 19.32,
+      "end": 20.76,
+      "text": " lower latency and cost benefits."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 20.96,
+      "end": 24.32,
+      "text": " We will explore today how AWS services like EC2 and CodeBuild"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 24.32,
+      "end": 27,
+      "text": " can be used to power your GitHub Actions runners"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 27,
+      "end": 30.1,
+      "text": " and how to set up self-hosted runners to optimize your workflows."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 30.4,
+      "end": 33.74,
+      "text": " I'm Luciano and today I'm joined by Eoin for another episode of AWS Bites."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 38.120000000000005,
+      "end": 40.3,
+      "text": " AWS Bites is sponsored by fourTheorem,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 40.480000000000004,
+      "end": 43.2,
+      "text": " an advanced AWS partner that works collaboratively with you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 43.2,
+      "end": 45.620000000000005,
+      "text": " and sets you up for long-term success on AWS."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 45.92,
+      "end": 48.04,
+      "text": " Find out more at fourtheorem.com."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 48.24,
+      "end": 52.44,
+      "text": " So Eoin, let's maybe start by explaining what are GitHub Actions runners."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 54.54,
+      "end": 57.519999999999996,
+      "text": " Well, a lot of people will know GitHub Actions as the fairly powerful automation tool integrated into GitHub"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 57.519999999999996,
+      "end": 60.879999999999995,
+      "text": " that allows you to automate tasks like testing, building,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 61.1,
+      "end": 63.4,
+      "text": " deploying applications directly from their repositories."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 63.8,
+      "end": 65.48,
+      "text": " It's become, I think, the leader."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 65.62,
+      "end": 67.76,
+      "text": " Everybody's rushing to it in some form or another,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 68,
+      "end": 72.03999999999999,
+      "text": " but it allows for custom workflows triggered by events like code commits,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 72.44,
+      "end": 74.1,
+      "text": " pushes, pull requests and releases,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 74.74,
+      "end": 77.8,
+      "text": " making CICD processes more streamlined and manageable."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 78.32,
+      "end": 80.1,
+      "text": " There's a lot you can do with GitHub Actions,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 80.1,
+      "end": 83.46,
+      "text": " but GitHub Action Runners are the underlying compute instances"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 83.46,
+      "end": 87.36,
+      "text": " that execute the jobs that are defined in GitHub Actions workflows."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 87.67999999999999,
+      "end": 89.66,
+      "text": " Now, GitHub itself provides hosted runners"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 89.66,
+      "end": 92.14,
+      "text": " and you will see them used on open source projects"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 92.14,
+      "end": 94.08,
+      "text": " and anything on GitHub out there."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 94.22,
+      "end": 97,
+      "text": " But users can actually also set up self-hosted runners,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 97.36,
+      "end": 99.11999999999999,
+      "text": " giving them more control over the environment"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 99.11999999999999,
+      "end": 101.3,
+      "text": " and the software and the hardware."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 101.58,
+      "end": 104.1,
+      "text": " So there are people out there using GitHub-hosted runners"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 104.1,
+      "end": 106.13999999999999,
+      "text": " and using self-hosted runners."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 106.14,
+      "end": 109.88,
+      "text": " But why would you want to go to the trouble of running runners on AWS?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 111.36,
+      "end": 114.34,
+      "text": " Yeah, before I answer that, one thing I want to mention as well is that I really like that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 114.34,
+      "end": 117.2,
+      "text": " when you said events, that's really broad."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 117.36,
+      "end": 119.82,
+      "text": " You can capture all sorts of events inside GitHub."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 120.34,
+      "end": 121.74,
+      "text": " So if you use GitHub extensively,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 121.9,
+      "end": 123.9,
+      "text": " maybe you even create, I don't know, software releases"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 123.9,
+      "end": 126.12,
+      "text": " or even track comments on PRs."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 126.38,
+      "end": 127.5,
+      "text": " All of these things are events"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 127.5,
+      "end": 130.46,
+      "text": " and you can run workflows as a response to that event."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 130.56,
+      "end": 132.96,
+      "text": " And I've seen lots of very interesting use cases."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 133.12,
+      "end": 134.5,
+      "text": " Like recently, we use Release Please,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 134.5,
+      "end": 136.74,
+      "text": " which is a tool that helps you to automate releases."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 137.12,
+      "end": 139.22,
+      "text": " And it kind of uses all of these different events"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 139.22,
+      "end": 141.4,
+      "text": " when you create a PR, when you merge domain,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 141.54,
+      "end": 143.24,
+      "text": " when people comment on your PRs"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 143.24,
+      "end": 146.42,
+      "text": " to kind of help you to automate most of the release workflow."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 146.68,
+      "end": 148.82,
+      "text": " So this is just to mention that one more reason,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 148.92,
+      "end": 151.16,
+      "text": " I think, why people are moving to GitHub Action"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 151.16,
+      "end": 153.02,
+      "text": " if they use GitHub as a repo."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 153.54,
+      "end": 157.38,
+      "text": " And yeah, integrates well with all parts of the software,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 157.52,
+      "end": 158.74,
+      "text": " like lifecycle management."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 159.3,
+      "end": 161,
+      "text": " So yeah, to go back to your question,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 161.12,
+      "end": 162.58,
+      "text": " why should you use runners on AWS?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 162.58,
+      "end": 165.02,
+      "text": " We just mentioned that running self-hosted runners"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 165.02,
+      "end": 166.64000000000001,
+      "text": " means getting more control."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 166.96,
+      "end": 170.58,
+      "text": " And some specific reasons why we should do that on AWS"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 170.58,
+      "end": 173.16000000000003,
+      "text": " is that if you're using AWS anyway,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 173.4,
+      "end": 175.48000000000002,
+      "text": " you can leverage IAM permissions model."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 175.66000000000003,
+      "end": 178.9,
+      "text": " So for instance, if you are maybe deploying stuff on AWS"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 178.9,
+      "end": 179.82000000000002,
+      "text": " from your workflows,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 180.24,
+      "end": 183.26000000000002,
+      "text": " you can have all of these credentials set up in your runners."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 183.62,
+      "end": 185.56,
+      "text": " And therefore, when your workflows are running,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 185.70000000000002,
+      "end": 187,
+      "text": " they already are out and together"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 187,
+      "end": 188.72000000000003,
+      "text": " rather than using other mechanisms"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 188.72,
+      "end": 192.22,
+      "text": " to propagate credentials to the GitHub-hosted runners."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 192.66,
+      "end": 193.96,
+      "text": " Another approach is that you..."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 193.96,
+      "end": 195.98,
+      "text": " Sorry, another reason is that your runners"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 195.98,
+      "end": 198.3,
+      "text": " are co-located within the infrastructure."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 198.9,
+      "end": 200.9,
+      "text": " So at that point, if you have everything running on AWS,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 201.18,
+      "end": 202.94,
+      "text": " most likely you're going to have lower latency."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 203.54,
+      "end": 207.34,
+      "text": " And yeah, you can effectively use the same regions"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 207.34,
+      "end": 208.82,
+      "text": " that you use for your workloads."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 209.16,
+      "end": 211.28,
+      "text": " And therefore, any action that you perform there,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 211.36,
+      "end": 213.78,
+      "text": " deploying resources, connecting to specific resources"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 213.78,
+      "end": 215.9,
+      "text": " you might have available should be much faster"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 215.9,
+      "end": 220.34,
+      "text": " than just using the self-hosted one by GitHub,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 220.68,
+      "end": 222.08,
+      "text": " which I believe run on Azure."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 222.32,
+      "end": 224.1,
+      "text": " So it might be a totally different network"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 224.1,
+      "end": 225.14,
+      "text": " on a totally different region."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 225.52,
+      "end": 227.36,
+      "text": " And therefore, you might see increased latency."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 227.66,
+      "end": 228.26,
+      "text": " And another point,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 228.4,
+      "end": 230.72,
+      "text": " which is probably the main one for people is cost."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 230.94,
+      "end": 233.9,
+      "text": " Because of course, when you are hosting your own runners,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 233.9,
+      "end": 236.8,
+      "text": " you can find lots of different ways to optimize for cost."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 237.3,
+      "end": 242.62,
+      "text": " And effectively, when you use the hosted ones by GitHub,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 242.62,
+      "end": 245.94,
+      "text": " you get a certain amount of free capacity."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 246.26,
+      "end": 248.26,
+      "text": " But then at some point, you need to start paying."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 248.82,
+      "end": 253.78,
+      "text": " And so when you host your own runners on AWS,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 254.1,
+      "end": 255.86,
+      "text": " of course, you can pick specific instances"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 255.86,
+      "end": 256.92,
+      "text": " that can be cheaper."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 257.46,
+      "end": 260.78000000000003,
+      "text": " You can switch instances on and off depending on capacity."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 260.96,
+      "end": 262.32,
+      "text": " And therefore, you have more opportunities"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 262.32,
+      "end": 263.54,
+      "text": " to optimize for cost."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 263.76,
+      "end": 265.24,
+      "text": " And one final reason is that sometimes"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 265.24,
+      "end": 266.74,
+      "text": " you might have special requirements"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 266.74,
+      "end": 268.9,
+      "text": " in terms of hardware or operative system."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 269.46,
+      "end": 271.74,
+      "text": " Maybe you need a GPU to perform certain tasks."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 271.74,
+      "end": 274.26,
+      "text": " So if you have control on the type of machines"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 274.26,
+      "end": 276.34000000000003,
+      "text": " where you are running your workflows,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 276.5,
+      "end": 278.72,
+      "text": " of course, you can pick the more specialized hardware"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 278.72,
+      "end": 279.64,
+      "text": " that you might need."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 279.90000000000003,
+      "end": 281.24,
+      "text": " So the next question is,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 281.32,
+      "end": 282.44,
+      "text": " if all of that sounds appealing,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 282.82,
+      "end": 285.64,
+      "text": " how do you do self-hosted runners on AWS?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 286.04,
+      "end": 287.1,
+      "text": " Well, in general, right?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 287.12,
+      "end": 288.86,
+      "text": " If you want to add self-hosted runners,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 289.02,
+      "end": 290.82,
+      "text": " you can do it at an organization level"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 290.82,
+      "end": 292.90000000000003,
+      "text": " or for specific repositories."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 293.22,
+      "end": 295.42,
+      "text": " And if you have like a GitHub enterprise level setup,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 295.68,
+      "end": 296.92,
+      "text": " you can actually also add them"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 296.92,
+      "end": 299.14,
+      "text": " at the enterprise level for all organizations."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 299.14,
+      "end": 301.88,
+      "text": " Now, to add a self-hosted runner in your GitHub setup,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 302.03999999999996,
+      "end": 303.56,
+      "text": " you need to run the runner application"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 303.56,
+      "end": 305.06,
+      "text": " with which GitHub will provide."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 305.36,
+      "end": 307.59999999999997,
+      "text": " And that can run on Linux, Windows, and macOS."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 308,
+      "end": 311.47999999999996,
+      "text": " And it can run on x86-64 or ARM architectures."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 312.06,
+      "end": 313.68,
+      "text": " Now, if you have existing machines,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 313.78,
+      "end": 315.38,
+      "text": " you can just follow the guided process"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 315.38,
+      "end": 318.2,
+      "text": " through the repository organization runners option"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 318.2,
+      "end": 319.91999999999996,
+      "text": " in your GitHub console."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 320.44,
+      "end": 321.88,
+      "text": " And there'll be a link to the documentation"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 321.88,
+      "end": 322.64,
+      "text": " there in the show notes."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 323.21999999999997,
+      "end": 324.76,
+      "text": " Once you have that runner application running,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 325.41999999999996,
+      "end": 327.34,
+      "text": " GitHub will tell you how to set it up with credentials"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 327.34,
+      "end": 329.23999999999995,
+      "text": " so that it could talk to GitHub."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 329.47999999999996,
+      "end": 332.38,
+      "text": " It basically long poles GitHub for build events,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 332.56,
+      "end": 334,
+      "text": " all those different event types you talked about,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 334.29999999999995,
+      "end": 335.67999999999995,
+      "text": " and just starts builds as required,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 335.94,
+      "end": 338.44,
+      "text": " sending the status and log information back to GitHub,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 338.67999999999995,
+      "end": 341.23999999999995,
+      "text": " as well as like pulling and pushing cache data to GitHub."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 341.47999999999996,
+      "end": 343.28,
+      "text": " You don't actually have to keep all of those runners"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 343.28,
+      "end": 344.05999999999995,
+      "text": " running all the time."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 344.4,
+      "end": 345.76,
+      "text": " So you have options there."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 345.91999999999996,
+      "end": 347.2,
+      "text": " You can have a small pool running"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 347.2,
+      "end": 349.46,
+      "text": " or even no runners running all the time at all."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 349.46,
+      "end": 352.21999999999997,
+      "text": " GitHub allows you to then scale up by using webhooks"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 352.21999999999997,
+      "end": 354.41999999999996,
+      "text": " to let you know when a workflow job has been queued."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 354.42,
+      "end": 356.46000000000004,
+      "text": " In the GitHub docs, you'll see that referred to"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 356.46000000000004,
+      "end": 357.8,
+      "text": " as ephemeral runners."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 358.1,
+      "end": 359.8,
+      "text": " Now, ephemeral runners have the advantage"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 359.8,
+      "end": 361.90000000000003,
+      "text": " of just running one job generally at a time."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 362.16,
+      "end": 364.82,
+      "text": " So you have build isolation and increased security"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 364.82,
+      "end": 366.94,
+      "text": " since a short-lived runner has less risk"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 366.94,
+      "end": 368.78000000000003,
+      "text": " of intrusion and data leakage."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 369,
+      "end": 371.26,
+      "text": " So you can run the runner application on EC2,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 371.66,
+      "end": 373.26,
+      "text": " on premises, in containers,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 373.44,
+      "end": 376.32,
+      "text": " or even like on a fleet of Raspberry Pis under your bed."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 376.78000000000003,
+      "end": 377.98,
+      "text": " The limit is just your imagination."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 378.84000000000003,
+      "end": 380.92,
+      "text": " Now, a fairly common approach is to run it on Kubernetes."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 381.28000000000003,
+      "end": 383.14,
+      "text": " There is an Actions Runner Controller"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 383.14,
+      "end": 385.44,
+      "text": " that helps with scaling and orchestrating runners as needed."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 385.82,
+      "end": 386.56,
+      "text": " That's quite common."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 386.84,
+      "end": 388.3,
+      "text": " If you are a Kubernetes shop"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 388.3,
+      "end": 390.09999999999997,
+      "text": " and you have a team to run and support that infrastructure,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 390.71999999999997,
+      "end": 392.09999999999997,
+      "text": " this is a good option to follow."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 392.09999999999997,
+      "end": 394.94,
+      "text": " But another common approach is just simply running on EC2."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 395.26,
+      "end": 397.09999999999997,
+      "text": " So maybe we could talk, Luciano,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 397.21999999999997,
+      "end": 398.5,
+      "text": " what are some of the options there?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 398.64,
+      "end": 399.97999999999996,
+      "text": " You're thinking about running on EC2,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 400.38,
+      "end": 401.9,
+      "text": " you just have to run this application."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 402.18,
+      "end": 404.24,
+      "text": " But as we know, running a fleet of EC2 instances"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 404.24,
+      "end": 406.9,
+      "text": " and scaling up and down, not necessarily trivial."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 407.14,
+      "end": 407.86,
+      "text": " What are our options?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 408.2,
+      "end": 408.74,
+      "text": " Yeah, absolutely."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 408.74,
+      "end": 411.92,
+      "text": " I agree that it's maybe something tempting"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 411.92,
+      "end": 414.28000000000003,
+      "text": " to start to set up everything from scratch."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 414.56,
+      "end": 415.46000000000004,
+      "text": " You set up your own VPC,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 415.88,
+      "end": 419.28000000000003,
+      "text": " you set up EC2 instances with auto-scaling rules,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 419.42,
+      "end": 421.8,
+      "text": " but then over time, this is something you'll need to maintain."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 422,
+      "end": 423.56,
+      "text": " And there is a lot of moving parts."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 423.98,
+      "end": 425.52,
+      "text": " So it might become something that requires"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 425.52,
+      "end": 427.06,
+      "text": " a significant amount of maintenance."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 427.40000000000003,
+      "end": 428.84000000000003,
+      "text": " And maybe at that point,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 429.06,
+      "end": 430.38,
+      "text": " maybe you have many advantages,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 430.6,
+      "end": 431.52,
+      "text": " but on the other side,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 431.54,
+      "end": 433.32,
+      "text": " you need to consider the total cost of ownership"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 433.32,
+      "end": 435.04,
+      "text": " that is going to start to build up."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 435.26,
+      "end": 436.56,
+      "text": " So be aware of all of that."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 436.56,
+      "end": 438.74,
+      "text": " But thankfully, there are some solutions"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 438.74,
+      "end": 440.92,
+      "text": " that try to make all of this easier."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 441.24,
+      "end": 444.72,
+      "text": " One is called HyperEnv for GitHub Actions Runner,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 445.02,
+      "end": 448.42,
+      "text": " and it's produced by Andreas and Michael Wittig"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 448.42,
+      "end": 450.94,
+      "text": " from the Cloudonaut podcast as well."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 451.04,
+      "end": 453.04,
+      "text": " We mentioned them a few times in some other episodes."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 453.36,
+      "end": 454.56,
+      "text": " So definitely worth checking it out."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 454.72,
+      "end": 457.26,
+      "text": " This is a product that you can find in the AWS marketplace,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 457.64,
+      "end": 461.84000000000003,
+      "text": " and it manages all the scaling in and out of instances for you,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 461.84000000000003,
+      "end": 463.9,
+      "text": " but lets you use your own AWS account"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 463.9,
+      "end": 465.9,
+      "text": " and runs EC2 instances on demand."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 465.9,
+      "end": 468.14,
+      "text": " And you pay per vCPU minute."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 468.94,
+      "end": 470.35999999999996,
+      "text": " There is a little fee, I mean,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 470.41999999999996,
+      "end": 473.59999999999997,
+      "text": " that you pay on top per virtual CPU minute usage."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 473.84,
+      "end": 475.97999999999996,
+      "text": " Another option that we discovered quite recently"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 475.97999999999996,
+      "end": 479.06,
+      "text": " is called runs-on.com or runs-on."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 479.32,
+      "end": 481.65999999999997,
+      "text": " And it's quite similar to HyperEnv,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 482.09999999999997,
+      "end": 485.71999999999997,
+      "text": " but it basically lets you run everything yourself."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 485.9,
+      "end": 486.96,
+      "text": " You are using it commercially,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 487.32,
+      "end": 488.65999999999997,
+      "text": " but basically you buy it"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 488.65999999999997,
+      "end": 491.84,
+      "text": " and then configure a license for a reasonable small fee."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 491.84,
+      "end": 494.4,
+      "text": " And effectively, this can be a nice option"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 494.4,
+      "end": 495.97999999999996,
+      "text": " for non-commercial projects,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 496.28,
+      "end": 499.67999999999995,
+      "text": " especially if you are looking for something"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 499.67999999999995,
+      "end": 501.59999999999997,
+      "text": " that allows you to drastically save cost."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 501.79999999999995,
+      "end": 503.44,
+      "text": " One of these options may be something"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 503.44,
+      "end": 506.82,
+      "text": " that can help you to basically get the best of both worlds."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 506.88,
+      "end": 509.14,
+      "text": " You are running and managing your own EC2 instances,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 509.5,
+      "end": 512.9399999999999,
+      "text": " but with a limited amount of management effort on your side."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 513.04,
+      "end": 513.76,
+      "text": " And at the same time,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 513.76,
+      "end": 515.1,
+      "text": " it should help you to save cost"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 515.1,
+      "end": 518.38,
+      "text": " compared to the hosted option directly by GitHub."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 518.38,
+      "end": 520.08,
+      "text": " The other question is like,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 520.14,
+      "end": 521.66,
+      "text": " are you willing to pay another vendor?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 521.96,
+      "end": 523.98,
+      "text": " Of course, this is something you need to commercially decide"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 523.98,
+      "end": 526.02,
+      "text": " if it's worth doing for you."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 526.34,
+      "end": 527.36,
+      "text": " But yeah, on the other side,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 527.4,
+      "end": 529.16,
+      "text": " you are buying more control and flexibility."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 529.66,
+      "end": 530.66,
+      "text": " And there is another option,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 530.8,
+      "end": 534.54,
+      "text": " of course, we mentioned already in the intro"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 534.54,
+      "end": 536.14,
+      "text": " that is using CodeBuild."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 536.46,
+      "end": 537.96,
+      "text": " So what about CodeBuild?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 538.12,
+      "end": 539.88,
+      "text": " Is it a good option, a bad option?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 539.98,
+      "end": 541.9399999999999,
+      "text": " Is it easy or difficult to set up?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 542.1,
+      "end": 542.82,
+      "text": " Well, that's a good question."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 542.98,
+      "end": 545.16,
+      "text": " I mean, it's one that really intrigued me"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 545.16,
+      "end": 547.18,
+      "text": " when they announced that you could do this last year."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 547.18,
+      "end": 550.2199999999999,
+      "text": " First, CodeBuild, for anyone who isn't really familiar with it,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 550.3,
+      "end": 551.7399999999999,
+      "text": " because I think a lot of people have given CodeBuild"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 551.7399999999999,
+      "end": 552.7399999999999,
+      "text": " a bit of a pass,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 553.4799999999999,
+      "end": 556.1999999999999,
+      "text": " it's AWS's continuous integration service."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 556.5999999999999,
+      "end": 558.6999999999999,
+      "text": " And it lets you run, build, and test workloads"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 558.6999999999999,
+      "end": 559.6999999999999,
+      "text": " on lots of different compute types."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 560.02,
+      "end": 562.9399999999999,
+      "text": " It's been around a good while and is fairly mature."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 563.56,
+      "end": 565.78,
+      "text": " It doesn't have the workflow and orchestration support"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 565.78,
+      "end": 567.68,
+      "text": " that you get with things like GitHub Actions,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 567.8199999999999,
+      "end": 569.56,
+      "text": " GitLab CI, or say CircleCI."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 569.9,
+      "end": 572.88,
+      "text": " But I think it's quite underappreciated, actually, CodeBuild,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 572.9599999999999,
+      "end": 574.92,
+      "text": " because it's quite simple in what it can do,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 574.9799999999999,
+      "end": 575.76,
+      "text": " but it's really powerful."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 575.76,
+      "end": 578.8,
+      "text": " It doesn't let you orchestrate workflows"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 578.8,
+      "end": 580.84,
+      "text": " like those other tools do, as I mentioned,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 581.12,
+      "end": 583.08,
+      "text": " but AWS has a separate service for that,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 583.2,
+      "end": 584.56,
+      "text": " which isn't as good, I would say,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 584.62,
+      "end": 585.68,
+      "text": " which is CodePipeline."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 586.04,
+      "end": 587.92,
+      "text": " Now, you can check out episode 44 on that"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 587.92,
+      "end": 590.56,
+      "text": " when we did kind of a CodePipeline"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 590.56,
+      "end": 592.06,
+      "text": " versus GitHub Actions episode."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 592.84,
+      "end": 594.8199999999999,
+      "text": " But CodeBuild itself is quite powerful, right?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 594.84,
+      "end": 596,
+      "text": " It supports Linux, Windows."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 596.34,
+      "end": 597.18,
+      "text": " You can do Android builds."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 597.28,
+      "end": 598.3,
+      "text": " You can do macOS builds."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 598.42,
+      "end": 600.12,
+      "text": " And you can run really large instances"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 600.12,
+      "end": 603.38,
+      "text": " like with 72 vCPUs and 145 gigs of RAM."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 603.38,
+      "end": 605.38,
+      "text": " You can do ARM and x86 on it."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 605.62,
+      "end": 607.36,
+      "text": " And recently, it has added the ability"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 607.36,
+      "end": 609.66,
+      "text": " to run on AWS Lambda under the hood,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 609.86,
+      "end": 611.38,
+      "text": " which can make scale up much faster"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 611.38,
+      "end": 612.88,
+      "text": " if your build is suitable for Lambda."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 613.12,
+      "end": 614.52,
+      "text": " And it even has GPU support."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 614.64,
+      "end": 616.32,
+      "text": " So it's useful for training and inference"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 616.32,
+      "end": 617.56,
+      "text": " in your builds as well."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 618.12,
+      "end": 620.24,
+      "text": " So it doesn't have to be a choice of CodeBuild"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 620.24,
+      "end": 621.92,
+      "text": " or GitHub Actions these days."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 621.92,
+      "end": 624.76,
+      "text": " Because CodeBuild now has support for GitHub Actions,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 625.06,
+      "end": 626.92,
+      "text": " that means you can actually use CodeBuild"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 626.92,
+      "end": 629.0799999999999,
+      "text": " as your runners and get all the orchestration"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 629.0799999999999,
+      "end": 630.0799999999999,
+      "text": " and all the integration"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 630.0799999999999,
+      "end": 631.56,
+      "text": " and all of the action support"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 631.56,
+      "end": 633.38,
+      "text": " from the whole GitHub Actions ecosystem."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 634.02,
+      "end": 636.36,
+      "text": " But surprisingly, it's not very complex."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 636.66,
+      "end": 638.3399999999999,
+      "text": " In fact, it's a very small amount of work"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 638.3399999999999,
+      "end": 639.2199999999999,
+      "text": " to set this up."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 639.4799999999999,
+      "end": 640.9799999999999,
+      "text": " And I think people should really try it"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 640.9799999999999,
+      "end": 642.4599999999999,
+      "text": " if they're looking at one of these options"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 642.4599999999999,
+      "end": 644.3,
+      "text": " and thinking, how can I improve cost,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 644.38,
+      "end": 645.62,
+      "text": " get better integration with AWS"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 645.62,
+      "end": 646.78,
+      "text": " in my GitHub Actions?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 646.9399999999999,
+      "end": 648.7199999999999,
+      "text": " I'd definitely say, give this a try."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 648.9,
+      "end": 649.68,
+      "text": " And we have some help,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 649.78,
+      "end": 651.24,
+      "text": " lots of resources for you to check out."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 651.24,
+      "end": 652.76,
+      "text": " There are plenty of subtle things"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 652.76,
+      "end": 653.7,
+      "text": " that can go wrong in the setup."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 653.86,
+      "end": 655.0600000000001,
+      "text": " So we will share a code example"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 655.0600000000001,
+      "end": 656.16,
+      "text": " that will help here,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 656.26,
+      "end": 657.72,
+      "text": " as well as some repositories"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 657.72,
+      "end": 658.72,
+      "text": " that other people have created"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 658.72,
+      "end": 660.6800000000001,
+      "text": " that will help you to get it right first time,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 660.88,
+      "end": 661.34,
+      "text": " not like us."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 662.46,
+      "end": 663.74,
+      "text": " So the first thing you need to do"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 663.74,
+      "end": 665.5,
+      "text": " is to configure authorization for CodeBuild"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 665.5,
+      "end": 667.36,
+      "text": " to connect to your GitHub account,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 667.5600000000001,
+      "end": 669.1800000000001,
+      "text": " like be it a repo, an organization,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 669.28,
+      "end": 670.02,
+      "text": " or your whole enterprise."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 670.6800000000001,
+      "end": 671.8,
+      "text": " Now there's three ways of doing that."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 671.96,
+      "end": 673.2,
+      "text": " You can use OAuth in the console,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 673.58,
+      "end": 675.02,
+      "text": " you can use a personal access token,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 675.14,
+      "end": 676.84,
+      "text": " or you can use CodeConnections."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 677.44,
+      "end": 679,
+      "text": " I prefer the CodeConnections approach,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 679,
+      "end": 681.1800000000001,
+      "text": " keeping personal access tokens up to date"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 681.18,
+      "end": 682.56,
+      "text": " and securing them and sharing them"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 682.56,
+      "end": 683.8599999999999,
+      "text": " is something I'd rather avoid."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 684.26,
+      "end": 686.2399999999999,
+      "text": " So CodeConnections is a method"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 686.2399999999999,
+      "end": 687.4399999999999,
+      "text": " that uses GitHub apps,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 687.7399999999999,
+      "end": 689.78,
+      "text": " and AWS basically automates the process"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 689.78,
+      "end": 691.16,
+      "text": " of installing a GitHub app"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 691.16,
+      "end": 692.4,
+      "text": " into your GitHub account"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 692.4,
+      "end": 694.3,
+      "text": " that has the right permissions for the repos."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 694.7399999999999,
+      "end": 695.9,
+      "text": " And you can create this"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 695.9,
+      "end": 696.8,
+      "text": " with infrastructure as code."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 697.02,
+      "end": 697.9399999999999,
+      "text": " So in our code example,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 698.04,
+      "end": 698.9399999999999,
+      "text": " that will link in the show notes,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 699.1999999999999,
+      "end": 701.5999999999999,
+      "text": " it'll create your CodeConnection."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 701.8599999999999,
+      "end": 703.5,
+      "text": " This used to be known as CodeStar Connections."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 703.7399999999999,
+      "end": 705.24,
+      "text": " So you will see in the documentation"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 705.24,
+      "end": 706.26,
+      "text": " both terms being used."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 706.42,
+      "end": 707.2199999999999,
+      "text": " And that basically creates"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 707.2199999999999,
+      "end": 708.9399999999999,
+      "text": " this connection resource in a pending state."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 708.94,
+      "end": 710.44,
+      "text": " You then need to go into the console"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 710.44,
+      "end": 712.22,
+      "text": " and activate it and link it"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 712.22,
+      "end": 713.58,
+      "text": " into your GitHub account"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 713.58,
+      "end": 714.48,
+      "text": " with an OAuth flow."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 714.6800000000001,
+      "end": 715.9200000000001,
+      "text": " And you just need to do this once."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 716.2800000000001,
+      "end": 717.32,
+      "text": " If you've already done it,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 717.32,
+      "end": 718.6,
+      "text": " you can just reuse an existing one."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 718.7,
+      "end": 720.4200000000001,
+      "text": " So once you have that CodeConnection set up,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 720.5600000000001,
+      "end": 721.44,
+      "text": " then you can actually create"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 721.44,
+      "end": 722.32,
+      "text": " a code build project."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 722.6,
+      "end": 723.7800000000001,
+      "text": " And the code build project creation"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 723.7800000000001,
+      "end": 724.9000000000001,
+      "text": " is pretty simple."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 725.32,
+      "end": 726.6800000000001,
+      "text": " There are a few gotchas"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 726.6800000000001,
+      "end": 727.36,
+      "text": " with the documentation."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 728.36,
+      "end": 730.4000000000001,
+      "text": " So again, look at our code examples."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 730.6800000000001,
+      "end": 731.9200000000001,
+      "text": " Hopefully it'll make it easier for you."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 732.0400000000001,
+      "end": 733.2,
+      "text": " You just need to set up your source."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 733.5400000000001,
+      "end": 734.74,
+      "text": " Normally with code build projects,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 734.96,
+      "end": 736.24,
+      "text": " you're linking it to a repo,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 736.24,
+      "end": 738.94,
+      "text": " but you can also make it a generic one"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 738.94,
+      "end": 740.36,
+      "text": " that isn't linked to a specific repo,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 740.5,
+      "end": 742.38,
+      "text": " but instead is linked to your organization."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 742.62,
+      "end": 743.92,
+      "text": " And then you just set your authorizer"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 743.92,
+      "end": 745.42,
+      "text": " to the CodeConnection ARN"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 745.42,
+      "end": 746.34,
+      "text": " you've just created."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 746.58,
+      "end": 748.02,
+      "text": " You need to enable webhook triggers"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 748.02,
+      "end": 750.44,
+      "text": " so that it can create GitHub webhooks"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 750.44,
+      "end": 752.2,
+      "text": " and link AWS and GitHub together."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 752.38,
+      "end": 754.52,
+      "text": " And then you'll need your IAM role as normal."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 754.84,
+      "end": 755.72,
+      "text": " And that'll need permissions"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 755.72,
+      "end": 756.98,
+      "text": " to access CodeConnection,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 757.46,
+      "end": 758.12,
+      "text": " CloudWatch logs,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 758.1800000000001,
+      "end": 759.22,
+      "text": " and whatever else you might need"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 759.22,
+      "end": 759.82,
+      "text": " for your scenario."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 760.08,
+      "end": 761.14,
+      "text": " So this is one of the advantages"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 761.14,
+      "end": 762.8,
+      "text": " is that rather than having to do"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 762.8,
+      "end": 764.74,
+      "text": " an OIDC integration"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 764.74,
+      "end": 766.3599999999999,
+      "text": " or some vault shenanigans,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 766.74,
+      "end": 768.02,
+      "text": " you can just use IAM"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 768.02,
+      "end": 768.9399999999999,
+      "text": " for your permissions"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 768.9399999999999,
+      "end": 770.18,
+      "text": " in your code build job."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 770.3,
+      "end": 770.8199999999999,
+      "text": " And you can still do"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 770.8199999999999,
+      "end": 771.9,
+      "text": " all those other methods as well,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 771.9399999999999,
+      "end": 772.2199999999999,
+      "text": " of course."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 772.9399999999999,
+      "end": 773.9799999999999,
+      "text": " In your build project,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 773.9799999999999,
+      "end": 775.9799999999999,
+      "text": " you can also set the default compute type,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 776.1999999999999,
+      "end": 777.16,
+      "text": " like the operating system,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 777.5,
+      "end": 778.0999999999999,
+      "text": " container image,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 778.38,
+      "end": 779.28,
+      "text": " the CPU architecture,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 779.54,
+      "end": 780.4399999999999,
+      "text": " and whether you're using"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 780.4399999999999,
+      "end": 782.54,
+      "text": " standard Linux or AWS Lambda."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 782.74,
+      "end": 784.14,
+      "text": " The nice thing here, however,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 784.1999999999999,
+      "end": 785,
+      "text": " is that you can actually"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 785,
+      "end": 786.26,
+      "text": " override those values"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 786.26,
+      "end": 788.38,
+      "text": " in your GitHub workflow YAML files as well."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 788.52,
+      "end": 789.9799999999999,
+      "text": " And you can switch the instance size"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 789.9799999999999,
+      "end": 791.56,
+      "text": " and the operating system as needed."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 791.56,
+      "end": 793.0999999999999,
+      "text": " And you can even do matrix builds"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 793.0999999999999,
+      "end": 795.5999999999999,
+      "text": " with all the different CPU architectures"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 795.5999999999999,
+      "end": 797.28,
+      "text": " and operating systems too."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 797.4799999999999,
+      "end": 799.9,
+      "text": " And then you can set a build concurrency"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 799.9,
+      "end": 800.5999999999999,
+      "text": " within your project."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 800.8599999999999,
+      "end": 801.4799999999999,
+      "text": " It is worth mentioning"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 801.4799999999999,
+      "end": 802.64,
+      "text": " that the default code build"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 802.64,
+      "end": 803.8599999999999,
+      "text": " concurrency limits are quite low,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 804.04,
+      "end": 804.9399999999999,
+      "text": " like sometimes one."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 805.28,
+      "end": 806.5999999999999,
+      "text": " So that's a soft limit."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 806.8199999999999,
+      "end": 808.14,
+      "text": " You just need to go into the service quote"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 808.14,
+      "end": 809.3599999999999,
+      "text": " as part of the AWS console"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 809.3599999999999,
+      "end": 810.42,
+      "text": " and request one."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 810.6199999999999,
+      "end": 811.6199999999999,
+      "text": " They're just trying to save you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 811.6199999999999,
+      "end": 812.5799999999999,
+      "text": " from running up a big build."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 812.9399999999999,
+      "end": 815.02,
+      "text": " Now, the code build project name"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 815.02,
+      "end": 816.1199999999999,
+      "text": " you give is important"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 816.1199999999999,
+      "end": 817.38,
+      "text": " as this is what links it"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 817.38,
+      "end": 818.6999999999999,
+      "text": " to your GitHub workflow YAML."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 818.9799999999999,
+      "end": 819.7399999999999,
+      "text": " So in your workflow,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 819.9399999999999,
+      "end": 821.16,
+      "text": " you just set your runs on."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 821.16,
+      "end": 822.78,
+      "text": " If you've used self-hosted runners,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 822.9,
+      "end": 824.12,
+      "text": " you'll be used to setting runs"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 824.12,
+      "end": 825.4,
+      "text": " on something like self-hosted."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 825.62,
+      "end": 826.12,
+      "text": " That's a property"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 826.12,
+      "end": 827.06,
+      "text": " in your workflow YAML."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 827.3399999999999,
+      "end": 828.14,
+      "text": " And you just need to use"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 828.14,
+      "end": 828.8,
+      "text": " a special syntax,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 828.92,
+      "end": 829.76,
+      "text": " which is like code build"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 829.76,
+      "end": 831.0799999999999,
+      "text": " dash project name dash"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 831.0799999999999,
+      "end": 832.18,
+      "text": " a couple of variables"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 832.18,
+      "end": 833.6999999999999,
+      "text": " that come from your GitHub run."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 833.98,
+      "end": 835.28,
+      "text": " And then you just use"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 835.28,
+      "end": 836.5799999999999,
+      "text": " your GitHub actions as normal, right?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 836.62,
+      "end": 837.8199999999999,
+      "text": " You'll commit this workflow."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 838.1,
+      "end": 838.9,
+      "text": " It should start running"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 838.9,
+      "end": 840.5,
+      "text": " directly on code build."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 840.76,
+      "end": 842.02,
+      "text": " Your actions should look like"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 842.02,
+      "end": 843.3199999999999,
+      "text": " any other GitHub actions running"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 843.3199999999999,
+      "end": 844.52,
+      "text": " and your pull requests"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 844.52,
+      "end": 845.1999999999999,
+      "text": " and deployments"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 845.1999999999999,
+      "end": 846.88,
+      "text": " are all running in GitHub actions."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 846.88,
+      "end": 848.46,
+      "text": " But the actual build"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 848.46,
+      "end": 849.8,
+      "text": " is running on code build."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 850.08,
+      "end": 851.46,
+      "text": " And your GitHub action caches,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 851.62,
+      "end": 852.22,
+      "text": " as we mentioned,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 852.42,
+      "end": 853.02,
+      "text": " are still there."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 853.22,
+      "end": 853.72,
+      "text": " Might be worthwhile"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 853.72,
+      "end": 855.42,
+      "text": " talking about why you'd use"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 855.42,
+      "end": 857.54,
+      "text": " code build for GitHub actions."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 857.9399999999999,
+      "end": 859.06,
+      "text": " I'd say like we talked about"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 859.06,
+      "end": 859.56,
+      "text": " some of the reasons"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 859.56,
+      "end": 860.38,
+      "text": " for running on AWS,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 860.64,
+      "end": 861.82,
+      "text": " but for code build specifically,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 862.06,
+      "end": 862.8,
+      "text": " I was generally"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 862.8,
+      "end": 863.86,
+      "text": " pretty impressed by it."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 864.04,
+      "end": 865.1,
+      "text": " It's quite simple to set up"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 865.1,
+      "end": 866.1,
+      "text": " and gives you a lot of flexibility."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 866.46,
+      "end": 867.48,
+      "text": " Setting up all the stuff"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 867.48,
+      "end": 868.18,
+      "text": " on EC2,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 868.58,
+      "end": 869.78,
+      "text": " managing a third party vendor,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 870.14,
+      "end": 871.06,
+      "text": " another one"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 871.06,
+      "end": 872.38,
+      "text": " might be a bit of friction"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 872.38,
+      "end": 873.52,
+      "text": " for you and your organization"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 873.52,
+      "end": 874.06,
+      "text": " to do that."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 874.06,
+      "end": 875.0799999999999,
+      "text": " So code build is definitely"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 875.0799999999999,
+      "end": 875.8,
+      "text": " worth checking out."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 876,
+      "end": 877.3199999999999,
+      "text": " So if you have like a VPC"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 877.3199999999999,
+      "end": 878.14,
+      "text": " in AWS"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 878.14,
+      "end": 879.38,
+      "text": " and you want your build environment"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 879.38,
+      "end": 880.1999999999999,
+      "text": " to access this network"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 880.1999999999999,
+      "end": 880.8199999999999,
+      "text": " and keep everything"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 880.8199999999999,
+      "end": 882.52,
+      "text": " within that AWS network boundary,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 882.7199999999999,
+      "end": 883.4599999999999,
+      "text": " code build is a good way"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 883.4599999999999,
+      "end": 883.8599999999999,
+      "text": " to do that."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 884.06,
+      "end": 884.54,
+      "text": " If you want to use"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 884.54,
+      "end": 885.5,
+      "text": " IAM roles for permissions"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 885.5,
+      "end": 886.7199999999999,
+      "text": " and don't want to use"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 886.7199999999999,
+      "end": 888.4,
+      "text": " the OIDC credentials flow"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 888.4,
+      "end": 889.16,
+      "text": " or something else,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 889.5,
+      "end": 890.06,
+      "text": " that's a good reason"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 890.06,
+      "end": 890.64,
+      "text": " to use code build."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 891.02,
+      "end": 892.0799999999999,
+      "text": " Or maybe you've already"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 892.0799999999999,
+      "end": 892.92,
+      "text": " got GitHub runners"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 892.92,
+      "end": 894.04,
+      "text": " and you're just struggling"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 894.04,
+      "end": 894.8399999999999,
+      "text": " to cope with capacity."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 895.04,
+      "end": 895.92,
+      "text": " So you'd want some extra"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 895.92,
+      "end": 897.4599999999999,
+      "text": " on-demand paper use capacity"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 897.4599999999999,
+      "end": 898.2399999999999,
+      "text": " and you can just add"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 898.2399999999999,
+      "end": 898.76,
+      "text": " some code build"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 898.76,
+      "end": 899.5,
+      "text": " into the mix as well."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 899.5799999999999,
+      "end": 900.5799999999999,
+      "text": " Or you might actually have"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 900.5799999999999,
+      "end": 901.9799999999999,
+      "text": " reserved code build capacity"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 901.9799999999999,
+      "end": 902.9799999999999,
+      "text": " because you can use,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 903.2399999999999,
+      "end": 903.8599999999999,
+      "text": " you can create"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 903.86,
+      "end": 905.38,
+      "text": " code build reserved capacity"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 905.38,
+      "end": 906.42,
+      "text": " fleets that are cheaper"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 906.42,
+      "end": 908.26,
+      "text": " and always available for you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 908.26,
+      "end": 909.0600000000001,
+      "text": " and you could utilize"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 909.0600000000001,
+      "end": 910.46,
+      "text": " those in your actions as well."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 910.58,
+      "end": 911.32,
+      "text": " Should we describe"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 911.32,
+      "end": 913.1800000000001,
+      "text": " our experience in general?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 913.28,
+      "end": 914.28,
+      "text": " We have our code repository."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 914.66,
+      "end": 915.48,
+      "text": " What do you think, Luciano?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 915.66,
+      "end": 916.88,
+      "text": " How would you assess it?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 917.92,
+      "end": 918.74,
+      "text": " Yeah, I think we spent some time experimenting"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 918.74,
+      "end": 919.5600000000001,
+      "text": " with this"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 919.5600000000001,
+      "end": 921.46,
+      "text": " and getting to understand"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 921.46,
+      "end": 922,
+      "text": " the limitations."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 922.9,
+      "end": 923.5600000000001,
+      "text": " We, as you said,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 923.62,
+      "end": 924.32,
+      "text": " we have a link"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 924.32,
+      "end": 924.96,
+      "text": " to our repo"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 924.96,
+      "end": 925.62,
+      "text": " in the show notes."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 925.76,
+      "end": 926.5,
+      "text": " So definitely worth"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 926.5,
+      "end": 927.28,
+      "text": " checking that out"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 927.28,
+      "end": 928.14,
+      "text": " to see exactly"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 928.14,
+      "end": 929.1,
+      "text": " what did we try."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 929.5600000000001,
+      "end": 930.24,
+      "text": " And this repo"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 930.24,
+      "end": 931.62,
+      "text": " contains a CDK stack"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 931.62,
+      "end": 932.52,
+      "text": " that sets up"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 932.52,
+      "end": 933.42,
+      "text": " everything for you,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 933.58,
+      "end": 934.14,
+      "text": " which means"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 934.14,
+      "end": 934.8,
+      "text": " it's going to create"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 934.8,
+      "end": 935.58,
+      "text": " the CodeConnection,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 935.9,
+      "end": 937.78,
+      "text": " it's going to create"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 937.78,
+      "end": 939.42,
+      "text": " two different code build projects."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 939.66,
+      "end": 940.34,
+      "text": " One is using"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 940.34,
+      "end": 941.94,
+      "text": " a small size code build runner"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 941.94,
+      "end": 943.12,
+      "text": " and another one"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 943.12,
+      "end": 944.18,
+      "text": " is using Lambda runners"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 944.18,
+      "end": 945.92,
+      "text": " with four gigabytes of RAM."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 946.02,
+      "end": 947.04,
+      "text": " So you can see effectively"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 947.04,
+      "end": 947.9,
+      "text": " that the difference"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 947.9,
+      "end": 948.58,
+      "text": " between the two"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 948.58,
+      "end": 949.48,
+      "text": " when you run"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 949.48,
+      "end": 950.34,
+      "text": " this particular stack"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 950.34,
+      "end": 951.14,
+      "text": " or maybe you can use it"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 951.14,
+      "end": 951.68,
+      "text": " as a reference"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 951.68,
+      "end": 952.5600000000001,
+      "text": " and just pick one"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 952.5600000000001,
+      "end": 953.04,
+      "text": " or the other"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 953.04,
+      "end": 953.76,
+      "text": " and copy paste"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 953.76,
+      "end": 954.72,
+      "text": " that particular piece"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 954.72,
+      "end": 955.18,
+      "text": " of configuration"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 955.18,
+      "end": 956.0600000000001,
+      "text": " into your own"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 956.0600000000001,
+      "end": 956.78,
+      "text": " specific project."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 957,
+      "end": 957.3,
+      "text": " To be fair,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 957.38,
+      "end": 958.1,
+      "text": " getting the configuration"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 958.1,
+      "end": 959.34,
+      "text": " right was a little bit"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 959.34,
+      "end": 959.76,
+      "text": " challenging."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 960.0600000000001,
+      "end": 960.5600000000001,
+      "text": " The documentation"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 960.5600000000001,
+      "end": 961.96,
+      "text": " isn't too bad,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 962.3000000000001,
+      "end": 963.38,
+      "text": " but it doesn't cover"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 963.38,
+      "end": 964.88,
+      "text": " all the configuration options,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 965.0600000000001,
+      "end": 965.76,
+      "text": " particularly if you want"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 965.76,
+      "end": 966.38,
+      "text": " to set it up"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 966.38,
+      "end": 967.52,
+      "text": " for an organization"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 967.52,
+      "end": 968.12,
+      "text": " and not just"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 968.12,
+      "end": 969.02,
+      "text": " for a single repository."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 969.46,
+      "end": 970.14,
+      "text": " I think there are"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 970.14,
+      "end": 971.34,
+      "text": " some blind spots there"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 971.34,
+      "end": 972.32,
+      "text": " and we were left"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 972.32,
+      "end": 973.2,
+      "text": " to figure it out"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 973.2,
+      "end": 974.4200000000001,
+      "text": " exactly how to do it."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 974.5600000000001,
+      "end": 975.5,
+      "text": " Not the end of the world."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 975.58,
+      "end": 976.14,
+      "text": " I think eventually"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 976.14,
+      "end": 976.9,
+      "text": " we figure it out,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 977,
+      "end": 977.8000000000001,
+      "text": " but just something"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 977.8000000000001,
+      "end": 978.5400000000001,
+      "text": " that can be maybe"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 978.5400000000001,
+      "end": 979.24,
+      "text": " improved on."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 979.4,
+      "end": 980.5400000000001,
+      "text": " So if someone from AWS"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 980.5400000000001,
+      "end": 981.12,
+      "text": " is listening,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 981.44,
+      "end": 982.3000000000001,
+      "text": " please make that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 982.3000000000001,
+      "end": 983.02,
+      "text": " a little bit better"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 983.02,
+      "end": 984.5400000000001,
+      "text": " for future users."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 984.5400000000001,
+      "end": 985.5,
+      "text": " So the examples"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 985.5,
+      "end": 986.94,
+      "text": " also don't provide"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 986.94,
+      "end": 988.1600000000001,
+      "text": " a good CloudFormation,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 988.16,
+      "end": 989.8199999999999,
+      "text": " CDK or Terraform example."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 990,
+      "end": 990.38,
+      "text": " So it's,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 990.86,
+      "end": 991.4399999999999,
+      "text": " as always,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 991.52,
+      "end": 992.4,
+      "text": " a little bit more"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 992.4,
+      "end": 993.74,
+      "text": " you go in the web UI"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 993.74,
+      "end": 995.2199999999999,
+      "text": " and click stuff around,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 995.48,
+      "end": 995.9399999999999,
+      "text": " which I mean,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 996,
+      "end": 997.24,
+      "text": " it's a good way"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 997.24,
+      "end": 997.8199999999999,
+      "text": " of starting,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 998,
+      "end": 998.9,
+      "text": " but in general,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 999.18,
+      "end": 1000.06,
+      "text": " we all know"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1000.06,
+      "end": 1000.56,
+      "text": " that it's better"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1000.56,
+      "end": 1001.14,
+      "text": " to do things"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1001.14,
+      "end": 1002.14,
+      "text": " in infrastructure as code."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1002.48,
+      "end": 1003.12,
+      "text": " So it would be nice"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1003.12,
+      "end": 1003.8399999999999,
+      "text": " to start to see"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1003.8399999999999,
+      "end": 1004.88,
+      "text": " more examples"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1004.88,
+      "end": 1005.7199999999999,
+      "text": " in that direction"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1005.7199999999999,
+      "end": 1006.48,
+      "text": " coming directly"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1006.48,
+      "end": 1007.6,
+      "text": " from the official documentation."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1008.02,
+      "end": 1008.4,
+      "text": " Of course,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1008.5799999999999,
+      "end": 1009.14,
+      "text": " the community"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1009.14,
+      "end": 1009.9,
+      "text": " is always great."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1010.12,
+      "end": 1010.86,
+      "text": " There are other people"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1010.86,
+      "end": 1011.64,
+      "text": " that have tried"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1011.64,
+      "end": 1012.9399999999999,
+      "text": " things like this already"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1012.9399999999999,
+      "end": 1013.78,
+      "text": " and they have shared"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1013.78,
+      "end": 1014.6,
+      "text": " their own solutions"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1014.6,
+      "end": 1016.24,
+      "text": " and you can find"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1016.24,
+      "end": 1017.72,
+      "text": " examples using Terraform"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1017.72,
+      "end": 1019.0600000000001,
+      "text": " or even CDK-TF."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1019.64,
+      "end": 1020.78,
+      "text": " So it was easy"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1020.78,
+      "end": 1021.98,
+      "text": " to just look at those"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1021.98,
+      "end": 1023.12,
+      "text": " and try to figure out"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1023.12,
+      "end": 1024.5,
+      "text": " exactly what we were doing wrong"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1024.5,
+      "end": 1025.78,
+      "text": " and what we should change"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1025.78,
+      "end": 1026.28,
+      "text": " in our setup."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1026.48,
+      "end": 1027.46,
+      "text": " We will have some links"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1027.46,
+      "end": 1028.76,
+      "text": " for other repos"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1028.76,
+      "end": 1029.82,
+      "text": " as well in the show notes."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1030,
+      "end": 1031.02,
+      "text": " In terms of performance,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1031.16,
+      "end": 1031.58,
+      "text": " the performance"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1031.58,
+      "end": 1032.6000000000001,
+      "text": " that we saw"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1032.6000000000001,
+      "end": 1033.6200000000001,
+      "text": " was actually pretty good,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1034.02,
+      "end": 1035.56,
+      "text": " but not as fast"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1035.56,
+      "end": 1036.48,
+      "text": " as you will get"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1036.48,
+      "end": 1037.6000000000001,
+      "text": " with runners"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1037.6000000000001,
+      "end": 1038.58,
+      "text": " that are always running"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1038.58,
+      "end": 1039.64,
+      "text": " directly on GitHub."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1040.38,
+      "end": 1041.22,
+      "text": " That's especially"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1041.22,
+      "end": 1041.82,
+      "text": " the latency"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1041.82,
+      "end": 1042.5,
+      "text": " to start"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1042.5,
+      "end": 1044.04,
+      "text": " a new workflow."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1044.5,
+      "end": 1044.9,
+      "text": " In general,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1044.9,
+      "end": 1045.9,
+      "text": " we saw about"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1045.9,
+      "end": 1046.5400000000002,
+      "text": " 30 seconds"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1046.5400000000002,
+      "end": 1047.22,
+      "text": " of overhead"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1047.22,
+      "end": 1048.4,
+      "text": " just to start"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1048.4,
+      "end": 1049.3200000000002,
+      "text": " a new run"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1049.3200000000002,
+      "end": 1050.3400000000001,
+      "text": " of a specific workflow."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1050.8400000000001,
+      "end": 1051.2800000000002,
+      "text": " And we tested"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1051.2800000000002,
+      "end": 1052.5,
+      "text": " with a very simple workflow"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1052.5,
+      "end": 1053.16,
+      "text": " that just did"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1053.16,
+      "end": 1054.4,
+      "text": " 60 seconds of sleep"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1054.4,
+      "end": 1055.2800000000002,
+      "text": " and the minimum"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1055.2800000000002,
+      "end": 1056,
+      "text": " end-to-end time"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1056,
+      "end": 1056.68,
+      "text": " that we observed"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1056.68,
+      "end": 1057.46,
+      "text": " was 90 seconds."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1057.5600000000002,
+      "end": 1058.1200000000001,
+      "text": " So this is how"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1058.1200000000001,
+      "end": 1058.64,
+      "text": " we noticed"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1058.64,
+      "end": 1059.5600000000002,
+      "text": " that there was"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1059.5600000000002,
+      "end": 1060.2,
+      "text": " some delay"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1060.2,
+      "end": 1061.5,
+      "text": " just outside"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1061.5,
+      "end": 1063.26,
+      "text": " our business logic"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1063.26,
+      "end": 1064.42,
+      "text": " for the workflow itself."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1064.92,
+      "end": 1065.3000000000002,
+      "text": " Of course,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1065.3600000000001,
+      "end": 1065.88,
+      "text": " in that delay,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1065.98,
+      "end": 1066.98,
+      "text": " we need to assume"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1066.98,
+      "end": 1067.5600000000002,
+      "text": " that there is"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1067.5600000000002,
+      "end": 1068.5400000000002,
+      "text": " lots of stuff going on,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1068.64,
+      "end": 1069.1200000000001,
+      "text": " for instance,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1069.3200000000002,
+      "end": 1070.64,
+      "text": " provisioning the ephemeral runner,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1070.92,
+      "end": 1071.5400000000002,
+      "text": " which of course"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1071.5400000000002,
+      "end": 1072.1200000000001,
+      "text": " is going to add"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1072.1200000000001,
+      "end": 1072.72,
+      "text": " that overhead,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1072.72,
+      "end": 1073.82,
+      "text": " but I don't know,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1073.88,
+      "end": 1074.74,
+      "text": " 30 seconds feels"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1074.74,
+      "end": 1075.92,
+      "text": " maybe a little bit too much."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1076.1200000000001,
+      "end": 1076.42,
+      "text": " Hopefully,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1076.52,
+      "end": 1077.3,
+      "text": " something that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1077.3,
+      "end": 1078.26,
+      "text": " you can somehow"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1078.26,
+      "end": 1078.88,
+      "text": " fine-tune"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1078.88,
+      "end": 1079.98,
+      "text": " and reduce that latency"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1079.98,
+      "end": 1080.94,
+      "text": " because sometimes"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1080.94,
+      "end": 1081.72,
+      "text": " if you have"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1081.72,
+      "end": 1083.02,
+      "text": " very short-lived"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1083.02,
+      "end": 1083.72,
+      "text": " workflows,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1084.08,
+      "end": 1084.88,
+      "text": " it might be nice"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1084.88,
+      "end": 1085.38,
+      "text": " to see them"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1085.38,
+      "end": 1086.3,
+      "text": " starting straight away"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1086.3,
+      "end": 1087.02,
+      "text": " and get a result"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1087.02,
+      "end": 1087.6200000000001,
+      "text": " straight away."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1087.8600000000001,
+      "end": 1088.44,
+      "text": " Very commonly,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1088.58,
+      "end": 1089.48,
+      "text": " one thing that I do a lot,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1089.6000000000001,
+      "end": 1090.24,
+      "text": " especially for"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1090.24,
+      "end": 1091.2,
+      "text": " open source projects"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1091.2,
+      "end": 1091.84,
+      "text": " is to have,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1091.92,
+      "end": 1092.24,
+      "text": " I don't know,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1092.3,
+      "end": 1092.96,
+      "text": " a workflow that just"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1092.96,
+      "end": 1093.68,
+      "text": " does linting"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1093.68,
+      "end": 1094.32,
+      "text": " and some other"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1094.32,
+      "end": 1095.7,
+      "text": " very small checks"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1095.7,
+      "end": 1097.16,
+      "text": " for code quality"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1097.16,
+      "end": 1098.16,
+      "text": " and those tests"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1098.16,
+      "end": 1099.1000000000001,
+      "text": " can run in like"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1099.1000000000001,
+      "end": 1099.72,
+      "text": " seconds."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1099.72,
+      "end": 1100.78,
+      "text": " So it would be nice"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1100.78,
+      "end": 1101.4,
+      "text": " to just see"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1101.4,
+      "end": 1102.1200000000001,
+      "text": " a green tick"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1102.1200000000001,
+      "end": 1103.04,
+      "text": " for every commit"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1103.04,
+      "end": 1104,
+      "text": " in a matter"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1104,
+      "end": 1104.66,
+      "text": " of a few seconds."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1104.92,
+      "end": 1105.38,
+      "text": " So hopefully"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1105.38,
+      "end": 1106.18,
+      "text": " something worth"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1106.18,
+      "end": 1106.92,
+      "text": " looking at"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1106.92,
+      "end": 1107.32,
+      "text": " and maybe"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1107.32,
+      "end": 1107.68,
+      "text": " something that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1107.68,
+      "end": 1108.26,
+      "text": " can be improved."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1108.46,
+      "end": 1108.94,
+      "text": " In our case,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1108.98,
+      "end": 1109.8,
+      "text": " we tested 100"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1109.8,
+      "end": 1110.6000000000001,
+      "text": " concurrent jobs"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1110.6000000000001,
+      "end": 1111.46,
+      "text": " on each runner."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1111.88,
+      "end": 1112.64,
+      "text": " Most of them"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1112.64,
+      "end": 1113.8600000000001,
+      "text": " took around 90 seconds,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1114.1200000000001,
+      "end": 1114.66,
+      "text": " but we had"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1114.66,
+      "end": 1115.3,
+      "text": " high degrees"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1115.3,
+      "end": 1116.42,
+      "text": " of concurrency,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1116.68,
+      "end": 1117.92,
+      "text": " so 60 of them"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1117.92,
+      "end": 1118.42,
+      "text": " more or less"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1118.42,
+      "end": 1118.84,
+      "text": " were running"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1118.84,
+      "end": 1119.48,
+      "text": " simultaneously"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1119.48,
+      "end": 1120.52,
+      "text": " and some of them"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1120.52,
+      "end": 1121.6200000000001,
+      "text": " took over 3 minutes."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1122.1000000000001,
+      "end": 1122.3,
+      "text": " Now,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1122.5,
+      "end": 1123.54,
+      "text": " probably it's because"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1123.54,
+      "end": 1124.18,
+      "text": " they were left"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1124.18,
+      "end": 1125.04,
+      "text": " in a queue"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1125.04,
+      "end": 1125.6200000000001,
+      "text": " for a while,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1125.8600000000001,
+      "end": 1126.2,
+      "text": " but yeah,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1126.28,
+      "end": 1127.08,
+      "text": " I don't know"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1127.08,
+      "end": 1128.2,
+      "text": " if you have"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1128.2,
+      "end": 1129.28,
+      "text": " more details on that,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1129.28,
+      "end": 1130.6399999999999,
+      "text": " or if we should"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1130.6399999999999,
+      "end": 1131.66,
+      "text": " just talk about"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1131.66,
+      "end": 1132.2,
+      "text": " pricing."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1132.32,
+      "end": 1133.28,
+      "text": " Very difficult to know,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1133.3799999999999,
+      "end": 1133.72,
+      "text": " I think,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1133.8999999999999,
+      "end": 1134.66,
+      "text": " where all that time"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1134.66,
+      "end": 1135.02,
+      "text": " is going."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1135.3799999999999,
+      "end": 1135.94,
+      "text": " If you look at,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1136.04,
+      "end": 1136.5,
+      "text": " because you can look"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1136.5,
+      "end": 1137.26,
+      "text": " at the code build"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1137.26,
+      "end": 1138.8,
+      "text": " job execution timings"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1138.8,
+      "end": 1139.16,
+      "text": " as well,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1139.24,
+      "end": 1139.8799999999999,
+      "text": " and in general"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1139.8799999999999,
+      "end": 1140.6399999999999,
+      "text": " it shows like"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1140.6399999999999,
+      "end": 1141.32,
+      "text": " three seconds"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1141.32,
+      "end": 1142.68,
+      "text": " to provision a runner."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1143.2,
+      "end": 1144.18,
+      "text": " I think there's also"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1144.18,
+      "end": 1145.6,
+      "text": " some just communication"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1145.6,
+      "end": 1147.78,
+      "text": " delay between"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1147.78,
+      "end": 1148.62,
+      "text": " code build"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1148.62,
+      "end": 1149.06,
+      "text": " and GitHub"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1149.06,
+      "end": 1149.6,
+      "text": " and I don't know"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1149.6,
+      "end": 1150.42,
+      "text": " who's responsible"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1150.42,
+      "end": 1151.6399999999999,
+      "text": " or if it's just like"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1151.6399999999999,
+      "end": 1152.22,
+      "text": " there's a queue"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1152.22,
+      "end": 1152.66,
+      "text": " and the queue"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1152.66,
+      "end": 1153.46,
+      "text": " has to drain"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1153.46,
+      "end": 1154.3799999999999,
+      "text": " or what,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1154.7,
+      "end": 1155.1399999999999,
+      "text": " some of it"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1155.1399999999999,
+      "end": 1155.68,
+      "text": " you don't see,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1155.82,
+      "end": 1156.28,
+      "text": " but basically"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1156.28,
+      "end": 1157.04,
+      "text": " the times we're reporting"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1157.04,
+      "end": 1157.76,
+      "text": " that 90 seconds"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1157.76,
+      "end": 1158.82,
+      "text": " is everything"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1158.82,
+      "end": 1159.74,
+      "text": " in your GitHub"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1159.74,
+      "end": 1160.96,
+      "text": " actions workflow"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1160.96,
+      "end": 1162.04,
+      "text": " and code build"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1162.04,
+      "end": 1163.3,
+      "text": " will often be finished"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1163.3,
+      "end": 1163.98,
+      "text": " but it still seems"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1163.98,
+      "end": 1164.82,
+      "text": " to take some time"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1164.82,
+      "end": 1165.6599999999999,
+      "text": " for GitHub to say,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1165.78,
+      "end": 1165.8799999999999,
+      "text": " okay,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1165.96,
+      "end": 1166.6599999999999,
+      "text": " your job workflow"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1166.6599999999999,
+      "end": 1167.12,
+      "text": " is finished."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1167.32,
+      "end": 1167.74,
+      "text": " So your job"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1167.74,
+      "end": 1168.7,
+      "text": " might actually be done,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1168.78,
+      "end": 1169.56,
+      "text": " it's just not reporting"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1169.56,
+      "end": 1170.12,
+      "text": " it as done."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1170.3799999999999,
+      "end": 1171.4199999999998,
+      "text": " I don't have all the details."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1171.6799999999998,
+      "end": 1171.8799999999999,
+      "text": " Now,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1172.26,
+      "end": 1173.74,
+      "text": " we should talk about pricing."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1174.06,
+      "end": 1174.86,
+      "text": " It's interesting to compare."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1175,
+      "end": 1175.12,
+      "text": " Now,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1175.2,
+      "end": 1176.46,
+      "text": " it's also quite difficult"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1176.46,
+      "end": 1177.26,
+      "text": " because you're not always"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1177.26,
+      "end": 1178.2,
+      "text": " comparing apples with apples"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1178.2,
+      "end": 1180,
+      "text": " but if you exclude"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1180,
+      "end": 1181.1,
+      "text": " the AWS free tier"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1181.1,
+      "end": 1182.1,
+      "text": " which has like"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1182.1,
+      "end": 1183.56,
+      "text": " a good code build junk"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1183.56,
+      "end": 1184.2,
+      "text": " and the free minutes"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1184.2,
+      "end": 1184.78,
+      "text": " you get with your"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1184.78,
+      "end": 1185.46,
+      "text": " GitHub subscription,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1185.9399999999998,
+      "end": 1186.6,
+      "text": " we can just do"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1186.6,
+      "end": 1187.4399999999998,
+      "text": " a fairly simple"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1187.44,
+      "end": 1188.2,
+      "text": " pricing comparison."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1188.4,
+      "end": 1189.24,
+      "text": " If we take a fairly"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1189.24,
+      "end": 1191.3400000000001,
+      "text": " modest 2vCPU instance"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1191.3400000000001,
+      "end": 1192.6200000000001,
+      "text": " and try to pick something"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1192.6200000000001,
+      "end": 1193.7,
+      "text": " that's relatively similar"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1193.7,
+      "end": 1194.8400000000001,
+      "text": " across the different options,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1195.02,
+      "end": 1196.22,
+      "text": " maybe looking at the cheapest"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1196.22,
+      "end": 1196.72,
+      "text": " which is just"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1196.72,
+      "end": 1197.5,
+      "text": " on-demand EC2."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1197.76,
+      "end": 1197.8600000000001,
+      "text": " Now,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1197.88,
+      "end": 1198.3200000000002,
+      "text": " you could also do"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1198.3200000000002,
+      "end": 1198.96,
+      "text": " spot EC2,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1199.02,
+      "end": 1199.3200000000002,
+      "text": " of course."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1199.52,
+      "end": 1200.72,
+      "text": " That's probably"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1200.72,
+      "end": 1202.54,
+      "text": " your best cheapest option"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1202.54,
+      "end": 1203.18,
+      "text": " is to use spot"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1203.18,
+      "end": 1203.8200000000002,
+      "text": " and I think"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1203.8200000000002,
+      "end": 1204.94,
+      "text": " the runs-on tool"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1204.94,
+      "end": 1205.3400000000001,
+      "text": " we mentioned"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1205.3400000000001,
+      "end": 1206.3600000000001,
+      "text": " allows you to do spot"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1206.3600000000001,
+      "end": 1207.24,
+      "text": " as far as I remember."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1207.5,
+      "end": 1208,
+      "text": " If we take"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1208,
+      "end": 1209.18,
+      "text": " an EC2 medium"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1209.18,
+      "end": 1210.7,
+      "text": " and then compare it"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1210.7,
+      "end": 1211.8600000000001,
+      "text": " with a code build"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1211.8600000000001,
+      "end": 1212.48,
+      "text": " small,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1212.48,
+      "end": 1214.3,
+      "text": " the price for code build"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1214.3,
+      "end": 1215.78,
+      "text": " is about seven times EC2."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1215.78,
+      "end": 1216.08,
+      "text": " Now,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1216.18,
+      "end": 1216.84,
+      "text": " but if you compare that"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1216.84,
+      "end": 1217.8799999999999,
+      "text": " to GitHub Actions"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1217.8799999999999,
+      "end": 1219.3999999999999,
+      "text": " on a standard 2-core,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1219.7,
+      "end": 1220.16,
+      "text": " GitHub Actions"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1220.16,
+      "end": 1221.36,
+      "text": " is about 11 times"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1221.36,
+      "end": 1222.24,
+      "text": " the cost of EC2."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1222.56,
+      "end": 1222.84,
+      "text": " Now,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1222.8799999999999,
+      "end": 1223.32,
+      "text": " if you go to"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1223.32,
+      "end": 1224.56,
+      "text": " reserved code build instances,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1224.76,
+      "end": 1225.98,
+      "text": " it's only about 4x the price"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1225.98,
+      "end": 1227.58,
+      "text": " and lambda is not too bad"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1227.58,
+      "end": 1227.96,
+      "text": " actually."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1228.3,
+      "end": 1230.1,
+      "text": " It's even slightly cheaper"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1230.1,
+      "end": 1231.34,
+      "text": " than code build standard."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1231.78,
+      "end": 1233.22,
+      "text": " It's about 6.4 times"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1233.22,
+      "end": 1233.68,
+      "text": " the price"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1233.68,
+      "end": 1234.78,
+      "text": " for a 4 gigabyte lambda"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1234.78,
+      "end": 1235.74,
+      "text": " which is roughly similar."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1236.02,
+      "end": 1236.48,
+      "text": " So you can choose"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1236.48,
+      "end": 1237.3,
+      "text": " different size lambdas."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1237.56,
+      "end": 1237.66,
+      "text": " Now,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1237.7,
+      "end": 1237.96,
+      "text": " of course,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1238.22,
+      "end": 1239.16,
+      "text": " you're not really comparing"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1239.16,
+      "end": 1239.62,
+      "text": " the same thing"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1239.62,
+      "end": 1240.24,
+      "text": " because with EC2"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1240.24,
+      "end": 1240.82,
+      "text": " you're going to have"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1240.82,
+      "end": 1242.36,
+      "text": " more of a rectangular"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1242.36,
+      "end": 1243.46,
+      "text": " utilization graph"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1243.46,
+      "end": 1245.68,
+      "text": " which often has"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1245.68,
+      "end": 1246.56,
+      "text": " a lot of waste in it,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1246.64,
+      "end": 1246.8,
+      "text": " right?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1247.02,
+      "end": 1247.98,
+      "text": " So you might end up"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1247.98,
+      "end": 1249.06,
+      "text": " running your EC2"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1249.06,
+      "end": 1250.7,
+      "text": " for five minutes"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1250.7,
+      "end": 1251.76,
+      "text": " in order to run"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1251.76,
+      "end": 1252.46,
+      "text": " a two-minute job."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1252.6200000000001,
+      "end": 1253.28,
+      "text": " So there's always going"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1253.28,
+      "end": 1255.1000000000001,
+      "text": " to be a bit of extra waste"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1255.1000000000001,
+      "end": 1256.3400000000001,
+      "text": " when you use EC2"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1256.3400000000001,
+      "end": 1257.38,
+      "text": " compared to using something"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1257.38,
+      "end": 1258.32,
+      "text": " that's very on-demand"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1258.32,
+      "end": 1259.24,
+      "text": " and per second"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1259.24,
+      "end": 1260.16,
+      "text": " like code build"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1260.16,
+      "end": 1260.6000000000001,
+      "text": " or lambda"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1260.6000000000001,
+      "end": 1261.6200000000001,
+      "text": " or GitHub Actions."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1262.48,
+      "end": 1263.38,
+      "text": " And of course,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1263.42,
+      "end": 1264.5,
+      "text": " you have the extra overhead"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1264.5,
+      "end": 1265.1200000000001,
+      "text": " with EC2"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1265.1200000000001,
+      "end": 1265.96,
+      "text": " just in terms of setup"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1265.96,
+      "end": 1266.44,
+      "text": " and maintenance."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1266.44,
+      "end": 1269.2,
+      "text": " It doesn't really make sense"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1269.2,
+      "end": 1270.16,
+      "text": " to always just compare"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1270.16,
+      "end": 1271.8400000000001,
+      "text": " on a cost basis like this"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1271.8400000000001,
+      "end": 1273.26,
+      "text": " because when you have"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1273.26,
+      "end": 1275.06,
+      "text": " very bursty demands"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1275.06,
+      "end": 1275.76,
+      "text": " for your builds"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1275.76,
+      "end": 1276.56,
+      "text": " and sometimes you've got"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1276.56,
+      "end": 1277.0800000000002,
+      "text": " nothing running,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1277.2,
+      "end": 1277.7,
+      "text": " most of the time"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1277.7,
+      "end": 1278.3600000000001,
+      "text": " you've got nothing running"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1278.3600000000001,
+      "end": 1279.8200000000002,
+      "text": " but then you've got"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1279.8200000000002,
+      "end": 1280.54,
+      "text": " a hive of activity"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1280.54,
+      "end": 1281.3400000000001,
+      "text": " when people need"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1281.3400000000001,
+      "end": 1282.14,
+      "text": " lots of concurrency"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1282.14,
+      "end": 1283.3400000000001,
+      "text": " and maybe you don't want"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1283.3400000000001,
+      "end": 1284.72,
+      "text": " to wait for lots of EC2s"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1284.72,
+      "end": 1286.24,
+      "text": " to spin up and react."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1286.4,
+      "end": 1287.18,
+      "text": " You want things that are"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1287.18,
+      "end": 1288.5,
+      "text": " really very suitable"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1288.5,
+      "end": 1289.5800000000002,
+      "text": " for the specific workflows"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1289.5800000000002,
+      "end": 1290.1000000000001,
+      "text": " you need,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1290.3400000000001,
+      "end": 1291.48,
+      "text": " lots of different compute types,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1292,
+      "end": 1292.5800000000002,
+      "text": " some on Lambda,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1292.8600000000001,
+      "end": 1293.94,
+      "text": " some on Linux,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1294.0800000000002,
+      "end": 1294.76,
+      "text": " some on Windows,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1294.9,
+      "end": 1295.1000000000001,
+      "text": " whatever."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1295.1,
+      "end": 1296.6999999999998,
+      "text": " So it might just make more sense"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1296.6999999999998,
+      "end": 1297.7199999999998,
+      "text": " to use something like code build"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1297.7199999999998,
+      "end": 1298.9199999999998,
+      "text": " or something else."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1299.1599999999999,
+      "end": 1299.4199999999998,
+      "text": " Of course,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1299.54,
+      "end": 1301.3999999999999,
+      "text": " I'm talking about pricing there."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1301.78,
+      "end": 1302.58,
+      "text": " If you're using ARM,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1302.8999999999999,
+      "end": 1304.26,
+      "text": " it's half the price on code build."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1304.48,
+      "end": 1304.8799999999999,
+      "text": " With EC2,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1304.9599999999998,
+      "end": 1306.02,
+      "text": " it depends on the instance type"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1306.02,
+      "end": 1307.74,
+      "text": " but if you can get away with ARM,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1308.02,
+      "end": 1308.78,
+      "text": " definitely go for that."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1308.8799999999999,
+      "end": 1309.84,
+      "text": " You get 50% saving"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1309.84,
+      "end": 1310.8799999999999,
+      "text": " out of the box."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1311.12,
+      "end": 1311.86,
+      "text": " Now, we talked about"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1311.86,
+      "end": 1312.4399999999998,
+      "text": " running on Lambda"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1312.4399999999998,
+      "end": 1313.3799999999999,
+      "text": " and it's quite interesting"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1313.3799999999999,
+      "end": 1314.26,
+      "text": " when you actually see"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1314.26,
+      "end": 1315.3,
+      "text": " your GitHub Actions"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1315.3,
+      "end": 1315.8999999999999,
+      "text": " running on Lambda."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1316.1599999999999,
+      "end": 1317.32,
+      "text": " It's almost surprising"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1317.32,
+      "end": 1318.36,
+      "text": " to see it just succeed"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1318.36,
+      "end": 1319.78,
+      "text": " when it's like cloning your repo,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1319.9399999999998,
+      "end": 1320.82,
+      "text": " doing NPM install."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1321.1599999999999,
+      "end": 1321.74,
+      "text": " Even though these are"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1321.74,
+      "end": 1322.52,
+      "text": " just node processes,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1322.7199999999998,
+      "end": 1323.8,
+      "text": " of course they should run on Lambda"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1323.8,
+      "end": 1325.46,
+      "text": " but in the testing we did,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1325.52,
+      "end": 1326.22,
+      "text": " we didn't come across"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1326.22,
+      "end": 1327.54,
+      "text": " any major limitations."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1327.76,
+      "end": 1328.54,
+      "text": " Everything we did,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1328.6399999999999,
+      "end": 1328.86,
+      "text": " in fact,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1328.8799999999999,
+      "end": 1329.7,
+      "text": " we just took an existing"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1329.7,
+      "end": 1330.94,
+      "text": " open source project we had,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1331.18,
+      "end": 1331.8999999999999,
+      "text": " the SLIC Watch project"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1331.8999999999999,
+      "end": 1332.86,
+      "text": " we've talked about before."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1333.08,
+      "end": 1334.6399999999999,
+      "text": " It's got quite a few build steps in it,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1334.8799999999999,
+      "end": 1335.74,
+      "text": " doing code coverage,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1335.8999999999999,
+      "end": 1336.28,
+      "text": " tests,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1336.44,
+      "end": 1336.9199999999998,
+      "text": " unit tests,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1337.02,
+      "end": 1338.5,
+      "text": " running lots of different NPM builds,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1338.8,
+      "end": 1340.7,
+      "text": " TypeScript transpilation"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1340.7,
+      "end": 1341.1599999999999,
+      "text": " and everything."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1341.48,
+      "end": 1341.96,
+      "text": " It just worked."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1341.96,
+      "end": 1342.94,
+      "text": " There are some limitations"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1342.94,
+      "end": 1343.9199999999998,
+      "text": " with Lambda."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1344.24,
+      "end": 1345.26,
+      "text": " You can use custom images"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1345.26,
+      "end": 1346.96,
+      "text": " but you can't do things"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1346.96,
+      "end": 1347.3799999999999,
+      "text": " like root,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1347.44,
+      "end": 1348.2,
+      "text": " use root."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1348.32,
+      "end": 1349,
+      "text": " So you can't use"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1349,
+      "end": 1349.68,
+      "text": " package manners"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1349.68,
+      "end": 1350.6,
+      "text": " like yum and RPM."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1350.6,
+      "end": 1352.36,
+      "text": " You can't do Docker in Docker"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1352.36,
+      "end": 1353.08,
+      "text": " because you don't have"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1353.08,
+      "end": 1353.86,
+      "text": " privileged mode"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1353.86,
+      "end": 1354.9599999999998,
+      "text": " and it's not a proper"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1354.9599999999998,
+      "end": 1355.52,
+      "text": " Docker runtime."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1355.9199999999998,
+      "end": 1356.6799999999998,
+      "text": " You don't have any"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1356.6799999999998,
+      "end": 1357.3799999999999,
+      "text": " file system access"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1357.3799999999999,
+      "end": 1358.36,
+      "text": " outside slash TMP."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1358.62,
+      "end": 1360.4599999999998,
+      "text": " You don't have the GPU option."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1360.78,
+      "end": 1361.58,
+      "text": " You don't have caching"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1361.58,
+      "end": 1363.5,
+      "text": " and you don't have a VPC."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1363.6999999999998,
+      "end": 1364.6,
+      "text": " So if you want to use a VPC,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1364.74,
+      "end": 1365.1399999999999,
+      "text": " you have to use"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1365.1399999999999,
+      "end": 1366.32,
+      "text": " a standard runtime"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1366.32,
+      "end": 1367.12,
+      "text": " in CodeBuild."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1367.3799999999999,
+      "end": 1367.8,
+      "text": " But still,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1367.9399999999998,
+      "end": 1368.36,
+      "text": " I would say,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1368.86,
+      "end": 1369.48,
+      "text": " like you just mentioned,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1369.6,
+      "end": 1370.62,
+      "text": " linting Luciano."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1370.9399999999998,
+      "end": 1372.04,
+      "text": " That's a perfect example"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1372.04,
+      "end": 1372.52,
+      "text": " of a workflow"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1372.52,
+      "end": 1373.58,
+      "text": " that can run very easily"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1373.58,
+      "end": 1373.98,
+      "text": " in Lambda."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1374.28,
+      "end": 1375.4399999999998,
+      "text": " And the chances"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1375.4399999999998,
+      "end": 1376.48,
+      "text": " of you having to wait"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1376.48,
+      "end": 1377.32,
+      "text": " for CodeBuild"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1377.32,
+      "end": 1378.34,
+      "text": " to provision a container"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1378.34,
+      "end": 1379.1399999999999,
+      "text": " is much less"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1379.1399999999999,
+      "end": 1379.9399999999998,
+      "text": " if you're just using Lambda."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1380.08,
+      "end": 1380.6599999999999,
+      "text": " So it should be"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1380.6599999999999,
+      "end": 1381.22,
+      "text": " up and running"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1381.22,
+      "end": 1381.82,
+      "text": " in a few seconds"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1381.82,
+      "end": 1382.58,
+      "text": " and you should have"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1382.58,
+      "end": 1383.02,
+      "text": " your results"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1383.02,
+      "end": 1384.1999999999998,
+      "text": " a few seconds later."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1384.4199999999998,
+      "end": 1384.6599999999999,
+      "text": " Actually,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1384.74,
+      "end": 1385.6599999999999,
+      "text": " I was using the Biome"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1385.6599999999999,
+      "end": 1387.4199999999998,
+      "text": " JavaScript TypeScript linter"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1387.4199999999998,
+      "end": 1388.72,
+      "text": " in one of these tests"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1388.72,
+      "end": 1389.6599999999999,
+      "text": " and the whole thing"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1389.6599999999999,
+      "end": 1390.9599999999998,
+      "text": " just ran in a couple of seconds."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1391.22,
+      "end": 1392.6399999999999,
+      "text": " Yeah, Biome is amazing,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1392.78,
+      "end": 1394.3999999999999,
+      "text": " especially for large projects."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1394.6799999999998,
+      "end": 1395.1999999999998,
+      "text": " It can do"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1395.1999999999998,
+      "end": 1396.3999999999999,
+      "text": " all the linting"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1396.3999999999999,
+      "end": 1397,
+      "text": " and formatting"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1397,
+      "end": 1398.86,
+      "text": " in literally seconds"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1398.86,
+      "end": 1399.3999999999999,
+      "text": " or less."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1399.86,
+      "end": 1400.3,
+      "text": " Anyway,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1400.4399999999998,
+      "end": 1402.02,
+      "text": " I think we have covered"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1402.02,
+      "end": 1402.84,
+      "text": " everything we wanted"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1402.84,
+      "end": 1404.06,
+      "text": " to cover for today."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1404.3799999999999,
+      "end": 1404.6799999999998,
+      "text": " Hopefully,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1404.82,
+      "end": 1405.54,
+      "text": " we gave you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1405.54,
+      "end": 1406.6599999999999,
+      "text": " a good overview"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1406.66,
+      "end": 1408.22,
+      "text": " of what is"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1408.22,
+      "end": 1409.68,
+      "text": " GitHub Action Runners,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1410.0400000000002,
+      "end": 1410.5800000000002,
+      "text": " why should you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1410.5800000000002,
+      "end": 1411.3600000000001,
+      "text": " consider running"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1411.3600000000001,
+      "end": 1412.98,
+      "text": " your own hosted runners"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1412.98,
+      "end": 1413.5,
+      "text": " on AWS."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1414.1000000000001,
+      "end": 1415.2,
+      "text": " And yeah,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1415.28,
+      "end": 1415.6200000000001,
+      "text": " hopefully,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1415.76,
+      "end": 1416.5,
+      "text": " we gave you an idea"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1416.5,
+      "end": 1417.8000000000002,
+      "text": " of the different options,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1418.0400000000002,
+      "end": 1418.8000000000002,
+      "text": " pricing comparisons."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1419.3200000000002,
+      "end": 1420.14,
+      "text": " So let us know"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1420.14,
+      "end": 1420.94,
+      "text": " if you found"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1420.94,
+      "end": 1422.0400000000002,
+      "text": " all of that interesting"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1422.0400000000002,
+      "end": 1423.0400000000002,
+      "text": " or if you have"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1423.0400000000002,
+      "end": 1423.8600000000001,
+      "text": " other questions"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1423.8600000000001,
+      "end": 1424.42,
+      "text": " about things"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1424.42,
+      "end": 1425.44,
+      "text": " maybe we didn't cover"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1425.44,
+      "end": 1426.6200000000001,
+      "text": " or if you tried yourself,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1426.74,
+      "end": 1427.18,
+      "text": " maybe you know"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1427.18,
+      "end": 1427.8400000000001,
+      "text": " other tools,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1427.98,
+      "end": 1428.3200000000002,
+      "text": " maybe you have"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1428.3200000000002,
+      "end": 1429.68,
+      "text": " your other resources"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1429.68,
+      "end": 1430.5800000000002,
+      "text": " that you came across"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1430.5800000000002,
+      "end": 1431.6000000000001,
+      "text": " and use them"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1431.6000000000001,
+      "end": 1432.5400000000002,
+      "text": " to set things up."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1432.72,
+      "end": 1433.16,
+      "text": " Please definitely"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1433.16,
+      "end": 1434.0400000000002,
+      "text": " share them with us"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1434.0400000000002,
+      "end": 1434.7,
+      "text": " because, of course,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1434.88,
+      "end": 1435.5600000000002,
+      "text": " we are happy"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1435.56,
+      "end": 1437.28,
+      "text": " to compare other options"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1437.28,
+      "end": 1437.76,
+      "text": " and, of course,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1437.78,
+      "end": 1438.78,
+      "text": " make all of these resources"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1438.78,
+      "end": 1439.96,
+      "text": " available to other people."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1440.28,
+      "end": 1440.98,
+      "text": " Speaking of which,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1441.08,
+      "end": 1441.26,
+      "text": " again,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1441.34,
+      "end": 1442.22,
+      "text": " all the things"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1442.22,
+      "end": 1443,
+      "text": " we mentioned today,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1443.12,
+      "end": 1443.86,
+      "text": " we will have links"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1443.86,
+      "end": 1444.6,
+      "text": " in the show notes."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1444.78,
+      "end": 1445.3999999999999,
+      "text": " We will also have"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1445.3999999999999,
+      "end": 1446.5,
+      "text": " a few additional links"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1446.5,
+      "end": 1447.6399999999999,
+      "text": " about other resources"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1447.6399999999999,
+      "end": 1448.3799999999999,
+      "text": " that we used"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1448.3799999999999,
+      "end": 1449.86,
+      "text": " during our experiments."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1450.3,
+      "end": 1451.04,
+      "text": " So hopefully,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1451.12,
+      "end": 1451.94,
+      "text": " all of that together"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1451.94,
+      "end": 1452.62,
+      "text": " will give you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1452.62,
+      "end": 1453.84,
+      "text": " a very good starting point"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1453.84,
+      "end": 1454.76,
+      "text": " for whichever option"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1454.76,
+      "end": 1455.6399999999999,
+      "text": " you are going to choose"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1455.6399999999999,
+      "end": 1456.8,
+      "text": " if you end up playing"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1456.8,
+      "end": 1457.6799999999998,
+      "text": " with the idea"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1457.6799999999998,
+      "end": 1459.04,
+      "text": " of running your own"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1459.04,
+      "end": 1460.48,
+      "text": " GitHub Runners"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1460.48,
+      "end": 1461.28,
+      "text": " on EC2"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1461.28,
+      "end": 1461.8799999999999,
+      "text": " or Lambda"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1461.8799999999999,
+      "end": 1463.24,
+      "text": " or maybe using CodeBuild."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1463.24,
+      "end": 1464.34,
+      "text": " So thank you very much"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1464.34,
+      "end": 1465.22,
+      "text": " and we'll see you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1465.22,
+      "end": 1466.22,
+      "text": " in the next episode."
+    }
+  ]
+}

@@ -1,0 +1,1421 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:04.400
+Depending on who you talk to, you might have heard that serverless is facing an uncertain future.
+
+2
+00:00:04.640 --> 00:00:09.180
+Horror stories of cost and complexity may give you the impression that the promise of serverless was oversold
+
+3
+00:00:09.180 --> 00:00:13.080
+and that there was never any problem with monoliths, virtual machines and data centers.
+
+4
+00:00:13.320 --> 00:00:16.140
+Of course, a lot of these stories emerge as soundbites on social media,
+
+5
+00:00:16.320 --> 00:00:19.480
+where there's little room for subtlety, context and trade-offs.
+
+6
+00:00:19.660 --> 00:00:21.960
+Today, we're talking about serverless in the enterprise.
+
+7
+00:00:22.280 --> 00:00:24.380
+While some startups are struggling with serverless, for sure,
+
+8
+00:00:24.620 --> 00:00:26.520
+larger companies are actually finding enormous benefits.
+
+9
+00:00:26.520 --> 00:00:31.100
+So we're going to talk about where it works and when it doesn't work and what's needed to make it work for you.
+
+10
+00:00:31.280 --> 00:00:35.740
+I'm Eoin. I'm here with Luciano. And this is AWS Bites, episode 135.
+
+11
+00:00:43.360 --> 00:00:45.300
+AWS Bites is brought to you by fourTheorem.
+
+12
+00:00:45.580 --> 00:00:49.320
+If you're looking for a partner to architect, develop and modernize on AWS,
+
+13
+00:00:49.560 --> 00:00:52.460
+give fourTheorem a call and you can check out fourtheorem.com.
+
+14
+00:00:52.460 --> 00:00:56.360
+As software engineers, we're notoriously hit and miss when it comes to naming things.
+
+15
+00:00:57.020 --> 00:01:00.600
+Serverless is yet another example of a term that doesn't quite capture what it's all about.
+
+16
+00:01:00.780 --> 00:01:05.880
+But when we use the term at a high level, we're talking about offloading as much infrastructure as possible to the cloud vendor
+
+17
+00:01:05.880 --> 00:01:09.580
+so that most of the work you do is focused on the stuff that should be unique to your business.
+
+18
+00:01:09.680 --> 00:01:15.380
+So when we say serverless, we're talking about architecture and technology selection with a few different traits.
+
+19
+00:01:15.520 --> 00:01:20.300
+And some of these traits are things like no management of servers or advanced container infrastructure.
+
+20
+00:01:20.300 --> 00:01:22.980
+Of course, there are servers somewhere. You just don't need to manage them.
+
+21
+00:01:22.980 --> 00:01:27.240
+Then you're talking about fine-grained scaling based on demand, reducing unused idle capacity,
+
+22
+00:01:27.240 --> 00:01:29.580
+but allowing you to handle significant peaks.
+
+23
+00:01:29.820 --> 00:01:33.020
+Serverless often goes hand-in-hand as well with event-driven architecture.
+
+24
+00:01:33.280 --> 00:01:37.240
+So serverless architecture has often involved decoupling a system into a lot of different small components
+
+25
+00:01:37.240 --> 00:01:38.920
+with asynchronous communication.
+
+26
+00:01:39.200 --> 00:01:41.800
+Pay-as-you-go pricing is another big feature of serverless.
+
+27
+00:01:42.040 --> 00:01:43.620
+Ideally, you don't pay for idle time.
+
+28
+00:01:43.620 --> 00:01:47.880
+And I suppose as well, what a lot of people would think of when you're talking about serverless
+
+29
+00:01:47.880 --> 00:01:51.640
+is that you're using something like Lambda functions as a service product
+
+30
+00:01:51.640 --> 00:01:54.540
+or even low overhead container services for compute.
+
+31
+00:01:54.840 --> 00:01:57.920
+And focusing on writing the business logic should be the main concern.
+
+32
+00:01:58.120 --> 00:02:02.040
+In terms of AWS, so the first thing you think of when it comes to serverless is AWS Lambda,
+
+33
+00:02:02.460 --> 00:02:05.580
+but other widely used serverless services are widely adopted,
+
+34
+00:02:05.860 --> 00:02:11.300
+including S3, SQS, SNS, EventBridge, API Gateway, AppSync, and a lot more.
+
+35
+00:02:11.300 --> 00:02:14.700
+So given this definition of serverless and some of its traits, Luciano,
+
+36
+00:02:14.940 --> 00:02:18.240
+why are some people getting bearish on serverless and just getting a little bit down?
+
+37
+00:02:18.300 --> 00:02:21.800
+Because maybe you've seen a lot of this commentary on social media as well.
+
+38
+00:02:21.980 --> 00:02:22.480
+Yeah, absolutely.
+
+39
+00:02:22.620 --> 00:02:27.220
+We have seen lots of comments and debate on serverless in a negative way
+
+40
+00:02:27.220 --> 00:02:29.520
+and mostly complaining about cost and complexity.
+
+41
+00:02:30.020 --> 00:02:33.340
+And of course, related to AWS, but even outside AWS,
+
+42
+00:02:33.640 --> 00:02:39.280
+like it's not uncommon to hear bill shock stories about Vercel, for example, or CloudFlare as well.
+
+43
+00:02:39.280 --> 00:02:44.440
+So to be fair, yeah, it's easy to just dismiss this criticism because we like serverless,
+
+44
+00:02:44.600 --> 00:02:48.580
+but it's also fair to say, okay, let's actually have a look at the criticism.
+
+45
+00:02:48.840 --> 00:02:50.620
+Let's try to understand if it is valid.
+
+46
+00:02:50.860 --> 00:02:53.740
+And I'm sure that some elements of it are actually quite valid.
+
+47
+00:02:53.900 --> 00:02:55.660
+So let's try to have an honest conversation.
+
+48
+00:02:55.820 --> 00:03:00.820
+Let's see what are some of the drawbacks of serverless, if we want to call it like that.
+
+49
+00:03:01.000 --> 00:03:04.980
+And of course, some of these drawbacks are very specific to specific use cases.
+
+50
+00:03:04.980 --> 00:03:10.800
+So it's also important to understand, based on your use case, do you actually suffer from these drawbacks or not?
+
+51
+00:03:11.040 --> 00:03:14.200
+And just to start, the first one that always comes up is cost.
+
+52
+00:03:14.600 --> 00:03:19.840
+And it's fair to say that there is some element of concern when you think about serverless
+
+53
+00:03:19.840 --> 00:03:22.420
+and you think about the cost that that might involve.
+
+54
+00:03:22.420 --> 00:03:28.420
+And one of the reasons for that is that if you just look at the pure unit of price for compute,
+
+55
+00:03:28.600 --> 00:03:33.940
+of course, you will realize that there is a premium comparing that unit to other ways of doing compute,
+
+56
+00:03:34.040 --> 00:03:41.660
+like more managed services like EC2 or even Fargate will look like it's going to be cheaper to run on those platforms
+
+57
+00:03:41.660 --> 00:03:44.060
+rather than running on something like Lambda, for example.
+
+58
+00:03:44.460 --> 00:03:50.800
+And while this is true, to be fair, we have seen that lots of businesses are actually finding the serverless approach to be cheaper.
+
+59
+00:03:50.800 --> 00:03:55.320
+And the reason for that is that if you just look at the unit of price, this doesn't make any sense.
+
+60
+00:03:55.460 --> 00:04:00.460
+But then in reality, when you run something on an EC2, for example, you have so much unused capacity
+
+61
+00:04:00.460 --> 00:04:05.920
+that if you actually look at the use capacity, then with serverless, you might end up having a much smaller bill.
+
+62
+00:04:06.120 --> 00:04:09.340
+So in a way, we can say that serverless allows you to eliminate waste.
+
+63
+00:04:09.680 --> 00:04:14.300
+So if you have very unpredictable traffic, if you have lots of idle time,
+
+64
+00:04:14.560 --> 00:04:17.380
+actually serverless might be a much cheaper solution for you.
+
+65
+00:04:17.380 --> 00:04:22.380
+On the other hand, yes, if you have like 100% utilization on something close to that
+
+66
+00:04:22.380 --> 00:04:27.380
+and you can predict exactly what is your usage pattern and you are using a lot of compute,
+
+67
+00:04:27.580 --> 00:04:32.340
+probably it's worth for you investing on just using EC2, properly configure them,
+
+68
+00:04:32.520 --> 00:04:33.800
+have a good way to manage them.
+
+69
+00:04:34.020 --> 00:04:35.700
+At that point, it might be much cheaper.
+
+70
+00:04:35.900 --> 00:04:41.720
+In our experience, most of the businesses are more in the category of very unpredictable traffic with lots of idle time.
+
+71
+00:04:41.720 --> 00:04:47.360
+So of course, I'm defending serverless, but just to keep in mind that cost is very subjective
+
+72
+00:04:47.360 --> 00:04:53.700
+and depending on which bucket of usage patterns you are, servers might be or might not be convenient to you.
+
+73
+00:04:53.840 --> 00:04:56.800
+So hopefully that describes some elements of cost.
+
+74
+00:04:57.140 --> 00:05:01.880
+And actually, there is more there because another thing that it's important to consider is
+
+75
+00:05:01.880 --> 00:05:04.800
+when it comes to cost, it's not just the cost of running the solution,
+
+76
+00:05:05.020 --> 00:05:07.800
+but it's also the cost of building and maintaining that solution.
+
+77
+00:05:07.800 --> 00:05:13.760
+And of course, when you use serverless, if you know how to build servers, this is also very subjective.
+
+78
+00:05:14.080 --> 00:05:17.760
+But what we have seen is that when you have teams that are well-trained to use serverless technologies,
+
+79
+00:05:17.920 --> 00:05:21.820
+they are generally much faster at developing solutions and put them in production.
+
+80
+00:05:22.280 --> 00:05:25.460
+So in that sense, you are saving cost in terms of development time.
+
+81
+00:05:25.860 --> 00:05:30.820
+And development time sometimes is the most expensive resource, at least in most companies, that's the case.
+
+82
+00:05:31.140 --> 00:05:34.420
+And to be fair, it's not just development time because when you manage EC2,
+
+83
+00:05:34.420 --> 00:05:38.160
+you need to have people that are very experienced with managing EC2,
+
+84
+00:05:38.260 --> 00:05:42.060
+there is time involved in just managing them, like just spending the time to configure them,
+
+85
+00:05:42.180 --> 00:05:46.180
+keeping them up to date and a bunch of other operational things like that.
+
+86
+00:05:46.400 --> 00:05:49.660
+So that's also another piece that you need to put in the cost equation
+
+87
+00:05:49.660 --> 00:05:54.120
+and consider if everything adds up to something that makes it worth it or not.
+
+88
+00:05:54.360 --> 00:05:59.960
+And leaving cost aside, hopefully we are giving you some factors that you can think about to reason about cost,
+
+89
+00:06:00.080 --> 00:06:02.340
+but there is definitely another element, which is complexity.
+
+90
+00:06:02.340 --> 00:06:07.280
+And one of the reasons why some people say that serverless can be a little bit more complex
+
+91
+00:06:07.280 --> 00:06:10.240
+or significantly more complex, depending who you ask to,
+
+92
+00:06:10.760 --> 00:06:14.940
+is that serverless is by default a distributed microservice base,
+
+93
+00:06:15.000 --> 00:06:16.480
+if we want to call it like that, approach.
+
+94
+00:06:16.900 --> 00:06:19.840
+So sometimes that might be more difficult to grok,
+
+95
+00:06:19.920 --> 00:06:22.640
+especially if you are coming from a more traditional background where you build,
+
+96
+00:06:22.720 --> 00:06:24.480
+I don't know, something in Rails or Django,
+
+97
+00:06:24.660 --> 00:06:26.960
+where you are just building one monolithic application.
+
+98
+00:06:27.260 --> 00:06:28.340
+That's what you ship to production,
+
+99
+00:06:28.340 --> 00:06:32.120
+and all the functionality is embedded in this one piece that you deploy atomically.
+
+100
+00:06:32.120 --> 00:06:34.180
+Typically, when you build serverless application,
+
+101
+00:06:34.340 --> 00:06:39.400
+you end up easily with hundreds of Lambdas and other services that are all connected together.
+
+102
+00:06:39.720 --> 00:06:44.640
+And that's even just trying to visualize all of that infrastructure can be a challenge on its own.
+
+103
+00:06:44.780 --> 00:06:48.740
+So I get the point that people say, well, serverless actually is very complex.
+
+104
+00:06:48.880 --> 00:06:52.260
+It's not as easy as people say, but also that's a little bit subjective.
+
+105
+00:06:52.500 --> 00:06:56.220
+Like I was recently reading a LinkedIn post by Yan Cui,
+
+106
+00:06:56.500 --> 00:07:00.060
+where he was saying that in a way it is true that there is this complexity,
+
+107
+00:07:00.060 --> 00:07:03.420
+but on the other hand, this complexity would exist anyway.
+
+108
+00:07:03.680 --> 00:07:05.740
+It's kind of a nature of your own business.
+
+109
+00:07:06.040 --> 00:07:08.880
+If you have hundreds of Lambdas, probably you have hundreds of processes
+
+110
+00:07:08.880 --> 00:07:12.500
+that are happening as something you are modeling as part of your implementation,
+
+111
+00:07:12.780 --> 00:07:15.900
+and you will just have them hidden in a monolith if you were doing a monolith.
+
+112
+00:07:16.240 --> 00:07:21.140
+So serverless in a way is just making it more evident that you have all these pieces combined together.
+
+113
+00:07:21.380 --> 00:07:22.840
+So take that with a grain of salt.
+
+114
+00:07:22.920 --> 00:07:24.160
+I actually like that perspective,
+
+115
+00:07:24.280 --> 00:07:27.540
+but of course it's also another bias perspective in favor of serverless.
+
+116
+00:07:27.540 --> 00:07:32.420
+Yeah, I guess there are other resources that are worth mentioning.
+
+117
+00:07:32.580 --> 00:07:37.300
+There is an article we bumped into by Scott Hanselman called "Dark Matter Developers:
+
+118
+00:07:38.160 --> 00:07:41.500
+the Unseen 99%", I think that's the full title.
+
+119
+00:07:41.840 --> 00:07:46.040
+And basically this article says that the vast majority of developers are not sharing online.
+
+120
+00:07:46.360 --> 00:07:50.000
+They don't read all the blog posts, but they are still doing amazing work behind closed doors.
+
+121
+00:07:50.100 --> 00:07:53.580
+And this is just to say that maybe we only hear about the complaints
+
+122
+00:07:53.580 --> 00:07:56.300
+and we hear a lot less about the success stories.
+
+123
+00:07:56.300 --> 00:08:00.980
+And to be fair, in our work, we are seeing a lot of companies being successful with serverless.
+
+124
+00:08:01.340 --> 00:08:05.140
+They're not just necessarily sharing it online every day and making a case out of it.
+
+125
+00:08:05.300 --> 00:08:07.460
+So just consider that if you read something negative,
+
+126
+00:08:07.820 --> 00:08:11.960
+that doesn't mean that it's represented the entirety of the opinions out there.
+
+127
+00:08:12.180 --> 00:08:14.720
+So what is another thing we should mention?
+
+128
+00:08:14.840 --> 00:08:18.680
+Maybe we should talk about experimentations and the cost associated to that.
+
+129
+00:08:18.860 --> 00:08:23.380
+Yeah, the low cost of experimentation is one of those great understated benefits of serverless.
+
+130
+00:08:23.380 --> 00:08:27.420
+And it's something that you really see the impact of when you're working with larger companies
+
+131
+00:08:27.420 --> 00:08:33.920
+and seeing how quickly they can experiment compared to what their experience was with different approaches.
+
+132
+00:08:34.140 --> 00:08:38.860
+If you want to innovate, whether it's for a new project or in some small area that needs improvement,
+
+133
+00:08:39.200 --> 00:08:44.240
+using pay-per-use managed services means you can quickly try something, delete it, try something else,
+
+134
+00:08:44.400 --> 00:08:46.480
+and continue until you have something that meets your goals.
+
+135
+00:08:46.480 --> 00:08:49.640
+Let's say you want to do some analytics with some business data.
+
+136
+00:08:49.800 --> 00:08:51.500
+You could go with like a traditional option.
+
+137
+00:08:51.840 --> 00:08:55.460
+Maybe you've got some data analytics platform and BI systems on-premises,
+
+138
+00:08:55.640 --> 00:08:58.680
+and you can request access to existing database infrastructure,
+
+139
+00:08:59.100 --> 00:09:01.220
+get an ops team to provision instances, etc.,
+
+140
+00:09:01.220 --> 00:09:04.080
+getting an installation of a third-party platform, security approval,
+
+141
+00:09:04.380 --> 00:09:06.860
+and waiting for your ops team to provision all this stuff for you.
+
+142
+00:09:07.080 --> 00:09:10.760
+Alternatively, if you've got like a sandbox environment and access to an AWS account,
+
+143
+00:09:10.760 --> 00:09:14.640
+you can quickly assemble a prototype with S3, Athena, Lambda maybe,
+
+144
+00:09:14.980 --> 00:09:19.300
+and use some of the cool latest data science libraries like DuckDB, Interpolers.
+
+145
+00:09:19.540 --> 00:09:22.980
+We're seeing a lot of success in this kind of analytical domain.
+
+146
+00:09:23.480 --> 00:09:27.080
+What may have taken you weeks, then, or months can be achieved in hours or days with this approach.
+
+147
+00:09:27.400 --> 00:09:30.460
+And it's difficult to say sometimes why.
+
+148
+00:09:30.840 --> 00:09:32.660
+I mean, the fact that these things are pay-per-use,
+
+149
+00:09:32.880 --> 00:09:36.960
+you can spin them up and spin them down minutes later and pay almost nothing or nothing at all
+
+150
+00:09:36.960 --> 00:09:37.860
+and just do it on the free tier.
+
+151
+00:09:37.860 --> 00:09:43.020
+It really encourages this mindset shift where technology decisions aren't made
+
+152
+00:09:43.020 --> 00:09:45.420
+thinking that you have to stick with them for months or years.
+
+153
+00:09:45.680 --> 00:09:50.060
+You have a much more evolvable architecture mindset that comes with all this serverless stuff.
+
+154
+00:09:50.200 --> 00:09:52.320
+And we've seen this time and time again in enterprise.
+
+155
+00:09:52.500 --> 00:09:57.500
+So it's a really understated benefit because you don't have to spend months and months
+
+156
+00:09:57.500 --> 00:09:58.800
+doing technology selection up front.
+
+157
+00:09:58.960 --> 00:10:00.660
+You can quickly experiment, find something that works,
+
+158
+00:10:00.980 --> 00:10:04.240
+and know that you can iterate on it because you've got essentially swappable components
+
+159
+00:10:04.240 --> 00:10:05.520
+if you architect it very well.
+
+160
+00:10:05.520 --> 00:10:11.200
+Small components that you can replace, adapt, remove as AWS improves is another thing we see quite a lot.
+
+161
+00:10:11.440 --> 00:10:17.200
+So this is a huge benefit, not just for data analytics, but also APIs, front ends, and batch processing.
+
+162
+00:10:17.440 --> 00:10:21.660
+What else are larger companies seeing as benefits of serverless, Luciano?
+
+163
+00:10:27.540 --> 00:10:34.820
+Yeah, I think we should talk again about economics because we talked already about cost as a drawback, but we also say that actually that's very subjective and it could go either ways depending on how your business domain
+
+164
+00:10:34.820 --> 00:10:36.400
+and how you approach serverless.
+
+165
+00:10:36.640 --> 00:10:40.940
+But other than what we say, I think there are a few interesting studies that are worth mentioning
+
+166
+00:10:40.940 --> 00:10:44.500
+because they provide lots of data, so probably a little bit less biased.
+
+167
+00:10:44.900 --> 00:10:50.780
+And there is one from Deloitte that estimates 45 to 80% reduction in maintenance costs
+
+168
+00:10:50.780 --> 00:10:53.840
+just by moving from EC2 instances to serverless.
+
+169
+00:10:53.840 --> 00:10:55.740
+We'll have a link to that report in the show notes.
+
+170
+00:10:55.940 --> 00:11:02.840
+But again, this is just another example of the idea that, yes, EC2 might be cheaper in particular conditions,
+
+171
+00:11:02.840 --> 00:11:05.960
+but there is a lot of hidden costs with just managing EC2s.
+
+172
+00:11:05.960 --> 00:11:09.880
+So if you put everything in the picture, you try to capture all this hidden costs,
+
+173
+00:11:10.140 --> 00:11:11.840
+doing serverless might actually be cheaper.
+
+174
+00:11:11.840 --> 00:11:16.660
+And another report is saying that businesses that move to serverless,
+
+175
+00:11:16.800 --> 00:11:20.940
+they will have a 409% five-year return of investment.
+
+176
+00:11:21.240 --> 00:11:22.480
+There is another link to this one.
+
+177
+00:11:22.580 --> 00:11:24.700
+It's actually a research from AWS itself.
+
+178
+00:11:25.020 --> 00:11:28.420
+So again, it might be a little bit biased, but yeah, if you want to check it out,
+
+179
+00:11:28.500 --> 00:11:29.500
+we'll have a link in the show notes.
+
+180
+00:11:29.600 --> 00:11:32.620
+It's just a form you need to fill and you'll get access to the white paper.
+
+181
+00:11:32.880 --> 00:11:36.500
+But if you don't want to go through all that trouble, we'll give you the summary.
+
+182
+00:11:36.500 --> 00:11:43.580
+And it's basically saying that 89% reduction in time to deploy and 33% increase in developer productivity.
+
+183
+00:11:43.940 --> 00:11:48.940
+Again, check out the white paper if you want to see how they came up with these numbers and get more details.
+
+184
+00:11:49.360 --> 00:11:51.720
+But what I would say is that personally, I have experience.
+
+185
+00:11:52.020 --> 00:11:54.000
+I don't know if I could say exactly these numbers,
+
+186
+00:11:54.120 --> 00:11:59.100
+but I have experienced definitely an improvement in terms of going from an idea to something running in production,
+
+187
+00:11:59.420 --> 00:12:03.460
+not just myself, but also working with a team of people that decided to embrace serverless.
+
+188
+00:12:03.460 --> 00:12:07.900
+So I have a feeling that there is some truth to this particular statement here.
+
+189
+00:12:08.240 --> 00:12:11.720
+But of course, I also acknowledge that it depends from different teams
+
+190
+00:12:11.720 --> 00:12:14.920
+and there is always a little bit of a knowledge gap that needs to be addressed
+
+191
+00:12:14.920 --> 00:12:18.260
+before you actually start to get the value out of that investment.
+
+192
+00:12:18.640 --> 00:12:23.440
+And I think that the main point here is that if you are not using serverless,
+
+193
+00:12:23.580 --> 00:12:26.400
+what I often seen is that enterprises, especially,
+
+194
+00:12:26.680 --> 00:12:30.400
+they are struggling a lot with engineers that are constantly firefighting
+
+195
+00:12:30.400 --> 00:12:33.920
+because there is just so much infrastructure that needs to be addressed.
+
+196
+00:12:34.220 --> 00:12:35.380
+One day is a vulnerability.
+
+197
+00:12:35.820 --> 00:12:40.260
+Another day, it's maybe a bug in a system that, I don't know, needs to be upgraded.
+
+198
+00:12:40.660 --> 00:12:44.020
+So all of that total cost of ownership, it's a real thing.
+
+199
+00:12:44.160 --> 00:12:46.580
+Like it's something that you stop for a second and look at it.
+
+200
+00:12:46.840 --> 00:12:50.980
+You will see in a company how much time is being spent by many engineers
+
+201
+00:12:50.980 --> 00:12:54.860
+just addressing stuff that is not the pure business logic of your own applications.
+
+202
+00:12:54.860 --> 00:12:58.300
+So this is where serverless can be a big selling point because, of course,
+
+203
+00:12:58.360 --> 00:13:02.080
+it's kind of a natural shift to let's focus more on the business logic
+
+204
+00:13:02.080 --> 00:13:05.660
+and let's delegate almost everything else to the platform provider.
+
+205
+00:13:05.960 --> 00:13:08.820
+So I think this is kind of the perspective here that we can bring
+
+206
+00:13:08.820 --> 00:13:13.040
+when we talk about economics and what is the advantage that serverless brings to the table.
+
+207
+00:13:13.300 --> 00:13:17.100
+So compute cost is something that, yes, it's part of the equation,
+
+208
+00:13:17.260 --> 00:13:21.800
+but very dependent on the use case, can be very low for certain workloads,
+
+209
+00:13:21.920 --> 00:13:23.360
+can be very high for other workloads.
+
+210
+00:13:23.360 --> 00:13:28.280
+But yes, you need to consider how that compares to the, I guess, human costs
+
+211
+00:13:28.280 --> 00:13:29.620
+and the total cost of ownership.
+
+212
+00:13:29.860 --> 00:13:32.680
+And don't just look at the specific compute costs
+
+213
+00:13:32.680 --> 00:13:34.560
+because that's not going to give you the full picture
+
+214
+00:13:34.560 --> 00:13:37.800
+and you might make the wrong decisions if you focus just on that one.
+
+215
+00:13:37.900 --> 00:13:38.540
+What else do we have?
+
+216
+00:13:38.660 --> 00:13:40.280
+Maybe security is a good point.
+
+217
+00:13:40.640 --> 00:13:41.320
+Yeah, absolutely.
+
+218
+00:13:41.600 --> 00:13:43.900
+When you think enterprise, you always think about security and compliance
+
+219
+00:13:43.900 --> 00:13:47.520
+and they're usually priority number one, especially for financial companies.
+
+220
+00:13:47.840 --> 00:13:50.320
+And there's a huge benefit here, actually, with serverless,
+
+221
+00:13:50.320 --> 00:13:54.200
+the AWS portion of the shared responsibility model is going to be larger.
+
+222
+00:13:54.360 --> 00:13:57.640
+So that means the less work you have to do to meet your security and compliance goals.
+
+223
+00:13:58.240 --> 00:14:00.440
+We talk about, you know, Lambda patching your runtime,
+
+224
+00:14:00.620 --> 00:14:04.440
+but it could also just be, you know, the less you have to do on network level security,
+
+225
+00:14:04.920 --> 00:14:08.980
+patching machines, software that you have to install on those third party software.
+
+226
+00:14:08.980 --> 00:14:13.640
+So the less custom code you have to write, the less self-managed infrastructure you have,
+
+227
+00:14:13.780 --> 00:14:16.640
+the fewer security issues that are relevant in that picture.
+
+228
+00:14:16.840 --> 00:14:20.820
+If you don't have service to patch, there's a whole set of security responsibilities removed.
+
+229
+00:14:21.060 --> 00:14:24.040
+Also, if we talk about functions as a service specifically,
+
+230
+00:14:24.320 --> 00:14:27.980
+fine-grained units of compute like Lambda functions also have a huge security benefit.
+
+231
+00:14:28.300 --> 00:14:32.720
+And it's one of the things that we don't talk a lot about when we're talking about the 15-minute timeout.
+
+232
+00:14:32.720 --> 00:14:39.560
+The blast radius of a single Lambda function execution is incredibly small compared to other options,
+
+233
+00:14:39.700 --> 00:14:41.900
+because first of all, it's only handling one event at a time.
+
+234
+00:14:42.160 --> 00:14:44.900
+And also because the timeout is going to be 15 minutes,
+
+235
+00:14:45.140 --> 00:14:49.660
+there's a very limited temporal blast radius there for any attack to take effect.
+
+236
+00:14:49.880 --> 00:14:55.040
+But we also have to consider then the fine-grained permissions you can have if you've got very small units of compute.
+
+237
+00:14:55.180 --> 00:15:01.100
+So if you've got very nice, tightly scoped IAM policies for specific Lambda functions and individual services,
+
+238
+00:15:01.100 --> 00:15:06.900
+you've really reduced your security risk by adopting the serverless approach.
+
+239
+00:15:07.020 --> 00:15:10.060
+And this is something that enterprises take really seriously.
+
+240
+00:15:10.460 --> 00:15:13.160
+And if they see an opportunity to remove a lot of work,
+
+241
+00:15:13.200 --> 00:15:18.200
+because it's a security, it's always a chasing game where you're chasing the latest attack methods,
+
+242
+00:15:18.420 --> 00:15:19.940
+then this is a great opportunity.
+
+243
+00:15:20.200 --> 00:15:20.660
+Yeah, absolutely.
+
+244
+00:15:20.820 --> 00:15:26.080
+And I think the next topic is the idea of evolving your architecture.
+
+245
+00:15:26.320 --> 00:15:30.420
+So we will say, I don't know, we could reference the well-architected framework if we want,
+
+246
+00:15:30.420 --> 00:15:34.040
+but the point that I want to make is that when you build with serverless,
+
+247
+00:15:34.240 --> 00:15:37.960
+you are automatically buy into this mindset of everything is distributed,
+
+248
+00:15:38.300 --> 00:15:39.920
+but most importantly, is event-driven.
+
+249
+00:15:40.360 --> 00:15:44.340
+So it's kind of pushing you to think in a more modern way of building applications,
+
+250
+00:15:44.340 --> 00:15:48.900
+where you have all these small components that are tied together by different events happening.
+
+251
+00:15:49.280 --> 00:15:53.520
+And again, we mentioned at the beginning that there is a complexity to it,
+
+252
+00:15:53.520 --> 00:15:56.760
+but at the same time, it could also be perceived as an opportunity,
+
+253
+00:15:56.760 --> 00:16:02.600
+because it's pushing you to more modular design, and that might also be considered as a bonus.
+
+254
+00:16:03.280 --> 00:16:05.960
+And the idea is that if you build small decouple components,
+
+255
+00:16:06.140 --> 00:16:09.060
+effectively, that's giving you modular design out of the box.
+
+256
+00:16:09.400 --> 00:16:11.080
+And you'll need to learn it a little bit.
+
+257
+00:16:11.180 --> 00:16:13.720
+There are some common mistakes that you might be doing at the beginning,
+
+258
+00:16:13.720 --> 00:16:15.900
+but I think once you get the gist of it,
+
+259
+00:16:15.960 --> 00:16:19.420
+and you get enough experience in the team, it's definitely a benefit.
+
+260
+00:16:19.420 --> 00:16:25.420
+And one of the things that I've seen, for instance, in the past is when you build this kind of monolithic applications,
+
+261
+00:16:26.240 --> 00:16:27.860
+maybe, let's say, I don't know, using Django,
+
+262
+00:16:28.080 --> 00:16:32.140
+is that maybe at some point there is a major version of the Django framework that comes out,
+
+263
+00:16:32.360 --> 00:16:35.220
+and you will be resisting for a long time before upgrading,
+
+264
+00:16:35.340 --> 00:16:36.600
+because it might be a lot of work,
+
+265
+00:16:36.660 --> 00:16:40.540
+and it's the kind of work that doesn't give you any immediate benefit to your business.
+
+266
+00:16:41.200 --> 00:16:44.300
+But then suddenly, at some point, you are using a library that doesn't work.
+
+267
+00:16:44.460 --> 00:16:46.760
+Well, maybe at some point, that's some kind of security vulnerability,
+
+268
+00:16:46.760 --> 00:16:48.900
+so you are forced to upgrade that library.
+
+269
+00:16:49.420 --> 00:16:52.920
+But the new version of that library only works with the new version of the Django framework.
+
+270
+00:16:53.140 --> 00:16:57.160
+And that's kind of pushing you to a corner where you are forced to look at the big picture and see,
+
+271
+00:16:57.280 --> 00:16:59.160
+okay, now we need to upgrade this entire monolith,
+
+272
+00:16:59.300 --> 00:17:01.620
+and that escalates to a lot of work very easily.
+
+273
+00:17:01.860 --> 00:17:03.660
+And, of course, this is an extreme use case,
+
+274
+00:17:03.720 --> 00:17:06.880
+but I've seen that happening enough time, even with different frameworks.
+
+275
+00:17:07.360 --> 00:17:09.280
+You see it with Java 8.
+
+276
+00:17:09.520 --> 00:17:14.160
+People still have Java versions or ASP.NET and want to move to .NET Core, etc.
+
+277
+00:17:14.160 --> 00:17:15.780
+So, yeah, it's very, very true.
+
+278
+00:17:21.420 --> 00:17:27.020
+And when you compare that, for instance, with a more distributed approach using Lambda, but not necessarily even if you have containers and they have smaller services, so to speak,
+
+279
+00:17:27.300 --> 00:17:29.820
+the idea is that, well, maybe you have seen that vulnerability.
+
+280
+00:17:30.520 --> 00:17:33.960
+Chances are that you are not using that code in all the modules you have,
+
+281
+00:17:34.120 --> 00:17:35.380
+probably just a few of them.
+
+282
+00:17:35.380 --> 00:17:39.060
+So just thinking of rewriting or doing a massive upgrade,
+
+283
+00:17:39.280 --> 00:17:42.040
+it's suddenly more feasible because the surface is much reduced.
+
+284
+00:17:42.520 --> 00:17:46.360
+So this is just to say that modular architecture are, by default, more evolvable.
+
+285
+00:17:46.780 --> 00:17:51.980
+So you're kind of keeping yourself a little bit of freedom in the future to address big changes
+
+286
+00:17:51.980 --> 00:17:53.720
+when you need to do those big changes.
+
+287
+00:17:53.880 --> 00:17:56.160
+They're not going to be as big as with a monolith.
+
+288
+00:17:56.540 --> 00:17:59.700
+So suddenly even just trying a new programming language,
+
+289
+00:17:59.900 --> 00:18:02.160
+because, I don't know, maybe you have some benefits,
+
+290
+00:18:02.160 --> 00:18:06.320
+becomes tangible because you can just try that one new programming language with one Lambda,
+
+291
+00:18:06.560 --> 00:18:08.760
+for instance, and not with your entire application.
+
+292
+00:18:09.160 --> 00:18:11.340
+And you might get some benefits just in that Lambda.
+
+293
+00:18:11.480 --> 00:18:13.860
+You don't have to rewrite everything just to keep those benefits.
+
+294
+00:18:14.160 --> 00:18:19.220
+So this is just why I think that there is a benefit there in going with a more modular design
+
+295
+00:18:19.220 --> 00:18:23.400
+once you learn the basics and your team is confident with managing a more modular,
+
+296
+00:18:23.620 --> 00:18:28.280
+distributed, microservice-driven, event-driven, whatever we want to call it, type of design.
+
+297
+00:18:28.280 --> 00:18:28.640
+Yeah.
+
+298
+00:18:29.440 --> 00:18:34.360
+Sometimes we get comments underneath our videos saying we only talk about serverless
+
+299
+00:18:34.360 --> 00:18:37.760
+and don't talk enough about simple EC2-based solutions.
+
+300
+00:18:38.300 --> 00:18:41.240
+And I suppose there's probably validity to comments like that,
+
+301
+00:18:41.280 --> 00:18:44.700
+because we do talk a lot about these more modern approaches to architecture.
+
+302
+00:18:45.040 --> 00:18:47.480
+It doesn't mean that we don't use EC2.
+
+303
+00:18:47.680 --> 00:18:51.320
+We don't use more traditional approaches to architecture.
+
+304
+00:18:51.500 --> 00:18:53.920
+It's really just a question of what fits for the context.
+
+305
+00:18:54.340 --> 00:18:56.920
+Like it's not definitely, serverless is not an all or nothing thing.
+
+306
+00:18:56.920 --> 00:18:58.680
+And hybrid approaches are often very pragmatic.
+
+307
+00:18:59.100 --> 00:19:00.260
+It really depends on the context.
+
+308
+00:19:00.420 --> 00:19:05.860
+Like if you're in a startup or maybe not necessarily a startup, but just a small company,
+
+309
+00:19:05.860 --> 00:19:11.240
+and you're just more constrained by skills, staff, budget, time to market, or all of the above,
+
+310
+00:19:11.460 --> 00:19:16.460
+then technology decisions and having like a simple set of technologies you work with,
+
+311
+00:19:16.520 --> 00:19:19.420
+that's pretty critical and often not easily reversible,
+
+312
+00:19:19.420 --> 00:19:23.500
+because you don't necessarily have time to invest in learning the next new thing
+
+313
+00:19:23.500 --> 00:19:25.480
+and building these distributed architectures.
+
+314
+00:19:25.480 --> 00:19:29.760
+So success just depends sometimes on picking a good simple tech stack for the platform
+
+315
+00:19:29.760 --> 00:19:30.820
+and moving quickly with it.
+
+316
+00:19:30.960 --> 00:19:34.460
+But in the enterprise context, you don't necessarily have the same set of constraints.
+
+317
+00:19:34.780 --> 00:19:39.560
+In fact, for larger companies, often they don't want to be limited to one dogmatic tech stack.
+
+318
+00:19:39.660 --> 00:19:43.300
+It might make sense to diversify, try different approaches, and see what works,
+
+319
+00:19:43.520 --> 00:19:46.100
+and think long-term, but always be iterating.
+
+320
+00:19:46.540 --> 00:19:50.780
+They might have a top-down strategy to adopt cloud-managed services or serverless,
+
+321
+00:19:50.780 --> 00:19:55.580
+but this is often a long-term thing, like a multi-year plan that starts with a subset of workloads.
+
+322
+00:19:55.960 --> 00:19:59.380
+And while this is happening, they can invest in getting help from specialized partners,
+
+323
+00:19:59.780 --> 00:20:02.540
+getting the right skills, and adopting incrementally.
+
+324
+00:20:02.780 --> 00:20:06.160
+So it's not an all-or-nothing approach.
+
+325
+00:20:06.340 --> 00:20:10.820
+You can be pragmatic and go with a less serverless approach when you don't have the time or budget,
+
+326
+00:20:10.940 --> 00:20:12.100
+or just when it doesn't suit.
+
+327
+00:20:12.100 --> 00:20:14.740
+And we often see partial solutions like that.
+
+328
+00:20:15.260 --> 00:20:17.600
+Sometimes we even have customers who come to us and say,
+
+329
+00:20:17.920 --> 00:20:18.760
+we've got this monolith.
+
+330
+00:20:19.100 --> 00:20:20.760
+It serves our API.
+
+331
+00:20:21.060 --> 00:20:23.740
+We want to move to API Gateway with DynamoDB and Lambda.
+
+332
+00:20:23.980 --> 00:20:26.120
+And we've had multiple cases in the past where we've said,
+
+333
+00:20:26.240 --> 00:20:27.880
+well, we really don't think you should do that.
+
+334
+00:20:28.000 --> 00:20:28.680
+What you have works.
+
+335
+00:20:28.760 --> 00:20:29.160
+It's simple.
+
+336
+00:20:29.500 --> 00:20:31.960
+Your team knows how to maintain it, and it's not causing you any problems.
+
+337
+00:20:32.220 --> 00:20:35.180
+So you don't necessarily have to go all-in on serverless
+
+338
+00:20:35.180 --> 00:20:37.200
+just because it feels like the right thing to do.
+
+339
+00:20:37.200 --> 00:20:41.980
+So before we wrap up, I mean, I think we're used to thinking of enterprise companies
+
+340
+00:20:41.980 --> 00:20:46.720
+as being slow to adopt new technology and following startup early adopters many, many years later.
+
+341
+00:20:47.220 --> 00:20:50.480
+But I think we're now in a situation where some startups might be justified
+
+342
+00:20:50.480 --> 00:20:53.500
+in steering clear of serverless and embracing the boring monolith.
+
+343
+00:20:53.760 --> 00:20:55.940
+But plenty of larger companies are actually, they've been there,
+
+344
+00:20:56.320 --> 00:20:59.720
+and they're finding that these days serverless fits the bill and gives them a lot more flexibility
+
+345
+00:20:59.720 --> 00:21:01.480
+and ticks a lot of boxes.
+
+346
+00:21:01.680 --> 00:21:04.320
+Remember that there's no need for tribal all-or-nothing thinking
+
+347
+00:21:04.320 --> 00:21:06.060
+when it comes to solving these kind of problems.
+
+348
+00:21:06.060 --> 00:21:09.000
+If you've got a pragmatic mindset and can evaluate trade-offs,
+
+349
+00:21:09.180 --> 00:21:11.840
+you've got a great chance of success no matter what technology you pick.
+
+350
+00:21:12.040 --> 00:21:15.240
+I'm interested to know, are you working in the kind of companies we're talking about today?
+
+351
+00:21:15.340 --> 00:21:18.400
+Then do let us know if you're bearish or bullish on serverless.
+
+352
+00:21:18.580 --> 00:21:21.760
+Now that we're past the hype, Lambda and ECS are 10 years old,
+
+353
+00:21:21.980 --> 00:21:24.840
+what stories can you share with us from real serverless experience?
+
+354
+00:21:25.260 --> 00:21:27.660
+So let us know in the comments or reach out on social media.
+
+355
+00:21:27.900 --> 00:21:30.640
+Thanks a lot for joining us again, and we'll see you in the next episode.

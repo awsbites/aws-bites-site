@@ -53,6 +53,12 @@
         gtag('config', '{{ settings.analytics_id }}');
       </script>
     {% endif %}
+
+    {% if settings.orama_endpoint and settings.orama_apikey %}
+      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@orama/wc-components@latest/dist/orama-ui/orama-ui.css"/>
+      <script type="module" src="https://cdn.jsdelivr.net/npm/@orama/wc-components@latest/dist/orama-ui/orama-ui.esm.js"></script>
+      <script nomodule src="https://cdn.jsdelivr.net/npm/@orama/wc-components@latest/dist/cjs/orama-ui.cjs.js"></script>
+    {% endif %}
   </head>
 
   <body class="bg-gray-200 dark:bg-gray-800">
@@ -74,6 +80,16 @@
             <a href="/" aria-label="Home">
               {% include 'images/logo.svg' %}
             </a>
+
+            {% if settings.orama_endpoint and settings.orama_apikey %}
+              <div>
+                <div id="orama-ui">
+                  <orama-search-button onClick="open = !open">Search...</orama-search-button>
+                  <orama-search-box></orama-search-box>
+                </div>
+              </div>
+            {% endif %}
+
             <button id="toggle-theme" aria-label="Toggle Dark Mode" type="button" class="hidden w-10 h-10 p-3 rounded bg-gray-300 dark:bg-primary-700">
               <svg id="toggle-dark-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" class="w-4 h-4 text-primary-500 dark:text-secondary-500">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
@@ -211,6 +227,28 @@
           } else {
             setTheme('light')
           }
+
+          {% if settings.orama_endpoint and settings.orama_apikey %}
+            let open = false;
+            const searchBoxConfig = {
+              "resultsMap": {
+                "path": "path",
+                "title": "title",
+                "description": "description"
+              },
+              "colorScheme": "system",
+              "themeConfig": {}
+            };
+
+            Object.assign(document.querySelector("orama-search-box"), {
+              ...searchBoxConfig,
+              open: open,
+              index: {
+                endpoint: "{{ settings.orama_endpoint }}",
+                api_key: "{{ settings.orama_apikey }}"
+              }
+            });
+          {% endif %}
         </script>
       {% endblock scripts %}
     {% endblock body %}

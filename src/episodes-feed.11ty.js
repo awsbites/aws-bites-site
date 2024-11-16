@@ -31,7 +31,7 @@ function buildTranscript (transcript) {
 class EpisodesFeed {
   data () {
     return {
-      permalink: '/feed/episodes.json',
+      permalink: '/episodes.json',
       eleventyExcludeFromCollections: true
     }
   }

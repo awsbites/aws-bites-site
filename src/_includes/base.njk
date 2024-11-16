@@ -82,7 +82,7 @@
             </a>
 
             {% if settings.orama_endpoint and settings.orama_apikey %}
-              <div>
+              <div class="w-full max-w-md px-2">
                 <div id="orama-ui">
                   <orama-search-button onClick="open = !open">Search...</orama-search-button>
                   <orama-search-box></orama-search-box>
@@ -200,6 +200,13 @@
 
               localStorage.theme = 'light'
             }
+
+            document
+              .querySelector("orama-search-button")
+              .colorScheme = theme
+            document
+              .querySelector("orama-search-box")
+              .colorScheme = theme
           }
 
           function toggleTheme() {
@@ -220,24 +227,22 @@
           document
             .documentElement
             .classList
-            .remove('no-js')
-
-          if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            setTheme('dark')
-          } else {
-            setTheme('light')
-          }
-
-          {% if settings.orama_endpoint and settings.orama_apikey %}
-            let open = false;
+            .remove('no-js'){% if settings.orama_endpoint and settings.orama_apikey %}
+              let open = false;
             const searchBoxConfig = {
-              "resultsMap": {
-                "path": "path",
-                "title": "title",
-                "description": "description"
+              resultMap: {
+                id: "url",
+                path: "url",
+                title: "title",
+                description: "abstract"
               },
-              "colorScheme": "system",
-              "themeConfig": {}
+              colorScheme: "system",
+              themeConfig: {
+                "light": {
+                  "--text-color-tertiary": "#4d4c52",
+                  "--background-color-secondary": "#e5e7eb"
+                }
+              }
             };
 
             Object.assign(document.querySelector("orama-search-box"), {
@@ -249,6 +254,12 @@
               }
             });
           {% endif %}
+
+          if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            setTheme('dark')
+          } else {
+            setTheme('light')
+          }
         </script>
       {% endblock scripts %}
     {% endblock body %}

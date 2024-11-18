@@ -14,7 +14,9 @@ const settings = {
     { name: 'Overcast', href: 'https://overcast.fm/itunes1585489017/' },
     { name: 'Pocket Casts', href: 'https://pca.st/wgu0m6rr' },
     { name: 'Amazon Podcasts', href: 'https://music.amazon.com/podcasts/5c10087d-658a-48c1-a9da-ddc8503d4edc/aws-bites' }
-  ]
+  ],
+  orama_endpoint: 'https://cloud.orama.run/v1/indexes/podcast-episodes-ibb4vk',
+  orama_apikey: 'DUfUCmH9yhiPrbVA5dVyDfuVThI61dQY'
 }
 
 settings.links_by_name = settings.links.reduce((acc, curr) => {

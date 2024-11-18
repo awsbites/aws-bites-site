@@ -1,7 +1,7 @@
 const settings = {
   now: new Date(),
   website: 'https://awsbites.com',
-  description: 'AWS Bites is a weekly podcast where we answer interesting questions about AWS and cloud computing.',
+  description: 'AWS Bites podcast is where we share our experience with AWS and the cloud, we discuss what\'s new and share our opinions. Brought to you by Eoin Shanaghy and Luciano Mammino',
   rss_link: 'https://anchor.fm/s/6a3312a0/podcast/rss',
   analytics_id: 'G-LZHZ86B8SZ',
   links: [

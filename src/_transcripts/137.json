@@ -1,0 +1,1418 @@
+{
+  "speakers": {
+    "spk_0": "spk_0",
+    "spk_1": "spk_1"
+  },
+  "segments": [
+    {
+      "speakerLabel": "spk_0",
+      "start": 0,
+      "end": 8.02,
+      "text": " Welcome to AWS Bites episode 137, where we're going to dive into one of AWS's more powerful services, Transit Gateway."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 8.3,
+      "end": 17.66,
+      "text": " Networking in the cloud can feel like a bit of a tangled web of connections with VPC peering, VPNs and direct connect, all weaving together into a complex mesh."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 18.44,
+      "end": 26.62,
+      "text": " Transit Gateway aims to simplify all of this, providing a centralized hub designed to streamline connectivity and make network management a whole lot easier."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 26.62,
+      "end": 33.74,
+      "text": " In this episode, we're going to break down exactly what Transit Gateway is, how it works and why it's a game changer for organizations of all sizes."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 34.46,
+      "end": 39.8,
+      "text": " Whether you're managing a few VPCs or scaling to hundreds, Transit Gateway is built to handle the challenge."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 40.46,
+      "end": 46.08,
+      "text": " Plus, we're going to explore some real world use cases that give you a feel for how Transit Gateway can help you."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 46.6,
+      "end": 50.88,
+      "text": " My name is Eoin and today I'm joined for the first time by David Lynham. Let's get started."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 56.62,
+      "end": 61.559999999999995,
+      "text": " AWS Bites is brought to you by 4Theorem."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 62.459999999999994,
+      "end": 68.42,
+      "text": " Sometimes AWS is overwhelming and you might need someone to provide clear guidance in the fog of cloud offerings."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 69.2,
+      "end": 73.32,
+      "text": " That someone is 4Theorem, so check out 4Theorem at 4theorem.com."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 73.52,
+      "end": 74.86,
+      "text": " Now, very welcome, Dave."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 75.42,
+      "end": 75.82,
+      "text": " Thanks, Paul."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 76.72,
+      "end": 78.92,
+      "text": " Glad you could join us. Can you help set the scene?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 78.92,
+      "end": 86.22,
+      "text": " I know you're a bit of a closet Transit Gateway expert, so maybe we can just start with the topic of VPCs."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 86.4,
+      "end": 86.92,
+      "text": " Yeah, sure."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 87.12,
+      "end": 94.66,
+      "text": " So a VPC or a virtual private cloud is an isolated network environment where you can define and manage an IP range or a CIDR block."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 95.16,
+      "end": 101.5,
+      "text": " And this CIDR block forms the base for creating subnets where you can assign the IP address to service components within a VPC."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 102.08,
+      "end": 105.66,
+      "text": " So typically in a VPC, you'll have a couple of different types of subnets."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 105.66,
+      "end": 112.56,
+      "text": " You'll have a public subnet where you host your public instances such as public EC2 instances, load balancers, and maybe a NAT gateway."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 113.3,
+      "end": 122.19999999999999,
+      "text": " You'll also have private subnets, which are instances that are not directly accessible from the Internet, but they'll be able to connect out through to the Internet using a NAT gateway."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 122.96,
+      "end": 127.97999999999999,
+      "text": " We'll also have isolated subnets, which basically have no inbound or outbound connectivity."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 128.57999999999998,
+      "end": 134.57999999999998,
+      "text": " So subnets are associated with route tables that define how interfaces in the network can route traffic to the Internet and other networks."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 134.58,
+      "end": 138.54000000000002,
+      "text": " By default, you can only route within the VPC CIDR block."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 138.86,
+      "end": 142.20000000000002,
+      "text": " So VPC is pretty much self-contained by default then."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 142.38000000000002,
+      "end": 154.70000000000002,
+      "text": " So if you're going to scale and if you've got any kind of complexity or you need systems to talk to each other, you're going to think about routing or routing outside of the VPC, like to other VPCs or even networks outside of AWS."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 155.04000000000002,
+      "end": 156.98000000000002,
+      "text": " So how is that typically done?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 156.98,
+      "end": 163.39999999999998,
+      "text": " Yeah, so when you need to connect to VPCs, the default approach is traditionally to create a VPC peering relationship."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 163.78,
+      "end": 168.82,
+      "text": " To set up a peering connection, one VPC acts as the requester and the second VPC acts as the acceptor."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 169.23999999999998,
+      "end": 171.5,
+      "text": " The acceptor must accept the peering connection."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 172.45999999999998,
+      "end": 180.92,
+      "text": " You can then add route table entries in one VPC to route traffic to the other VPC and route the traffic backwards in the second VPC."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 180.92,
+      "end": 186.76,
+      "text": " When you have limited requirements, this can be a very useful and cost-effective solution, but there are quite a few limitations."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 187.29999999999998,
+      "end": 194.67999999999998,
+      "text": " Firstly, you cannot use peering to route to the Internet or through NAT gateways or VPNs in another VPC."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 195.06,
+      "end": 199.2,
+      "text": " You cannot do transitive peering either, which is what we'll get on to in a few minutes."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 199.2,
+      "end": 214.6,
+      "text": " So, for example, if you're in VPC A and you want to send traffic to VPC C and VPC A and VPC B are peered and VPC B and VPC C are peered, you can send traffic from A all the way through B to C."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 214.88,
+      "end": 218.76,
+      "text": " So it can become quite complex as well if you have multiple peerings."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 218.98,
+      "end": 227.1,
+      "text": " So it's quite easy if you have two VPCs, but if you have many more, it gets very cumbersome to manage all those VPC peerings."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 227.1,
+      "end": 235.98,
+      "text": " The reason these connections I mentioned, the transitive peerings, are not possible, there's kind of a small rule of thumb that I have to use."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 236.14,
+      "end": 244.94,
+      "text": " But a packet coming into a VPC, if the destination for that packet is outside of the VPC, the VPC will drop that packet."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 245.07999999999998,
+      "end": 249.1,
+      "text": " So I think that's a good rule to kind of keep in mind when we're kind of talking about transitive gateways."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 249.1,
+      "end": 258.38,
+      "text": " So what we mean by a transitive network is that where traffic in one VPC is going beyond a second VPC to a third VPC."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 258.58,
+      "end": 261.04,
+      "text": " So going through to autonomous networks."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 261.76,
+      "end": 270.78,
+      "text": " Before transit gateway, it was possible to implement transitive connections by creating a gateway with an EC2 hosted VPN software product in a transitive VPC."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 270.78,
+      "end": 274.28,
+      "text": " And peering each PVPC with this transitive VPC."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 274.55999999999995,
+      "end": 279.94,
+      "text": " VPN acts as the destination and forwards the packet to the true destination in another VPC."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 280.26,
+      "end": 286.88,
+      "text": " As well as having to pay for the EC2 instance, the VPN software and the total cost of ownership of managing all this,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 287.21999999999997,
+      "end": 290.96,
+      "text": " there is also a fair amount of complexity and management overhead with the VPC peering."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 291.67999999999995,
+      "end": 298.73999999999995,
+      "text": " To support network resilience, you also would need to deploy the architecture across multiple availability zones and implement redundant connections."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 298.74,
+      "end": 305.64,
+      "text": " This is typically referred to as a hub and spoke architecture where the transitive VPC in the hub and the connected VPCs are spokes."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 306.16,
+      "end": 313.32,
+      "text": " I can understand why people were looking for a better solution because it is very, it seems like it's quite complex, a lot of moving parts, a lot of maintenance."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 313.94,
+      "end": 317.04,
+      "text": " And yeah, not something that you'd really warm to."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 318.1,
+      "end": 322.76,
+      "text": " Now, these days, when you have an AWS organization with multiple networks,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 323.76,
+      "end": 328.22,
+      "text": " there are lots of cases where you've got VPCs spread across all those accounts and networks."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 328.74,
+      "end": 330.98,
+      "text": " And you might need to connect them together."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 331.3,
+      "end": 337.6,
+      "text": " So it's typical to need routing through a centralized account, maybe, or to access on-premises networks."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 338.44,
+      "end": 342.84000000000003,
+      "text": " You also have to think about VPNs, like site-to-site VPNs or client VPNs."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 343.56,
+      "end": 349.52,
+      "text": " And then you have to think about just east-west routing, as they call it, between services or applications."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 350.34000000000003,
+      "end": 352.3,
+      "text": " So let's get into Transit Gateway then."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 352.36,
+      "end": 353.38,
+      "text": " How does Transit Gateway help?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 353.38,
+      "end": 354.38,
+      "text": " Yeah, sure."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 354.58,
+      "end": 361.14,
+      "text": " So as we mentioned there about the Transit VPC, the Transit Gateway is basically a managed hub and spoke network."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 361.28,
+      "end": 364.28,
+      "text": " It takes the management of the hub and spoke architecture off your hands."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 364.34,
+      "end": 368.78,
+      "text": " So you really only need to worry about routing the traffic or directing the traffic where you want it to go."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 368.78,
+      "end": 374.11999999999995,
+      "text": " So it provides a centralized hub for connections between multiple VPCs."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 374.38,
+      "end": 380.29999999999995,
+      "text": " And it scales to thousands of VPCs by extending through other Transit Gateways."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 380.5,
+      "end": 383.73999999999995,
+      "text": " It supports connections to on-prem through Direct Connect and VPN."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 384.2,
+      "end": 387.14,
+      "text": " And it's highly available across multi-AZs in a region."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 387.35999999999996,
+      "end": 390.94,
+      "text": " You can peer Transit Gateways in multiple different regions together as well."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 390.94,
+      "end": 397.24,
+      "text": " And you can also do very, very fine-grained routing and isolating networks and stuff like that."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 398.06,
+      "end": 399.34,
+      "text": " And it also works across accounts."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 399.48,
+      "end": 405.3,
+      "text": " So it's very good for, like, if you have a large organization, you might have AWS organizations enabled."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 405.58,
+      "end": 406.94,
+      "text": " You might have many, many accounts."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 407.62,
+      "end": 411,
+      "text": " You might segregate your business workloads by account."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 411.24,
+      "end": 415.6,
+      "text": " And then you could join together where it makes sense using a Transit Gateway."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 415.78,
+      "end": 416.5,
+      "text": " That sounds pretty good."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 416.64,
+      "end": 417.98,
+      "text": " What are the main components then?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 417.98,
+      "end": 420.48,
+      "text": " What does even a simple setup look like if you're just getting started?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 420.48,
+      "end": 421.28000000000003,
+      "text": " Yeah, sure."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 421.46000000000004,
+      "end": 424.44,
+      "text": " So the main component of the Transit Gateway is the attachment."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 425.22,
+      "end": 431.38,
+      "text": " If you want to attach VPCs to your Transit Gateway, you create an attachment for that particular VPC."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 431.68,
+      "end": 433.96000000000004,
+      "text": " You can also attach VPNs."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 434.24,
+      "end": 437.92,
+      "text": " You can also attach direct connects to attach to your on-prem networks."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 438.24,
+      "end": 445.14000000000004,
+      "text": " You can also peer attachments, which is connecting to another Transit Gateway to chain your Transit Gateway connections."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 445.14,
+      "end": 451.7,
+      "text": " When you create the attachment, you also pick what subnets you want the attachments to be joined in."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 452.15999999999997,
+      "end": 455.24,
+      "text": " And once you have all your networks attached, you need to think about routing."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 455.52,
+      "end": 460.32,
+      "text": " Transit Gateway has its own route tables, which are separate to the VPC and subnet route tables."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 461.06,
+      "end": 463.44,
+      "text": " The Transit Gateway route table is a powerful thing."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 463.52,
+      "end": 466.21999999999997,
+      "text": " It lets you control how traffic can flow between attachments."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 466.56,
+      "end": 469.02,
+      "text": " Attachments and route tables are the first two building blocks."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 469.02,
+      "end": 473.24,
+      "text": " The two other important concepts to be aware of are associations and propagation."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 473.78,
+      "end": 482.18,
+      "text": " So association, every attachment will have an association with the route table, but you can also create lots of route tables for fine-grain control and segmentation."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 482.53999999999996,
+      "end": 483.02,
+      "text": " Propagation."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 483.02,
+      "end": 492.84,
+      "text": " If you want a VPC to be routable through a Transit Gateway, you can propagate its CIDR block to the Transit Gateway route tables, which is essentially using BGP under the hood."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 493.34,
+      "end": 498.84,
+      "text": " And it allows the Transit Gateway to learn about routes that AttachVPC knows about."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 498.94,
+      "end": 502.21999999999997,
+      "text": " With these four building blocks, you can create some very powerful scenarios."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 502.71999999999997,
+      "end": 508.29999999999995,
+      "text": " Let's imagine we have three AWS accounts, and each one of those accounts has a VPC."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 508.3,
+      "end": 511.62,
+      "text": " So let's say VPC A, VPC B, VPC C."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 512.12,
+      "end": 515.66,
+      "text": " What we could do is we can create a Transit Gateway."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 516.8,
+      "end": 519.7,
+      "text": " Let's say we had another account, which was even a networking account."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 519.78,
+      "end": 525.42,
+      "text": " We can actually share the Transit Gateway with those three accounts."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 525.42,
+      "end": 529.28,
+      "text": " So we can have a centralized management of the Transit Gateway."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 529.92,
+      "end": 534.1800000000001,
+      "text": " And each one of those accounts can then attach their VPC to that Transit Gateway."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 534.18,
+      "end": 541.18,
+      "text": " And the routing of that Transit Gateway traffic can be managed inside the networking account."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 541.8199999999999,
+      "end": 553.68,
+      "text": " So that would allow traffic inside VPC A to send traffic to VPC C or VPC B, and likewise, and vice versa with the other two VPCs via the attachments."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 553.68,
+      "end": 555.54,
+      "text": " Yeah, one other point, I suppose."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 555.7399999999999,
+      "end": 559.18,
+      "text": " So I mentioned there about the Transit Gateway being shared."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 559.52,
+      "end": 566.3399999999999,
+      "text": " So you would use AWS RAM or Resource Access Manager to share the VPC with the other particular accounts."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 566.4399999999999,
+      "end": 573.6999999999999,
+      "text": " So it's a really nice feature because you're able to centralize that ownership of the routing in a network-managed account."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 573.7,
+      "end": 585.12,
+      "text": " And then you don't have to worry about your business domains or your business accounts having to create Transit Gateways or attach Transit Gateways."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 585.24,
+      "end": 590.1800000000001,
+      "text": " They just use the Transit Gateway that's managed by the AWS organization."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 590.6400000000001,
+      "end": 599.5,
+      "text": " Moving on from that then, the VPCs could add in their private subnets, if they want to send traffic from the service components in the private subnets,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 599.5,
+      "end": 604.08,
+      "text": " they would route traffic to the target of the Transit Gateway itself."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 604.2,
+      "end": 609.4,
+      "text": " So any traffic that is not for their local VPC, they will send it to the Transit Gateway."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 609.7,
+      "end": 615.52,
+      "text": " The Transit Gateway will pick up that routing and it'll send it to the appropriate VPC, which will arrive then at its destination."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 620.7,
+      "end": 626.38,
+      "text": " I think that's a good point because you have the Transit Gateway routing tables, which are separate, and that you can use them for all sorts of advanced segmentation or just be very permissive if you want."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 626.38,
+      "end": 630.24,
+      "text": " But then you still need to have your subnet route tables as well."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 631.02,
+      "end": 636.46,
+      "text": " And you need to say, okay, well, which you might have a catch-all that says 0, 0, 0, 0 goes to the Transit Gateway."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 636.86,
+      "end": 637,
+      "text": " Right?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 637.08,
+      "end": 642.7,
+      "text": " And then internet might go through it or it could be a specific CIDR blocker is even more specific."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 643.28,
+      "end": 643.42,
+      "text": " Yeah."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 644.3,
+      "end": 652.94,
+      "text": " Another thing I was involved in recently was a project where we wanted to have a multi-account setup with VPCs for application traffic."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 652.94,
+      "end": 658.98,
+      "text": " So it was essentially web applications and other things, even databases, where end users wanted access,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 659.2600000000001,
+      "end": 663.1400000000001,
+      "text": " but it had to be secure and could not be on the public internet."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 663.9200000000001,
+      "end": 667.96,
+      "text": " So what we were actually asked to do was look into a VPN setup."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 668.58,
+      "end": 674.48,
+      "text": " And we've done quite a lot of AWS client VPN, which is generally pretty straightforward to set up."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 674.48,
+      "end": 679.34,
+      "text": " You know, you can do certificate-based or integrated into identity provider."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 679.66,
+      "end": 684.4,
+      "text": " But this kind of VPN can terminate on your networking account, just like you described there."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 685.26,
+      "end": 687.9,
+      "text": " And you can associate it then with the Transit VPC."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 688.22,
+      "end": 693.64,
+      "text": " So this kind of VPC in the network account, and that's also attached to the Transit Gateway."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 693.64,
+      "end": 698.18,
+      "text": " We talk a lot about segmentation sometimes when we're talking about Transit Gateway."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 698.3199999999999,
+      "end": 699.88,
+      "text": " I think we've mentioned it there a few times."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 700.18,
+      "end": 705.76,
+      "text": " So one thing we wanted here was that VPN users could be able to access these applications."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 706.3199999999999,
+      "end": 709.76,
+      "text": " But the applications, you don't want them to be able to route between each other."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 709.9399999999999,
+      "end": 710.04,
+      "text": " Right?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 710.08,
+      "end": 711.8,
+      "text": " They should be segmented from each other."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 712.3,
+      "end": 713.34,
+      "text": " They're isolated domains."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 713.48,
+      "end": 717.02,
+      "text": " They shouldn't talk to each other except through maybe an event bus or something."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 717.58,
+      "end": 717.86,
+      "text": " Right?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 717.86,
+      "end": 720.6,
+      "text": " So you want to avoid that kind of direct traffic."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 721,
+      "end": 726.32,
+      "text": " So the way you can do that is by setting up two Transit Gateway route tables."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 726.82,
+      "end": 734.02,
+      "text": " One's associated with the Transit VPC attachment, and it lets you route through to those domain accounts, say application accounts."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 734.02,
+      "end": 739.78,
+      "text": " And another is associated with each of those domains VPC and different route table."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 740.5,
+      "end": 742,
+      "text": " So let's call that the applications route table."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 742.26,
+      "end": 746,
+      "text": " So then the domains can propagate their CIDRs to the Transit VPC route table."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 746,
+      "end": 750.44,
+      "text": " And the Transit VPC propagates its CIDR range to the applications route table."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 750.68,
+      "end": 752.24,
+      "text": " And then they can both talk to each other."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 752.44,
+      "end": 757.18,
+      "text": " But the routing is segmented then so that client VPN connections can route to the applications."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 757.72,
+      "end": 759.58,
+      "text": " The applications can route back out to the VPN."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 759.88,
+      "end": 762.06,
+      "text": " But the domain accounts cannot route to each other."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 762.8,
+      "end": 771.1,
+      "text": " And like you said as well, you still need to make sure you add those subnet route tables from the Transit VPC to the destination CIDR through the Transit Gateway."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 771.38,
+      "end": 773.06,
+      "text": " So the VPN clients can reach the application."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 773.06,
+      "end": 776.5,
+      "text": " So you always need to think about the route tables for Transit Gateway and subnet route tables."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 777.2399999999999,
+      "end": 778.1199999999999,
+      "text": " And it might be more complicated."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 778.28,
+      "end": 782.2399999999999,
+      "text": " It might sound more complicated than it is, but it's just one of those things, right?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 782.3,
+      "end": 785.1999999999999,
+      "text": " You just have to try it a few times, make the mistakes."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 785.4599999999999,
+      "end": 789.16,
+      "text": " And then the concepts, I think, are pretty powerful and replicable."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 789.54,
+      "end": 792.28,
+      "text": " Then, you know, it's not as advanced as it might seem."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 792.68,
+      "end": 792.76,
+      "text": " Yeah."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 793.18,
+      "end": 794.66,
+      "text": " Any other use cases we should cover?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 794.66,
+      "end": 798.06,
+      "text": " Yeah, there's a couple of interesting ones there I've come across."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 798.64,
+      "end": 812.38,
+      "text": " So similar to what you just mentioned there, there's kind of a network isolation for compliance reasons, such as PCI you've come across, where networks are in scope for holding like credit card details, for example."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 812.38,
+      "end": 826.92,
+      "text": " Using a Transit Gateway is a very good idea for, you know, restricting what networks can get into that data because you have to, under compliance, you have to, like, any connected networks are always audited."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 826.92,
+      "end": 838.3199999999999,
+      "text": " So being able to show and being able to restrict what networks can actually get to the PCI data means you're reducing the scope of what's inside of an audit."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 838.8,
+      "end": 840.1999999999999,
+      "text": " So it's quite good for that."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 840.8199999999999,
+      "end": 848.4399999999999,
+      "text": " You can also turn on, like, Transit Gateway flow logs as well and be able to show that, monitor that data going in and out."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 848.92,
+      "end": 852.26,
+      "text": " The other kind of one I've come across is security services."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 852.26,
+      "end": 859.38,
+      "text": " So quite often security services are quite expensive and you kind of deploy them in maybe a security account."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 859.96,
+      "end": 864.8,
+      "text": " And what you'd like to do is have, like, maybe all your traffic go through these security services."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 865.4399999999999,
+      "end": 867.98,
+      "text": " But obviously you don't want to deploy them in every single account."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 868.1,
+      "end": 874.34,
+      "text": " So what you would do is you would basically reduce your ingress and your egress to a single account."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 874.34,
+      "end": 884.48,
+      "text": " And what you'd do is route the traffic coming in and out of your AWS accounts through the security services and in a thing called a middle box."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 884.6800000000001,
+      "end": 888.72,
+      "text": " So it's basically intercepting the traffic, sending it off to the security service, pulling it back."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 888.96,
+      "end": 894.5600000000001,
+      "text": " So things like AWS firewall and those kind of things would quite often be used there."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 895.1600000000001,
+      "end": 902.24,
+      "text": " And you can use the Transit Gateway then to, like, direct all that traffic, make sure that all that traffic goes back through that security service."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 902.24,
+      "end": 906.64,
+      "text": " So there's lots of good patterns for these kind of things using the Transit Gateway."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 907.08,
+      "end": 911.62,
+      "text": " When we're talking about the benefits of this kind of stuff, we should also talk about pricing and limits."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 911.84,
+      "end": 913.4,
+      "text": " Anything interesting to talk about there?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 913.82,
+      "end": 915.36,
+      "text": " How does it stack up price-wise?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 915.96,
+      "end": 916.16,
+      "text": " Yeah."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 916.36,
+      "end": 921,
+      "text": " So, like, you're paying basically on two parameters, essentially."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 921.2,
+      "end": 927.54,
+      "text": " You're paying based on the number of attachments you have or the hourly rate for those attachments and the data you're processing."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 927.54,
+      "end": 933.06,
+      "text": " Typically, it's about $0.02 per gigabyte per transfer data per month."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 933.88,
+      "end": 939.9399999999999,
+      "text": " And for the attachments then, you're paying in about, it's roughly about $0.05 per hour in many regions."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 940.02,
+      "end": 943.56,
+      "text": " So that's about $36.50 per month."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 943.64,
+      "end": 946.06,
+      "text": " But the reality is you're not going to be peering with one VPC."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 946.26,
+      "end": 947.5,
+      "text": " You're going to be peering with at least two."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 947.5,
+      "end": 952.5,
+      "text": " So at a very minimum, you're going to be talking about $73 a month to peer two VPCs."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 953.4,
+      "end": 958.82,
+      "text": " Traffic between peer VPCs in the same region is billed as if there were AZ to AZ data,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 959.24,
+      "end": 963.98,
+      "text": " while traffic between VPCs in different regions are billed as if the data had been sent out to the Internet."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 964.08,
+      "end": 965.14,
+      "text": " So it's a little bit more expensive."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 965.56,
+      "end": 966.28,
+      "text": " What about limits then?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 966.34,
+      "end": 969.78,
+      "text": " Is there any capacity issues you might need to think about?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 970.58,
+      "end": 970.98,
+      "text": " Yeah."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 970.98,
+      "end": 975.6800000000001,
+      "text": " One of the benefits of a transit gateway is it's very scalable."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 976.4,
+      "end": 980.54,
+      "text": " So we can have five transit gateways per account, which is a soft limit."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 980.7,
+      "end": 982.1,
+      "text": " You get ALRS to increase that."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 982.54,
+      "end": 983,
+      "text": " You do wish."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 984.14,
+      "end": 987.48,
+      "text": " Each transit gateway can have up to 20 route tables."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 988.02,
+      "end": 993.54,
+      "text": " And we can have in those route tables a total of 10,000 routes."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 994.28,
+      "end": 996.34,
+      "text": " So that's quite a lot of routing already."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 996.34,
+      "end": 1000.32,
+      "text": " And each transit gateway can have 5,000 attachments."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1000.94,
+      "end": 1001.7,
+      "text": " That's quite a bit."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1002.3000000000001,
+      "end": 1006.24,
+      "text": " It might be worth noting as well that you can't really get around this by using pending attachments,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1006.38,
+      "end": 1007.32,
+      "text": " by not accepting them."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1007.8000000000001,
+      "end": 1011.34,
+      "text": " So there is a limit of like 10 pending attachments."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1011.5,
+      "end": 1015.9200000000001,
+      "text": " So you can't be smart and try to get 10,000 of them in a pending state and move on."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1017.4200000000001,
+      "end": 1021.9000000000001,
+      "text": " So if we were to kind of compare the transit gateway with the VPN tunnel,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1021.9,
+      "end": 1027.32,
+      "text": " we get a huge increase in throughput there across the network."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1027.84,
+      "end": 1032.4,
+      "text": " So we're getting about 100 gigabits per VPC attachment per AZ."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1033.1399999999999,
+      "end": 1038.48,
+      "text": " Whereas if we're looking at the VPN tunnel, we're only about 1.25 gigabits per second."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1038.6,
+      "end": 1041.44,
+      "text": " So if you're looking for speed, the transit gateway is probably the way to go."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1041.76,
+      "end": 1041.84,
+      "text": " Okay."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1042.26,
+      "end": 1042.52,
+      "text": " Okay."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1042.58,
+      "end": 1044.24,
+      "text": " I think that last one is important then."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1044.3799999999999,
+      "end": 1048.58,
+      "text": " So the bandwidth is per VPC attachment per AZ."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1048.58,
+      "end": 1052.46,
+      "text": " So as you scale out, you just get more bandwidth really."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1052.8799999999999,
+      "end": 1054.1399999999999,
+      "text": " So that's pretty cool."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1054.3799999999999,
+      "end": 1054.52,
+      "text": " Okay."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1054.6,
+      "end": 1055.26,
+      "text": " Thanks a million, Dave."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1055.6999999999998,
+      "end": 1057.76,
+      "text": " Just to wrap up, then we should probably point."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1058.08,
+      "end": 1061.96,
+      "text": " I think there's an example of the AWS documentation for transit gateway,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1062.08,
+      "end": 1065.6599999999999,
+      "text": " which I think is one of the best pieces of AWS documentation I've come across"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1065.6599999999999,
+      "end": 1071.56,
+      "text": " because it talks about how a fairly advanced topic like this works, but it's not very long."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1071.56,
+      "end": 1076.8799999999999,
+      "text": " And most of it is just giving example scenarios like the ones we talked about today,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1077.04,
+      "end": 1078.4199999999998,
+      "text": " but others as well."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1078.8999999999999,
+      "end": 1087.3999999999999,
+      "text": " And I just think it's whoever was involved in that deserves some praise because it's really worth check it out."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1087.58,
+      "end": 1088.4199999999998,
+      "text": " It'll be in the show notes."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1088.8999999999999,
+      "end": 1088.96,
+      "text": " Yeah."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1089.9199999999998,
+      "end": 1093.56,
+      "text": " If anyone out there has any other use cases for transit gateway that we missed,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1093.86,
+      "end": 1094.98,
+      "text": " do let us know in the comments below."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1095.54,
+      "end": 1096.6,
+      "text": " Thanks for joining us."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1097.1599999999999,
+      "end": 1097.58,
+      "text": " Cheers, Dave."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1098.06,
+      "end": 1098.36,
+      "text": " Thanks all."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1098.36,
+      "end": 1099.26,
+      "text": " See you again in another one."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1099.26,
+      "end": 1101.1,
+      "text": " And we'll catch you all in the next episode."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1101.56,
+      "end": 1102.56,
+      "text": " Bye."
+    }
+  ]
+}

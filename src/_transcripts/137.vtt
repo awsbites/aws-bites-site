@@ -1,0 +1,925 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:08.020
+Welcome to AWS Bites episode 137, where we're going to dive into one of AWS's more powerful services, Transit Gateway.
+
+2
+00:00:08.300 --> 00:00:17.660
+Networking in the cloud can feel like a bit of a tangled web of connections with VPC peering, VPNs and direct connect, all weaving together into a complex mesh.
+
+3
+00:00:18.440 --> 00:00:26.620
+Transit Gateway aims to simplify all of this, providing a centralized hub designed to streamline connectivity and make network management a whole lot easier.
+
+4
+00:00:26.620 --> 00:00:33.740
+In this episode, we're going to break down exactly what Transit Gateway is, how it works and why it's a game changer for organizations of all sizes.
+
+5
+00:00:34.460 --> 00:00:39.800
+Whether you're managing a few VPCs or scaling to hundreds, Transit Gateway is built to handle the challenge.
+
+6
+00:00:40.460 --> 00:00:46.080
+Plus, we're going to explore some real world use cases that give you a feel for how Transit Gateway can help you.
+
+7
+00:00:46.600 --> 00:00:50.880
+My name is Eoin and today I'm joined for the first time by David Lynam. Let's get started.
+
+8
+00:00:56.620 --> 00:01:01.560
+AWS Bites is brought to you by 4Theorem.
+
+9
+00:01:02.460 --> 00:01:08.420
+Sometimes AWS is overwhelming and you might need someone to provide clear guidance in the fog of cloud offerings.
+
+10
+00:01:09.200 --> 00:01:13.320
+That someone is 4Theorem, so check out 4Theorem at 4theorem.com.
+
+11
+00:01:13.520 --> 00:01:14.860
+Now, very welcome, Dave.
+
+12
+00:01:15.420 --> 00:01:15.820
+Thanks, Paul.
+
+13
+00:01:16.720 --> 00:01:18.920
+Glad you could join us. Can you help set the scene?
+
+14
+00:01:18.920 --> 00:01:26.220
+I know you're a bit of a closet Transit Gateway expert, so maybe we can just start with the topic of VPCs.
+
+15
+00:01:26.400 --> 00:01:26.920
+Yeah, sure.
+
+16
+00:01:27.120 --> 00:01:34.660
+So a VPC or a virtual private cloud is an isolated network environment where you can define and manage an IP range or a CIDR block.
+
+17
+00:01:35.160 --> 00:01:41.500
+And this CIDR block forms the base for creating subnets where you can assign the IP address to service components within a VPC.
+
+18
+00:01:42.080 --> 00:01:45.660
+So typically in a VPC, you'll have a couple of different types of subnets.
+
+19
+00:01:45.660 --> 00:01:52.560
+You'll have a public subnet where you host your public instances such as public EC2 instances, load balancers, and maybe a NAT gateway.
+
+20
+00:01:53.300 --> 00:02:02.200
+You'll also have private subnets, which are instances that are not directly accessible from the Internet, but they'll be able to connect out through to the Internet using a NAT gateway.
+
+21
+00:02:02.960 --> 00:02:07.980
+We'll also have isolated subnets, which basically have no inbound or outbound connectivity.
+
+22
+00:02:08.580 --> 00:02:14.580
+So subnets are associated with route tables that define how interfaces in the network can route traffic to the Internet and other networks.
+
+23
+00:02:14.580 --> 00:02:18.540
+By default, you can only route within the VPC CIDR block.
+
+24
+00:02:18.860 --> 00:02:22.200
+So VPC is pretty much self-contained by default then.
+
+25
+00:02:22.380 --> 00:02:34.700
+So if you're going to scale and if you've got any kind of complexity or you need systems to talk to each other, you're going to think about routing or routing outside of the VPC, like to other VPCs or even networks outside of AWS.
+
+26
+00:02:35.040 --> 00:02:36.980
+So how is that typically done?
+
+27
+00:02:36.980 --> 00:02:43.400
+Yeah, so when you need to connect to VPCs, the default approach is traditionally to create a VPC peering relationship.
+
+28
+00:02:43.780 --> 00:02:48.820
+To set up a peering connection, one VPC acts as the requester and the second VPC acts as the acceptor.
+
+29
+00:02:49.240 --> 00:02:51.500
+The acceptor must accept the peering connection.
+
+30
+00:02:52.460 --> 00:03:00.920
+You can then add route table entries in one VPC to route traffic to the other VPC and route the traffic backwards in the second VPC.
+
+31
+00:03:00.920 --> 00:03:06.760
+When you have limited requirements, this can be a very useful and cost-effective solution, but there are quite a few limitations.
+
+32
+00:03:07.300 --> 00:03:14.680
+Firstly, you cannot use peering to route to the Internet or through NAT gateways or VPNs in another VPC.
+
+33
+00:03:15.060 --> 00:03:19.200
+You cannot do transitive peering either, which is what we'll get on to in a few minutes.
+
+34
+00:03:19.200 --> 00:03:34.600
+So, for example, if you're in VPC A and you want to send traffic to VPC C and VPC A and VPC B are peered and VPC B and VPC C are peered, you can send traffic from A all the way through B to C.
+
+35
+00:03:34.880 --> 00:03:38.760
+So it can become quite complex as well if you have multiple peerings.
+
+36
+00:03:38.980 --> 00:03:47.100
+So it's quite easy if you have two VPCs, but if you have many more, it gets very cumbersome to manage all those VPC peerings.
+
+37
+00:03:47.100 --> 00:03:55.980
+The reason these connections I mentioned, the transitive peerings, are not possible, there's kind of a small rule of thumb that I have to use.
+
+38
+00:03:56.140 --> 00:04:04.940
+But a packet coming into a VPC, if the destination for that packet is outside of the VPC, the VPC will drop that packet.
+
+39
+00:04:05.080 --> 00:04:09.100
+So I think that's a good rule to kind of keep in mind when we're kind of talking about transitive gateways.
+
+40
+00:04:09.100 --> 00:04:18.380
+So what we mean by a transitive network is that where traffic in one VPC is going beyond a second VPC to a third VPC.
+
+41
+00:04:18.580 --> 00:04:21.040
+So going through to autonomous networks.
+
+42
+00:04:21.760 --> 00:04:30.780
+Before transit gateway, it was possible to implement transitive connections by creating a gateway with an EC2 hosted VPN software product in a transitive VPC.
+
+43
+00:04:30.780 --> 00:04:34.280
+And peering each VPC with this transitive VPC.
+
+44
+00:04:34.560 --> 00:04:39.940
+VPN acts as the destination and forwards the packet to the true destination in another VPC.
+
+45
+00:04:40.260 --> 00:04:46.880
+As well as having to pay for the EC2 instance, the VPN software and the total cost of ownership of managing all this,
+
+46
+00:04:47.220 --> 00:04:50.960
+there is also a fair amount of complexity and management overhead with the VPC peering.
+
+47
+00:04:51.680 --> 00:04:58.740
+To support network resilience, you also would need to deploy the architecture across multiple availability zones and implement redundant connections.
+
+48
+00:04:58.740 --> 00:05:05.640
+This is typically referred to as a hub and spoke architecture where the transitive VPC in the hub and the connected VPCs are spokes.
+
+49
+00:05:06.160 --> 00:05:13.320
+I can understand why people were looking for a better solution because it is very, it seems like it's quite complex, a lot of moving parts, a lot of maintenance.
+
+50
+00:05:13.940 --> 00:05:17.040
+And yeah, not something that you'd really warm to.
+
+51
+00:05:18.100 --> 00:05:22.760
+Now, these days, when you have an AWS organization with multiple networks,
+
+52
+00:05:23.760 --> 00:05:28.220
+there are lots of cases where you've got VPCs spread across all those accounts and networks.
+
+53
+00:05:28.740 --> 00:05:30.980
+And you might need to connect them together.
+
+54
+00:05:31.300 --> 00:05:37.600
+So it's typical to need routing through a centralized account, maybe, or to access on-premises networks.
+
+55
+00:05:38.440 --> 00:05:42.840
+You also have to think about VPNs, like site-to-site VPNs or client VPNs.
+
+56
+00:05:43.560 --> 00:05:49.520
+And then you have to think about just east-west routing, as they call it, between services or applications.
+
+57
+00:05:50.340 --> 00:05:52.300
+So let's get into Transit Gateway then.
+
+58
+00:05:52.360 --> 00:05:53.380
+How does Transit Gateway help?
+
+59
+00:05:53.380 --> 00:05:54.380
+Yeah, sure.
+
+60
+00:05:54.580 --> 00:06:01.140
+So as we mentioned there about the Transit VPC, the Transit Gateway is basically a managed hub and spoke network.
+
+61
+00:06:01.280 --> 00:06:04.280
+It takes the management of the hub and spoke architecture off your hands.
+
+62
+00:06:04.340 --> 00:06:08.780
+So you really only need to worry about routing the traffic or directing the traffic where you want it to go.
+
+63
+00:06:08.780 --> 00:06:14.120
+So it provides a centralized hub for connections between multiple VPCs.
+
+64
+00:06:14.380 --> 00:06:20.300
+And it scales to thousands of VPCs by extending through other Transit Gateways.
+
+65
+00:06:20.500 --> 00:06:23.740
+It supports connections to on-prem through Direct Connect and VPN.
+
+66
+00:06:24.200 --> 00:06:27.140
+And it's highly available across multi-AZs in a region.
+
+67
+00:06:27.360 --> 00:06:30.940
+You can peer Transit Gateways in multiple different regions together as well.
+
+68
+00:06:30.940 --> 00:06:37.240
+And you can also do very, very fine-grained routing and isolating networks and stuff like that.
+
+69
+00:06:38.060 --> 00:06:39.340
+And it also works across accounts.
+
+70
+00:06:39.480 --> 00:06:45.300
+So it's very good for, like, if you have a large organization, you might have AWS organizations enabled.
+
+71
+00:06:45.580 --> 00:06:46.940
+You might have many, many accounts.
+
+72
+00:06:47.620 --> 00:06:51.000
+You might segregate your business workloads by account.
+
+73
+00:06:51.240 --> 00:06:55.600
+And then you could join together where it makes sense using a Transit Gateway.
+
+74
+00:06:55.780 --> 00:06:56.500
+That sounds pretty good.
+
+75
+00:06:56.640 --> 00:06:57.980
+What are the main components then?
+
+76
+00:06:57.980 --> 00:07:00.480
+What does even a simple setup look like if you're just getting started?
+
+77
+00:07:00.480 --> 00:07:01.280
+Yeah, sure.
+
+78
+00:07:01.460 --> 00:07:04.440
+So the main component of the Transit Gateway is the attachment.
+
+79
+00:07:05.220 --> 00:07:11.380
+If you want to attach VPCs to your Transit Gateway, you create an attachment for that particular VPC.
+
+80
+00:07:11.680 --> 00:07:13.960
+You can also attach VPNs.
+
+81
+00:07:14.240 --> 00:07:17.920
+You can also attach direct connects to attach to your on-prem networks.
+
+82
+00:07:18.240 --> 00:07:25.140
+You can also peer attachments, which is connecting to another Transit Gateway to chain your Transit Gateway connections.
+
+83
+00:07:25.140 --> 00:07:31.700
+When you create the attachment, you also pick what subnets you want the attachments to be joined in.
+
+84
+00:07:32.160 --> 00:07:35.240
+And once you have all your networks attached, you need to think about routing.
+
+85
+00:07:35.520 --> 00:07:40.320
+Transit Gateway has its own route tables, which are separate to the VPC and subnet route tables.
+
+86
+00:07:41.060 --> 00:07:43.440
+The Transit Gateway route table is a powerful thing.
+
+87
+00:07:43.520 --> 00:07:46.220
+It lets you control how traffic can flow between attachments.
+
+88
+00:07:46.560 --> 00:07:49.020
+Attachments and route tables are the first two building blocks.
+
+89
+00:07:49.020 --> 00:07:53.240
+The two other important concepts to be aware of are associations and propagation.
+
+90
+00:07:53.780 --> 00:08:02.180
+So association, every attachment will have an association with the route table, but you can also create lots of route tables for fine-grain control and segmentation.
+
+91
+00:08:02.540 --> 00:08:03.020
+Propagation.
+
+92
+00:08:03.020 --> 00:08:12.840
+If you want a VPC to be routable through a Transit Gateway, you can propagate its CIDR block to the Transit Gateway route tables, which is essentially using BGP under the hood.
+
+93
+00:08:13.340 --> 00:08:18.840
+And it allows the Transit Gateway to learn about routes that AttachVPC knows about.
+
+94
+00:08:18.940 --> 00:08:22.220
+With these four building blocks, you can create some very powerful scenarios.
+
+95
+00:08:22.720 --> 00:08:28.300
+Let's imagine we have three AWS accounts, and each one of those accounts has a VPC.
+
+96
+00:08:28.300 --> 00:08:31.620
+So let's say VPC A, VPC B, VPC C.
+
+97
+00:08:32.120 --> 00:08:35.660
+What we could do is we can create a Transit Gateway.
+
+98
+00:08:36.800 --> 00:08:39.700
+Let's say we had another account, which was even a networking account.
+
+99
+00:08:39.780 --> 00:08:45.420
+We can actually share the Transit Gateway with those three accounts.
+
+100
+00:08:45.420 --> 00:08:49.280
+So we can have a centralized management of the Transit Gateway.
+
+101
+00:08:49.920 --> 00:08:54.180
+And each one of those accounts can then attach their VPC to that Transit Gateway.
+
+102
+00:08:54.180 --> 00:09:01.180
+And the routing of that Transit Gateway traffic can be managed inside the networking account.
+
+103
+00:09:01.820 --> 00:09:13.680
+So that would allow traffic inside VPC A to send traffic to VPC C or VPC B, and likewise, and vice versa with the other two VPCs via the attachments.
+
+104
+00:09:13.680 --> 00:09:15.540
+Yeah, one other point, I suppose.
+
+105
+00:09:15.740 --> 00:09:19.180
+So I mentioned there about the Transit Gateway being shared.
+
+106
+00:09:19.520 --> 00:09:26.340
+So you would use AWS RAM or Resource Access Manager to share the VPC with the other particular accounts.
+
+107
+00:09:26.440 --> 00:09:33.700
+So it's a really nice feature because you're able to centralize that ownership of the routing in a network-managed account.
+
+108
+00:09:33.700 --> 00:09:45.120
+And then you don't have to worry about your business domains or your business accounts having to create Transit Gateways or attach Transit Gateways.
+
+109
+00:09:45.240 --> 00:09:50.180
+They just use the Transit Gateway that's managed by the AWS organization.
+
+110
+00:09:50.640 --> 00:09:59.500
+Moving on from that then, the VPCs could add in their private subnets, if they want to send traffic from the service components in the private subnets,
+
+111
+00:09:59.500 --> 00:10:04.080
+they would route traffic to the target of the Transit Gateway itself.
+
+112
+00:10:04.200 --> 00:10:09.400
+So any traffic that is not for their local VPC, they will send it to the Transit Gateway.
+
+113
+00:10:09.700 --> 00:10:15.520
+The Transit Gateway will pick up that routing and it'll send it to the appropriate VPC, which will arrive then at its destination.
+
+114
+00:10:20.700 --> 00:10:26.380
+I think that's a good point because you have the Transit Gateway routing tables, which are separate, and that you can use them for all sorts of advanced segmentation or just be very permissive if you want.
+
+115
+00:10:26.380 --> 00:10:30.240
+But then you still need to have your subnet route tables as well.
+
+116
+00:10:31.020 --> 00:10:36.460
+And you need to say, okay, well, which you might have a catch-all that says 0.0.0.0/0 goes to the Transit Gateway.
+
+117
+00:10:36.860 --> 00:10:37.000
+Right?
+
+118
+00:10:37.080 --> 00:10:42.700
+And then internet might go through it or it could be a specific CIDR blocker is even more specific.
+
+119
+00:10:43.280 --> 00:10:43.420
+Yeah.
+
+120
+00:10:44.300 --> 00:10:52.940
+Another thing I was involved in recently was a project where we wanted to have a multi-account setup with VPCs for application traffic.
+
+121
+00:10:52.940 --> 00:10:58.980
+So it was essentially web applications and other things, even databases, where end users wanted access,
+
+122
+00:10:59.260 --> 00:11:03.140
+but it had to be secure and could not be on the public internet.
+
+123
+00:11:03.920 --> 00:11:07.960
+So what we were actually asked to do was look into a VPN setup.
+
+124
+00:11:08.580 --> 00:11:14.480
+And we've done quite a lot of AWS client VPN, which is generally pretty straightforward to set up.
+
+125
+00:11:14.480 --> 00:11:19.340
+You know, you can do certificate-based or integrated into identity provider.
+
+126
+00:11:19.660 --> 00:11:24.400
+But this kind of VPN can terminate on your networking account, just like you described there.
+
+127
+00:11:25.260 --> 00:11:27.900
+And you can associate it then with the Transit VPC.
+
+128
+00:11:28.220 --> 00:11:33.640
+So this kind of VPC in the network account, and that's also attached to the Transit Gateway.
+
+129
+00:11:33.640 --> 00:11:38.180
+We talk a lot about segmentation sometimes when we're talking about Transit Gateway.
+
+130
+00:11:38.320 --> 00:11:39.880
+I think we've mentioned it there a few times.
+
+131
+00:11:40.180 --> 00:11:45.760
+So one thing we wanted here was that VPN users could be able to access these applications.
+
+132
+00:11:46.320 --> 00:11:49.760
+But the applications, you don't want them to be able to route between each other.
+
+133
+00:11:49.940 --> 00:11:50.040
+Right?
+
+134
+00:11:50.080 --> 00:11:51.800
+They should be segmented from each other.
+
+135
+00:11:52.300 --> 00:11:53.340
+They're isolated domains.
+
+136
+00:11:53.480 --> 00:11:57.020
+They shouldn't talk to each other except through maybe an event bus or something.
+
+137
+00:11:57.580 --> 00:11:57.860
+Right?
+
+138
+00:11:57.860 --> 00:12:00.600
+So you want to avoid that kind of direct traffic.
+
+139
+00:12:01.000 --> 00:12:06.320
+So the way you can do that is by setting up two Transit Gateway route tables.
+
+140
+00:12:06.820 --> 00:12:14.020
+One's associated with the Transit VPC attachment, and it lets you route through to those domain accounts, say application accounts.
+
+141
+00:12:14.020 --> 00:12:19.780
+And another is associated with each of those domains VPC and different route table.
+
+142
+00:12:20.500 --> 00:12:22.000
+So let's call that the applications route table.
+
+143
+00:12:22.260 --> 00:12:26.000
+So then the domains can propagate their CIDRs to the Transit VPC route table.
+
+144
+00:12:26.000 --> 00:12:30.440
+And the Transit VPC propagates its CIDR range to the applications route table.
+
+145
+00:12:30.680 --> 00:12:32.240
+And then they can both talk to each other.
+
+146
+00:12:32.440 --> 00:12:37.180
+But the routing is segmented then so that client VPN connections can route to the applications.
+
+147
+00:12:37.720 --> 00:12:39.580
+The applications can route back out to the VPN.
+
+148
+00:12:39.880 --> 00:12:42.060
+But the domain accounts cannot route to each other.
+
+149
+00:12:42.800 --> 00:12:51.100
+And like you said as well, you still need to make sure you add those subnet route tables from the Transit VPC to the destination CIDR through the Transit Gateway.
+
+150
+00:12:51.380 --> 00:12:53.060
+So the VPN clients can reach the application.
+
+151
+00:12:53.060 --> 00:12:56.500
+So you always need to think about the route tables for Transit Gateway and subnet route tables.
+
+152
+00:12:57.240 --> 00:12:58.120
+And it might be more complicated.
+
+153
+00:12:58.280 --> 00:13:02.240
+It might sound more complicated than it is, but it's just one of those things, right?
+
+154
+00:13:02.300 --> 00:13:05.200
+You just have to try it a few times, make the mistakes.
+
+155
+00:13:05.460 --> 00:13:09.160
+And then the concepts, I think, are pretty powerful and replicable.
+
+156
+00:13:09.540 --> 00:13:12.280
+Then, you know, it's not as advanced as it might seem.
+
+157
+00:13:12.680 --> 00:13:12.760
+Yeah.
+
+158
+00:13:13.180 --> 00:13:14.660
+Any other use cases we should cover?
+
+159
+00:13:14.660 --> 00:13:18.060
+Yeah, there's a couple of interesting ones there I've come across.
+
+160
+00:13:18.640 --> 00:13:32.380
+So similar to what you just mentioned there, there's kind of a network isolation for compliance reasons, such as PCI you've come across, where networks are in scope for holding like credit card details, for example.
+
+161
+00:13:32.380 --> 00:13:46.920
+Using a Transit Gateway is a very good idea for, you know, restricting what networks can get into that data because you have to, under compliance, you have to, like, any connected networks are always audited.
+
+162
+00:13:46.920 --> 00:13:58.320
+So being able to show and being able to restrict what networks can actually get to the PCI data means you're reducing the scope of what's inside of an audit.
+
+163
+00:13:58.800 --> 00:14:00.200
+So it's quite good for that.
+
+164
+00:14:00.820 --> 00:14:08.440
+You can also turn on, like, Transit Gateway flow logs as well and be able to show that, monitor that data going in and out.
+
+165
+00:14:08.920 --> 00:14:12.260
+The other kind of one I've come across is security services.
+
+166
+00:14:12.260 --> 00:14:19.380
+So quite often security services are quite expensive and you kind of deploy them in maybe a security account.
+
+167
+00:14:19.960 --> 00:14:24.800
+And what you'd like to do is have, like, maybe all your traffic go through these security services.
+
+168
+00:14:25.440 --> 00:14:27.980
+But obviously you don't want to deploy them in every single account.
+
+169
+00:14:28.100 --> 00:14:34.340
+So what you would do is you would basically reduce your ingress and your egress to a single account.
+
+170
+00:14:34.340 --> 00:14:44.480
+And what you'd do is route the traffic coming in and out of your AWS accounts through the security services and in a thing called a middle box.
+
+171
+00:14:44.680 --> 00:14:48.720
+So it's basically intercepting the traffic, sending it off to the security service, pulling it back.
+
+172
+00:14:48.960 --> 00:14:54.560
+So things like AWS firewall and those kind of things would quite often be used there.
+
+173
+00:14:55.160 --> 00:15:02.240
+And you can use the Transit Gateway then to, like, direct all that traffic, make sure that all that traffic goes back through that security service.
+
+174
+00:15:02.240 --> 00:15:06.640
+So there's lots of good patterns for these kind of things using the Transit Gateway.
+
+175
+00:15:07.080 --> 00:15:11.620
+When we're talking about the benefits of this kind of stuff, we should also talk about pricing and limits.
+
+176
+00:15:11.840 --> 00:15:13.400
+Anything interesting to talk about there?
+
+177
+00:15:13.820 --> 00:15:15.360
+How does it stack up price-wise?
+
+178
+00:15:15.960 --> 00:15:16.160
+Yeah.
+
+179
+00:15:16.360 --> 00:15:21.000
+So, like, you're paying basically on two parameters, essentially.
+
+180
+00:15:21.200 --> 00:15:27.540
+You're paying based on the number of attachments you have or the hourly rate for those attachments and the data you're processing.
+
+181
+00:15:27.540 --> 00:15:33.060
+Typically, it's about $0.02 per gigabyte per transfer data per month.
+
+182
+00:15:33.880 --> 00:15:39.940
+And for the attachments then, you're paying in about, it's roughly about $0.05 per hour in many regions.
+
+183
+00:15:40.020 --> 00:15:43.560
+So that's about $36.50 per month.
+
+184
+00:15:43.640 --> 00:15:46.060
+But the reality is you're not going to be peering with one VPC.
+
+185
+00:15:46.260 --> 00:15:47.500
+You're going to be peering with at least two.
+
+186
+00:15:47.500 --> 00:15:52.500
+So at a very minimum, you're going to be talking about $73 a month to peer two VPCs.
+
+187
+00:15:53.400 --> 00:15:58.820
+Traffic between peer VPCs in the same region is billed as if there were AZ to AZ data,
+
+188
+00:15:59.240 --> 00:16:03.980
+while traffic between VPCs in different regions are billed as if the data had been sent out to the Internet.
+
+189
+00:16:04.080 --> 00:16:05.140
+So it's a little bit more expensive.
+
+190
+00:16:05.560 --> 00:16:06.280
+What about limits then?
+
+191
+00:16:06.340 --> 00:16:09.780
+Is there any capacity issues you might need to think about?
+
+192
+00:16:10.580 --> 00:16:10.980
+Yeah.
+
+193
+00:16:10.980 --> 00:16:15.680
+One of the benefits of a transit gateway is it's very scalable.
+
+194
+00:16:16.400 --> 00:16:20.540
+So we can have five transit gateways per account, which is a soft limit.
+
+195
+00:16:20.700 --> 00:16:22.100
+You get AWS to increase that.
+
+196
+00:16:24.140 --> 00:16:27.480
+Each transit gateway can have up to 20 route tables.
+
+197
+00:16:28.020 --> 00:16:33.540
+And we can have in those route tables a total of 10,000 routes.
+
+198
+00:16:34.280 --> 00:16:36.340
+So that's quite a lot of routing already.
+
+199
+00:16:36.340 --> 00:16:40.320
+And each transit gateway can have 5,000 attachments.
+
+200
+00:16:40.940 --> 00:16:41.700
+That's quite a bit.
+
+201
+00:16:42.300 --> 00:16:46.240
+It might be worth noting as well that you can't really get around this by using pending attachments,
+
+202
+00:16:46.380 --> 00:16:47.320
+by not accepting them.
+
+203
+00:16:47.800 --> 00:16:51.340
+So there is a limit of like 10 pending attachments.
+
+204
+00:16:51.500 --> 00:16:55.920
+So you can't be smart and try to get 10,000 of them in a pending state and move on.
+
+205
+00:16:57.420 --> 00:17:01.900
+So if we were to kind of compare the transit gateway with the VPN tunnel,
+
+206
+00:17:01.900 --> 00:17:07.320
+we get a huge increase in throughput there across the network.
+
+207
+00:17:07.840 --> 00:17:12.400
+So we're getting about 100 gigabits per VPC attachment per AZ.
+
+208
+00:17:13.140 --> 00:17:18.480
+Whereas if we're looking at the VPN tunnel, we're only about 1.25 gigabits per second.
+
+209
+00:17:18.600 --> 00:17:21.440
+So if you're looking for speed, the transit gateway is probably the way to go.
+
+210
+00:17:22.580 --> 00:17:24.240
+I think that last one is important then.
+
+211
+00:17:24.380 --> 00:17:28.580
+So the bandwidth is per VPC attachment per AZ.
+
+212
+00:17:28.580 --> 00:17:32.460
+So as you scale out, you just get more bandwidth really.
+
+213
+00:17:32.880 --> 00:17:34.140
+So that's pretty cool.
+
+214
+00:17:34.380 --> 00:17:34.520
+Okay.
+
+215
+00:17:34.600 --> 00:17:35.260
+Thanks a million, Dave.
+
+216
+00:17:35.700 --> 00:17:37.760
+Just to wrap up, then we should probably point.
+
+217
+00:17:38.080 --> 00:17:41.960
+I think there's an example of the AWS documentation for transit gateway,
+
+218
+00:17:42.080 --> 00:17:45.660
+which I think is one of the best pieces of AWS documentation I've come across
+
+219
+00:17:45.660 --> 00:17:51.560
+because it talks about how a fairly advanced topic like this works, but it's not very long.
+
+220
+00:17:51.560 --> 00:17:56.880
+And most of it is just giving example scenarios like the ones we talked about today,
+
+221
+00:17:57.040 --> 00:17:58.420
+but others as well.
+
+222
+00:17:58.900 --> 00:18:07.400
+And I just think it's whoever was involved in that deserves some praise because it's really worth check it out.
+
+223
+00:18:07.580 --> 00:18:08.420
+It'll be in the show notes.
+
+224
+00:18:08.900 --> 00:18:08.960
+Yeah.
+
+225
+00:18:09.920 --> 00:18:13.560
+If anyone out there has any other use cases for transit gateway that we missed,
+
+226
+00:18:13.860 --> 00:18:14.980
+do let us know in the comments below.
+
+227
+00:18:15.540 --> 00:18:16.600
+Thanks for joining us.
+
+228
+00:18:17.160 --> 00:18:17.580
+Cheers, Dave.
+
+229
+00:18:18.060 --> 00:18:18.360
+Thanks all.
+
+230
+00:18:18.360 --> 00:18:19.260
+See you again in another one.
+
+231
+00:18:19.260 --> 00:18:21.100
+And we'll catch you all in the next episode.

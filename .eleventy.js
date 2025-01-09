@@ -60,7 +60,7 @@ module.exports = function (eleventyConfig) {
   eleventyConfig.addCollection('publishedEpisodes', function (collectionApi) {
     // get episodes, sorted by publish date, descending
     return collectionApi.getFilteredByTag('episode')
-      .filter((item) => item.data.publish_date <= now)
+      .filter((item) => item.data.publish_date <= item.data.settings.now)
       .sort((a, b) => a.data.publish_date - b.data.publish_date)
   })
 

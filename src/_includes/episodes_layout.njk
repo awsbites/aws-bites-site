@@ -70,14 +70,14 @@
               <span class="speaker-label font-bold text-primary-300 dark:text-secondary-200">{{ transcripts[episode].speakers[currentSpeakerLabel] }}</span>: 
           {% endif %}
             <span class="transcript-segment" data-start-time="{{ segment.start }}" title="⏭️ skip to {{ segment.formattedTime }}">{{ segment.text }}</span>
-        {% endfor %}
-      </p>
-    {% endfor %}
+          {% endfor %}
+        </p>
+      {% endfor %}
     </div>
   {% endif %}
 
-  {% set previousEpisode = collections.publishedEpisodes | reverse | getPreviousCollectionItem(page) %}
-  {% set nextEpisode = collections.publishedEpisodes | reverse | getNextCollectionItem(page) %}
+  {% set previousEpisode = collections.publishedEpisodes | getPreviousCollectionItem(page) %}
+  {% set nextEpisode = collections.publishedEpisodes | getNextCollectionItem(page) %}
 
   <div class="row">
     <div class="max-w-7xl mx-auto">
@@ -130,7 +130,7 @@
       function onYouTubeIframeAPIReady() {
         player = new YT.Player('youtubePlayer', {
           events: {
-            'onReady': onPlayerReady,
+            'onReady': onPlayerReady
           }
         });
       }
@@ -138,7 +138,7 @@
       function onPlayerReady(event) {
         const transcriptSegments = document.querySelectorAll('span[data-start-time]');
         transcriptSegments.forEach(segment => {
-          segment.addEventListener('click', function() {
+          segment.addEventListener('click', function () {
             const startTime = parseFloat(this.getAttribute('data-start-time'));
             player.seekTo(startTime);
           });
@@ -153,7 +153,9 @@
         function showTab(tabId) {
           const anchorHash = `#${tabId}`
           let activeTabButton = [...tabBtns].find(item => item.getAttribute('href') === anchorHash) || tabBtns[0]
-          const resolvedTabId = activeTabButton.getAttribute('href').substring(1)
+          const resolvedTabId = activeTabButton
+            .getAttribute('href')
+            .substring(1)
           activeTabButton.setAttribute('class', activeTabClasses);
           ([...tabBtns]).forEach(item => {
             if (item !== activeTabButton) {
@@ -161,9 +163,13 @@
             }
           })
 
-          document.querySelectorAll('.tab-content').forEach(item => {
-            item.style.display = item.id === `${resolvedTabId}-content` ? 'block' : 'none'
-          })
+          document
+            .querySelectorAll('.tab-content')
+            .forEach(item => {
+              item.style.display = item.id === `${resolvedTabId}-content`
+                ? 'block'
+                : 'none'
+            })
 
           // Update the URL hash to reflect the current tab
           history.replaceState(null, '', `${window.location.pathname}#${resolvedTabId}`);
@@ -174,12 +180,15 @@
 
         tabBtns.forEach((item) => item.addEventListener('click', evt => {
           evt.preventDefault()
-          const tabId = evt.currentTarget.getAttribute('href').substring(1)
+          const tabId = evt
+            .currentTarget
+            .getAttribute('href')
+            .substring(1)
           showTab(tabId)
         }))
 
         // Handle hash changes without a page reload
-        window.addEventListener('hashchange', function() {
+        window.addEventListener('hashchange', function () {
           showTab(window.location.hash.substring(1))
         }, false);
 
@@ -187,7 +196,9 @@
         const tag = document.createElement('script');
         tag.src = "https://www.youtube.com/iframe_api";
         const firstScriptTag = document.getElementsByTagName('script')[0];
-        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+        firstScriptTag
+          .parentNode
+          .insertBefore(tag, firstScriptTag);
       })
     </script>
   {% endblock %}

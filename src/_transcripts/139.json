@@ -1,0 +1,1676 @@
+{
+  "speakers": {
+    "spk_0": "spk_0",
+    "spk_1": "spk_1"
+  },
+  "segments": [
+    {
+      "speakerLabel": "spk_0",
+      "start": 0,
+      "end": 5.84,
+      "text": " Hello and welcome to AWS Bites episode 139. I'm Eoin and I'm joined again by Luciano."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 6.1000000000000005,
+      "end": 10.68,
+      "text": " Building a new API on AWS presents you with a lot of options. There's tons of frameworks out"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 10.68,
+      "end": 14.74,
+      "text": " there for any language you can imagine. But what happens when you decide to implement some or all"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 14.74,
+      "end": 19.98,
+      "text": " of that API with AWS Lambda? It can bring some benefits, but there are a few head-scratching"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 19.98,
+      "end": 25.44,
+      "text": " considerations. Not all API frameworks are designed with AWS Lambda in mind. There is one actually,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 25.44,
+      "end": 31.240000000000002,
+      "text": " that is. And today we're going to revisit power tools for AWS Lambda and dive into the amazing"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 31.240000000000002,
+      "end": 35.8,
+      "text": " REST API support it offers, specifically covering the Python version of the library. We've been"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 35.8,
+      "end": 39.400000000000006,
+      "text": " using this framework a lot and really want to share how it makes API development much faster,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 39.660000000000004,
+      "end": 44.74,
+      "text": " while still giving you all the features you want, like routing, validation, open API support,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 45,
+      "end": 46.84,
+      "text": " middleware, and more. So let's get started."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 46.84,
+      "end": 59.78,
+      "text": " AWS Bites is brought to you by 4Theorem. If you want fast, modern APIs with great developer"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 59.78,
+      "end": 64.54,
+      "text": " experience, 4Theorem is your partner. We'll collaborate with you to ensure you have great"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 64.54,
+      "end": 69.82000000000001,
+      "text": " performance, security, scalability, and most importantly, satisfied API users. Reach out"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 69.82000000000001,
+      "end": 74.7,
+      "text": " on LinkedIn, BlueSky, or through 4theorem.com. All of our details are in the description. Luciano,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 74.7,
+      "end": 78.28,
+      "text": " you don't always have to use Lambda for APIs, of course. There's lots of options out there."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 78.68,
+      "end": 81.66,
+      "text": " Before we get into the Lambda story, if you're running on a server or a container,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 81.78,
+      "end": 83.2,
+      "text": " what frameworks would you consider?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 83.46000000000001,
+      "end": 88.44,
+      "text": " Yes. So I am a big fan of Node.js, as many people are probably aware. So in Node."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 88.62,
+      "end": 93.52000000000001,
+      "text": "js, the most famous web frameworks, probably Express, has been around since almost forever,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 93.64,
+      "end": 98.76,
+      "text": " since Node.js existed. Although I have to say in the recent years, since Fastify came out,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 98.82000000000001,
+      "end": 103.48,
+      "text": " I think it's a slightly modern take on Express and much more performant, I think,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 103.48,
+      "end": 108.76,
+      "text": " has a nicer developer experience. So these days, if I have to pick a more traditional web framework"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 108.76,
+      "end": 113.2,
+      "text": " for Node.js, probably Fastify will be my first choice. And I've been intrigued by a new framework"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 113.2,
+      "end": 118.04,
+      "text": " that came out, I think, last year, and it's called HONO. You might have heard of it because it's"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 118.04,
+      "end": 124.86,
+      "text": " quite interesting in a way that it's very minimal, but at the same time, it's built with distribution in"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 124.86,
+      "end": 130.14000000000001,
+      "text": " mind, I could say, because they made it work with effectively every major JavaScript runtime."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 130.14,
+      "end": 136.07999999999998,
+      "text": " So it works in Node, it works in BAN, it works in Dino. And also, it can work in multiple"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 136.07999999999998,
+      "end": 141.85999999999999,
+      "text": " environments when it comes to picking, for instance, a serverless, so to speak, environment,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 141.98,
+      "end": 148.61999999999998,
+      "text": " like it can work well in Lambda, it works well in Cloudflare workers. And I heard people trying it in"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 148.62,
+      "end": 154.20000000000002,
+      "text": " all sorts of environments, and everyone says, yes, it just works out of the box. So could be an option,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 154.3,
+      "end": 158.56,
+      "text": " you can run it in Lambda if that's your thing. But of course, we'll talk about the differences"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 158.56,
+      "end": 162.68,
+      "text": " between running a more traditional web framework in Lambda and using something like Power Tools."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 163.04,
+      "end": 168.64000000000001,
+      "text": " If we have to pick other languages, people might be aware that I also like Rust. And in Rust,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 168.84,
+      "end": 173.58,
+      "text": " there is still a little bit early, I would say, because Rust is such a newer language,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 173.58,
+      "end": 178.70000000000002,
+      "text": " and the ecosystem isn't as developed as NodeJS or Python. But there are quite a few web frameworks"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 178.70000000000002,
+      "end": 183.64000000000001,
+      "text": " that are quite good. And one that I've been using and I like is called Axum. And you can also use"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 183.64000000000001,
+      "end": 190.3,
+      "text": " that one in Lambda effectively by embedding the entire web framework into the monolithic Lambda"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 190.3,
+      "end": 194.70000000000002,
+      "text": " approach, basically. And then when it comes to Python, the most famous ones are probably Flask"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 194.70000000000002,
+      "end": 200.56,
+      "text": " and Django. But again, there is a more modern take, which is called FastAPI. Again, the name Fastify,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 200.56,
+      "end": 205.76,
+      "text": " FastAPI. Maybe there is some curious overlap there. And yeah, FastAPI is really good. I've"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 205.76,
+      "end": 210.12,
+      "text": " been using it in the past, and it's really nice to use. So yeah, the idea again is that you can"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 210.12,
+      "end": 215.14000000000001,
+      "text": " take any of this framework we just mentioned and package everything in a Lambda lit. And that's"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 215.14000000000001,
+      "end": 219.82,
+      "text": " something that people sometimes do. I don't necessarily like this approach. I generally prefer"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 219.82,
+      "end": 224.8,
+      "text": " to have fine-grained Lambdas. But yeah, I guess you need to figure out exactly what are you trying"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 224.8,
+      "end": 229.32,
+      "text": " to optimize for. Like if you already have a web server and it's relatively small, you just want to"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 229.32,
+      "end": 234.44,
+      "text": " move it to Lambda because of scalability, because it scales to zero, then you can do it and it should"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 234.44,
+      "end": 238.84,
+      "text": " work reasonably well. What do you think, Eoin? Yeah, I'd agree with all of that."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 238.84,
+      "end": 245.94,
+      "text": " I haven't got to try Anno yet, but it seems really, really good. But I do like, you know, something that it depends"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 245.94,
+      "end": 248.5,
+      "text": " on what kind of project you're building, but something that gets you going really quickly."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 249.2,
+      "end": 253.76,
+      "text": " And, you know, Python is generally a fast language to develop with, very productive. Everybody can get"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 253.76,
+      "end": 258.44,
+      "text": " involved. And I really like the FastAPI approach as well. And the approach we're talking about today"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 258.44,
+      "end": 263.56,
+      "text": " with Lambda is actually modeled on FastAPI. So it's very similar. And this is all about"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 263.56,
+      "end": 269.4,
+      "text": " PowerTools. And we did mention PowerTools in the past, AWS Lambda PowerTools, mostly in the context"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 269.4,
+      "end": 274.3,
+      "text": " of metrics and logging and tracing, because those were the three pillars that kicked off the whole"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 274.3,
+      "end": 279.68,
+      "text": " PowerTools adventure. I think the first language was supported by, the first language supported by"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 279.68,
+      "end": 284.18,
+      "text": " PowerTools was Python. Back when ATR-LESA kicked off the project, I know there's a whole team behind it now."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 284.18,
+      "end": 289.14,
+      "text": " And the amount of development that has been done on it for an AWS open source project is pretty"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 289.14,
+      "end": 293.8,
+      "text": " astounding. And the quality and level of documentation is one of the best I've seen for"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 293.8,
+      "end": 298.84000000000003,
+      "text": " any open source project. The Python one is by far the most fully featured version of PowerTools,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 299.18,
+      "end": 304.22,
+      "text": " because it was the first. In addition to the metrics, logging and tracing, it supports middleware,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 304.42,
+      "end": 310.26,
+      "text": " a bit like MIDI does with Node.js functions. And then you've got all sorts of other features,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 310.26,
+      "end": 315.71999999999997,
+      "text": " like types for Lambda events, parameter retrieval, feature flags, streaming responses,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 316.26,
+      "end": 322.53999999999996,
+      "text": " item potency support, and then you have validation and parsing. And there's a whole web framework"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 322.53999999999996,
+      "end": 330.44,
+      "text": " essentially built into PowerTools for building REST APIs. So validation, parsing, REST APIs support kind"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 330.44,
+      "end": 334.3,
+      "text": " of work together to give you this really nice API framework with a good developer experience."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 334.56,
+      "end": 339.64,
+      "text": " Should we talk actually, what does an API framework need to have? What would you like to see from it?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 339.64,
+      "end": 344.91999999999996,
+      "text": " Yeah, exactly."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 344.91999999999996,
+      "end": 349.21999999999997,
+      "text": " I think there are some components that every web framework needs to have to give you effectively the basic tools to build an API. And the first one is, of course, routing. Like you need"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 349.21999999999997,
+      "end": 355.2,
+      "text": " to be able to understand what kind of HTTP request is coming in, what is the method, the path, maybe you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 355.2,
+      "end": 361.18,
+      "text": " have some path parameters. The routing layer should be able to effectively address specific parts of your"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 361.18,
+      "end": 367.14,
+      "text": " code and respond to specific requests. And ideally do all the parsing of path parameters and give you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 367.14,
+      "end": 373.41999999999996,
+      "text": " nice ways to access all this information. And with that also comes error handling, like what happens"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 373.41999999999996,
+      "end": 379,
+      "text": " if a route doesn't exist? The framework should take care of doing common responses like a 404 for you."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 379.26,
+      "end": 384.86,
+      "text": " Other concerns could be serialization and diserialization. You will have requests coming in."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 384.96,
+      "end": 389.3,
+      "text": " You'll need to be able to process these requests. So most of the time it's probably going to be JSON,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 389.71999999999997,
+      "end": 395.44,
+      "text": " but JSON is not the only format. You might have like a form that is being submitted and you want to"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 395.44,
+      "end": 400.9,
+      "text": " handle it as part of your API. You might have uploads of files. So there can be different kinds"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 400.9,
+      "end": 405.38,
+      "text": " of encodings effectively that your API needs to support. A good framework should be able to give"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 405.38,
+      "end": 410.08,
+      "text": " you the tools to process all the different kinds of data and turn them into something that you can"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 410.08,
+      "end": 414.98,
+      "text": " actually programmatically use. And similar with responses, you might need to serialize an object"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 414.98,
+      "end": 421.04,
+      "text": " into a specific response, serializing probably JSON again, but that's not necessarily the only option you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 421.04,
+      "end": 425.42,
+      "text": " might want to support. So again, the framework should give you all the tools for serialization"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 425.42,
+      "end": 430.38,
+      "text": " and diserialization. Validation is a very related topic because when you are accepting data, it's"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 430.38,
+      "end": 435.52000000000004,
+      "text": " always a good practice to do validation. So hopefully that needs to be part of the tools that the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 435.52000000000004,
+      "end": 440.98,
+      "text": " framework give you. And one thing that I really like a lot to see in frameworks, and this is actually"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 440.98,
+      "end": 445.28000000000003,
+      "text": " something that is not always present. Generally, you need to rely on some kind of third-party plugin."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 445.28,
+      "end": 453.91999999999996,
+      "text": " That's the OpenAPI specification. So I think I like when a framework allows you to use types and"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 453.91999999999996,
+      "end": 459.44,
+      "text": " strongly typed code in general in your code, and then it's able to build an OpenAPI specification,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 459.85999999999996,
+      "end": 463.88,
+      "text": " starting from your routing definition and from the types that you used in your endpoints."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 464.26,
+      "end": 470.05999999999995,
+      "text": " And I guess if you put all of that together, you can get to a point where you have nice types,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 470.21999999999997,
+      "end": 473.09999999999997,
+      "text": " autocompletion and type safety for all the requests and responses."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 473.1,
+      "end": 478.6,
+      "text": " I think that will be kind of the golden standard for me when a framework gives you all of that."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 478.70000000000005,
+      "end": 483.20000000000005,
+      "text": " I think you end up with a very nice developer experience and you can effectively develop your"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 483.20000000000005,
+      "end": 487.38,
+      "text": " API with the confidence that you are managing the data properly. You're not going to have surprises"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 487.38,
+      "end": 491.38,
+      "text": " where maybe you're trying to access a field that doesn't exist, or maybe you're going to return a"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 491.38,
+      "end": 496.70000000000005,
+      "text": " response that doesn't necessarily match what you promised the user you would return. So I think"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 496.70000000000005,
+      "end": 502.04,
+      "text": " that's kind of my ideal framework. How does PowerTool help in this sense? Does it match this"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 502.04,
+      "end": 507.42,
+      "text": " definition or is it verified? Yeah, I think it hits everything you've mentioned."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 507.42,
+      "end": 513.34,
+      "text": " Let's go into it in a bit of detail. So when you have Lambda behind an API, you're generally talking about API Gateway,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 513.5600000000001,
+      "end": 520.46,
+      "text": " REST API, or HTTP API, but it could also be an application load balancer, a function URL, or even a"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 520.46,
+      "end": 526.38,
+      "text": " VPC lattice. And PowerTools supports all of those things. So there's a great page in the PowerTools"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 526.38,
+      "end": 530.02,
+      "text": " documentation all about REST APIs, which we can link in the show notes. It's very comprehensive."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 530.02,
+      "end": 535.86,
+      "text": " The REST API support essentially first provides a set of resolvers, and there's a resolver for API"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 535.86,
+      "end": 541.24,
+      "text": " Gateway, HTTP API, application load balancer, et cetera, and they all work in a similar way. So"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 541.24,
+      "end": 545.6,
+      "text": " you basically create one of these resolvers. And when you do that, you're creating a router,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 545.86,
+      "end": 552.34,
+      "text": " router that can be used to route a Lambda HTTP event to a set of functions that you define for your routes."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 552.92,
+      "end": 557.88,
+      "text": " And once you have this resolver, the Lambda handler function becomes very small. It's actually one line"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 557.88,
+      "end": 562.58,
+      "text": " generally. So you have your typical Lambda handler with event in context, and you just forward that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 562.58,
+      "end": 568.02,
+      "text": " on to your resolver's resolve method. And then you can just create specific functions for each route."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 568.54,
+      "end": 573.9399999999999,
+      "text": " Let's say you have an API to do CRUD operations on a to-do list items. You have your create to-do"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 573.9399999999999,
+      "end": 581.14,
+      "text": " function, and then you'll decorate it with at app.post with the path parameter to-dos. And there's lots of"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 581.14,
+      "end": 587.56,
+      "text": " other options you can put into that decorator when it comes to providing additional details that you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 587.56,
+      "end": 592.68,
+      "text": " might want in your open API specifications. And that's it, really. That's how you get up and running."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 592.9,
+      "end": 598.8199999999999,
+      "text": " That's how you create your first set of APIs. And Power Tools is just doing a lot of the work for you."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 598.88,
+      "end": 604.38,
+      "text": " You don't have to worry about parsing JSON or looking at the event yourself. A lot of the rest of it"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 604.38,
+      "end": 610.32,
+      "text": " is just managed."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 610.32,
+      "end": 616.3,
+      "text": " Yeah, I think I want to spend a little bit more talking about validation and type checking and all the options you can generally have there, and then see exactly how Power Tools helps"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 616.3,
+      "end": 622.66,
+      "text": " there in the case of Python. But yes, we just say that validation is effectively one of the main things"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 622.66,
+      "end": 627.68,
+      "text": " that an API should do first. Like, whenever you receive a request, you need to validate. And that's probably"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 627.68,
+      "end": 632.36,
+      "text": " going to be one of the first lines of code that you will write in your own handler, right, if you have to write"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 632.36,
+      "end": 638.42,
+      "text": " all of that manually. And this is a good practice for a few reasons. One is definitely a security best practice,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 638.44,
+      "end": 642.96,
+      "text": " because of course, if you are not going to, if you're going to validate the incoming data, then you have a little"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 642.96,
+      "end": 649.38,
+      "text": " bit more certainty that you understand the shape of the data coming in. And that reduces the risk of all kinds of"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 649.38,
+      "end": 655.6,
+      "text": " injections. Also, it reduces the risk of you ending up creating maybe inconsistent data in a backend system."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 656.12,
+      "end": 661.48,
+      "text": " And maybe, I don't know, storing it in a database record or something, which will eventually lead to subtle bugs here"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 661.48,
+      "end": 666.02,
+      "text": " and there, because you have all these different objects stored with slightly different, I don't know,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 666.26,
+      "end": 671.46,
+      "text": " shape. So that's definitely one of the benefits of validation. Then the other thing is that if you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 671.46,
+      "end": 676.4200000000001,
+      "text": " have a very strict definition of what your input should look like, then you could also create strongly"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 676.4200000000001,
+      "end": 682.96,
+      "text": " typed interfaces to represent that input, which in the language of choice, let's say Python in this case,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 683.3000000000001,
+      "end": 688.5600000000001,
+      "text": " that will give you nice auto-completion and type checking. So once you are at that point in your code"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 688.56,
+      "end": 692.8199999999999,
+      "text": " when you are using a specific type and you have validated that the input matches the type,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 693.18,
+      "end": 697.56,
+      "text": " then everything else should get so much nicer because you can easily see all the fields available,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 697.76,
+      "end": 702.4,
+      "text": " autocomplete all the types and so on. So when you combine the two, effectively that reduces the risk"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 702.4,
+      "end": 707.4,
+      "text": " of bugs because you're checking that the data makes sense. And then at that point, you have a strongly"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 707.4,
+      "end": 713.0999999999999,
+      "text": " typed interface. And that's generally a problem that exists with languages that are dynamic like Python"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 713.1,
+      "end": 718.74,
+      "text": " and JavaScript, where if you don't have the diligence of doing all this, defining the interfaces and doing"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 718.74,
+      "end": 724.02,
+      "text": " a proper validation, that's generally a very common source of bugs. So that's why I think I wanted to"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 724.02,
+      "end": 729.9200000000001,
+      "text": " stress a little bit more how important is this point. And then when it comes to Power Tools, they put a lot"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 729.9200000000001,
+      "end": 736.0400000000001,
+      "text": " of effort into trying to give you good tools to do all of these things in a nice way and without having to"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 736.0400000000001,
+      "end": 742.8000000000001,
+      "text": " write a lot of code yourself. And in Power Tools, they specifically leverage a library called Padantic."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 743.16,
+      "end": 749.4399999999999,
+      "text": " And I think it's important to explain a little bit more how Padantic works and what is the difference"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 749.4399999999999,
+      "end": 754.5799999999999,
+      "text": " between validations and parsing. And that's another thing that if you just look at the list of features"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 754.5799999999999,
+      "end": 758.76,
+      "text": " that Power Tools has, you can see that there is a section for validation and there is a section for"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 758.76,
+      "end": 763.18,
+      "text": " parsing. So it might be a little bit confusing to people, like, what is the difference between the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 763.18,
+      "end": 766.92,
+      "text": " two? And the way I will describe it, and maybe this is not necessarily a canonical definition,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 767.4799999999999,
+      "end": 771.62,
+      "text": " is that validation, you effectively are just verifying that the data you are receiving"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 771.62,
+      "end": 776.3,
+      "text": " matches a specific set of rules that you are defining. And the result of that validation"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 776.3,
+      "end": 783.04,
+      "text": " can be either true, like everything matches, so it's the data's good. Or if it doesn't match,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 783.08,
+      "end": 787.48,
+      "text": " you might get like a list of errors that try to describe you, I don't know, which field didn't"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 787.48,
+      "end": 791.94,
+      "text": " match specific rules. And you can use that maybe to provide a response to the caller."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 792.48,
+      "end": 796.88,
+      "text": " Parsing is a little bit more than that. It kind of solves the same problem in a way,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 796.88,
+      "end": 800.92,
+      "text": " but the approach is a little bit different. So with parsing, you are generally starting from a"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 800.92,
+      "end": 807.04,
+      "text": " strongly typed model. And then you are effectively trying to read the input data and start to populate"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 807.04,
+      "end": 811.4399999999999,
+      "text": " this model. And then if everything goes well, so if you are effectively able to populate the model"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 811.4399999999999,
+      "end": 815.98,
+      "text": " entirely, you're respecting the types and the constraints that you define in that model,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 816.22,
+      "end": 820.38,
+      "text": " you can also say that the incoming data is valid. But the output of that operation is that"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 820.38,
+      "end": 824.92,
+      "text": " it's not just a Boolean that tells you true, but you now have this object that you can use,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 824.92,
+      "end": 831.56,
+      "text": " and it's strongly typed, and you can use it in a much more structured way, as opposed to just a"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 831.56,
+      "end": 837.0999999999999,
+      "text": " Boolean, and then you still need to read the raw data. And libraries like PyDantic will give you lots"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 837.0999999999999,
+      "end": 843.4,
+      "text": " of tools to do also more advanced things like coercion, more advanced validation rules. So you are"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 843.4,
+      "end": 848.92,
+      "text": " effectively, you can also normalize the data as you're doing all this validation and parsing. So in a"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 848.92,
+      "end": 854.5999999999999,
+      "text": " way, we could say that parsing is a more powerful way of doing validation, and it gives you a lot more,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 854.6,
+      "end": 860.0400000000001,
+      "text": " like coercion, auto-completion type checking. So generally, it's what I would prefer these days."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 860.0400000000001,
+      "end": 865.08,
+      "text": " I wouldn't do just validation anymore, because I think it only solves a portion of the problem."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 865.08,
+      "end": 871.72,
+      "text": " Parsing is much better. So how does Power Tools help there? Can you give us a little bit more?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 871.72,
+      "end": 877.8000000000001,
+      "text": " I think you've covered it pretty well."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 877.8,
+      "end": 884.4399999999999,
+      "text": " I mean, if you've used Fast API, or even similar JavaScript type frameworks using Zod, then you'll be familiar with the idea. So if you like to write typings in"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 884.4399999999999,
+      "end": 889,
+      "text": " your Python code, then it'll definitely be very easy for you, because you just define your types"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 889,
+      "end": 894.8399999999999,
+      "text": " as PyDantic models. That's just like creating a data class in Python, but you get all of the additional"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 894.8399999999999,
+      "end": 900.4399999999999,
+      "text": " descriptive nature of PyDantic models and custom validation if you want. But it can be very simple."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 900.44,
+      "end": 906.2800000000001,
+      "text": " You just define your request and response types as PyDantic models, and then your type declarations"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 906.2800000000001,
+      "end": 912.2,
+      "text": " for the functions that manage your routes use those types. You can also do type annotations for things"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 912.2,
+      "end": 917,
+      "text": " like query parameters, so you can strongly validate those too, and get auto-completion with them. And"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 917,
+      "end": 922.5200000000001,
+      "text": " even headers as well can have types. Of course, that gives you, as you mentioned, auto-completion in your"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 922.5200000000001,
+      "end": 928.2800000000001,
+      "text": " IDE. You get the validation and the parsing all for free. You don't have to do any serialization or"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 928.28,
+      "end": 935.4,
+      "text": " deserialization from JSON or whatever you're using. And that's not just for APIs, actually."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 935.4,
+      "end": 939.88,
+      "text": " These parser features can be used with any event type. So when we're working with EventBridge events,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 939.88,
+      "end": 946.1999999999999,
+      "text": " we also often define PyDantic models for the EventBridge events and use those parsers there too. And one of the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 946.1999999999999,
+      "end": 950.92,
+      "text": " huge benefits then is when it comes to OpenAPI specifications, these same models are used for"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 950.92,
+      "end": 956.76,
+      "text": " generating all of the JSON schema and all of the documentation for your OpenAPI or Swagger docs."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 956.76,
+      "end": 962.92,
+      "text": " And PowerDools has great support for that. It can even provide a route like slash OpenAPI, which will"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 962.92,
+      "end": 970.92,
+      "text": " serve the JSON or HTML documentation for the OpenAPI spec. And it's all generated from the PyDantic models. So it"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 970.92,
+      "end": 977.08,
+      "text": " becomes very easy to iterate on it. We also, generally when we're doing projects like this, we'll generate the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 977.08,
+      "end": 984.52,
+      "text": " OpenAPI spec at build time, like in the build pipeline or in a pre-commit hook even. And then if you've got front-end code or"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 984.52,
+      "end": 989.72,
+      "text": " client SDKs that you want generated, you can just take that immediately and generate or update your"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 989.72,
+      "end": 995.96,
+      "text": " client SDKs. And then you have TypeSafe JavaScript or whatever other language you need. So if you're"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 995.96,
+      "end": 1002.76,
+      "text": " doing a web application, you've already got a library that has very strongly typed, very developer-friendly"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1002.76,
+      "end": 1004.12,
+      "text": " bindings for the API."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1004.12,
+      "end": 1010.04,
+      "text": " Yeah."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1010.04,
+      "end": 1013,
+      "text": " So I guess the next question is, do you need to use the LambdaLith approach to leverage all these nice features that PowerTools for Python gives you?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1013,
+      "end": 1017.96,
+      "text": " Yeah, that's a good question."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1017.96,
+      "end": 1022.76,
+      "text": " And maybe we should define exactly what we mean by LambdaLith, because it's a bit of a contentious topic, I think, in the world of AWS Lambda right now."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1023.24,
+      "end": 1027.4,
+      "text": " Typically, I think when Lambda first came out, and for many years, one of the benefits that was"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1027.4,
+      "end": 1032.44,
+      "text": " spoken about was the fact that you've got very specific single-purpose functions with very fine-grained"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1032.44,
+      "end": 1038.28,
+      "text": " permissions and very specific dependencies that were lightweight. And then you could tune your memory and"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1039,
+      "end": 1042.92,
+      "text": " CPU and everything very specifically to each individual function."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1043,
+      "end": 1047.24,
+      "text": " And then the approach with API Gateway was you would have one root in your API,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1047.24,
+      "end": 1051.32,
+      "text": " which went to one Lambda function, which had the resources and only the resources and only the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1051.32,
+      "end": 1056.2,
+      "text": " permissions it needed. Now, people can find that a lot to maintain, although it doesn't have to be."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1057.16,
+      "end": 1062.04,
+      "text": " But the other approach is, forget all that, let's just bundle it all into one function and have all"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1062.04,
+      "end": 1070.28,
+      "text": " our API routes be backed by one function. Now, I can see the appeal for sure, because it simplifies your deployment."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1070.28,
+      "end": 1075.16,
+      "text": " It means that if you've got warm containers that served one route, they can also be used warm to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1075.16,
+      "end": 1080.36,
+      "text": " serve other routes. You do lose some benefits because you have to have a broader set of permissions,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1080.36,
+      "end": 1084.12,
+      "text": " and sometimes you might need a larger set of dependencies to bundle into your function."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1084.12,
+      "end": 1088.84,
+      "text": " So there are pros and cons to both approaches. We don't necessarily have to go into what's good and"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1088.84,
+      "end": 1096.68,
+      "text": " bad. Now, the Power Tools documentation does more or less advocate for LambdaLith functions. And it even says"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1096.68,
+      "end": 1101.4,
+      "text": " things like the OpenAPI specification only really works if you're using a LambdaLith. So everything,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1101.4,
+      "end": 1106.28,
+      "text": " all routes in one function, but that's not necessarily true. We were able to work around that."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1106.28,
+      "end": 1112.44,
+      "text": " So you can basically set up your API resolver with Power Tools, and then you just decide which"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1112.44,
+      "end": 1119.0800000000002,
+      "text": " functions to attach it to. So the way we do it is we have basically a separate module outside of all of"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1119.0800000000002,
+      "end": 1124.68,
+      "text": " your Lambda handlers where your resolver is created. And then you can just import that into the Lambda"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1124.68,
+      "end": 1129.48,
+      "text": " handlers that you want to be part of that resolver and share the same routing mechanism."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1129.48,
+      "end": 1134.52,
+      "text": " And then when it comes to generating the OpenAPI spec, for example, so that one of the issues is"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1134.52,
+      "end": 1138.92,
+      "text": " that if you've got single purpose functions, each function had its own resolver. So they didn't,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1138.92,
+      "end": 1143.16,
+      "text": " they weren't aware of the whole API, so they couldn't generate a full spec. But if you have a common"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1143.16,
+      "end": 1148.76,
+      "text": " resolver declared and you just import that in each event handler, you can just have a script locally"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1148.76,
+      "end": 1153.24,
+      "text": " that will basically load all of your handlers. They'll all share the same resolver at just a local time or"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1153.24,
+      "end": 1157.64,
+      "text": " build time. Then you generate the OpenAPI spec in a script. And then when you deploy it,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1157.64,
+      "end": 1163.16,
+      "text": " you can decide whether to package each handler into separate functions or all into one function."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1163.16,
+      "end": 1168.68,
+      "text": " And then, so we've done multiple projects where we do this and you basically, you get, we've done it"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1168.68,
+      "end": 1172.28,
+      "text": " where you do the Lambda-lit approach, which actually can work very well at the start of our project if"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1172.28,
+      "end": 1176.28,
+      "text": " you want to iterate really quickly, because you only had one function to worry about. But we've also done"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1176.28,
+      "end": 1181.64,
+      "text": " it with single purpose functions and you just have this shared resolver and then you have multiple"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1181.64,
+      "end": 1186.76,
+      "text": " deployments. And then you have the whole build pipeline, which is generating the OpenAPI documentation"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1186.76,
+      "end": 1191.3200000000002,
+      "text": " and the client bindings. And it works with both approaches. So it doesn't have to be a Lambda-lit."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1191.3200000000002,
+      "end": 1196.3600000000001,
+      "text": " Yeah. I think if people are curious about our rationale when it comes to Lambda-lits,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1196.3600000000001,
+      "end": 1201.48,
+      "text": " we have a dedicated episode, I think it's 92, where we talk about some approaches on how you can"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1201.48,
+      "end": 1207.24,
+      "text": " decompose an existing Lambda-lit into multiple functions. And we also talk about the benefits of doing that."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1207.24,
+      "end": 1212.04,
+      "text": " Now, again, I don't want to necessarily advocate for single purpose Lambda functions, although it's"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1212.04,
+      "end": 1216.04,
+      "text": " generally my preference. But yeah, I know that there are some good use cases also for Lambda-lit."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1216.04,
+      "end": 1220.04,
+      "text": " But that will be a little bit out of topic. So I'll leave you to the other episode in the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1220.04,
+      "end": 1223.64,
+      "text": " show notes if you're curious. I guess the other question I would have, and you have a little bit"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1223.64,
+      "end": 1228.28,
+      "text": " more experience than me with Power Tools of Python, what's the local development experience?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1232.2,
+      "end": 1236.68,
+      "text": " There's nothing specifically in Power Tools that gives you a local development experience out of the box, but it actually becomes really easy once you have this API resolver setup. It's just really well"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1236.68,
+      "end": 1242.04,
+      "text": " architected. And it becomes a very thin layer on top of your business logic, the API layer."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1242.04,
+      "end": 1246.92,
+      "text": " It becomes really concise and very portable. So the way we would just do it normally is you have your"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1246.92,
+      "end": 1251.64,
+      "text": " handlers and these routes, and then all of your logic, like your services and your repository patterns"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1251.64,
+      "end": 1256.76,
+      "text": " and everything sit separately. You could actually easily migrate your whole API to a completely different"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1256.76,
+      "end": 1262.2,
+      "text": " framework if you wanted to. But when it comes to local development, obviously if it's fast API,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1262.2,
+      "end": 1266.84,
+      "text": " you can just run it locally. You can do something very similar locally with Power Tools. And when"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1266.84,
+      "end": 1272.2,
+      "text": " we are doing this approach, we generally just set up a local server script, which is like a simple"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1272.2,
+      "end": 1279.16,
+      "text": " Python Flask server, which has one root in it and matches every request, just as a very simple"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1279.16,
+      "end": 1286.76,
+      "text": " translation of the Flask request into a Lambda event, HTTP API or ALB event, and then invokes the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1286.76,
+      "end": 1291.72,
+      "text": " Lambda handler's code directly. And then the Power Tools API resolver will take the request from there,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1291.72,
+      "end": 1295.72,
+      "text": " just as it does in a real Lambda environment. And it's just generally a few lines of code to do that."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1295.72,
+      "end": 1300.92,
+      "text": " And then you've got a local simulation server that behaves like API Gateway and Lambda. And it can"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1300.92,
+      "end": 1304.6000000000001,
+      "text": " really speed up development because you don't have to deploy every time. I know even that some"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1304.6,
+      "end": 1310.9199999999998,
+      "text": " people are using Lambda Power Tools in containers, like with Fargate. Because it has so many nice"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1310.9199999999998,
+      "end": 1315.6399999999999,
+      "text": " tools there, you can actually take a similar approach and you can just run a server like that,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1315.6399999999999,
+      "end": 1321,
+      "text": " very lightweight proxy and forward onto AWS Lambda for Power Tools, make use of the resolver. And then"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1321,
+      "end": 1326.1999999999998,
+      "text": " you get all the other nice features like tracing, metrics, logging, item potency, whatever. So it"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1326.1999999999998,
+      "end": 1331,
+      "text": " doesn't have to be with Lambda to get benefit for all this great work. Yeah, that's pretty cool."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1331,
+      "end": 1337.48,
+      "text": " I guess before we wrap up, maybe worth mentioning was the status of similar features with the other versions"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1337.48,
+      "end": 1341.88,
+      "text": " of Power Tools or the other languages. And you might be aware that Power Tools is not just a Python"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1341.88,
+      "end": 1348.44,
+      "text": " project, exists for TypeScript, .NET, and Java. Unfortunately, Python is always like the main"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1348.44,
+      "end": 1353.56,
+      "text": " line. It's probably the first one where they introduced new features and this API framework"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1353.56,
+      "end": 1358.92,
+      "text": " development has been one of the latest additions. So unfortunately, all the other languages still have to"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1358.92,
+      "end": 1363.3200000000002,
+      "text": " catch up with this feature. So there is some support, for instance, in the TypeScript one,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1363.3200000000002,
+      "end": 1367.8000000000002,
+      "text": " you have ZOD available if you want to do parsing, but then you don't really have a nice cohesive"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1367.8000000000002,
+      "end": 1372.92,
+      "text": " ecosystem of features that gives you like an entire API development type of approach as you would get with"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1372.92,
+      "end": 1379.3200000000002,
+      "text": " the Python version. But hopefully that will change soon. So keep an eye on the various versions. Maybe"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1379.3200000000002,
+      "end": 1383.24,
+      "text": " there could be an opportunity to contribute as well. Always remember that Power Tools is an open"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1383.24,
+      "end": 1387.64,
+      "text": " source project so everyone is able to contribute if they want to. And of course, you can always"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1387.64,
+      "end": 1392.28,
+      "text": " build your own abstraction as well. Like if you're familiar with other frameworks in the language of"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1392.28,
+      "end": 1397.16,
+      "text": " choice, you can probably bring some components of this framework and use that as a way to create"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1397.16,
+      "end": 1405.96,
+      "text": " your own mini API framework on top of Power Tools. Yeah, for sure. Yeah."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1405.96,
+      "end": 1410.92,
+      "text": " I mean, I think when it comes to the more mature languages that have been doing web development for 20 plus years, like the Java and Python"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1410.92,
+      "end": 1416.68,
+      "text": " runtimes, sorry, the Java and .NET runtimes, there's so many libraries out there for doing routing and"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1417.64,
+      "end": 1423.64,
+      "text": " frameworks that have a long history. With .NET, you can integrate ASP.NET for that. I think even"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1423.64,
+      "end": 1429.72,
+      "text": " the CDK patterns, if I remember correctly, or maybe it's in the .NET templates, they give you patterns for"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1429.72,
+      "end": 1435.5600000000002,
+      "text": " doing that out of the box. So perhaps there's just not as much of a need as there is in Python."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1435.5600000000002,
+      "end": 1440.76,
+      "text": " I guess in conclusion then, if you are a Python developer keen on Lambda looking for a framework that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1441.08,
+      "end": 1445.64,
+      "text": " is a bit like FastAPI or one of the other ones that you may have used, this is a great option."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1445.64,
+      "end": 1450.52,
+      "text": " We feel at least, but let us know what you think. And if you've got any nice alternatives or pro tips"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1450.52,
+      "end": 1463.48,
+      "text": " for Lambda backed APIs. Thanks very much for listening and watching, and we'll see you in the next episode."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1463.48,
+      "end": 1468.76,
+      "text": " I'll see you in the next video."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1468.76,
+      "end": 1476.2,
+      "text": " Bye."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1476.2,
+      "end": 1480.14,
+      "text": " ."
+    }
+  ]
+}

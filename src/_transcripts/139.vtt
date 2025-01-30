@@ -1,0 +1,1105 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:05.840
+Hello and welcome to AWS Bites episode 139. I'm Eoin and I'm joined again by Luciano.
+
+2
+00:00:06.100 --> 00:00:10.680
+Building a new API on AWS presents you with a lot of options. There's tons of frameworks out
+
+3
+00:00:10.680 --> 00:00:14.740
+there for any language you can imagine. But what happens when you decide to implement some or all
+
+4
+00:00:14.740 --> 00:00:19.980
+of that API with AWS Lambda? It can bring some benefits, but there are a few head-scratching
+
+5
+00:00:19.980 --> 00:00:25.440
+considerations. Not all API frameworks are designed with AWS Lambda in mind. There is one actually,
+
+6
+00:00:25.440 --> 00:00:31.240
+that is. And today we're going to revisit power tools for AWS Lambda and dive into the amazing
+
+7
+00:00:31.240 --> 00:00:35.800
+REST API support it offers, specifically covering the Python version of the library. We've been
+
+8
+00:00:35.800 --> 00:00:39.400
+using this framework a lot and really want to share how it makes API development much faster,
+
+9
+00:00:39.660 --> 00:00:44.740
+while still giving you all the features you want, like routing, validation, open API support,
+
+10
+00:00:45.000 --> 00:00:46.840
+middleware, and more. So let's get started.
+
+11
+00:00:46.840 --> 00:00:59.780
+AWS Bites is brought to you by fourTheorem. If you want fast, modern APIs with great developer
+
+12
+00:00:59.780 --> 00:01:04.540
+experience, fourTheorem is your partner. We'll collaborate with you to ensure you have great
+
+13
+00:01:04.540 --> 00:01:09.820
+performance, security, scalability, and most importantly, satisfied API users. Reach out
+
+14
+00:01:09.820 --> 00:01:14.700
+on LinkedIn, BlueSky, or through fourtheorem.com. All of our details are in the description. Luciano,
+
+15
+00:01:14.700 --> 00:01:18.280
+you don't always have to use Lambda for APIs, of course. There's lots of options out there.
+
+16
+00:01:18.680 --> 00:01:21.660
+Before we get into the Lambda story, if you're running on a server or a container,
+
+17
+00:01:21.780 --> 00:01:23.200
+what frameworks would you consider?
+
+18
+00:01:23.460 --> 00:01:28.440
+Yes. So I am a big fan of Node.js, as many people are probably aware. So in Node.
+
+19
+00:01:28.620 --> 00:01:33.520
+js, the most famous web frameworks, probably Express, has been around since almost forever,
+
+20
+00:01:33.640 --> 00:01:38.760
+since Node.js existed. Although I have to say in the recent years, since Fastify came out,
+
+21
+00:01:38.820 --> 00:01:43.480
+I think it's a slightly modern take on Express and much more performant, I think,
+
+22
+00:01:43.480 --> 00:01:48.760
+has a nicer developer experience. So these days, if I have to pick a more traditional web framework
+
+23
+00:01:48.760 --> 00:01:53.200
+for Node.js, probably Fastify will be my first choice. And I've been intrigued by a new framework
+
+24
+00:01:53.200 --> 00:01:58.040
+that came out, I think, last year, and it's called HONO. You might have heard of it because it's
+
+25
+00:01:58.040 --> 00:02:04.860
+quite interesting in a way that it's very minimal, but at the same time, it's built with distribution in
+
+26
+00:02:04.860 --> 00:02:10.140
+mind, I could say, because they made it work with effectively every major JavaScript runtime.
+
+27
+00:02:10.140 --> 00:02:16.080
+So it works in Node, it works in Bun, it works in Deno. And also, it can work in multiple
+
+28
+00:02:16.080 --> 00:02:21.860
+environments when it comes to picking, for instance, a serverless, so to speak, environment,
+
+29
+00:02:21.980 --> 00:02:28.620
+like it can work well in Lambda, it works well in Cloudflare workers. And I heard people trying it in
+
+30
+00:02:28.620 --> 00:02:34.200
+all sorts of environments, and everyone says, yes, it just works out of the box. So could be an option,
+
+31
+00:02:34.300 --> 00:02:38.560
+you can run it in Lambda if that's your thing. But of course, we'll talk about the differences
+
+32
+00:02:38.560 --> 00:02:42.680
+between running a more traditional web framework in Lambda and using something like Powertools.
+
+33
+00:02:43.040 --> 00:02:48.640
+If we have to pick other languages, people might be aware that I also like Rust. And in Rust,
+
+34
+00:02:48.840 --> 00:02:53.580
+there is still a little bit early, I would say, because Rust is such a newer language,
+
+35
+00:02:53.580 --> 00:02:58.700
+and the ecosystem isn't as developed as NodeJS or Python. But there are quite a few web frameworks
+
+36
+00:02:58.700 --> 00:03:03.640
+that are quite good. And one that I've been using and I like is called Axum. And you can also use
+
+37
+00:03:03.640 --> 00:03:10.300
+that one in Lambda effectively by embedding the entire web framework into the monolithic Lambda
+
+38
+00:03:10.300 --> 00:03:14.700
+approach, basically. And then when it comes to Python, the most famous ones are probably Flask
+
+39
+00:03:14.700 --> 00:03:20.560
+and Django. But again, there is a more modern take, which is called FastAPI. Again, the name Fastify,
+
+40
+00:03:20.560 --> 00:03:25.760
+FastAPI. Maybe there is some curious overlap there. And yeah, FastAPI is really good. I've
+
+41
+00:03:25.760 --> 00:03:30.120
+been using it in the past, and it's really nice to use. So yeah, the idea again is that you can
+
+42
+00:03:30.120 --> 00:03:35.140
+take any of this framework we just mentioned and package everything in a Lambda lit. And that's
+
+43
+00:03:35.140 --> 00:03:39.820
+something that people sometimes do. I don't necessarily like this approach. I generally prefer
+
+44
+00:03:39.820 --> 00:03:44.800
+to have fine-grained Lambdas. But yeah, I guess you need to figure out exactly what are you trying
+
+45
+00:03:44.800 --> 00:03:49.320
+to optimize for. Like if you already have a web server and it's relatively small, you just want to
+
+46
+00:03:49.320 --> 00:03:54.440
+move it to Lambda because of scalability, because it scales to zero, then you can do it and it should
+
+47
+00:03:54.440 --> 00:03:58.840
+work reasonably well. What do you think, Eoin? Yeah, I'd agree with all of that.
+
+48
+00:03:58.840 --> 00:04:05.940
+I haven't got to try Hono yet, but it seems really, really good. But I do like, you know, something that it depends
+
+49
+00:04:05.940 --> 00:04:08.500
+on what kind of project you're building, but something that gets you going really quickly.
+
+50
+00:04:09.200 --> 00:04:13.760
+And, you know, Python is generally a fast language to develop with, very productive. Everybody can get
+
+51
+00:04:13.760 --> 00:04:18.440
+involved. And I really like the FastAPI approach as well. And the approach we're talking about today
+
+52
+00:04:18.440 --> 00:04:23.560
+with Lambda is actually modeled on FastAPI. So it's very similar. And this is all about
+
+53
+00:04:23.560 --> 00:04:29.400
+PowerTools. And we did mention PowerTools in the past, AWS Lambda PowerTools, mostly in the context
+
+54
+00:04:29.400 --> 00:04:34.300
+of metrics and logging and tracing, because those were the three pillars that kicked off the whole
+
+55
+00:04:34.300 --> 00:04:39.680
+PowerTools adventure. I think the first language was supported by, the first language supported by
+
+56
+00:04:39.680 --> 00:04:44.180
+PowerTools was Python. Back when ATR-LESA kicked off the project, I know there's a whole team behind it now.
+
+57
+00:04:44.180 --> 00:04:49.140
+And the amount of development that has been done on it for an AWS open source project is pretty
+
+58
+00:04:49.140 --> 00:04:53.800
+astounding. And the quality and level of documentation is one of the best I've seen for
+
+59
+00:04:53.800 --> 00:04:58.840
+any open source project. The Python one is by far the most fully featured version of PowerTools,
+
+60
+00:04:59.180 --> 00:05:04.220
+because it was the first. In addition to the metrics, logging and tracing, it supports middleware,
+
+61
+00:05:04.420 --> 00:05:10.260
+a bit like MIDI does with Node.js functions. And then you've got all sorts of other features,
+
+62
+00:05:10.260 --> 00:05:15.720
+like types for Lambda events, parameter retrieval, feature flags, streaming responses,
+
+63
+00:05:16.260 --> 00:05:22.540
+item potency support, and then you have validation and parsing. And there's a whole web framework
+
+64
+00:05:22.540 --> 00:05:30.440
+essentially built into PowerTools for building REST APIs. So validation, parsing, REST APIs support kind
+
+65
+00:05:30.440 --> 00:05:34.300
+of work together to give you this really nice API framework with a good developer experience.
+
+66
+00:05:34.560 --> 00:05:39.640
+Should we talk actually, what does an API framework need to have? What would you like to see from it?
+
+67
+00:05:39.640 --> 00:05:44.920
+Yeah, exactly.
+
+68
+00:05:44.920 --> 00:05:49.220
+I think there are some components that every web framework needs to have to give you effectively the basic tools to build an API. And the first one is, of course, routing. Like you need
+
+69
+00:05:49.220 --> 00:05:55.200
+to be able to understand what kind of HTTP request is coming in, what is the method, the path, maybe you
+
+70
+00:05:55.200 --> 00:06:01.180
+have some path parameters. The routing layer should be able to effectively address specific parts of your
+
+71
+00:06:01.180 --> 00:06:07.140
+code and respond to specific requests. And ideally do all the parsing of path parameters and give you
+
+72
+00:06:07.140 --> 00:06:13.420
+nice ways to access all this information. And with that also comes error handling, like what happens
+
+73
+00:06:13.420 --> 00:06:19.000
+if a route doesn't exist? The framework should take care of doing common responses like a 404 for you.
+
+74
+00:06:19.260 --> 00:06:24.860
+Other concerns could be serialization and diserialization. You will have requests coming in.
+
+75
+00:06:24.960 --> 00:06:29.300
+You'll need to be able to process these requests. So most of the time it's probably going to be JSON,
+
+76
+00:06:29.720 --> 00:06:35.440
+but JSON is not the only format. You might have like a form that is being submitted and you want to
+
+77
+00:06:35.440 --> 00:06:40.900
+handle it as part of your API. You might have uploads of files. So there can be different kinds
+
+78
+00:06:40.900 --> 00:06:45.380
+of encodings effectively that your API needs to support. A good framework should be able to give
+
+79
+00:06:45.380 --> 00:06:50.080
+you the tools to process all the different kinds of data and turn them into something that you can
+
+80
+00:06:50.080 --> 00:06:54.980
+actually programmatically use. And similar with responses, you might need to serialize an object
+
+81
+00:06:54.980 --> 00:07:01.040
+into a specific response, serializing probably JSON again, but that's not necessarily the only option you
+
+82
+00:07:01.040 --> 00:07:05.420
+might want to support. So again, the framework should give you all the tools for serialization
+
+83
+00:07:05.420 --> 00:07:10.380
+and diserialization. Validation is a very related topic because when you are accepting data, it's
+
+84
+00:07:10.380 --> 00:07:15.520
+always a good practice to do validation. So hopefully that needs to be part of the tools that the
+
+85
+00:07:15.520 --> 00:07:20.980
+framework give you. And one thing that I really like a lot to see in frameworks, and this is actually
+
+86
+00:07:20.980 --> 00:07:25.280
+something that is not always present. Generally, you need to rely on some kind of third-party plugin.
+
+87
+00:07:25.280 --> 00:07:33.920
+That's the OpenAPI specification. So I think I like when a framework allows you to use types and
+
+88
+00:07:33.920 --> 00:07:39.440
+strongly typed code in general in your code, and then it's able to build an OpenAPI specification,
+
+89
+00:07:39.860 --> 00:07:43.880
+starting from your routing definition and from the types that you used in your endpoints.
+
+90
+00:07:44.260 --> 00:07:50.060
+And I guess if you put all of that together, you can get to a point where you have nice types,
+
+91
+00:07:50.220 --> 00:07:53.100
+autocompletion and type safety for all the requests and responses.
+
+92
+00:07:53.100 --> 00:07:58.600
+I think that will be kind of the golden standard for me when a framework gives you all of that.
+
+93
+00:07:58.700 --> 00:08:03.200
+I think you end up with a very nice developer experience and you can effectively develop your
+
+94
+00:08:03.200 --> 00:08:07.380
+API with the confidence that you are managing the data properly. You're not going to have surprises
+
+95
+00:08:07.380 --> 00:08:11.380
+where maybe you're trying to access a field that doesn't exist, or maybe you're going to return a
+
+96
+00:08:11.380 --> 00:08:16.700
+response that doesn't necessarily match what you promised the user you would return. So I think
+
+97
+00:08:16.700 --> 00:08:22.040
+that's kind of my ideal framework. How does PowerTool help in this sense? Does it match this
+
+98
+00:08:22.040 --> 00:08:27.420
+definition or is it verified? Yeah, I think it hits everything you've mentioned.
+
+99
+00:08:27.420 --> 00:08:33.340
+Let's go into it in a bit of detail. So when you have Lambda behind an API, you're generally talking about API Gateway,
+
+100
+00:08:33.560 --> 00:08:40.460
+REST API, or HTTP API, but it could also be an application load balancer, a function URL, or even a
+
+101
+00:08:40.460 --> 00:08:46.380
+VPC lattice. And PowerTools supports all of those things. So there's a great page in the PowerTools
+
+102
+00:08:46.380 --> 00:08:50.020
+documentation all about REST APIs, which we can link in the show notes. It's very comprehensive.
+
+103
+00:08:50.020 --> 00:08:55.860
+The REST API support essentially first provides a set of resolvers, and there's a resolver for API
+
+104
+00:08:55.860 --> 00:09:01.240
+Gateway, HTTP API, application load balancer, et cetera, and they all work in a similar way. So
+
+105
+00:09:01.240 --> 00:09:05.600
+you basically create one of these resolvers. And when you do that, you're creating a router,
+
+106
+00:09:05.860 --> 00:09:12.340
+router that can be used to route a Lambda HTTP event to a set of functions that you define for your routes.
+
+107
+00:09:12.920 --> 00:09:17.880
+And once you have this resolver, the Lambda handler function becomes very small. It's actually one line
+
+108
+00:09:17.880 --> 00:09:22.580
+generally. So you have your typical Lambda handler with event in context, and you just forward that
+
+109
+00:09:22.580 --> 00:09:28.020
+on to your resolver's resolve method. And then you can just create specific functions for each route.
+
+110
+00:09:28.540 --> 00:09:33.940
+Let's say you have an API to do CRUD operations on a to-do list items. You have your create to-do
+
+111
+00:09:33.940 --> 00:09:41.140
+function, and then you'll decorate it with at app.post with the path parameter to-dos. And there's lots of
+
+112
+00:09:41.140 --> 00:09:47.560
+other options you can put into that decorator when it comes to providing additional details that you
+
+113
+00:09:47.560 --> 00:09:52.680
+might want in your open API specifications. And that's it, really. That's how you get up and running.
+
+114
+00:09:52.900 --> 00:09:58.820
+That's how you create your first set of APIs. And Powertools is just doing a lot of the work for you.
+
+115
+00:09:58.880 --> 00:10:04.380
+You don't have to worry about parsing JSON or looking at the event yourself. A lot of the rest of it
+
+116
+00:10:04.380 --> 00:10:10.320
+is just managed.
+
+117
+00:10:10.320 --> 00:10:16.300
+Yeah, I think I want to spend a little bit more talking about validation and type checking and all the options you can generally have there, and then see exactly how Powertools helps
+
+118
+00:10:16.300 --> 00:10:22.660
+there in the case of Python. But yes, we just say that validation is effectively one of the main things
+
+119
+00:10:22.660 --> 00:10:27.680
+that an API should do first. Like, whenever you receive a request, you need to validate. And that's probably
+
+120
+00:10:27.680 --> 00:10:32.360
+going to be one of the first lines of code that you will write in your own handler, right, if you have to write
+
+121
+00:10:32.360 --> 00:10:38.420
+all of that manually. And this is a good practice for a few reasons. One is definitely a security best practice,
+
+122
+00:10:38.440 --> 00:10:42.960
+because of course, if you are not going to, if you're going to validate the incoming data, then you have a little
+
+123
+00:10:42.960 --> 00:10:49.380
+bit more certainty that you understand the shape of the data coming in. And that reduces the risk of all kinds of
+
+124
+00:10:49.380 --> 00:10:55.600
+injections. Also, it reduces the risk of you ending up creating maybe inconsistent data in a backend system.
+
+125
+00:10:56.120 --> 00:11:01.480
+And maybe, I don't know, storing it in a database record or something, which will eventually lead to subtle bugs here
+
+126
+00:11:01.480 --> 00:11:06.020
+and there, because you have all these different objects stored with slightly different, I don't know,
+
+127
+00:11:06.260 --> 00:11:11.460
+shape. So that's definitely one of the benefits of validation. Then the other thing is that if you
+
+128
+00:11:11.460 --> 00:11:16.420
+have a very strict definition of what your input should look like, then you could also create strongly
+
+129
+00:11:16.420 --> 00:11:22.960
+typed interfaces to represent that input, which in the language of choice, let's say Python in this case,
+
+130
+00:11:23.300 --> 00:11:28.560
+that will give you nice auto-completion and type checking. So once you are at that point in your code
+
+131
+00:11:28.560 --> 00:11:32.820
+when you are using a specific type and you have validated that the input matches the type,
+
+132
+00:11:33.180 --> 00:11:37.560
+then everything else should get so much nicer because you can easily see all the fields available,
+
+133
+00:11:37.760 --> 00:11:42.400
+autocomplete all the types and so on. So when you combine the two, effectively that reduces the risk
+
+134
+00:11:42.400 --> 00:11:47.400
+of bugs because you're checking that the data makes sense. And then at that point, you have a strongly
+
+135
+00:11:47.400 --> 00:11:53.100
+typed interface. And that's generally a problem that exists with languages that are dynamic like Python
+
+136
+00:11:53.100 --> 00:11:58.740
+and JavaScript, where if you don't have the diligence of doing all this, defining the interfaces and doing
+
+137
+00:11:58.740 --> 00:12:04.020
+a proper validation, that's generally a very common source of bugs. So that's why I think I wanted to
+
+138
+00:12:04.020 --> 00:12:09.920
+stress a little bit more how important is this point. And then when it comes to Powertools, they put a lot
+
+139
+00:12:09.920 --> 00:12:16.040
+of effort into trying to give you good tools to do all of these things in a nice way and without having to
+
+140
+00:12:16.040 --> 00:12:22.800
+write a lot of code yourself. And in Powertools, they specifically leverage a library called Padantic.
+
+141
+00:12:23.160 --> 00:12:29.440
+And I think it's important to explain a little bit more how Padantic works and what is the difference
+
+142
+00:12:29.440 --> 00:12:34.580
+between validations and parsing. And that's another thing that if you just look at the list of features
+
+143
+00:12:34.580 --> 00:12:38.760
+that Powertools has, you can see that there is a section for validation and there is a section for
+
+144
+00:12:38.760 --> 00:12:43.180
+parsing. So it might be a little bit confusing to people, like, what is the difference between the
+
+145
+00:12:43.180 --> 00:12:46.920
+two? And the way I will describe it, and maybe this is not necessarily a canonical definition,
+
+146
+00:12:47.480 --> 00:12:51.620
+is that validation, you effectively are just verifying that the data you are receiving
+
+147
+00:12:51.620 --> 00:12:56.300
+matches a specific set of rules that you are defining. And the result of that validation
+
+148
+00:12:56.300 --> 00:13:03.040
+can be either true, like everything matches, so it's the data's good. Or if it doesn't match,
+
+149
+00:13:03.080 --> 00:13:07.480
+you might get like a list of errors that try to describe you, I don't know, which field didn't
+
+150
+00:13:07.480 --> 00:13:11.940
+match specific rules. And you can use that maybe to provide a response to the caller.
+
+151
+00:13:12.480 --> 00:13:16.880
+Parsing is a little bit more than that. It kind of solves the same problem in a way,
+
+152
+00:13:16.880 --> 00:13:20.920
+but the approach is a little bit different. So with parsing, you are generally starting from a
+
+153
+00:13:20.920 --> 00:13:27.040
+strongly typed model. And then you are effectively trying to read the input data and start to populate
+
+154
+00:13:27.040 --> 00:13:31.440
+this model. And then if everything goes well, so if you are effectively able to populate the model
+
+155
+00:13:31.440 --> 00:13:35.980
+entirely, you're respecting the types and the constraints that you define in that model,
+
+156
+00:13:36.220 --> 00:13:40.380
+you can also say that the incoming data is valid. But the output of that operation is that
+
+157
+00:13:40.380 --> 00:13:44.920
+it's not just a Boolean that tells you true, but you now have this object that you can use,
+
+158
+00:13:44.920 --> 00:13:51.560
+and it's strongly typed, and you can use it in a much more structured way, as opposed to just a
+
+159
+00:13:51.560 --> 00:13:57.100
+Boolean, and then you still need to read the raw data. And libraries like PyDantic will give you lots
+
+160
+00:13:57.100 --> 00:14:03.400
+of tools to do also more advanced things like coercion, more advanced validation rules. So you are
+
+161
+00:14:03.400 --> 00:14:08.920
+effectively, you can also normalize the data as you're doing all this validation and parsing. So in a
+
+162
+00:14:08.920 --> 00:14:14.600
+way, we could say that parsing is a more powerful way of doing validation, and it gives you a lot more,
+
+163
+00:14:14.600 --> 00:14:20.040
+like coercion, auto-completion type checking. So generally, it's what I would prefer these days.
+
+164
+00:14:20.040 --> 00:14:25.080
+I wouldn't do just validation anymore, because I think it only solves a portion of the problem.
+
+165
+00:14:25.080 --> 00:14:31.720
+Parsing is much better. So how does Powertools help there? Can you give us a little bit more?
+
+166
+00:14:31.720 --> 00:14:37.800
+I think you've covered it pretty well.
+
+167
+00:14:37.800 --> 00:14:44.440
+I mean, if you've used Fast API, or even similar JavaScript type frameworks using Zod, then you'll be familiar with the idea. So if you like to write typings in
+
+168
+00:14:44.440 --> 00:14:49.000
+your Python code, then it'll definitely be very easy for you, because you just define your types
+
+169
+00:14:49.000 --> 00:14:54.840
+as PyDantic models. That's just like creating a data class in Python, but you get all of the additional
+
+170
+00:14:54.840 --> 00:15:00.440
+descriptive nature of PyDantic models and custom validation if you want. But it can be very simple.
+
+171
+00:15:00.440 --> 00:15:06.280
+You just define your request and response types as PyDantic models, and then your type declarations
+
+172
+00:15:06.280 --> 00:15:12.200
+for the functions that manage your routes use those types. You can also do type annotations for things
+
+173
+00:15:12.200 --> 00:15:17.000
+like query parameters, so you can strongly validate those too, and get auto-completion with them. And
+
+174
+00:15:17.000 --> 00:15:22.520
+even headers as well can have types. Of course, that gives you, as you mentioned, auto-completion in your
+
+175
+00:15:22.520 --> 00:15:28.280
+IDE. You get the validation and the parsing all for free. You don't have to do any serialization or
+
+176
+00:15:28.280 --> 00:15:35.400
+deserialization from JSON or whatever you're using. And that's not just for APIs, actually.
+
+177
+00:15:35.400 --> 00:15:39.880
+These parser features can be used with any event type. So when we're working with EventBridge events,
+
+178
+00:15:39.880 --> 00:15:46.200
+we also often define PyDantic models for the EventBridge events and use those parsers there too. And one of the
+
+179
+00:15:46.200 --> 00:15:50.920
+huge benefits then is when it comes to OpenAPI specifications, these same models are used for
+
+180
+00:15:50.920 --> 00:15:56.760
+generating all of the JSON schema and all of the documentation for your OpenAPI or Swagger docs.
+
+181
+00:15:56.760 --> 00:16:02.920
+And PowerDools has great support for that. It can even provide a route like slash OpenAPI, which will
+
+182
+00:16:02.920 --> 00:16:10.920
+serve the JSON or HTML documentation for the OpenAPI spec. And it's all generated from the PyDantic models. So it
+
+183
+00:16:10.920 --> 00:16:17.080
+becomes very easy to iterate on it. We also, generally when we're doing projects like this, we'll generate the
+
+184
+00:16:17.080 --> 00:16:24.520
+OpenAPI spec at build time, like in the build pipeline or in a pre-commit hook even. And then if you've got front-end code or
+
+185
+00:16:24.520 --> 00:16:29.720
+client SDKs that you want generated, you can just take that immediately and generate or update your
+
+186
+00:16:29.720 --> 00:16:35.960
+client SDKs. And then you have TypeSafe JavaScript or whatever other language you need. So if you're
+
+187
+00:16:35.960 --> 00:16:42.760
+doing a web application, you've already got a library that has very strongly typed, very developer-friendly
+
+188
+00:16:42.760 --> 00:16:44.120
+bindings for the API.
+
+189
+00:16:44.120 --> 00:16:50.040
+Yeah.
+
+190
+00:16:50.040 --> 00:16:53.000
+So I guess the next question is, do you need to use the LambdaLith approach to leverage all these nice features that PowerTools for Python gives you?
+
+191
+00:16:53.000 --> 00:16:57.960
+Yeah, that's a good question.
+
+192
+00:16:57.960 --> 00:17:02.760
+And maybe we should define exactly what we mean by LambdaLith, because it's a bit of a contentious topic, I think, in the world of AWS Lambda right now.
+
+193
+00:17:03.240 --> 00:17:07.400
+Typically, I think when Lambda first came out, and for many years, one of the benefits that was
+
+194
+00:17:07.400 --> 00:17:12.440
+spoken about was the fact that you've got very specific single-purpose functions with very fine-grained
+
+195
+00:17:12.440 --> 00:17:18.280
+permissions and very specific dependencies that were lightweight. And then you could tune your memory and
+
+196
+00:17:19.000 --> 00:17:22.920
+CPU and everything very specifically to each individual function.
+
+197
+00:17:23.000 --> 00:17:27.240
+And then the approach with API Gateway was you would have one root in your API,
+
+198
+00:17:27.240 --> 00:17:31.320
+which went to one Lambda function, which had the resources and only the resources and only the
+
+199
+00:17:31.320 --> 00:17:36.200
+permissions it needed. Now, people can find that a lot to maintain, although it doesn't have to be.
+
+200
+00:17:37.160 --> 00:17:42.040
+But the other approach is, forget all that, let's just bundle it all into one function and have all
+
+201
+00:17:42.040 --> 00:17:50.280
+our API routes be backed by one function. Now, I can see the appeal for sure, because it simplifies your deployment.
+
+202
+00:17:50.280 --> 00:17:55.160
+It means that if you've got warm containers that served one route, they can also be used warm to
+
+203
+00:17:55.160 --> 00:18:00.360
+serve other routes. You do lose some benefits because you have to have a broader set of permissions,
+
+204
+00:18:00.360 --> 00:18:04.120
+and sometimes you might need a larger set of dependencies to bundle into your function.
+
+205
+00:18:04.120 --> 00:18:08.840
+So there are pros and cons to both approaches. We don't necessarily have to go into what's good and
+
+206
+00:18:08.840 --> 00:18:16.680
+bad. Now, the Powertools documentation does more or less advocate for LambdaLith functions. And it even says
+
+207
+00:18:16.680 --> 00:18:21.400
+things like the OpenAPI specification only really works if you're using a LambdaLith. So everything,
+
+208
+00:18:21.400 --> 00:18:26.280
+all routes in one function, but that's not necessarily true. We were able to work around that.
+
+209
+00:18:26.280 --> 00:18:32.440
+So you can basically set up your API resolver with Powertools, and then you just decide which
+
+210
+00:18:32.440 --> 00:18:39.080
+functions to attach it to. So the way we do it is we have basically a separate module outside of all of
+
+211
+00:18:39.080 --> 00:18:44.680
+your Lambda handlers where your resolver is created. And then you can just import that into the Lambda
+
+212
+00:18:44.680 --> 00:18:49.480
+handlers that you want to be part of that resolver and share the same routing mechanism.
+
+213
+00:18:49.480 --> 00:18:54.520
+And then when it comes to generating the OpenAPI spec, for example, so that one of the issues is
+
+214
+00:18:54.520 --> 00:18:58.920
+that if you've got single purpose functions, each function had its own resolver. So they didn't,
+
+215
+00:18:58.920 --> 00:19:03.160
+they weren't aware of the whole API, so they couldn't generate a full spec. But if you have a common
+
+216
+00:19:03.160 --> 00:19:08.760
+resolver declared and you just import that in each event handler, you can just have a script locally
+
+217
+00:19:08.760 --> 00:19:13.240
+that will basically load all of your handlers. They'll all share the same resolver at just a local time or
+
+218
+00:19:13.240 --> 00:19:17.640
+build time. Then you generate the OpenAPI spec in a script. And then when you deploy it,
+
+219
+00:19:17.640 --> 00:19:23.160
+you can decide whether to package each handler into separate functions or all into one function.
+
+220
+00:19:23.160 --> 00:19:28.680
+And then, so we've done multiple projects where we do this and you basically, you get, we've done it
+
+221
+00:19:28.680 --> 00:19:32.280
+where you do the Lambda-lit approach, which actually can work very well at the start of our project if
+
+222
+00:19:32.280 --> 00:19:36.280
+you want to iterate really quickly, because you only had one function to worry about. But we've also done
+
+223
+00:19:36.280 --> 00:19:41.640
+it with single purpose functions and you just have this shared resolver and then you have multiple
+
+224
+00:19:41.640 --> 00:19:46.760
+deployments. And then you have the whole build pipeline, which is generating the OpenAPI documentation
+
+225
+00:19:46.760 --> 00:19:51.320
+and the client bindings. And it works with both approaches. So it doesn't have to be a Lambda-lit.
+
+226
+00:19:51.320 --> 00:19:56.360
+Yeah. I think if people are curious about our rationale when it comes to Lambda-lits,
+
+227
+00:19:56.360 --> 00:20:01.480
+we have a dedicated episode, I think it's 92, where we talk about some approaches on how you can
+
+228
+00:20:01.480 --> 00:20:07.240
+decompose an existing Lambda-lit into multiple functions. And we also talk about the benefits of doing that.
+
+229
+00:20:07.240 --> 00:20:12.040
+Now, again, I don't want to necessarily advocate for single purpose Lambda functions, although it's
+
+230
+00:20:12.040 --> 00:20:16.040
+generally my preference. But yeah, I know that there are some good use cases also for Lambda-lit.
+
+231
+00:20:16.040 --> 00:20:20.040
+But that will be a little bit out of topic. So I'll leave you to the other episode in the
+
+232
+00:20:20.040 --> 00:20:23.640
+show notes if you're curious. I guess the other question I would have, and you have a little bit
+
+233
+00:20:23.640 --> 00:20:28.280
+more experience than me with Powertools of Python, what's the local development experience?
+
+234
+00:20:32.200 --> 00:20:36.680
+There's nothing specifically in Powertools that gives you a local development experience out of the box, but it actually becomes really easy once you have this API resolver setup. It's just really well
+
+235
+00:20:36.680 --> 00:20:42.040
+architected. And it becomes a very thin layer on top of your business logic, the API layer.
+
+236
+00:20:42.040 --> 00:20:46.920
+It becomes really concise and very portable. So the way we would just do it normally is you have your
+
+237
+00:20:46.920 --> 00:20:51.640
+handlers and these routes, and then all of your logic, like your services and your repository patterns
+
+238
+00:20:51.640 --> 00:20:56.760
+and everything sit separately. You could actually easily migrate your whole API to a completely different
+
+239
+00:20:56.760 --> 00:21:02.200
+framework if you wanted to. But when it comes to local development, obviously if it's fast API,
+
+240
+00:21:02.200 --> 00:21:06.840
+you can just run it locally. You can do something very similar locally with Powertools. And when
+
+241
+00:21:06.840 --> 00:21:12.200
+we are doing this approach, we generally just set up a local server script, which is like a simple
+
+242
+00:21:12.200 --> 00:21:19.160
+Python Flask server, which has one root in it and matches every request, just as a very simple
+
+243
+00:21:19.160 --> 00:21:26.760
+translation of the Flask request into a Lambda event, HTTP API or ALB event, and then invokes the
+
+244
+00:21:26.760 --> 00:21:31.720
+Lambda handler's code directly. And then the Powertools API resolver will take the request from there,
+
+245
+00:21:31.720 --> 00:21:35.720
+just as it does in a real Lambda environment. And it's just generally a few lines of code to do that.
+
+246
+00:21:35.720 --> 00:21:40.920
+And then you've got a local simulation server that behaves like API Gateway and Lambda. And it can
+
+247
+00:21:40.920 --> 00:21:44.600
+really speed up development because you don't have to deploy every time. I know even that some
+
+248
+00:21:44.600 --> 00:21:50.920
+people are using Lambda Powertools in containers, like with Fargate. Because it has so many nice
+
+249
+00:21:50.920 --> 00:21:55.640
+tools there, you can actually take a similar approach and you can just run a server like that,
+
+250
+00:21:55.640 --> 00:22:01.000
+very lightweight proxy and forward onto AWS Lambda for Powertools, make use of the resolver. And then
+
+251
+00:22:01.000 --> 00:22:06.200
+you get all the other nice features like tracing, metrics, logging, item potency, whatever. So it
+
+252
+00:22:06.200 --> 00:22:11.000
+doesn't have to be with Lambda to get benefit for all this great work. Yeah, that's pretty cool.
+
+253
+00:22:11.000 --> 00:22:17.480
+I guess before we wrap up, maybe worth mentioning was the status of similar features with the other versions
+
+254
+00:22:17.480 --> 00:22:21.880
+of Powertools or the other languages. And you might be aware that Powertools is not just a Python
+
+255
+00:22:21.880 --> 00:22:28.440
+project, exists for TypeScript, .NET, and Java. Unfortunately, Python is always like the main
+
+256
+00:22:28.440 --> 00:22:33.560
+line. It's probably the first one where they introduced new features and this API framework
+
+257
+00:22:33.560 --> 00:22:38.920
+development has been one of the latest additions. So unfortunately, all the other languages still have to
+
+258
+00:22:38.920 --> 00:22:43.320
+catch up with this feature. So there is some support, for instance, in the TypeScript one,
+
+259
+00:22:43.320 --> 00:22:47.800
+you have ZOD available if you want to do parsing, but then you don't really have a nice cohesive
+
+260
+00:22:47.800 --> 00:22:52.920
+ecosystem of features that gives you like an entire API development type of approach as you would get with
+
+261
+00:22:52.920 --> 00:22:59.320
+the Python version. But hopefully that will change soon. So keep an eye on the various versions. Maybe
+
+262
+00:22:59.320 --> 00:23:03.240
+there could be an opportunity to contribute as well. Always remember that Powertools is an open
+
+263
+00:23:03.240 --> 00:23:07.640
+source project so everyone is able to contribute if they want to. And of course, you can always
+
+264
+00:23:07.640 --> 00:23:12.280
+build your own abstraction as well. Like if you're familiar with other frameworks in the language of
+
+265
+00:23:12.280 --> 00:23:17.160
+choice, you can probably bring some components of this framework and use that as a way to create
+
+266
+00:23:17.160 --> 00:23:25.960
+your own mini API framework on top of Powertools.
+
+267
+00:23:25.960 --> 00:23:30.920
+I mean, I think when it comes to the more mature languages that have been doing web development for 20 plus years, like the Java and Python
+
+268
+00:23:30.920 --> 00:23:36.680
+runtimes, sorry, the Java and .NET runtimes, there's so many libraries out there for doing routing and
+
+269
+00:23:37.640 --> 00:23:43.640
+frameworks that have a long history. With .NET, you can integrate ASP.NET for that. I think even
+
+270
+00:23:43.640 --> 00:23:49.720
+the CDK patterns, if I remember correctly, or maybe it's in the .NET templates, they give you patterns for
+
+271
+00:23:49.720 --> 00:23:55.560
+doing that out of the box. So perhaps there's just not as much of a need as there is in Python.
+
+272
+00:23:55.560 --> 00:24:00.760
+I guess in conclusion then, if you are a Python developer keen on Lambda looking for a framework that
+
+273
+00:24:01.080 --> 00:24:05.640
+is a bit like FastAPI or one of the other ones that you may have used, this is a great option.
+
+274
+00:24:05.640 --> 00:24:10.520
+We feel at least, but let us know what you think. And if you've got any nice alternatives or pro tips
+
+275
+00:24:10.520 --> 00:24:23.480
+for Lambda backed APIs. Thanks very much for listening and watching, and we'll see you in the next episode.
+
+276
+00:24:23.480 --> 00:24:28.760
+I'll see you in the next video.

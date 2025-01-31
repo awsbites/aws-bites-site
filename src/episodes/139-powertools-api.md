@@ -28,9 +28,3 @@ In this episode, we mentioned the following resources:
 5. [Fastify](⁠https://fastify.dev/⁠)
 6. [Axum](⁠https://github.com/tokio-rs/axum⁠)
 7. [FastAPI](⁠https://fastapi.tiangolo.com/⁠)
-
-
-Do you have any AWS questions you would like us to address?
-Leave a comment here or connect with us on BlueSky or LinkedIn:
-- https://bsky.app/profile/eoin.sh | https://www.linkedin.com/in/eoins/
-- https://bsky.app/profile/loige.co | https://www.linkedin.com/in/lucianomammino/

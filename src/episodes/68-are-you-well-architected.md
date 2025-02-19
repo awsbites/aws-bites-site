@@ -20,5 +20,5 @@ In this episode, we mentioned the following resources:
 
 - [The well-architected framework](https://aws.amazon.com/architecture/well-architected/)
 - [The well-architected paper by AWS](https://docs.aws.amazon.com/wellarchitected/latest/framework/welcome.html)
-- [The well-architected tool](//The well-architected tool)
+- [The well-architected tool](https://aws.amazon.com/well-architected-tool/)
 - [Well-architected labs](https://www.wellarchitectedlabs.com/)

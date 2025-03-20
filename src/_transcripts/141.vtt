@@ -1,0 +1,721 @@
+WEBVTT
+
+1
+00:00:00.400 --> 00:00:10.440
+Welcome, everyone. This is episode 141 of the AWS Bites podcast, and today we're going to dive deep on some pretty transformative new features in Step Functions.
+
+2
+00:00:10.980 --> 00:00:15.800
+We've always been big fans of Step Functions, and we actually covered them back in episode 54.
+
+3
+00:00:16.960 --> 00:00:23.520
+Recently, AWS released big new features, so we wanted to share our experience of using them with you.
+
+4
+00:00:23.520 --> 00:00:29.640
+We're talking mainly about JSONata support, but we'll also touch on the new variables feature.
+
+5
+00:00:30.000 --> 00:00:33.160
+I'm Eoin. I'm here with Luciano, so let's get started.
+
+6
+00:00:38.880 --> 00:00:41.500
+AWS Bites is brought to you in association with 4Theorem.
+
+7
+00:00:41.700 --> 00:00:50.540
+If you need a friendly partner to support you and work with you to de-risk any AWS migration or development project, check them out at 4theorem.com.
+
+8
+00:00:50.540 --> 00:00:55.760
+So maybe it makes sense to start by giving a quick recap of what Step Functions are, right? What do you think?
+
+9
+00:00:55.960 --> 00:00:56.820
+Yeah, let's go for it.
+
+10
+00:00:56.820 --> 00:00:58.720
+Okay, I'll try my best.
+
+11
+00:00:59.380 --> 00:01:05.980
+So essentially, Step Functions allow you to avoid writing code in order to define some kind of workflow or state machine.
+
+12
+00:01:05.980 --> 00:01:16.940
+So if you have multiple independent steps and you want to orchestrate them together using steps, conditions, parallelization, loops, Step Function is effectively the service you want to use in AWS.
+
+13
+00:01:17.440 --> 00:01:29.540
+And just to give you some examples, it can be, I don't know, an e-commerce order flow, something that you might want to model with Step Functions, or maybe an ETL or some kind of other data transformation process.
+
+14
+00:01:29.540 --> 00:01:39.760
+One thing that we have done, and we actually have been talking about that back in episode 103, is automating a transcription for this very podcast.
+
+15
+00:01:39.760 --> 00:01:52.080
+And we have a Step Function that uses some AI components to basically extrapolate transcriptions and help us to create all the things that we need to publish the episodes and also update them on our website.
+
+16
+00:01:52.080 --> 00:01:57.700
+So if you're curious about that, go and check out that particular episode, where we'll share all the details.
+
+17
+00:01:58.080 --> 00:01:59.860
+And also some of this work is even open source.
+
+18
+00:02:00.020 --> 00:02:02.180
+So you can even check out the code if you're curious.
+
+19
+00:02:02.440 --> 00:02:05.240
+So there are lots of benefits when it comes to Step Functions.
+
+20
+00:02:05.240 --> 00:02:09.620
+The main thing is that you don't have to use programming language.
+
+21
+00:02:10.000 --> 00:02:12.780
+It's effectively a declarative approach.
+
+22
+00:02:13.360 --> 00:02:19.480
+And therefore, you don't even need to worry about what is the operative system that you need to install things on.
+
+23
+00:02:19.660 --> 00:02:22.140
+Effectively, AWS manages all of that for you.
+
+24
+00:02:22.680 --> 00:02:25.700
+So effectively, AWS manages all the stuff.
+
+25
+00:02:25.800 --> 00:02:30.620
+So you worry less about security issues, library dependencies, upgrades, all this kind of stuff.
+
+26
+00:02:30.720 --> 00:02:33.840
+So it's good to use manager service for this kind of things.
+
+27
+00:02:33.840 --> 00:02:38.460
+And a few features are actually really cool, and I really like them about Step Functions.
+
+28
+00:02:38.680 --> 00:02:47.280
+One is, for instance, that if a step fails, because maybe you are trying to model something that might occasionally fail, it's very easy to configure retries.
+
+29
+00:02:48.000 --> 00:02:55.540
+And then if something fails and it breaks your entire Step Function, you can easily inspect that Step Function and replace specific steps.
+
+30
+00:02:55.960 --> 00:03:00.000
+You also have archives, re-drives, and in general, robust error handling.
+
+31
+00:03:00.340 --> 00:03:03.080
+And similarly, observability, I think, is really good.
+
+32
+00:03:03.080 --> 00:03:09.800
+For instance, when something goes wrong, you can easily see exactly what happened throughout all the steps.
+
+33
+00:03:10.340 --> 00:03:14.500
+AWS will retain all the inputs and outputs for each step.
+
+34
+00:03:14.920 --> 00:03:18.500
+So effectively, you can easily pinpoint exactly what kind of error happened.
+
+35
+00:03:18.960 --> 00:03:21.460
+You can easily fix it and then maybe retry from there.
+
+36
+00:03:21.460 --> 00:03:27.680
+And the other cool thing is that Step Function can integrate directly with almost every other AWS service.
+
+37
+00:03:27.680 --> 00:03:33.900
+And for instance, there are specific optimized integration with certain services.
+
+38
+00:03:33.900 --> 00:03:44.900
+But whenever that integration doesn't exist, you can rely on the SDK and effectively model an API call directly in Step Functions.
+
+39
+00:03:45.200 --> 00:03:48.480
+So Step Functions are, how do you define them?
+
+40
+00:03:48.560 --> 00:03:50.400
+This is probably the main question you might have.
+
+41
+00:03:50.760 --> 00:03:55.900
+So there is a specific declarative syntax that is called Amazon States Language, or ASL.
+
+42
+00:03:55.900 --> 00:04:03.680
+And it can either be written in JSON or YAML, and effectively allows you to define all the different components of your state machine,
+
+43
+00:04:03.680 --> 00:04:08.740
+and also to reference things like ECS tasks, HTTP APIs, and much more.
+
+44
+00:04:08.740 --> 00:04:15.780
+You can also use CDK or other infrastructure as code tools if you don't want to write plain JSON or YAML.
+
+45
+00:04:15.780 --> 00:04:18.500
+And those make the process a little bit easier.
+
+46
+00:04:18.500 --> 00:04:22.460
+But there is actually a very good IDE that is called Workflow Studio.
+
+47
+00:04:23.060 --> 00:04:27.040
+And you can access that in the AWS Management Console.
+
+48
+00:04:27.220 --> 00:04:35.620
+But recently, AWS also launched a VS Code extension that effectively supports this UI2 directly in VS Code.
+
+49
+00:04:35.900 --> 00:04:38.840
+So I think so far we talked about the benefits of Step Functions.
+
+50
+00:04:39.400 --> 00:04:41.740
+But it's fair to say that there are a few drawbacks.
+
+51
+00:04:42.120 --> 00:04:43.720
+The local development isn't great.
+
+52
+00:04:43.980 --> 00:04:45.720
+This is probably the main thing.
+
+53
+00:04:45.780 --> 00:04:49.940
+So the feedback loop can be sometimes a little bit annoying.
+
+54
+00:04:50.400 --> 00:04:54.640
+There are things like local stack that you can try to use, and maybe they solve some of these problems.
+
+55
+00:04:54.960 --> 00:05:00.620
+But I think in general, what I've seen is that people just deploy to AWS and test it directly in AWS.
+
+56
+00:05:00.940 --> 00:05:05.480
+So there might be a little bit of latency there between changes and then testing those changes.
+
+57
+00:05:06.040 --> 00:05:11.760
+The syntax that is supported is, of course, not as good as a fully feature programming language.
+
+58
+00:05:11.760 --> 00:05:18.580
+So if you are trying to model something very complex, maybe you'll find that the syntax itself might become a little bit limiting.
+
+59
+00:05:18.580 --> 00:05:29.080
+And often you need to do something custom, and you end up creating like an AWS Lambda step to just do something very specific, maybe a particular transformation.
+
+60
+00:05:29.080 --> 00:05:33.740
+So those are things that can get in the way and maybe be a little bit easier sometimes.
+
+61
+00:05:33.740 --> 00:05:48.140
+And there has been another annoying limit, which is the state, which is effectively all the data that you are carrying around between steps, and then every step can read and write into that state, was limited up to 256 kilobyte.
+
+62
+00:05:48.140 --> 00:05:52.520
+And I think it's still limited to that, but there are ways to kind of work around it now.
+
+63
+00:05:52.760 --> 00:05:56.300
+And this is where we're going to start to talk about JSONata and variables.
+
+64
+00:05:56.880 --> 00:06:05.560
+So one last thing that I'm going to mention is that those two features are also available in both standard Step Functions and express Step Functions.
+
+65
+00:06:06.220 --> 00:06:09.060
+So standard is effectively long-runner workflow.
+
+66
+00:06:09.060 --> 00:06:23.580
+So you pay based on the number of transition, and express is kind of a shorter, short-lived version of Step Functions, where effectively your Step Function can only run for maximum five minutes, and you pay by execution time.
+
+67
+00:06:23.840 --> 00:06:26.220
+Generally, these are a little bit faster and cheaper.
+
+68
+00:06:26.500 --> 00:06:30.460
+So depending on the type of workflow, you might want to use either standard or express.
+
+69
+00:06:31.060 --> 00:06:36.440
+So I'll pass it now to you, Eoin, because I was talking a lot, and you can tell us everything about JSONata.
+
+70
+00:06:36.440 --> 00:06:38.580
+This is pretty new to me.
+
+71
+00:06:38.660 --> 00:06:40.840
+I think this is the first time I've really used JSONata.
+
+72
+00:06:41.680 --> 00:06:45.520
+Maybe I've heard of it before, but it's not something that's widely used.
+
+73
+00:06:45.580 --> 00:06:49.040
+I think it's supported a lot by IBM, and they use it a lot in their products.
+
+74
+00:06:49.560 --> 00:06:57.180
+But it is a JSON query language, which was inspired by XPath from the world of XML.
+
+75
+00:06:57.920 --> 00:07:03.580
+And it allows you to create sophisticated queries to transform and extract data from JSON.
+
+76
+00:07:03.580 --> 00:07:11.400
+You might be familiar with JSON path support, which has been used in AWS in a few different places, including Step Functions.
+
+77
+00:07:12.180 --> 00:07:16.000
+JSONata is a much, much more fully featured syntax.
+
+78
+00:07:16.340 --> 00:07:27.860
+So it supports string manipulation, numerical operations, things like date-time conversion, regular expressions, which we know we all love, comparison operators, and conditional logic.
+
+79
+00:07:27.860 --> 00:07:30.820
+Also array and object manipulation.
+
+80
+00:07:31.460 --> 00:07:33.680
+You can do even sorting, grouping, and aggregation.
+
+81
+00:07:34.000 --> 00:07:37.220
+You can define functions in it and closures.
+
+82
+00:07:37.640 --> 00:07:40.080
+But you've also got things like filter and map and reduce.
+
+83
+00:07:40.500 --> 00:07:51.000
+So pretty much anything I think you can imagine doing in order to transform a blob of JSON-A into a blob of JSON-B, JSONata has support for it.
+
+84
+00:07:51.000 --> 00:07:56.500
+Now, traditionally, Step Functions supports the JSON path mechanism.
+
+85
+00:07:57.360 --> 00:07:59.500
+And it also had some intrinsic functions.
+
+86
+00:07:59.680 --> 00:08:02.260
+They added some of those, like for formatting strings and whatnot.
+
+87
+00:08:02.860 --> 00:08:09.300
+But realistically, JSON path really only allows you to provide a tiny subset of what JSONata can now do.
+
+88
+00:08:09.660 --> 00:08:12.620
+So the amount of data transformation you can do is massively increased.
+
+89
+00:08:12.740 --> 00:08:15.520
+And there are a load of benefits that come with that.
+
+90
+00:08:15.520 --> 00:08:20.300
+So I guess you might ask, how would you use JSONata in Step Functions?
+
+91
+00:08:20.460 --> 00:08:23.280
+And how does it differ to the traditional approach, if you like?
+
+92
+00:08:24.720 --> 00:08:27.540
+Well, previously, JSON path was your only option.
+
+93
+00:08:28.100 --> 00:08:35.160
+Now, every Step Function itself can have a top-level query language specified, which can be JSONata or JSON path.
+
+94
+00:08:35.400 --> 00:08:39.020
+And you can also customize it on a state-by-state level.
+
+95
+00:08:39.020 --> 00:08:48.520
+And that's pretty interesting if you already have a large code base, lots of Step Functions, and you just want to start dipping your toes in, or maybe just applying it where it's really, really valuable.
+
+96
+00:08:48.840 --> 00:08:49.640
+So you can do that.
+
+97
+00:08:49.700 --> 00:08:53.500
+You can just specify the query language for one state as being JSONata.
+
+98
+00:08:53.500 --> 00:09:04.880
+And instead of using all of those quite frustrating and difficult to understand properties before, like output path, result path, input path, result selector, all that stuff,
+
+99
+00:09:05.720 --> 00:09:13.920
+you just specify a JSONata expression for either the output field, which encapsulates everything you're going to output from that state, like in a pass state.
+
+100
+00:09:14.200 --> 00:09:17.800
+Or you can specify JSONata for an arguments property as well.
+
+101
+00:09:17.800 --> 00:09:26.620
+So if you imagine you're invoking a Lambda function and you want to pass some parameters to it, you now do that with arguments, which supports JSONata.
+
+102
+00:09:27.320 --> 00:09:34.060
+And then all of the inputs, like the states input, can be referenced using a special variable $.states.input.
+
+103
+00:09:35.340 --> 00:09:39.980
+And once you know that, you want to start writing some expressions in JSONata.
+
+104
+00:09:40.180 --> 00:09:44.140
+And you can look up the documentation, which is pretty good.
+
+105
+00:09:44.380 --> 00:09:46.020
+There's also some online tools.
+
+106
+00:09:46.020 --> 00:09:52.000
+One is the kind of official, more or less, I think, JSONata Exerciser, which is an online tool.
+
+107
+00:09:52.520 --> 00:09:59.240
+But we also know that Steady has an online JSONata playground, which has nice autocomplete support and stuff in it.
+
+108
+00:09:59.800 --> 00:10:02.020
+There's not a lot of other tools like VS Code plugins yet.
+
+109
+00:10:02.820 --> 00:10:05.820
+So the ecosystem is not as rich as some other things.
+
+110
+00:10:06.040 --> 00:10:10.260
+But those tools, I found, have been pretty useful to get you everything you need.
+
+111
+00:10:10.260 --> 00:10:19.600
+Now, at the time of recording today, JSONata support is not yet fully developed for the AWS CDK constructs.
+
+112
+00:10:19.980 --> 00:10:27.880
+So if you do need JSONata in CDK Step Functions right now, you have to use a custom state and provide the raw Amazon states language.
+
+113
+00:10:27.880 --> 00:10:32.000
+And I've found that to be pretty okay, actually.
+
+114
+00:10:32.140 --> 00:10:32.460
+It's fine.
+
+115
+00:10:32.500 --> 00:10:37.460
+Because once you're writing JSONata, you're in a string within an op property anyway.
+
+116
+00:10:37.660 --> 00:10:41.460
+So I don't know if CDK is really going to provide anything significant beyond that.
+
+117
+00:10:41.740 --> 00:10:43.060
+But it is something to be aware of.
+
+118
+00:10:43.140 --> 00:10:46.800
+There is an issue in the AWS CDK repo to track that.
+
+119
+00:10:46.800 --> 00:10:52.980
+Overall, the experience with JSONata states is, I think, simpler, easier to read, easier to understand,
+
+120
+00:10:53.300 --> 00:10:59.520
+since you don't have to deal with all those input path, output path, result path stuff that all interact together.
+
+121
+00:10:59.940 --> 00:11:05.960
+You also don't have that .dollar syntax for property names that you might keep forgetting anymore either.
+
+122
+00:11:06.820 --> 00:11:11.460
+And overall, I just think it's a much more developer-friendly experience and way more powerful.
+
+123
+00:11:11.460 --> 00:11:15.300
+There is a good guide on moving from JSONata to JSONata.
+
+124
+00:11:15.820 --> 00:11:19.200
+And Eric Johnson has an overview video on that page as well.
+
+125
+00:11:19.340 --> 00:11:20.420
+We'll link it in the show notes.
+
+126
+00:11:21.320 --> 00:11:24.180
+And yeah, that's JSONata support.
+
+127
+00:11:24.480 --> 00:11:25.760
+I found it pretty useful so far.
+
+128
+00:11:26.300 --> 00:11:27.000
+That's pretty cool.
+
+129
+00:11:27.300 --> 00:11:29.880
+What about this new variables feature then?
+
+130
+00:11:30.340 --> 00:11:30.900
+Variables, yeah.
+
+131
+00:11:31.240 --> 00:11:36.060
+So this 256K limit you had for state data.
+
+132
+00:11:36.060 --> 00:11:41.260
+And it basically stayed past all the way down from the top, fell out the bottom of your Step Function.
+
+133
+00:11:41.460 --> 00:11:42.960
+There was no such thing as global state.
+
+134
+00:11:43.360 --> 00:11:46.560
+And the 256K limit could be annoying.
+
+135
+00:11:46.820 --> 00:11:57.360
+And we definitely had cases before where you were pushing data to S3 or DynamoDB and trying to pull it out and use lambda functions to extract a subset that was under 256K.
+
+136
+00:11:57.600 --> 00:11:59.020
+Now there's a new feature called variables.
+
+137
+00:11:59.240 --> 00:12:08.500
+And that allows you to declare variables in one state and then reference them in any subsequent state without having to propagate them all the way down the state chain.
+
+138
+00:12:08.500 --> 00:12:11.800
+So the variables are just named.
+
+139
+00:12:12.960 --> 00:12:18.960
+And the total size of these is up to 10 megabytes.
+
+140
+00:12:19.280 --> 00:12:22.740
+So already you can do far, far more than you could previously.
+
+141
+00:12:22.740 --> 00:12:27.360
+Now you assign those variables using either JSONata or JSONpath.
+
+142
+00:12:27.620 --> 00:12:31.760
+I think you're going to see them being used with JSONata a lot more, to be honest.
+
+143
+00:12:33.120 --> 00:12:39.260
+But when you combine this feature with JSONata, now you have a really big step forward in what you can do with the capability of Step Functions.
+
+144
+00:12:39.260 --> 00:12:41.840
+We have been using it in real projects.
+
+145
+00:12:42.460 --> 00:12:55.280
+And we were able to remove a lot of lambda functions that just did data transformation only and reduce the complexity and even the cost of Step Functions overall, if you consider the cost of invoking lambda functions and waiting for them.
+
+146
+00:12:55.280 --> 00:12:59.440
+Maybe some examples of the things we were able to do.
+
+147
+00:12:59.880 --> 00:13:06.580
+One which I found really satisfying actually was on a project we were able to use Step Functions for doing API integrations.
+
+148
+00:13:06.920 --> 00:13:10.660
+We had a third party API that was authorized with a bearer token.
+
+149
+00:13:11.240 --> 00:13:17.380
+You're able to set up an event bridge connection, which is what Step Functions uses for HTTP invocations.
+
+150
+00:13:17.380 --> 00:13:24.660
+And we can call APIs now over HTTPS using Step Functions, using the bearer token from Secrets Manager.
+
+151
+00:13:25.400 --> 00:13:27.760
+Now we can process large API responses.
+
+152
+00:13:28.360 --> 00:13:36.820
+We can process them with JSONata to filter and transform the data in a really powerful way and then fan out and call more specific actions in like a map step.
+
+153
+00:13:37.160 --> 00:13:38.760
+And that was an existing code base.
+
+154
+00:13:38.820 --> 00:13:43.060
+So we were able to just remove a whole lot of lambda functions, which has great benefit.
+
+155
+00:13:43.060 --> 00:13:49.400
+You know, you reduce your deployment time, you reduce your maintenance, you reduce the runtimes you need to keep track of.
+
+156
+00:13:49.760 --> 00:13:56.140
+And it just simplifies everything and makes your whole workflow very easy to understand by reading it.
+
+157
+00:13:56.740 --> 00:13:59.880
+And the other thing we use JSONata a lot is just for simple past states.
+
+158
+00:14:00.180 --> 00:14:05.040
+Like you've got the output of one state and you want to do some processing transformation on it.
+
+159
+00:14:05.100 --> 00:14:08.120
+And we just do all that with JSONata in a simple past state.
+
+160
+00:14:08.440 --> 00:14:09.220
+That's awesome.
+
+161
+00:14:09.220 --> 00:14:13.360
+And I'm sure that everyone is wondering about cost.
+
+162
+00:14:14.100 --> 00:14:18.620
+Like are these two new amazing features coming with some extra cost or not?
+
+163
+00:14:19.200 --> 00:14:20.100
+Surprisingly, no.
+
+164
+00:14:21.100 --> 00:14:28.080
+The cost of billing model for Step Functions is still the same in that for standard mode Step Functions, you're paying per transition.
+
+165
+00:14:28.440 --> 00:14:31.560
+By the way, you can reduce transitions now with JSONata.
+
+166
+00:14:31.680 --> 00:14:33.480
+So you might actually get a price reduction.
+
+167
+00:14:33.480 --> 00:14:43.520
+And for express functions, those are priced based on the runtime, the time that they take to execute up to five minutes.
+
+168
+00:14:44.180 --> 00:14:48.320
+So no, there's no additional cost for using variables or JSONata.
+
+169
+00:14:48.800 --> 00:14:53.520
+I would definitely recommend people give them a try and let us know what you think.
+
+170
+00:14:53.640 --> 00:14:54.660
+Have you found any drawbacks?
+
+171
+00:14:54.660 --> 00:14:59.840
+I think for us, there's a bit of a learning curve for sure, but it's not significant.
+
+172
+00:15:00.500 --> 00:15:09.100
+And I think it's not like VTL, the velocity language you might have come across for AppSync and various other things like API integrations in the past.
+
+173
+00:15:09.620 --> 00:15:13.160
+JSONata has been a much more pleasant experience, at least for me.
+
+174
+00:15:13.220 --> 00:15:14.220
+So let us know what you think.
+
+175
+00:15:14.760 --> 00:15:16.540
+I think that's everything we wanted to share.
+
+176
+00:15:16.920 --> 00:15:18.000
+Share your use cases.
+
+177
+00:15:18.180 --> 00:15:18.700
+Let us know.
+
+178
+00:15:18.700 --> 00:15:23.600
+And we're always looking to compare notes and learn how you use AWS.
+
+179
+00:15:24.060 --> 00:15:25.080
+So thanks for listening.
+
+180
+00:15:25.440 --> 00:15:26.840
+And we'll see you in the next episode.

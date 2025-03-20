@@ -1,0 +1,1088 @@
+{
+  "speakers": {
+    "spk_0": "spk_0",
+    "spk_1": "spk_1"
+  },
+  "segments": [
+    {
+      "speakerLabel": "spk_0",
+      "start": 0.4,
+      "end": 10.44,
+      "text": " Welcome, everyone. This is episode 141 of the AWS Bites podcast, and today we're going to dive deep on some pretty transformative new features in step functions."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 10.98,
+      "end": 15.8,
+      "text": " We've always been big fans of step functions, and we actually covered them back in episode 54."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 16.96,
+      "end": 23.52,
+      "text": " Recently, AWS released big new features, so we wanted to share our experience of using them with you."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 23.52,
+      "end": 29.64,
+      "text": " We're talking mainly about JSONata support, but we'll also touch on the new variables feature."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 30,
+      "end": 33.16,
+      "text": " I'm Eoin. I'm here with Luciano, so let's get started."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 38.88,
+      "end": 41.5,
+      "text": " AWS Bites is brought to you in association with 4Theorem."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 41.7,
+      "end": 50.54,
+      "text": " If you need a friendly partner to support you and work with you to de-risk any AWS migration or development project, check them out at 4theorem.com."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 50.54,
+      "end": 55.760000000000005,
+      "text": " So maybe it makes sense to start by giving a quick recap of what step functions are, right? What do you think?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 55.96,
+      "end": 56.82,
+      "text": " Yeah, let's go for it."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 56.82,
+      "end": 58.72,
+      "text": " Okay, I'll try my best."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 59.38,
+      "end": 65.98,
+      "text": " So essentially, step functions allow you to avoid writing code in order to define some kind of workflow or state machine."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 65.98,
+      "end": 76.94,
+      "text": " So if you have multiple independent steps and you want to orchestrate them together using steps, conditions, parallelization, loops, step function is effectively the service you want to use in AWS."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 77.44,
+      "end": 89.54,
+      "text": " And just to give you some examples, it can be, I don't know, an e-commerce order flow, something that you might want to model with step functions, or maybe an ETL or some kind of other data transformation process."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 89.54,
+      "end": 99.76,
+      "text": " One thing that we have done, and we actually have been talking about that back in episode 103, is automating a transcription for this very podcast."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 99.76,
+      "end": 112.08000000000001,
+      "text": " And we have a step function that uses some AI components to basically extrapolate transcriptions and help us to create all the things that we need to publish the episodes and also update them on our website."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 112.08,
+      "end": 117.7,
+      "text": " So if you're curious about that, go and check out that particular episode, where we'll share all the details."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 118.08,
+      "end": 119.86,
+      "text": " And also some of this work is even open source."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 120.02,
+      "end": 122.17999999999999,
+      "text": " So you can even check out the code if you're curious."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 122.44,
+      "end": 125.24,
+      "text": " So there are lots of benefits when it comes to step functions."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 125.24,
+      "end": 129.62,
+      "text": " The main thing is that you don't have to use programming language."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 130,
+      "end": 132.78,
+      "text": " It's effectively a declarative approach."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 133.35999999999999,
+      "end": 139.48,
+      "text": " And therefore, you don't even need to worry about what is the operative system that you need to install things on."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 139.66,
+      "end": 142.14,
+      "text": " Effectively, AWS manages all of that for you."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 142.68,
+      "end": 145.7,
+      "text": " So effectively, AWS manages all the stuff."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 145.79999999999998,
+      "end": 150.62,
+      "text": " So you worry less about security issues, library dependencies, upgrades, all this kind of stuff."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 150.72,
+      "end": 153.84,
+      "text": " So it's good to use manager service for this kind of things."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 153.84,
+      "end": 158.46,
+      "text": " And a few features are actually really cool, and I really like them about step functions."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 158.68,
+      "end": 167.28,
+      "text": " One is, for instance, that if a step fails, because maybe you are trying to model something that might occasionally fail, it's very easy to configure retries."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 168,
+      "end": 175.54,
+      "text": " And then if something fails and it breaks your entire step function, you can easily inspect that step function and replace specific steps."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 175.96,
+      "end": 180,
+      "text": " You also have archives, re-drives, and in general, robust error handling."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 180.34,
+      "end": 183.08,
+      "text": " And similarly, observability, I think, is really good."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 183.08,
+      "end": 189.8,
+      "text": " For instance, when something goes wrong, you can easily see exactly what happened throughout all the steps."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 190.34,
+      "end": 194.5,
+      "text": " AWS will retain all the inputs and outputs for each step."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 194.92000000000002,
+      "end": 198.5,
+      "text": " So effectively, you can easily pinpoint exactly what kind of error happened."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 198.96,
+      "end": 201.46,
+      "text": " You can easily fix it and then maybe retry from there."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 201.46,
+      "end": 207.68,
+      "text": " And the other cool thing is that step function can integrate directly with almost every other AWS service."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 207.68,
+      "end": 213.9,
+      "text": " And for instance, there are specific optimized integration with certain services."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 213.9,
+      "end": 224.9,
+      "text": " But whenever that integration doesn't exist, you can rely on the SDK and effectively model an API call directly in step functions."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 225.20000000000002,
+      "end": 228.48000000000002,
+      "text": " So step functions are, how do you define them?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 228.56,
+      "end": 230.4,
+      "text": " This is probably the main question you might have."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 230.76,
+      "end": 235.9,
+      "text": " So there is a specific declarative syntax that is called Amazon States Language, or ASL."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 235.9,
+      "end": 243.68,
+      "text": " And it can either be written in JSON or YAML, and effectively allows you to define all the different components of your state machine,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 243.68,
+      "end": 248.74,
+      "text": " and also to reference things like ECS tasks, HTTP APIs, and much more."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 248.74,
+      "end": 255.78,
+      "text": " You can also use CDK or other infrastructure as code tools if you don't want to write plain JSON or YAML."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 255.78,
+      "end": 258.5,
+      "text": " And those make the process a little bit easier."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 258.5,
+      "end": 262.46,
+      "text": " But there is actually a very good IDE that is called Workflow Studio."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 263.06,
+      "end": 267.04,
+      "text": " And you can access that in the AWS Management Console."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 267.22,
+      "end": 275.62,
+      "text": " But recently, AWS also launched a VS Code extension that effectively supports this UI2 directly in VS Code."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 275.9,
+      "end": 278.84,
+      "text": " So I think so far we talked about the benefits of step functions."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 279.4,
+      "end": 281.74,
+      "text": " But it's fair to say that there are a few drawbacks."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 282.12,
+      "end": 283.72,
+      "text": " The local development isn't great."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 283.98,
+      "end": 285.72,
+      "text": " This is probably the main thing."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 285.78,
+      "end": 289.94,
+      "text": " So the feedback loop can be sometimes a little bit annoying."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 290.4,
+      "end": 294.64,
+      "text": " There are things like local stack that you can try to use, and maybe they solve some of these problems."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 294.96,
+      "end": 300.61999999999995,
+      "text": " But I think in general, what I've seen is that people just deploy to AWS and test it directly in AWS."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 300.94,
+      "end": 305.47999999999996,
+      "text": " So there might be a little bit of latency there between changes and then testing those changes."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 306.03999999999996,
+      "end": 311.76,
+      "text": " The syntax that is supported is, of course, not as good as a fully feature programming language."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 311.76,
+      "end": 318.58,
+      "text": " So if you are trying to model something very complex, maybe you'll find that the syntax itself might become a little bit limiting."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 318.58,
+      "end": 329.08,
+      "text": " And often you need to do something custom, and you end up creating like an AWS Lambda step to just do something very specific, maybe a particular transformation."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 329.08,
+      "end": 333.74,
+      "text": " So those are things that can get in the way and maybe be a little bit easier sometimes."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 333.74,
+      "end": 348.14,
+      "text": " And there has been another annoying limit, which is the state, which is effectively all the data that you are carrying around between steps, and then every step can read and write into that state, was limited up to 256 kilobyte."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 348.14,
+      "end": 352.52,
+      "text": " And I think it's still limited to that, but there are ways to kind of work around it now."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 352.76,
+      "end": 356.3,
+      "text": " And this is where we're going to start to talk about JSON-Nata and variables."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 356.88,
+      "end": 365.56,
+      "text": " So one last thing that I'm going to mention is that those two features are also available in both standard step functions and express step functions."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 366.21999999999997,
+      "end": 369.06,
+      "text": " So standard is effectively long-runner workflow."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 369.06,
+      "end": 383.58,
+      "text": " So you pay based on the number of transition, and express is kind of a shorter, short-lived version of step functions, where effectively your step function can only run for maximum five minutes, and you pay by execution time."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 383.84000000000003,
+      "end": 386.22,
+      "text": " Generally, these are a little bit faster and cheaper."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 386.5,
+      "end": 390.46,
+      "text": " So depending on the type of workflow, you might want to use either standard or express."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 391.06,
+      "end": 396.44,
+      "text": " So I'll pass it now to you, Eoin, because I was talking a lot, and you can tell us everything about JSON-Nata."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 396.44,
+      "end": 398.58,
+      "text": " This is pretty new to me."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 398.66,
+      "end": 400.84,
+      "text": " I think this is the first time I've really used JSON-Nata."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 401.68,
+      "end": 405.52,
+      "text": " Maybe I've heard of it before, but it's not something that's widely used."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 405.58,
+      "end": 409.04,
+      "text": " I think it's supported a lot by IBM, and they use it a lot in their products."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 409.56,
+      "end": 417.18,
+      "text": " But it is a JSON query language, which was inspired by XPath from the world of XML."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 417.92,
+      "end": 423.58,
+      "text": " And it allows you to create sophisticated queries to transform and extract data from JSON."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 423.58,
+      "end": 431.4,
+      "text": " You might be familiar with JSON path support, which has been used in AWS in a few different places, including step functions."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 432.18,
+      "end": 436,
+      "text": " JSON-Nata is a much, much more fully featured syntax."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 436.34,
+      "end": 447.86,
+      "text": " So it supports string manipulation, numerical operations, things like date-time conversion, regular expressions, which we know we all love, comparison operators, and conditional logic."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 447.86,
+      "end": 450.82,
+      "text": " Also array and object manipulation."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 451.46000000000004,
+      "end": 453.68,
+      "text": " You can do even sorting, grouping, and aggregation."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 454,
+      "end": 457.22,
+      "text": " You can define functions in it and closures."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 457.64,
+      "end": 460.08000000000004,
+      "text": " But you've also got things like filter and map and reduce."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 460.5,
+      "end": 471,
+      "text": " So pretty much anything I think you can imagine doing in order to transform a blob of JSON-A into a blob of JSON-B, JSON-Nata has support for it."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 471,
+      "end": 476.5,
+      "text": " Now, traditionally, step functions supports the JSON path mechanism."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 477.36,
+      "end": 479.5,
+      "text": " And it also had some intrinsic functions."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 479.68,
+      "end": 482.26,
+      "text": " They added some of those, like for formatting strings and whatnot."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 482.86,
+      "end": 489.3,
+      "text": " But realistically, JSON path really only allows you to provide a tiny subset of what JSON-Nata can now do."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 489.66,
+      "end": 492.62,
+      "text": " So the amount of data transformation you can do is massively increased."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 492.74,
+      "end": 495.52,
+      "text": " And there are a load of benefits that come with that."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 495.52,
+      "end": 500.29999999999995,
+      "text": " So I guess you might ask, how would you use JSON-Nata in step functions?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 500.46,
+      "end": 503.28,
+      "text": " And how does it differ to the traditional approach, if you like?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 504.71999999999997,
+      "end": 507.53999999999996,
+      "text": " Well, previously, JSON path was your only option."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 508.09999999999997,
+      "end": 515.16,
+      "text": " Now, every step function itself can have a top-level query language specified, which can be JSON-Nata or JSON path."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 515.4,
+      "end": 519.02,
+      "text": " And you can also customize it on a state-by-state level."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 519.02,
+      "end": 528.52,
+      "text": " And that's pretty interesting if you already have a large code base, lots of step functions, and you just want to start dipping your toes in, or maybe just applying it where it's really, really valuable."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 528.84,
+      "end": 529.64,
+      "text": " So you can do that."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 529.6999999999999,
+      "end": 533.5,
+      "text": " You can just specify the query language for one state as being JSON-Nata."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 533.5,
+      "end": 544.88,
+      "text": " And instead of using all of those quite frustrating and difficult to understand properties before, like output path, result path, input path, result selector, all that stuff,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 545.72,
+      "end": 553.92,
+      "text": " you just specify a JSON-Nata expression for either the output field, which encapsulates everything you're going to output from that state, like in a pass state."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 554.2,
+      "end": 557.8,
+      "text": " Or you can specify JSON-Nata for an arguments property as well."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 557.8,
+      "end": 566.62,
+      "text": " So if you imagine you're invoking a Lambda function and you want to pass some parameters to it, you now do that with arguments, which supports JSON-Nata."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 567.3199999999999,
+      "end": 574.06,
+      "text": " And then all of the inputs, like the states input, can be referenced using a special variable $.states.input."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 575.3399999999999,
+      "end": 579.9799999999999,
+      "text": " And once you know that, you want to start writing some expressions in JSON-Nata."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 580.18,
+      "end": 584.14,
+      "text": " And you can look up the documentation, which is pretty good."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 584.38,
+      "end": 586.02,
+      "text": " There's also some online tools."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 586.02,
+      "end": 592,
+      "text": " One is the kind of official, more or less, I think, JSON-Nata Exerciser, which is an online tool."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 592.52,
+      "end": 599.24,
+      "text": " But we also know that Steady has an online JSON-Nata playground, which has nice autocomplete support and stuff in it."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 599.8,
+      "end": 602.02,
+      "text": " There's not a lot of other tools like VS Code plugins yet."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 602.8199999999999,
+      "end": 605.8199999999999,
+      "text": " So the ecosystem is not as rich as some other things."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 606.04,
+      "end": 610.26,
+      "text": " But those tools, I found, have been pretty useful to get you everything you need."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 610.26,
+      "end": 619.6,
+      "text": " Now, at the time of recording today, JSON-Nata support is not yet fully developed for the AWS CDK constructs."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 619.98,
+      "end": 627.88,
+      "text": " So if you do need JSON-Nata in CDK step functions right now, you have to use a custom state and provide the raw Amazon states language."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 627.88,
+      "end": 632,
+      "text": " And I've found that to be pretty okay, actually."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 632.14,
+      "end": 632.46,
+      "text": " It's fine."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 632.5,
+      "end": 637.46,
+      "text": " Because once you're writing JSON-Nata, you're in a string within an op property anyway."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 637.66,
+      "end": 641.46,
+      "text": " So I don't know if CDK is really going to provide anything significant beyond that."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 641.74,
+      "end": 643.06,
+      "text": " But it is something to be aware of."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 643.14,
+      "end": 646.8,
+      "text": " There is an issue in the AWS CDK repo to track that."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 646.8,
+      "end": 652.9799999999999,
+      "text": " Overall, the experience with JSON-Nata states is, I think, simpler, easier to read, easier to understand,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 653.3,
+      "end": 659.52,
+      "text": " since you don't have to deal with all those input path, output path, result path stuff that all interact together."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 659.9399999999999,
+      "end": 665.9599999999999,
+      "text": " You also don't have that .dollar syntax for property names that you might keep forgetting anymore either."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 666.8199999999999,
+      "end": 671.4599999999999,
+      "text": " And overall, I just think it's a much more developer-friendly experience and way more powerful."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 671.46,
+      "end": 675.3000000000001,
+      "text": " There is a good guide on moving from JSON-Nata to JSON-Nata."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 675.82,
+      "end": 679.2,
+      "text": " And Eric Johnson has an overview video on that page as well."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 679.34,
+      "end": 680.4200000000001,
+      "text": " We'll link it in the show notes."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 681.32,
+      "end": 684.1800000000001,
+      "text": " And yeah, that's JSON-Nata support."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 684.48,
+      "end": 685.76,
+      "text": " I found it pretty useful so far."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 686.3000000000001,
+      "end": 687,
+      "text": " That's pretty cool."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 687.3000000000001,
+      "end": 689.88,
+      "text": " What about this new variables feature then?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 690.34,
+      "end": 690.9000000000001,
+      "text": " Variables, yeah."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 691.24,
+      "end": 696.0600000000001,
+      "text": " So this 256K limit you had for state data."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 696.0600000000001,
+      "end": 701.26,
+      "text": " And it basically stayed past all the way down from the top, fell out the bottom of your step function."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 701.46,
+      "end": 702.96,
+      "text": " There was no such thing as global state."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 703.36,
+      "end": 706.5600000000001,
+      "text": " And the 256K limit could be annoying."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 706.82,
+      "end": 717.36,
+      "text": " And we definitely had cases before where you were pushing data to S3 or DynamoDB and trying to pull it out and use lambda functions to extract a subset that was under 256K."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 717.6,
+      "end": 719.02,
+      "text": " Now there's a new feature called variables."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 719.24,
+      "end": 728.5,
+      "text": " And that allows you to declare variables in one state and then reference them in any subsequent state without having to propagate them all the way down the state chain."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 728.5,
+      "end": 731.8,
+      "text": " So the variables are just named."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 732.96,
+      "end": 738.96,
+      "text": " And the total size of these is up to 10 megabytes."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 739.28,
+      "end": 742.74,
+      "text": " So already you can do far, far more than you could previously."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 742.74,
+      "end": 747.36,
+      "text": " Now you assign those variables using either JSONata or JSONpath."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 747.62,
+      "end": 751.76,
+      "text": " I think you're going to see them being used with JSONata a lot more, to be honest."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 753.12,
+      "end": 759.26,
+      "text": " But when you combine this feature with JSONata, now you have a really big step forward in what you can do with the capability of step functions."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 759.26,
+      "end": 761.84,
+      "text": " We have been using it in real projects."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 762.46,
+      "end": 775.28,
+      "text": " And we were able to remove a lot of lambda functions that just did data transformation only and reduce the complexity and even the cost of step functions overall, if you consider the cost of invoking lambda functions and waiting for them."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 775.28,
+      "end": 779.4399999999999,
+      "text": " Maybe some examples of the things we were able to do."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 779.88,
+      "end": 786.5799999999999,
+      "text": " One which I found really satisfying actually was on a project we were able to use step functions for doing API integrations."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 786.92,
+      "end": 790.66,
+      "text": " We had a third party API that was authorized with a bearer token."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 791.24,
+      "end": 797.38,
+      "text": " You're able to set up an event bridge connection, which is what step functions uses for HTTP invocations."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 797.38,
+      "end": 804.66,
+      "text": " And we can call APIs now over HTTPS using step functions, using the bearer token from Secrets Manager."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 805.4,
+      "end": 807.76,
+      "text": " Now we can process large API responses."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 808.36,
+      "end": 816.82,
+      "text": " We can process them with JSONata to filter and transform the data in a really powerful way and then fan out and call more specific actions in like a map step."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 817.16,
+      "end": 818.76,
+      "text": " And that was an existing code base."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 818.82,
+      "end": 823.06,
+      "text": " So we were able to just remove a whole lot of lambda functions, which has great benefit."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 823.06,
+      "end": 829.4,
+      "text": " You know, you reduce your deployment time, you reduce your maintenance, you reduce the runtimes you need to keep track of."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 829.76,
+      "end": 836.14,
+      "text": " And it just simplifies everything and makes your whole workflow very easy to understand by reading it."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 836.7399999999999,
+      "end": 839.88,
+      "text": " And the other thing we use JSONata a lot is just for simple past states."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 840.18,
+      "end": 845.04,
+      "text": " Like you've got the output of one state and you want to do some processing transformation on it."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 845.0999999999999,
+      "end": 848.1199999999999,
+      "text": " And we just do all that with JSONata in a simple past state."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 848.4399999999999,
+      "end": 849.2199999999999,
+      "text": " That's awesome."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 849.22,
+      "end": 853.36,
+      "text": " And I'm sure that everyone is wondering about cost."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 854.1,
+      "end": 858.62,
+      "text": " Like are these two new amazing features coming with some extra cost or not?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 859.2,
+      "end": 860.1,
+      "text": " Surprisingly, no."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 861.1,
+      "end": 868.08,
+      "text": " The cost of billing model for step functions is still the same in that for standard mode step functions, you're paying per transition."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 868.44,
+      "end": 871.5600000000001,
+      "text": " By the way, you can reduce transitions now with JSONata."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 871.6800000000001,
+      "end": 873.48,
+      "text": " So you might actually get a price reduction."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 873.48,
+      "end": 883.52,
+      "text": " And for express functions, those are priced based on the runtime, the time that they take to execute up to five minutes."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 884.1800000000001,
+      "end": 888.32,
+      "text": " So no, there's no additional cost for using variables or JSONata."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 888.8000000000001,
+      "end": 893.52,
+      "text": " I would definitely recommend people give them a try and let us know what you think."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 893.64,
+      "end": 894.66,
+      "text": " Have you found any drawbacks?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 894.66,
+      "end": 899.8399999999999,
+      "text": " I think for us, there's a bit of a learning curve for sure, but it's not significant."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 900.5,
+      "end": 909.1,
+      "text": " And I think it's not like VTL, the velocity language you might have come across for AppSync and various other things like API integrations in the past."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 909.62,
+      "end": 913.16,
+      "text": " JSONata has been a much more pleasant experience, at least for me."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 913.2199999999999,
+      "end": 914.2199999999999,
+      "text": " So let us know what you think."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 914.76,
+      "end": 916.54,
+      "text": " I think that's everything we wanted to share."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 916.92,
+      "end": 918,
+      "text": " Share your use cases."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 918.18,
+      "end": 918.6999999999999,
+      "text": " Let us know."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 918.7,
+      "end": 923.6,
+      "text": " And we're always looking to compare notes and learn how you use AWS."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 924.0600000000001,
+      "end": 925.08,
+      "text": " So thanks for listening."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 925.44,
+      "end": 926.84,
+      "text": " And we'll see you in the next episode."
+    }
+  ]
+}

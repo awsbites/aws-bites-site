@@ -1,0 +1,1625 @@
+WEBVTT
+
+1
+00:00:00.320 --> 00:00:04.960
+Today, we are diving into a problem that might be more common than we like to think among
+
+2
+00:00:04.960 --> 00:00:10.800
+cloud practitioners, copying data between S3 buckets or even S3 compatible storages.
+
+3
+00:00:10.800 --> 00:00:14.880
+So this is something that can happen if you are migrating some workloads to AWS,
+
+4
+00:00:14.880 --> 00:00:19.760
+you have been using S3 compatible object storage, and now at some point you decide to go fully on
+
+5
+00:00:19.760 --> 00:00:25.040
+AWS, so it makes sense to move all the data to S3 as well. Or maybe the other way around,
+
+6
+00:00:25.040 --> 00:00:30.000
+maybe you are escaping from AWS for whatever reason, or maybe you're just escaping the object
+
+7
+00:00:30.000 --> 00:00:35.920
+storage part. So there are more and more S3 compatible alternative storage services,
+
+8
+00:00:35.920 --> 00:00:40.080
+and some of them are actually becoming really, really competitive on pricing. So if you don't
+
+9
+00:00:40.080 --> 00:00:45.040
+mind the extra complexity of having to manage workloads distributed across multiple cloud
+
+10
+00:00:45.040 --> 00:00:50.160
+providers, this is actually something that can be an effective strategy to save some costs on your
+
+11
+00:00:50.160 --> 00:00:55.520
+cloud expenses. Or yet again, there might be another use case, maybe you are just copying data
+
+12
+00:00:55.520 --> 00:01:01.600
+from two buckets still in AWS, but maybe they happen to be in different accounts, and you know that
+
+13
+00:01:01.600 --> 00:01:06.960
+giving permission across accounts is something that sometimes can be challenging. And if you're sticking
+
+14
+00:01:06.960 --> 00:01:12.960
+to AWS, all the recommendations assume that you have one set of credentials that you can use to copy,
+
+15
+00:01:12.960 --> 00:01:19.120
+to read the data and copy the data across accounts. And this is not always an easy situation to have.
+
+16
+00:01:19.120 --> 00:01:23.360
+So this is another problem you might have to deal with when you're trying to copy data from one
+
+17
+00:01:23.360 --> 00:01:28.400
+bucket to another in different regions and accounts. So today we're going to talk about all these kind
+
+18
+00:01:28.400 --> 00:01:33.920
+of different use cases, and we will share a little bit of a story that we had personally, and how we
+
+19
+00:01:33.920 --> 00:01:40.720
+ended up building a small CLI tool that allows us to simplify copying data between S3 compatible storage.
+
+20
+00:01:40.720 --> 00:01:45.440
+My name is Luciano, and as always, I'm joined by Eoin for another episode of AWS Bites Podcast.
+
+21
+00:01:49.120 --> 00:02:01.120
+So AWS Bites is sponsored by fourTheorem, but we'll tell you more about them later. So let's get into the S3 and S3 compatible industry.
+
+22
+00:02:01.120 --> 00:02:17.120
+Yeah, the whole ecosystem around cloud storage is growing really rapidly now. S3 has been around for a long time and is still dominating. But there are a lot more interesting alternatives. And some of them are really competitive on pricing, trying to grab some of that market share that S3 has and ride on the coattails.
+
+23
+00:02:17.120 --> 00:02:39.120
+Like if you look at S3, you pay about $23 if you have like a terabyte of S3 storage on the standard tier. Now there's a decent enough free tier, you get five gigabytes, which might be enough, and 100 gigabytes of egress, which is something that was recently increased by a significant amount, to try and I think combat some of this competitive evolution.
+
+24
+00:02:39.120 --> 00:02:53.580
+If we look at some of the alternatives out there, DigitalOcean has one, DigitalOcean Spaces Object Storage, that's $5 a month fixed price. But then you pay $20 per terabyte per month, and they give you a 250 gigabyte free tier.
+
+25
+00:02:53.580 --> 00:03:07.720
+Then Cloudflare, Cloudflare R2, which is one of the entrants that I think really caused AWS to rethink their pricing strategy. That's like $15 per terabyte per month. And it is interesting for its zero egress fees approach.
+
+26
+00:03:07.720 --> 00:03:19.120
+So it's interesting, it seems like the market leader is keen to make it difficult for people to do egress, but the new entrants are very keen to say that they want to make that as cheap as possible.
+
+27
+00:03:19.120 --> 00:03:43.940
+So similar to R2, you've got Backblaze B2, which is $6 per terabyte per month, which seems like the cheapest option you can get right now. Another one is Wasabi, which is $7 per terabyte per month. And then you have Linode with Akamai, they have an object storage offering for $20 per terabyte per month, but you get a terabyte of egress for free, which is pretty significant.
+
+28
+00:03:43.940 --> 00:04:10.340
+Now, there are other options, you don't necessarily have to go with another cloud provider for object storage, you can host it yourself. MinIO is a reasonably popular one for people who want S3 compatible object storage. If you need to host it in a data center, you might say that's only for the brave, but obviously, you might have your own existing storage that you've already invested in, or you might have compliance requirements that mean you have to keep it in your data center.
+
+29
+00:04:10.340 --> 00:04:29.460
+Now, MinIO also does have a managed cloud service, but this seems to be a bit of a premium offering, because you have to spend at least $96,000 per year. But with that, you'll get 400 terabytes of storage, which works out to about $20 per terabyte per month. So there's a lot more. So if you do a web search, you'll be inundated.
+
+30
+00:04:59.460 --> 00:05:29.440
+I think we did a lot more.
+
+31
+00:05:29.440 --> 00:05:35.060
+So we had a similar case recently, and you know all about this, Luciano. So what's the backstory?
+
+32
+00:05:35.580 --> 00:05:45.820
+Yeah, the backstory is that this was basically a few weeks ago, we needed to move the entire content of an S3 bucket to another storage, an S3 compatible storage managed by another cloud provider.
+
+33
+00:05:45.820 --> 00:06:07.640
+Now, don't really ask us why. We are big fans of AWS and S3, as you know. But sometimes business requirements can get in the way, and you end up in unexpected places, and you just need to solve the problem. So I'm sure you can relate. And especially now that you know all about this other competitive offers, you can see why businesses might decide to do something like this.
+
+34
+00:06:07.640 --> 00:06:23.620
+So yeah, this was the situation we were in. And we thought this was like a simple problem, right? How hard can it be to just copy data from S3 to something else that promises you S3 compatible APIs, right? Seems like you can just do an S3 sync and call it a day, right?
+
+35
+00:06:23.620 --> 00:06:33.740
+But of course, it's not that easy. And that's the reason why we are talking about it. And I just want to explain some of the requirements we had, so that you can understand why we ended up with a specific solution.
+
+36
+00:06:33.740 --> 00:06:44.940
+So basically, we needed to copy all these objects from this bucket to another S3 compatible service. Now, in fairness, it wasn't like a huge amount of objects. I think it was quite a couple of terabytes or maybe something more.
+
+37
+00:06:45.300 --> 00:06:51.240
+But it was a lot of small objects, so in the order of like millions of very small objects.
+
+38
+00:06:51.240 --> 00:06:56.960
+So the copy itself needs to be efficient. We wanted to make it efficient in terms of memory.
+
+39
+00:06:57.200 --> 00:07:03.440
+So possibly, we didn't want to kind of buffer everything into an intermediate machine to just copy to the destination.
+
+40
+00:07:03.440 --> 00:07:09.780
+We wanted to do some kind of copy on the fly. So as you read the data from source, you start to copy it to the destination.
+
+41
+00:07:10.300 --> 00:07:18.940
+And so ideally, another thing that this was more for like operational purposes, because there were applications actually using this data,
+
+42
+00:07:18.940 --> 00:07:21.860
+and also the applications needed to transition to the new storage.
+
+43
+00:07:21.860 --> 00:07:34.800
+So the business decided that it made sense to start to prioritize newer files, because these will be the ones with, I guess, the higher probability of being used by the application.
+
+44
+00:07:35.460 --> 00:07:43.080
+So another requirement is the copy process should take that into account and prioritize more recent objects rather than the oldest one.
+
+45
+00:07:43.080 --> 00:07:49.200
+And then the other thing is that it should be possible to interrupt the copy process at any point and resume it later.
+
+46
+00:07:49.680 --> 00:07:56.980
+And this can include if something fails, maybe the machine needs to be rebooted, maybe the copy process itself, I don't know, has a bug and just fails.
+
+47
+00:07:57.520 --> 00:08:02.420
+We don't want to restart from scratch because that will be a huge waste of time and also bandwidth.
+
+48
+00:08:02.420 --> 00:08:09.560
+So let's figure out a way that the whole copy process can be interrupted at any time and it can be resumed later.
+
+49
+00:08:09.700 --> 00:08:12.260
+So again, how difficult could this be?
+
+50
+00:08:12.780 --> 00:08:15.840
+S3 sync seems to hit most of the boxes here.
+
+51
+00:08:16.140 --> 00:08:22.700
+But yeah, when we started to look into it, there were some problems that we'll tell you a bit more about later.
+
+52
+00:08:22.700 --> 00:08:36.180
+And therefore, we ended up deciding, OK, we are going to create our own little CLI utility that is able to read files from the original strip bucket and copy the files to the destination service.
+
+53
+00:08:36.440 --> 00:08:44.280
+But I think before getting into the details of this solution, which, by the way, little spoiler, is called S3-Migrate and it's fully open source.
+
+54
+00:08:44.440 --> 00:08:45.940
+We'll share the link in the show notes.
+
+55
+00:08:45.940 --> 00:08:56.480
+But before diving into it, I think we should talk a little bit more about our analysis of the existing solutions and why we couldn't use anything that is already available.
+
+56
+00:08:56.580 --> 00:09:00.040
+And generally, we don't like to have to invent these tools ourselves.
+
+57
+00:09:00.420 --> 00:09:07.180
+And you might think like S3-compatible storages should just work with S3 tools like the AWS CLI and the AWS CDK.
+
+58
+00:09:07.320 --> 00:09:08.720
+That's kind of what we thought too.
+
+59
+00:09:08.720 --> 00:09:18.280
+But when we did a little bit more research, we realized that in this case, it actually made some sense for this client to create a new tool from scratch.
+
+60
+00:09:18.280 --> 00:09:33.860
+So if you just Google for how do you copy data between S3 buckets, you might end up on an Amazon AWS S3, sorry, on an AWS repost thread that suggests to use either the CLI, that's the AWS S3 sync command, which we use a lot, to be fair,
+
+61
+00:09:33.860 --> 00:09:44.580
+or use S3 batch operations, which are very useful if you've got a whole number of copies to do or a whole load of objects to manage in one batch.
+
+62
+00:09:44.760 --> 00:09:48.480
+So these are all good solutions, but there's a couple of fundamental challenges with them.
+
+63
+00:09:48.600 --> 00:09:50.860
+First one is that they assume you're all in on AWS.
+
+64
+00:09:51.320 --> 00:09:58.920
+They don't, naturally enough, cover the scenario where you might be using an S3-compatible storage either as a source or as a destination.
+
+65
+00:09:58.920 --> 00:10:02.760
+So normally when you do a copy operation on S3, it's managed by S3.
+
+66
+00:10:02.760 --> 00:10:09.200
+The data doesn't have to go through your client, so you can just do a copy object API call.
+
+67
+00:10:09.380 --> 00:10:13.040
+But that only works if the source and destination are on the same provider.
+
+68
+00:10:13.220 --> 00:10:19.900
+Even if you are all in on AWS, if the two buckets live in two different accounts, you need to set up cross-account permissions.
+
+69
+00:10:20.160 --> 00:10:26.820
+And that can add a lot of complexity, because essentially what it means is that if you're doing a copy object operation,
+
+70
+00:10:26.820 --> 00:10:32.480
+that's going to be signed with a signature from an IAM identity, and you can only have one principle there.
+
+71
+00:10:32.560 --> 00:10:33.440
+You can't have two principles.
+
+72
+00:10:33.440 --> 00:10:40.000
+So that principle must be authorized to access the source and the destination in the read and write modes you need.
+
+73
+00:10:40.200 --> 00:10:44.060
+So when you run the sync command, the AWS CLI operates with that one set of credentials,
+
+74
+00:10:44.060 --> 00:10:53.060
+and it isn't going to work if you've got something on S3 and the other destination or the source is on Cloudflare, for example.
+
+75
+00:10:53.220 --> 00:10:56.100
+So we were looking for something that could operate with two different sets of credentials,
+
+76
+00:10:56.500 --> 00:10:59.280
+one for reading from an arbitrary S3-compatible source,
+
+77
+00:10:59.440 --> 00:11:03.000
+and one for writing to another arbitrary S3-compatible destination.
+
+78
+00:11:03.000 --> 00:11:09.400
+And since we couldn't find anything out of the box, being the nerdy programmers who probably suffer a little bit from the not-invented-here syndrome,
+
+79
+00:11:09.680 --> 00:11:16.280
+we thought, well, how difficult can it be to write a little CLI tool that uses the SDK to do what we want to do?
+
+80
+00:11:16.420 --> 00:11:17.620
+Luciano, you wrote that tool.
+
+81
+00:11:17.920 --> 00:11:19.040
+So how does it work?
+
+82
+00:11:19.660 --> 00:11:22.220
+Yeah, let me try to explain how it is built.
+
+83
+00:11:22.680 --> 00:11:25.880
+So again, in a nutshell, it's effectively called S3-migrate.
+
+84
+00:11:25.880 --> 00:11:33.200
+It tries to do something somewhat similar to AWS S3 sync, but allows you to provide two separate sets of credentials.
+
+85
+00:11:33.440 --> 00:11:38.120
+This is probably the main difference from an idea perspective of the tool.
+
+86
+00:11:38.640 --> 00:11:42.120
+So you don't necessarily have to have one single set of credentials.
+
+87
+00:11:42.380 --> 00:11:44.720
+You can provide two for source and for destination.
+
+88
+00:11:45.020 --> 00:11:49.900
+And the tool itself is written using Node.js, specifically in TypeScript,
+
+89
+00:11:49.900 --> 00:11:54.380
+and it uses Commander.js for the CLI argument parsing.
+
+90
+00:11:54.920 --> 00:11:56.460
+SQLite for data storage.
+
+91
+00:11:56.600 --> 00:12:00.900
+We'll get into the details of that in a second because it might sound weird right now.
+
+92
+00:12:01.140 --> 00:12:07.300
+And of course, it uses the AWS SDK version 3 for JavaScript to interact with S3-compatible endpoint.
+
+93
+00:12:07.300 --> 00:12:12.100
+By the way, fun fact, if you look at most of these other providers,
+
+94
+00:12:12.520 --> 00:12:17.940
+they all tell you just use the AWS S3 SDK to interact with our APIs.
+
+95
+00:12:17.940 --> 00:12:23.620
+So this is actually a good sign that most providers are actually trying to be strictly compatible with those APIs
+
+96
+00:12:23.620 --> 00:12:27.480
+to the point that it's not even worth for them to create their own clients
+
+97
+00:12:27.480 --> 00:12:30.460
+because you can just use the existing SDKs and clients.
+
+98
+00:12:30.740 --> 00:12:35.640
+So that kind of made it a little bit easier for us because we didn't need to learn a new,
+
+99
+00:12:35.740 --> 00:12:41.160
+I don't know, set of library or even trying to figure out if we want this tool to work with multiple providers,
+
+100
+00:12:41.280 --> 00:12:47.340
+do we need to, I don't know, have some kind of abstraction layer where you need to plug in different SDKs.
+
+101
+00:12:47.340 --> 00:12:51.800
+Thankfully, everything seems to work just fine with the AWS SDK for Java.
+
+102
+00:12:51.920 --> 00:12:55.820
+Now, you might be asking the usual question here, why didn't you use Rust or Go?
+
+103
+00:12:55.960 --> 00:13:02.160
+And of course, this is something we could debate on for hours and we could do like a flame war of sort.
+
+104
+00:13:02.320 --> 00:13:06.880
+But yeah, if you just want the long story short, I would have personally loved to write it in Rust
+
+105
+00:13:06.880 --> 00:13:11.500
+because I'm a big fan of Rust and I'm always looking for excuses to use Rust more.
+
+106
+00:13:11.500 --> 00:13:15.900
+But honestly, given that we have tons of experience in Node.js and TypeScript,
+
+107
+00:13:16.060 --> 00:13:22.740
+and this seems a use case that you have lots of tooling existing that can support you in Node.js and TypeScript,
+
+108
+00:13:23.080 --> 00:13:27.460
+it was just much easier and faster to deliver the solution using TypeScript.
+
+109
+00:13:27.840 --> 00:13:30.020
+And the other thing is that from a performance perspective,
+
+110
+00:13:30.400 --> 00:13:35.700
+it is true that maybe Rust could have made it a little bit faster and maybe more, I guess,
+
+111
+00:13:35.700 --> 00:13:41.020
+from a memory perspective, a little bit savvy, like it's not going to use as much memory.
+
+112
+00:13:41.540 --> 00:13:44.780
+But at the same time, the real bottleneck here is networking speed.
+
+113
+00:13:44.980 --> 00:13:48.920
+We are doing a copy, like a progressive copy of the data.
+
+114
+00:13:49.180 --> 00:13:52.280
+So really, yeah, networking is the real bottleneck here.
+
+115
+00:13:52.280 --> 00:13:56.300
+So even if we, maybe if we use Rust multi-traded AsyncIO,
+
+116
+00:13:56.620 --> 00:14:01.320
+the multi-trading could have been, could have given us a way to parallelize a little bit more the copy.
+
+117
+00:14:01.540 --> 00:14:05.640
+But there are other strategies that we put in place and we'll talk about that later.
+
+118
+00:14:05.760 --> 00:14:08.100
+So yeah, this is why we didn't use Go or Rust.
+
+119
+00:14:08.300 --> 00:14:13.660
+But I don't know, maybe it's an exercise for somebody if you want to try to do something similar with one of those lines.
+
+120
+00:14:13.740 --> 00:14:15.300
+As I said, the tool is fully open source.
+
+121
+00:14:15.440 --> 00:14:18.240
+It's published on NPM, so you can just use it today.
+
+122
+00:14:18.240 --> 00:14:22.440
+But by using something like MPX, you don't even need to install it.
+
+123
+00:14:22.620 --> 00:14:25.640
+You can just try it just with one command and see if it works for you.
+
+124
+00:14:25.740 --> 00:14:27.940
+Now, we mentioned that there are two sets of credentials.
+
+125
+00:14:28.260 --> 00:14:33.320
+It works in a similar way to the AWS CLI or the AWS SDK,
+
+126
+00:14:33.320 --> 00:14:38.420
+meaning that you can use the usual environment variables like AWS Access Key ID,
+
+127
+00:14:38.780 --> 00:14:41.820
+or you can use Endpoint and so on.
+
+128
+00:14:42.020 --> 00:14:45.940
+But the difference is that you have, you can use the basic one.
+
+129
+00:14:46.140 --> 00:14:48.800
+If you just use the basic one, that's kind of the default layer.
+
+130
+00:14:48.800 --> 00:14:55.280
+But you can also override by saying source underscore AWS Access Key or source underscore Endpoint.
+
+131
+00:14:55.760 --> 00:14:57.400
+And similarly, you can override the destination.
+
+132
+00:14:57.880 --> 00:15:02.380
+For instance, you can say destination AWS Access Key ID destination Endpoint.
+
+133
+00:15:02.620 --> 00:15:05.400
+And the tool also reads from M files.
+
+134
+00:15:05.660 --> 00:15:10.520
+So if you prefer to just put all this information in an M file because it makes your life easier,
+
+135
+00:15:10.920 --> 00:15:16.120
+the tool is going to load an M file automatically if that exists in the current working directory.
+
+136
+00:15:16.120 --> 00:15:21.380
+Now, the way that it is a little bit different from sync is that there are actually two phases.
+
+137
+00:15:21.740 --> 00:15:24.440
+Like you don't just run one command and it starts the copy.
+
+138
+00:15:24.540 --> 00:15:26.660
+You actually need to run two different commands.
+
+139
+00:15:26.820 --> 00:15:28.480
+And the first command is called catalog.
+
+140
+00:15:28.780 --> 00:15:31.460
+And that's what we call the catalog phase, which is basically,
+
+141
+00:15:32.460 --> 00:15:35.500
+what it's going to do is going to do a list operation on the source bucket
+
+142
+00:15:35.500 --> 00:15:40.400
+and store all the objects in a local SQLite database.
+
+143
+00:15:40.640 --> 00:15:44.720
+And the reason why we do this, this is effectively like a mini state file, if you want.
+
+144
+00:15:44.720 --> 00:15:51.460
+And this is what we decided to do to effectively have that kind of resumability feature on one side.
+
+145
+00:15:52.000 --> 00:15:55.740
+So as we copy the files, we know exactly how many files there are to copy.
+
+146
+00:15:55.820 --> 00:15:57.560
+So we can keep track of the progress.
+
+147
+00:15:57.760 --> 00:16:00.040
+We can mark which ones have been copied.
+
+148
+00:16:00.520 --> 00:16:05.060
+And the other thing we can do, because we also store the metadata related to all the objects
+
+149
+00:16:05.060 --> 00:16:07.200
+as we discover them through the list operation,
+
+150
+00:16:07.640 --> 00:16:10.300
+that's also what we can use to effectively do the sorting.
+
+151
+00:16:10.300 --> 00:16:15.600
+So if you want to prioritize the files that are bigger, smaller, or newer,
+
+152
+00:16:16.300 --> 00:16:17.120
+you can do that.
+
+153
+00:16:17.360 --> 00:16:20.140
+And effectively, we'll be doing, the tool is going to be doing behind the scenes,
+
+154
+00:16:20.220 --> 00:16:24.020
+a different SQL query with a different sorting based on your parameters.
+
+155
+00:16:24.540 --> 00:16:26.920
+So that's the reason why we have this kind of intermediate step,
+
+156
+00:16:27.080 --> 00:16:31.560
+just to make it a little bit more flexible to understand how many objects there are
+
+157
+00:16:31.560 --> 00:16:34.200
+and as you copy to understand what is the current progress,
+
+158
+00:16:34.380 --> 00:16:38.300
+and then to do prioritization of different objects and resumability.
+
+159
+00:16:38.300 --> 00:16:42.920
+Once you have done the catalog phase, so effectively you end up with this state file,
+
+160
+00:16:43.040 --> 00:16:44.300
+which is effectively a SQLite.
+
+161
+00:16:44.420 --> 00:16:50.380
+You can open it with any SQLite compatible UI or CLI just to see what's inside.
+
+162
+00:16:50.740 --> 00:16:53.660
+And with that, you can start the copy phase.
+
+163
+00:16:53.760 --> 00:16:56.060
+So there is another command, s3 migrate copy,
+
+164
+00:16:56.280 --> 00:17:00.140
+where you specify the source bucket, the destination bucket, and the state file.
+
+165
+00:17:00.280 --> 00:17:03.600
+And of course, through the environment, you are providing all your credentials.
+
+166
+00:17:03.780 --> 00:17:07.040
+And effectively, this command is going to start to look at the state file,
+
+167
+00:17:07.040 --> 00:17:10.660
+figure out what still needs to be copied and start to copy it.
+
+168
+00:17:10.780 --> 00:17:14.980
+And of course, being a CLI utility, one of the challenges, of course,
+
+169
+00:17:15.020 --> 00:17:19.000
+is that you need to have it in some kind of host system or your own personal laptop,
+
+170
+00:17:19.200 --> 00:17:22.180
+like wherever, like it needs to be a process that runs somewhere.
+
+171
+00:17:22.440 --> 00:17:26.400
+And of course, you need to control that process, make sure it's a long running thing.
+
+172
+00:17:26.940 --> 00:17:29.640
+So probably you're going to have some kind of remote machine somewhere,
+
+173
+00:17:29.980 --> 00:17:32.300
+install the tool there, provide all the credentials,
+
+174
+00:17:32.300 --> 00:17:35.840
+create the catalog and then run the command and just monitor
+
+175
+00:17:35.840 --> 00:17:38.880
+that the application is progressing without any issues.
+
+176
+00:17:38.880 --> 00:17:41.920
+Okay, it sounds like there's a lot of capability here.
+
+177
+00:17:42.260 --> 00:17:47.040
+And I guess the thing about building these tools is that it's achievable enough
+
+178
+00:17:47.040 --> 00:17:48.880
+to get version one up and running.
+
+179
+00:17:49.360 --> 00:17:51.960
+But already, even if you run it once or twice,
+
+180
+00:17:52.000 --> 00:17:54.500
+you might be a start to think about how you can make it faster,
+
+181
+00:17:54.660 --> 00:17:58.160
+especially trying to handle different types of data sets.
+
+182
+00:17:58.160 --> 00:18:03.720
+You mentioned that in this case, the subject was a lot of small files on S3.
+
+183
+00:18:03.900 --> 00:18:05.420
+You might also have a lot of large files.
+
+184
+00:18:05.660 --> 00:18:10.240
+And you're trying to optimize for IO and parallelism and request throttling,
+
+185
+00:18:10.320 --> 00:18:11.040
+a lot of that kind of stuff.
+
+186
+00:18:11.100 --> 00:18:14.980
+So what kind of performance optimizations did you think about so far?
+
+187
+00:18:15.420 --> 00:18:16.840
+Yeah, that's a very good question.
+
+188
+00:18:17.060 --> 00:18:22.260
+And I'm going to start with a caveat that I think this is still a very early project.
+
+189
+00:18:22.460 --> 00:18:25.480
+If you look at the repo, it clearly states that this is experimental.
+
+190
+00:18:25.480 --> 00:18:29.080
+So don't trust it too much, or I will say trust but verify.
+
+191
+00:18:29.480 --> 00:18:33.480
+So I'm sure that there are still loads of opportunities to improve it,
+
+192
+00:18:33.540 --> 00:18:35.120
+and also in terms of performance.
+
+193
+00:18:35.400 --> 00:18:39.540
+So with that being said, what have we done so far to try to give you options
+
+194
+00:18:39.540 --> 00:18:44.020
+on how you can improve both performance in terms of data transfer,
+
+195
+00:18:44.180 --> 00:18:48.240
+but also in terms of how much memory is being consumed at the host level.
+
+196
+00:18:48.380 --> 00:18:51.160
+So if you want to be very memory efficient, for example,
+
+197
+00:18:51.240 --> 00:18:52.760
+there are options there as well.
+
+198
+00:18:52.760 --> 00:18:57.560
+So one thing worth mentioning is that we use Node.js streams to copy data,
+
+199
+00:18:57.680 --> 00:18:59.740
+and that's another thing that I'm a big fan of.
+
+200
+00:18:59.940 --> 00:19:02.820
+So probably no surprises if people know me.
+
+201
+00:19:03.560 --> 00:19:08.540
+The idea is that when you run a get object command using the AWS S3 SDK,
+
+202
+00:19:09.180 --> 00:19:12.640
+the body that you receive in the response is a Node.js stream.
+
+203
+00:19:12.740 --> 00:19:15.540
+So effectively, you are not eagerly consuming that data.
+
+204
+00:19:15.540 --> 00:19:19.920
+Almost you can think of that like you have a pointer to where the data is,
+
+205
+00:19:20.340 --> 00:19:22.720
+and then you can start to fetch as you need it.
+
+206
+00:19:23.180 --> 00:19:28.900
+And also Node.js streams give you a nice API where you can effectively combine streams together.
+
+207
+00:19:29.140 --> 00:19:32.500
+So you could have a stream to read and another stream to write,
+
+208
+00:19:32.600 --> 00:19:36.560
+and effectively you can pipe them together and let the data flow from one to another.
+
+209
+00:19:36.720 --> 00:19:40.220
+And this is very useful because when you do a put object operation,
+
+210
+00:19:40.620 --> 00:19:44.040
+you also have a stream in the body that effectively you are writing.
+
+211
+00:19:44.040 --> 00:19:47.860
+And in Node.js terms, you have a readable stream for the get operation
+
+212
+00:19:47.860 --> 00:19:50.300
+and a writable stream for the put operation.
+
+213
+00:19:50.520 --> 00:19:55.360
+So effectively, you can easily combine a readable stream with a writable stream
+
+214
+00:19:55.360 --> 00:19:59.300
+and basically just create this pipe where you say read from one place, write to another.
+
+215
+00:19:59.720 --> 00:20:03.760
+And Node.js takes care of most of the complexity there,
+
+216
+00:20:03.840 --> 00:20:06.140
+because for instance, even handles back pressure.
+
+217
+00:20:06.400 --> 00:20:09.320
+If you are much faster at reading than you are at writing,
+
+218
+00:20:09.320 --> 00:20:13.820
+what generally would happen is that you easily exhaust all the memory reading,
+
+219
+00:20:14.040 --> 00:20:19.020
+and as you try to write, you are not able to flush all this data fast enough.
+
+220
+00:20:19.660 --> 00:20:22.280
+So Node.js has a mechanism called back pressure handling,
+
+221
+00:20:22.520 --> 00:20:27.260
+where effectively it kind of figures out when you have too much data accumulated,
+
+222
+00:20:27.540 --> 00:20:32.160
+and it's going to stop reading, give time to the backend system to receive all the writes,
+
+223
+00:20:32.380 --> 00:20:33.820
+and then it's going to resume reading.
+
+224
+00:20:33.960 --> 00:20:36.600
+And all of that stuff happens automatically when you stream.
+
+225
+00:20:36.600 --> 00:20:39.820
+So I think that's kind of an easy optimization to have,
+
+226
+00:20:40.020 --> 00:20:43.440
+because all built in Node.js and we just took advantage of it.
+
+227
+00:20:43.980 --> 00:20:48.300
+There is some additional complexity, if we want to get into the nitty-gritty details,
+
+228
+00:20:48.680 --> 00:20:51.980
+where there is a minimum amount of...
+
+229
+00:20:51.980 --> 00:20:54.740
+Like when you use streams, you are effectively reading and writing in chunks.
+
+230
+00:20:54.880 --> 00:20:59.180
+So you get blobs of bytes, and they generally have like a fixed size.
+
+231
+00:20:59.180 --> 00:21:04.480
+The S3 API forces you to have a consistent chunk size when you're writing,
+
+232
+00:21:04.840 --> 00:21:08.840
+and there is a minimum amount of bytes that that chunk size needs to have.
+
+233
+00:21:09.420 --> 00:21:11.460
+So we kind of have to do some...
+
+234
+00:21:11.460 --> 00:21:13.060
+It's called like a transform stream.
+
+235
+00:21:13.260 --> 00:21:17.760
+We need to put something in between that buffers enough data to be able then to write.
+
+236
+00:21:18.240 --> 00:21:20.820
+But that's, yeah, just as much complexity as we added,
+
+237
+00:21:20.980 --> 00:21:23.160
+then not just streams take care of everything else.
+
+238
+00:21:23.280 --> 00:21:24.640
+And this is actually an interesting part,
+
+239
+00:21:24.640 --> 00:21:26.440
+because this is another place where you can optimize.
+
+240
+00:21:26.740 --> 00:21:29.760
+So you can decide to increase the chunk size,
+
+241
+00:21:29.960 --> 00:21:33.700
+which effectively means you are going to accumulate more memory in the host system,
+
+242
+00:21:33.700 --> 00:21:38.180
+because effectively you are creating more windows of data that are ready to be flushed.
+
+243
+00:21:38.280 --> 00:21:41.780
+And the bigger they are, of course, the more memory you are consuming in the host system.
+
+244
+00:21:41.780 --> 00:21:45.040
+But at the same time, that means you are doing less API calls
+
+245
+00:21:45.040 --> 00:21:47.380
+to the storage service where you're writing.
+
+246
+00:21:47.640 --> 00:21:49.440
+So that can be convenient as well,
+
+247
+00:21:49.520 --> 00:21:53.020
+because of course, every API call has an override.
+
+248
+00:21:53.020 --> 00:21:57.240
+So, yeah, generally it's suggested to try to figure out,
+
+249
+00:21:57.300 --> 00:21:59.340
+to find a balance where if you keep it too small,
+
+250
+00:21:59.740 --> 00:22:01.300
+you maybe are doing too many writes,
+
+251
+00:22:01.680 --> 00:22:04.880
+and there is an overhead on the operative system and everything else.
+
+252
+00:22:05.000 --> 00:22:07.700
+But if you find maybe what is a good chunk size,
+
+253
+00:22:07.700 --> 00:22:11.820
+then you probably can optimize a little bit more on the write speed as well.
+
+254
+00:22:11.960 --> 00:22:14.340
+Now, another interesting optimization is concurrency.
+
+255
+00:22:14.620 --> 00:22:18.540
+Using Node.js, this is effectively you have a language
+
+256
+00:22:18.540 --> 00:22:21.480
+that allows you to do concurrency relatively easy.
+
+257
+00:22:21.480 --> 00:22:25.600
+Just be aware that, of course, this is still a single-threaded type of concurrency.
+
+258
+00:22:26.260 --> 00:22:28.820
+So in this case, I think it works really well,
+
+259
+00:22:28.900 --> 00:22:31.940
+because you are effectively waiting for I.O. most of the time.
+
+260
+00:22:32.080 --> 00:22:35.420
+So as you are waiting, you can have multiple copy operations
+
+261
+00:22:35.420 --> 00:22:37.740
+that are kind of interleaved between each other,
+
+262
+00:22:38.200 --> 00:22:39.480
+and they will progress together.
+
+263
+00:22:39.620 --> 00:22:41.860
+But of course, this works up to a certain point.
+
+264
+00:22:41.860 --> 00:22:47.760
+So you can try to figure out what is the maximum amount of concurrency that I can use,
+
+265
+00:22:48.080 --> 00:22:49.580
+and there is a parameter you can specify,
+
+266
+00:22:49.820 --> 00:22:53.040
+to the point where you don't see an improvement of speed anymore,
+
+267
+00:22:53.040 --> 00:22:56.260
+just because there is so much interleaved operation
+
+268
+00:22:56.260 --> 00:22:59.720
+that effectively you are wasting more time just jumping from one operation to another,
+
+269
+00:22:59.840 --> 00:23:02.620
+rather than actually copying the data and doing progress.
+
+270
+00:23:02.620 --> 00:23:06.920
+So I think at some point, it might be beneficial to use proper parallelism,
+
+271
+00:23:07.020 --> 00:23:10.120
+so trying to spin up multiple processes to do the copy.
+
+272
+00:23:10.400 --> 00:23:12.820
+And this is something that is supported by the tool,
+
+273
+00:23:12.920 --> 00:23:14.440
+but might be a little bit tricky.
+
+274
+00:23:14.720 --> 00:23:18.560
+And actually, the AWS S3 sync does something similar as well,
+
+275
+00:23:18.940 --> 00:23:20.480
+where effectively you can create a catalog
+
+276
+00:23:20.480 --> 00:23:23.640
+only for a certain prefix in your source S3 bucket.
+
+277
+00:23:23.900 --> 00:23:28.280
+So effectively, you end up with multiple catalogs as per many prefixes you use.
+
+278
+00:23:28.280 --> 00:23:32.560
+And then you can take those catalogs, and even in different machines, if you want,
+
+279
+00:23:32.680 --> 00:23:36.520
+you can do the copy operation only for those subsets of all the data.
+
+280
+00:23:36.940 --> 00:23:39.960
+So effectively, you can parallelize the copy across multiple machines,
+
+281
+00:23:39.960 --> 00:23:42.160
+which gives you more parallelism.
+
+282
+00:23:42.340 --> 00:23:45.040
+Probably you can use more bandwidth as well,
+
+283
+00:23:45.100 --> 00:23:48.180
+because of course, bandwidth at some point can become a bottleneck as well.
+
+284
+00:23:48.560 --> 00:23:51.880
+The only issue with that is that it is a little bit more complex to set up.
+
+285
+00:23:51.980 --> 00:23:54.580
+And also, it's always a little bit challenging to figure out
+
+286
+00:23:54.580 --> 00:23:59.740
+what are some good prefixes that I can use to effectively spread equally
+
+287
+00:23:59.740 --> 00:24:05.380
+the amount of data that is being copied at every point of your parallelized solution.
+
+288
+00:24:05.680 --> 00:24:07.660
+So it is an option, it is supported,
+
+289
+00:24:07.780 --> 00:24:09.680
+but I guess depending on the shape of your data,
+
+290
+00:24:09.780 --> 00:24:13.820
+it might be easier or harder to effectively adopt this solution.
+
+291
+00:24:14.360 --> 00:24:17.540
+You mentioned that it's still in the early stages.
+
+292
+00:24:17.800 --> 00:24:21.680
+So what would you like to see in terms of roadmap?
+
+293
+00:24:21.940 --> 00:24:22.840
+What doesn't it do yet?
+
+294
+00:24:22.840 --> 00:24:27.460
+Do you have any call to action for the audience to get contributing on this?
+
+295
+00:24:27.680 --> 00:24:30.980
+Yeah, I think there are two sets of things worth discussing.
+
+296
+00:24:31.160 --> 00:24:33.780
+One is like things that are not supported by design,
+
+297
+00:24:34.020 --> 00:24:38.220
+and other things that are not supported just because we didn't have the time
+
+298
+00:24:38.220 --> 00:24:40.280
+or the immediate need for those features.
+
+299
+00:24:40.500 --> 00:24:44.260
+So the things that are not supported by design are things like copying,
+
+300
+00:24:44.720 --> 00:24:49.300
+I don't know, attributes, or tags, or ACL rules,
+
+301
+00:24:49.300 --> 00:24:54.700
+or anything, I guess, related, anything that falls outside just the data of the objects themselves.
+
+302
+00:24:54.700 --> 00:25:00.500
+Like in S3, you have so many options of things you can configure, storage classes, life cycles,
+
+303
+00:25:00.920 --> 00:25:03.680
+things you can configure at the object level, at the bucket level.
+
+304
+00:25:04.160 --> 00:25:08.060
+This tool intentionally doesn't try to do to replicate any of this.
+
+305
+00:25:08.060 --> 00:25:12.260
+And one of the reasons is because this was not our immediate need.
+
+306
+00:25:12.380 --> 00:25:17.880
+But then the other reason is if you analyze the problem a bit pragmatically,
+
+307
+00:25:18.460 --> 00:25:24.420
+different S3 compatible storages are going to have a different level of support for those features.
+
+308
+00:25:24.960 --> 00:25:27.860
+So trying to be comprehensive and support all of these things,
+
+309
+00:25:27.900 --> 00:25:30.020
+I think you easily end up with like a matrix.
+
+310
+00:25:30.280 --> 00:25:31.960
+So what is supported and not supported,
+
+311
+00:25:31.960 --> 00:25:37.400
+then it becomes quickly obvious that either you create a system that is like hyper configurable
+
+312
+00:25:37.400 --> 00:25:40.600
+and then let the user figure out which configuration works for them,
+
+313
+00:25:40.700 --> 00:25:46.640
+or it becomes effectively impossible to maintain this matrix of what storage supports what feature
+
+314
+00:25:46.640 --> 00:25:50.040
+and then try to automatically leverage whatever is supported.
+
+315
+00:25:50.040 --> 00:25:53.360
+So that's something that by design, we didn't even try to implement.
+
+316
+00:25:53.840 --> 00:25:56.040
+Similarly, also encryption is another thing.
+
+317
+00:25:56.240 --> 00:26:01.200
+Like if you have encrypted objects, I'm not actually sure I haven't done a lot of testing,
+
+318
+00:26:01.200 --> 00:26:03.900
+but we don't try to provide any option at this stage.
+
+319
+00:26:04.080 --> 00:26:09.820
+So that is something that might get in the way if you're actually working with encrypted data in buckets.
+
+320
+00:26:10.000 --> 00:26:12.700
+I guess it depends also on the encryption mechanism you are using.
+
+321
+00:26:13.560 --> 00:26:16.320
+And the one thing that actually I would like to see,
+
+322
+00:26:16.440 --> 00:26:18.940
+but we just didn't have the time to implement it ourselves,
+
+323
+00:26:19.140 --> 00:26:21.780
+is some kind of support for multi-part uploads.
+
+324
+00:26:22.040 --> 00:26:26.640
+Because this tool worked really well for us because all the files were relatively small.
+
+325
+00:26:26.640 --> 00:26:33.700
+But I guess if you have some kind of media intensive application where maybe you have lots of big images or even videos,
+
+326
+00:26:34.020 --> 00:26:36.840
+and you can have files that spans multiple gigabytes,
+
+327
+00:26:37.240 --> 00:26:40.440
+then maybe this won't be the most efficient way to copy your files.
+
+328
+00:26:40.580 --> 00:26:44.820
+Probably you want to do some kind of multi-part upload to try to parallelize as much as possible,
+
+329
+00:26:44.920 --> 00:26:46.320
+even the individual objects.
+
+330
+00:26:46.580 --> 00:26:50.460
+So if anyone is open, maybe you are using this tool and you find it useful.
+
+331
+00:26:50.760 --> 00:26:52.540
+It's open source, so feel free to send a PR.
+
+332
+00:26:52.540 --> 00:26:54.840
+This is one feature that we would love to see.
+
+333
+00:26:55.040 --> 00:26:55.140
+Nice.
+
+334
+00:26:55.660 --> 00:26:57.700
+And it would be great to get more development on this,
+
+335
+00:26:57.780 --> 00:26:59.660
+because if we look at some of the alternative solutions,
+
+336
+00:27:00.000 --> 00:27:01.520
+there's a couple of open source ones out there,
+
+337
+00:27:01.600 --> 00:27:04.820
+but a lot of them seem to have been written by people who needed to solve a problem
+
+338
+00:27:04.820 --> 00:27:07.000
+and then maybe not maintained so well.
+
+339
+00:27:07.280 --> 00:27:12.660
+There's one from AWS Labs, which is relatively new, but written in Golang.
+
+340
+00:27:12.840 --> 00:27:17.840
+It uses S3 batch operations, so AWS only doesn't really solve a problem.
+
+341
+00:27:18.340 --> 00:27:21.340
+There's an older one called S3 S3 Mirror on GitHub.
+
+342
+00:27:21.340 --> 00:27:25.160
+It's a Java-based one that allows you to mirror buckets from one to the other
+
+343
+00:27:25.160 --> 00:27:26.960
+or from a local file system.
+
+344
+00:27:27.280 --> 00:27:30.600
+And then there's one called NoxCopy, which was written in Ruby quite a while ago,
+
+345
+00:27:30.660 --> 00:27:32.200
+but it seems to be quite deprecated.
+
+346
+00:27:32.420 --> 00:27:35.800
+Now, if we look at not-so-open-source options,
+
+347
+00:27:35.900 --> 00:27:38.480
+there's one called RClone S3 as well,
+
+348
+00:27:38.680 --> 00:27:42.520
+and that's like a tool that allows you to copy data between lots of different sources.
+
+349
+00:27:42.700 --> 00:27:46.780
+So that could be FTP, Dropbox, Google Drive, and it also includes S3.
+
+350
+00:27:47.180 --> 00:27:49.760
+So it seems quite powerful, but we haven't tried it yet.
+
+351
+00:27:49.760 --> 00:27:52.640
+And then there's another paid cloud service called Flexify.
+
+352
+00:27:53.320 --> 00:27:56.600
+This is actually what DigitalOcean recommends for migrations.
+
+353
+00:27:57.080 --> 00:27:59.180
+We haven't tried this, but I thought it was worth mentioning
+
+354
+00:27:59.180 --> 00:28:01.060
+in case you wanted to just throw money at the problem.
+
+355
+00:28:01.340 --> 00:28:04.200
+I guess it would be interesting to benchmark this.
+
+356
+00:28:04.620 --> 00:28:05.900
+It depends on your use case, of course,
+
+357
+00:28:06.000 --> 00:28:09.540
+but I wonder would tools like MountPoint for S3,
+
+358
+00:28:09.660 --> 00:28:11.840
+which we covered on a previous episode,
+
+359
+00:28:12.240 --> 00:28:14.540
+if you just mount two different S3 buckets
+
+360
+00:28:14.540 --> 00:28:16.540
+using different credentials on your file system
+
+361
+00:28:16.540 --> 00:28:18.380
+and then do like R-sync between them.
+
+362
+00:28:18.540 --> 00:28:20.140
+What would the performance of that be like?
+
+363
+00:28:20.580 --> 00:28:21.540
+I'm always kind of interested,
+
+364
+00:28:21.920 --> 00:28:25.560
+but skeptical about solutions that try to map object storage
+
+365
+00:28:25.560 --> 00:28:27.460
+into a file system abstraction.
+
+366
+00:28:28.020 --> 00:28:30.840
+But MountPoint does work well for some cases,
+
+367
+00:28:30.940 --> 00:28:35.780
+and same with the Fuse user, what do you call it?
+
+368
+00:28:35.880 --> 00:28:38.240
+User file system for S3 as well.
+
+369
+00:28:38.580 --> 00:28:42.520
+So options that I'm interested to get other people's take on as well.
+
+370
+00:28:42.520 --> 00:28:45.700
+Yeah, and this seems like a common enough problem
+
+371
+00:28:45.700 --> 00:28:49.600
+that I'm surprised that there isn't really a lot of literature out there
+
+372
+00:28:49.600 --> 00:28:50.580
+on a lot of solutions.
+
+373
+00:28:50.900 --> 00:28:53.220
+And I think it's going to become a more common problem
+
+374
+00:28:53.220 --> 00:28:56.840
+with all these other solutions that are appearing everywhere.
+
+375
+00:28:57.120 --> 00:28:59.380
+So I'm just curious to see what other people have,
+
+376
+00:28:59.620 --> 00:29:01.040
+like if they had this kind of use case
+
+377
+00:29:01.040 --> 00:29:02.840
+and what kind of solutions they came up with.
+
+378
+00:29:03.100 --> 00:29:05.020
+Will Cloudflare and all these other vendors
+
+379
+00:29:05.020 --> 00:29:09.300
+start adding tooling to do one-click import from an S3 bucket, do you think?
+
+380
+00:29:12.280 --> 00:29:14.800
+I wouldn't be too surprised, to be honest, if they do, because I guess it's in their best interest.
+
+381
+00:29:15.020 --> 00:29:17.860
+It's almost like all these tools that are trying to compete
+
+382
+00:29:17.860 --> 00:29:22.580
+with newsletter things, and they all have imports from MailChimp, right?
+
+383
+00:29:22.960 --> 00:29:26.560
+Because it makes sense for them to try to make it easier for new customers.
+
+384
+00:29:26.820 --> 00:29:26.980
+Yes.
+
+385
+00:29:27.160 --> 00:29:29.020
+They always work one way only, though.
+
+386
+00:29:29.280 --> 00:29:31.000
+They never allow you to export.
+
+387
+00:29:31.480 --> 00:29:34.000
+So I think that's all you get for today.
+
+388
+00:29:34.180 --> 00:29:36.400
+Again, we are really curious to hear from you.
+
+389
+00:29:36.520 --> 00:29:37.920
+Have you dealt with this kind of problem?
+
+390
+00:29:37.920 --> 00:29:38.860
+Don't be shy.
+
+391
+00:29:39.000 --> 00:29:42.100
+Let us know, because we are always eager to learn from you
+
+392
+00:29:42.100 --> 00:29:45.120
+and share our experience, not just in one way.
+
+393
+00:29:45.260 --> 00:29:47.380
+So please give us some of your experience.
+
+394
+00:29:47.580 --> 00:29:50.280
+But before we wrap up, let's hear it from our sponsors.
+
+395
+00:29:50.600 --> 00:29:53.300
+We promise you to tell you a little bit more about fourTheorem,
+
+396
+00:29:53.560 --> 00:29:57.060
+and thank you, fourTheorem, for supporting yet another episode of AWS Bytes.
+
+397
+00:29:57.160 --> 00:30:01.260
+So migrating data is hard, but optimize your cloud setup doesn't have to be.
+
+398
+00:30:01.540 --> 00:30:04.360
+That's where our friends at fourTheorem come in.
+
+399
+00:30:04.360 --> 00:30:09.200
+It's an AWS advanced consulting partner specialized in serverless first solutions
+
+400
+00:30:09.200 --> 00:30:13.320
+to slash cost, scale seamlessly, and modernize your cloud application.
+
+401
+00:30:13.540 --> 00:30:16.120
+So whether you are streamlining infrastructure, accelerating development,
+
+402
+00:30:16.240 --> 00:30:20.100
+or turning your tech team into a profit powerhouse,
+
+403
+00:30:20.660 --> 00:30:23.860
+fourTheorem is there to help you out to maximize your AWS investment.
+
+404
+00:30:24.020 --> 00:30:26.940
+So check out fourTheorem at fortyrem.com,
+
+405
+00:30:26.940 --> 00:30:32.100
+and you can find some trusted partner for your next AWS project, I'm sure.
+
+406
+00:30:32.260 --> 00:30:35.980
+So thank you, everyone, and we'll see you in the next episode.

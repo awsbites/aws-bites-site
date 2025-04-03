@@ -1,0 +1,2456 @@
+{
+  "speakers": {
+    "spk_0": "spk_0",
+    "spk_1": "spk_1"
+  },
+  "segments": [
+    {
+      "speakerLabel": "spk_0",
+      "start": 0.32,
+      "end": 4.96,
+      "text": " Today, we are diving into a problem that might be more common than we like to think among"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 4.96,
+      "end": 10.8,
+      "text": " cloud practitioners, copying data between S3 buckets or even S3 compatible storages."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 10.8,
+      "end": 14.88,
+      "text": " So this is something that can happen if you are migrating some workloads to AWS,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 14.88,
+      "end": 19.76,
+      "text": " you have been using S3 compatible object storage, and now at some point you decide to go fully on"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 19.76,
+      "end": 25.04,
+      "text": " AWS, so it makes sense to move all the data to S3 as well. Or maybe the other way around,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 25.04,
+      "end": 30,
+      "text": " maybe you are escaping from AWS for whatever reason, or maybe you're just escaping the object"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 30,
+      "end": 35.92,
+      "text": " storage part. So there are more and more S3 compatible alternative storage services,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 35.92,
+      "end": 40.08,
+      "text": " and some of them are actually becoming really, really competitive on pricing. So if you don't"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 40.08,
+      "end": 45.04,
+      "text": " mind the extra complexity of having to manage workloads distributed across multiple cloud"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 45.04,
+      "end": 50.16,
+      "text": " providers, this is actually something that can be an effective strategy to save some costs on your"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 50.16,
+      "end": 55.519999999999996,
+      "text": " cloud expenses. Or yet again, there might be another use case, maybe you are just copying data"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 55.519999999999996,
+      "end": 61.599999999999994,
+      "text": " from two buckets still in AWS, but maybe they happen to be in different accounts, and you know that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 61.599999999999994,
+      "end": 66.96,
+      "text": " giving permission across accounts is something that sometimes can be challenging. And if you're sticking"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 66.96,
+      "end": 72.96,
+      "text": " to AWS, all the recommendations assume that you have one set of credentials that you can use to copy,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 72.96,
+      "end": 79.12,
+      "text": " to read the data and copy the data across accounts. And this is not always an easy situation to have."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 79.12,
+      "end": 83.36,
+      "text": " So this is another problem you might have to deal with when you're trying to copy data from one"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 83.36,
+      "end": 88.4,
+      "text": " bucket to another in different regions and accounts. So today we're going to talk about all these kind"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 88.4,
+      "end": 93.92,
+      "text": " of different use cases, and we will share a little bit of a story that we had personally, and how we"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 93.92,
+      "end": 100.72,
+      "text": " ended up building a small CLI tool that allows us to simplify copying data between S3 compatible storage."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 100.72,
+      "end": 105.44,
+      "text": " My name is Luciano, and as always, I'm joined by Eoin for another episode of AWS Bites Podcast."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 109.12,
+      "end": 121.12,
+      "text": " So AWS Bites is sponsored by Forteorem, but we'll tell you more about them later. So let's get into the S3 and S3 compatible industry."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 121.12,
+      "end": 137.12,
+      "text": " Yeah, the whole ecosystem around cloud storage is growing really rapidly now. S3 has been around for a long time and is still dominating. But there are a lot more interesting alternatives. And some of them are really competitive on pricing, trying to grab some of that market share that S3 has and ride on the coattails."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 137.12,
+      "end": 159.12,
+      "text": " S3 has and ride on the coattails. Like if you look at S3, you pay about $23 if you have like a terabyte of S3 storage on the standard tier. Now there's a decent enough free tier, you get five gigabytes, which might be enough, and 100 gigabytes of egress, which is something that was recently increased by a significant amount, to try and I think combat some of this competitive evolution."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 159.12,
+      "end": 173.58,
+      "text": " If we look at some of the alternatives out there, DigitalOcean has one, DigitalOcean Spaces Object Storage, that's $5 a month fixed price. But then you pay $20 per terabyte per month, and they give you a 250 gigabyte free tier."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 173.58,
+      "end": 187.72000000000003,
+      "text": " Then Cloudflare, Cloudflare R2, which is one of the entrants that I think really caused AWS to rethink their pricing strategy. That's like $15 per terabyte per month. And it is interesting for its zero egress fees approach."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 187.72,
+      "end": 199.12,
+      "text": " So it's interesting, it seems like the market leader is keen to make it difficult for people to do egress, but the new entrants are very keen to say that they want to make that as cheap as possible."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 199.12,
+      "end": 223.94,
+      "text": " So similar to R2, you've got Backblaze B2, which is $6 per terabyte per month, which seems like the cheapest option you can get right now. Another one is Wasabi, which is $7 per terabyte per month. And then you have Linode with Akamai, they have an object storage offering for $20 per terabyte per month, but you get a terabyte of egress for free, which is pretty significant."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 223.94,
+      "end": 250.34,
+      "text": " Now, there are other options, you don't necessarily have to go with another cloud provider for object storage, you can host it yourself. Min.io is a reasonably popular one for people who want S3 compatible object storage. If you need to host it in a data center, you might say that's only for the brave, but obviously, you might have your own existing storage that you've already invested in, or you might have compliance requirements that mean you have to keep it in your data center."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 250.34,
+      "end": 269.46,
+      "text": " Now, Min.io also does have a managed cloud service, but this seems to be a bit of a premium offering, because you have to spend at least $96,000 per year. But with that, you'll get 400 terabytes of storage, which works out to about $20 per terabyte per month. So there's a lot more. So if you do a web search, you'll be inundated."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 299.46,
+      "end": 329.44,
+      "text": " I think we did a lot more."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 329.44,
+      "end": 335.06,
+      "text": " So we had a similar case recently, and you know all about this, Luciano. So what's the backstory?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 335.58,
+      "end": 345.82,
+      "text": " Yeah, the backstory is that this was basically a few weeks ago, we needed to move the entire content of an S3 bucket to another storage, an S3 compatible storage managed by another cloud provider."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 345.82,
+      "end": 367.64,
+      "text": " Now, don't really ask us why. We are big fans of AWS and S3, as you know. But sometimes business requirements can get in the way, and you end up in unexpected places, and you just need to solve the problem. So I'm sure you can relate. And especially now that you know all about this other competitive offers, you can see why businesses might decide to do something like this."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 367.64,
+      "end": 383.62,
+      "text": " So yeah, this was the situation we were in. And we thought this was like a simple problem, right? How hard can it be to just copy data from S3 to something else that promises you S3 compatible APIs, right? Seems like you can just do an S3 sync and call it a day, right?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 383.62,
+      "end": 393.74,
+      "text": " But of course, it's not that easy. And that's the reason why we are talking about it. And I just want to explain some of the requirements we had, so that you can understand why we ended up with a specific solution."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 393.74,
+      "end": 404.94,
+      "text": " So basically, we needed to copy all these objects from this bucket to another S3 compatible service. Now, in fairness, it wasn't like a huge amount of objects. I think it was quite a couple of terabytes or maybe something more."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 405.3,
+      "end": 411.24,
+      "text": " But it was a lot of small objects, so in the order of like millions of very small objects."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 411.24,
+      "end": 416.96000000000004,
+      "text": " So the copy itself needs to be efficient. We wanted to make it efficient in terms of memory."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 417.2,
+      "end": 423.44,
+      "text": " So possibly, we didn't want to kind of buffer everything into an intermediate machine to just copy to the destination."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 423.44,
+      "end": 429.78000000000003,
+      "text": " We wanted to do some kind of copy on the fly. So as you read the data from source, you start to copy it to the destination."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 430.3,
+      "end": 438.94,
+      "text": " And so ideally, another thing that this was more for like operational purposes, because there were applications actually using this data,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 438.94,
+      "end": 441.86,
+      "text": " and also the applications needed to transition to the new storage."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 441.86,
+      "end": 454.8,
+      "text": " So the business decided that it made sense to start to prioritize newer files, because these will be the ones with, I guess, the higher probability of being used by the application."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 455.46,
+      "end": 463.08,
+      "text": " So another requirement is the copy process should take that into account and prioritize more recent objects rather than the oldest one."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 463.08,
+      "end": 469.2,
+      "text": " And then the other thing is that it should be possible to interrupt the copy process at any point and resume it later."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 469.68,
+      "end": 476.97999999999996,
+      "text": " And this can include if something fails, maybe the machine needs to be rebooted, maybe the copy process itself, I don't know, has a bug and just fails."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 477.52,
+      "end": 482.41999999999996,
+      "text": " We don't want to restart from scratch because that will be a huge waste of time and also bandwidth."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 482.42,
+      "end": 489.56,
+      "text": " So let's figure out a way that the whole copy process can be interrupted at any time and it can be resumed later."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 489.7,
+      "end": 492.26,
+      "text": " So again, how difficult could this be?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 492.78000000000003,
+      "end": 495.84000000000003,
+      "text": " S3 sync seems to hit most of the boxes here."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 496.14000000000004,
+      "end": 502.70000000000005,
+      "text": " But yeah, when we started to look into it, there were some problems that we'll tell you a bit more about later."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 502.7,
+      "end": 516.18,
+      "text": " And therefore, we ended up deciding, OK, we are going to create our own little CLI utility that is able to read files from the original strip bucket and copy the files to the destination service."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 516.4399999999999,
+      "end": 524.28,
+      "text": " But I think before getting into the details of this solution, which, by the way, little spoiler, is called S3-Migrate and it's fully open source."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 524.4399999999999,
+      "end": 525.9399999999999,
+      "text": " We'll share the link in the show notes."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 525.94,
+      "end": 536.48,
+      "text": " But before diving into it, I think we should talk a little bit more about our analysis of the existing solutions and why we couldn't use anything that is already available."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 536.58,
+      "end": 540.0400000000001,
+      "text": " And generally, we don't like to have to invent these tools ourselves."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 540.4200000000001,
+      "end": 547.1800000000001,
+      "text": " And you might think like S3-compatible storages should just work with S3 tools like the AWS CLI and the AWS CDK."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 547.32,
+      "end": 548.72,
+      "text": " That's kind of what we thought too."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 548.72,
+      "end": 558.28,
+      "text": " But when we did a little bit more research, we realized that in this case, it actually made some sense for this client to create a new tool from scratch."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 558.28,
+      "end": 573.86,
+      "text": " So if you just Google for how do you copy data between S3 buckets, you might end up on an Amazon AWS S3, sorry, on an AWS repost thread that suggests to use either the CLI, that's the AWS S3 sync command, which we use a lot, to be fair,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 573.86,
+      "end": 584.58,
+      "text": " or use S3 batch operations, which are very useful if you've got a whole number of copies to do or a whole load of objects to manage in one batch."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 584.76,
+      "end": 588.48,
+      "text": " So these are all good solutions, but there's a couple of fundamental challenges with them."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 588.6,
+      "end": 590.86,
+      "text": " First one is that they assume you're all in on AWS."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 591.32,
+      "end": 598.9200000000001,
+      "text": " They don't, naturally enough, cover the scenario where you might be using an S3-compatible storage either as a source or as a destination."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 598.9200000000001,
+      "end": 602.76,
+      "text": " So normally when you do a copy operation on S3, it's managed by S3."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 602.76,
+      "end": 609.2,
+      "text": " The data doesn't have to go through your client, so you can just do a copy object API call."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 609.38,
+      "end": 613.04,
+      "text": " But that only works if the source and destination are on the same provider."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 613.22,
+      "end": 619.9,
+      "text": " Even if you are all in on AWS, if the two buckets live in two different accounts, you need to set up cross-account permissions."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 620.16,
+      "end": 626.8199999999999,
+      "text": " And that can add a lot of complexity, because essentially what it means is that if you're doing a copy object operation,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 626.82,
+      "end": 632.48,
+      "text": " that's going to be signed with a signature from an IAM identity, and you can only have one principle there."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 632.5600000000001,
+      "end": 633.44,
+      "text": " You can't have two principles."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 633.44,
+      "end": 640,
+      "text": " So that principle must be authorized to access the source and the destination in the read and write modes you need."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 640.2,
+      "end": 644.0600000000001,
+      "text": " So when you run the sync command, the AWS CLI operates with that one set of credentials,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 644.06,
+      "end": 653.06,
+      "text": " and it isn't going to work if you've got something on S3 and the other destination or the source is on Cloudflare, for example."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 653.2199999999999,
+      "end": 656.0999999999999,
+      "text": " So we were looking for something that could operate with two different sets of credentials,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 656.5,
+      "end": 659.28,
+      "text": " one for reading from an arbitrary S3-compatible source,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 659.4399999999999,
+      "end": 663,
+      "text": " and one for writing to another arbitrary S3-compatible destination."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 663,
+      "end": 669.4,
+      "text": " And since we couldn't find anything out of the box, being the nerdy programmers who probably suffer a little bit from the not-invented-here syndrome,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 669.68,
+      "end": 676.28,
+      "text": " we thought, well, how difficult can it be to write a little CLI tool that uses the SDK to do what we want to do?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 676.42,
+      "end": 677.62,
+      "text": " Luciano, you wrote that tool."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 677.92,
+      "end": 679.04,
+      "text": " So how does it work?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 679.66,
+      "end": 682.22,
+      "text": " Yeah, let me try to explain how it is built."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 682.68,
+      "end": 685.88,
+      "text": " So again, in a nutshell, it's effectively called S3-migrate."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 685.88,
+      "end": 693.2,
+      "text": " It tries to do something somewhat similar to AWS S3 sync, but allows you to provide two separate sets of credentials."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 693.4399999999999,
+      "end": 698.12,
+      "text": " This is probably the main difference from an idea perspective of the tool."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 698.64,
+      "end": 702.12,
+      "text": " So you don't necessarily have to have one single set of credentials."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 702.38,
+      "end": 704.72,
+      "text": " You can provide two for source and for destination."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 705.02,
+      "end": 709.9,
+      "text": " And the tool itself is written using Node.js, specifically in TypeScript,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 709.9,
+      "end": 714.38,
+      "text": " and it uses Commander.js for the CLI argument parsing."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 714.92,
+      "end": 716.4599999999999,
+      "text": " SQLite for data storage."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 716.6,
+      "end": 720.9,
+      "text": " We'll get into the details of that in a second because it might sound weird right now."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 721.14,
+      "end": 727.3,
+      "text": " And of course, it uses the AWS SDK version 3 for JavaScript to interact with S3-compatible endpoint."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 727.3,
+      "end": 732.1,
+      "text": " By the way, fun fact, if you look at most of these other providers,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 732.52,
+      "end": 737.9399999999999,
+      "text": " they all tell you just use the AWS S3 SDK to interact with our APIs."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 737.94,
+      "end": 743.62,
+      "text": " So this is actually a good sign that most providers are actually trying to be strictly compatible with those APIs"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 743.62,
+      "end": 747.48,
+      "text": " to the point that it's not even worth for them to create their own clients"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 747.48,
+      "end": 750.46,
+      "text": " because you can just use the existing SDKs and clients."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 750.74,
+      "end": 755.6400000000001,
+      "text": " So that kind of made it a little bit easier for us because we didn't need to learn a new,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 755.74,
+      "end": 761.1600000000001,
+      "text": " I don't know, set of library or even trying to figure out if we want this tool to work with multiple providers,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 761.2800000000001,
+      "end": 767.34,
+      "text": " do we need to, I don't know, have some kind of abstraction layer where you need to plug in different SDKs."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 767.34,
+      "end": 771.8000000000001,
+      "text": " Thankfully, everything seems to work just fine with the AWS SDK for Java."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 771.9200000000001,
+      "end": 775.82,
+      "text": " Now, you might be asking the usual question here, why didn't you use Rust or Go?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 775.96,
+      "end": 782.1600000000001,
+      "text": " And of course, this is something we could debate on for hours and we could do like a flame war of sort."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 782.32,
+      "end": 786.88,
+      "text": " But yeah, if you just want the long story short, I would have personally loved to write it in Rust"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 786.88,
+      "end": 791.5,
+      "text": " because I'm a big fan of Rust and I'm always looking for excuses to use Rust more."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 791.5,
+      "end": 795.9,
+      "text": " But honestly, given that we have tons of experience in Node.js and TypeScript,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 796.06,
+      "end": 802.74,
+      "text": " and this seems a use case that you have lots of tooling existing that can support you in Node.js and TypeScript,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 803.08,
+      "end": 807.46,
+      "text": " it was just much easier and faster to deliver the solution using TypeScript."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 807.84,
+      "end": 810.02,
+      "text": " And the other thing is that from a performance perspective,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 810.4,
+      "end": 815.7,
+      "text": " it is true that maybe Rust could have made it a little bit faster and maybe more, I guess,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 815.7,
+      "end": 821.0200000000001,
+      "text": " from a memory perspective, a little bit savvy, like it's not going to use as much memory."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 821.5400000000001,
+      "end": 824.7800000000001,
+      "text": " But at the same time, the real bottleneck here is networking speed."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 824.98,
+      "end": 828.9200000000001,
+      "text": " We are doing a copy, like a progressive copy of the data."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 829.1800000000001,
+      "end": 832.2800000000001,
+      "text": " So really, yeah, networking is the real bottleneck here."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 832.2800000000001,
+      "end": 836.3000000000001,
+      "text": " So even if we, maybe if we use Rust multi-traded AsyncIO,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 836.62,
+      "end": 841.32,
+      "text": " the multi-trading could have been, could have given us a way to parallelize a little bit more the copy."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 841.5400000000001,
+      "end": 845.6400000000001,
+      "text": " But there are other strategies that we put in place and we'll talk about that later."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 845.76,
+      "end": 848.1,
+      "text": " So yeah, this is why we didn't use Go or Rust."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 848.3000000000001,
+      "end": 853.6600000000001,
+      "text": " But I don't know, maybe it's an exercise for somebody if you want to try to do something similar with one of those lines."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 853.74,
+      "end": 855.3000000000001,
+      "text": " As I said, the tool is fully open source."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 855.44,
+      "end": 858.24,
+      "text": " It's published on NPM, so you can just use it today."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 858.24,
+      "end": 862.44,
+      "text": " But by using something like MPX, you don't even need to install it."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 862.62,
+      "end": 865.6400000000001,
+      "text": " You can just try it just with one command and see if it works for you."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 865.74,
+      "end": 867.94,
+      "text": " Now, we mentioned that there are two sets of credentials."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 868.26,
+      "end": 873.32,
+      "text": " It works in a similar way to the AWS CLI or the AWS SDK,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 873.32,
+      "end": 878.4200000000001,
+      "text": " meaning that you can use the usual environment variables like AWS Access Key ID,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 878.7800000000001,
+      "end": 881.82,
+      "text": " or you can use Endpoint and so on."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 882.0200000000001,
+      "end": 885.94,
+      "text": " But the difference is that you have, you can use the basic one."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 886.1400000000001,
+      "end": 888.8000000000001,
+      "text": " If you just use the basic one, that's kind of the default layer."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 888.8,
+      "end": 895.28,
+      "text": " But you can also override by saying source underscore AWS Access Key or source underscore Endpoint."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 895.76,
+      "end": 897.4,
+      "text": " And similarly, you can override the destination."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 897.88,
+      "end": 902.38,
+      "text": " For instance, you can say destination AWS Access Key ID destination Endpoint."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 902.62,
+      "end": 905.4,
+      "text": " And the tool also reads from M files."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 905.66,
+      "end": 910.52,
+      "text": " So if you prefer to just put all this information in an M file because it makes your life easier,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 910.92,
+      "end": 916.12,
+      "text": " the tool is going to load an M file automatically if that exists in the current working directory."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 916.12,
+      "end": 921.38,
+      "text": " Now, the way that it is a little bit different from sync is that there are actually two phases."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 921.74,
+      "end": 924.44,
+      "text": " Like you don't just run one command and it starts the copy."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 924.54,
+      "end": 926.66,
+      "text": " You actually need to run two different commands."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 926.82,
+      "end": 928.48,
+      "text": " And the first command is called catalog."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 928.78,
+      "end": 931.46,
+      "text": " And that's what we call the catalog phase, which is basically,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 932.46,
+      "end": 935.5,
+      "text": " what it's going to do is going to do a list operation on the source bucket"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 935.5,
+      "end": 940.4,
+      "text": " and store all the objects in a local SQLite database."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 940.64,
+      "end": 944.72,
+      "text": " And the reason why we do this, this is effectively like a mini state file, if you want."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 944.72,
+      "end": 951.46,
+      "text": " And this is what we decided to do to effectively have that kind of resumability feature on one side."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 952,
+      "end": 955.74,
+      "text": " So as we copy the files, we know exactly how many files there are to copy."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 955.82,
+      "end": 957.5600000000001,
+      "text": " So we can keep track of the progress."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 957.76,
+      "end": 960.0400000000001,
+      "text": " We can mark which ones have been copied."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 960.52,
+      "end": 965.0600000000001,
+      "text": " And the other thing we can do, because we also store the metadata related to all the objects"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 965.0600000000001,
+      "end": 967.2,
+      "text": " as we discover them through the list operation,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 967.64,
+      "end": 970.3000000000001,
+      "text": " that's also what we can use to effectively do the sorting."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 970.3,
+      "end": 975.5999999999999,
+      "text": " So if you want to prioritize the files that are bigger, smaller, or newer,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 976.3,
+      "end": 977.12,
+      "text": " you can do that."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 977.3599999999999,
+      "end": 980.14,
+      "text": " And effectively, we'll be doing, the tool is going to be doing behind the scenes,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 980.2199999999999,
+      "end": 984.02,
+      "text": " a different SQL query with a different sorting based on your parameters."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 984.54,
+      "end": 986.92,
+      "text": " So that's the reason why we have this kind of intermediate step,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 987.0799999999999,
+      "end": 991.56,
+      "text": " just to make it a little bit more flexible to understand how many objects there are"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 991.56,
+      "end": 994.1999999999999,
+      "text": " and as you copy to understand what is the current progress,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 994.38,
+      "end": 998.3,
+      "text": " and then to do prioritization of different objects and resumability."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 998.3,
+      "end": 1002.92,
+      "text": " Once you have done the catalog phase, so effectively you end up with this state file,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1003.04,
+      "end": 1004.3,
+      "text": " which is effectively a SQLite."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1004.42,
+      "end": 1010.38,
+      "text": " You can open it with any SQLite compatible UI or CLI just to see what's inside."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1010.74,
+      "end": 1013.66,
+      "text": " And with that, you can start the copy phase."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1013.76,
+      "end": 1016.06,
+      "text": " So there is another command, s3 migrate copy,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1016.28,
+      "end": 1020.14,
+      "text": " where you specify the source bucket, the destination bucket, and the state file."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1020.28,
+      "end": 1023.5999999999999,
+      "text": " And of course, through the environment, you are providing all your credentials."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1023.78,
+      "end": 1027.04,
+      "text": " And effectively, this command is going to start to look at the state file,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1027.04,
+      "end": 1030.6599999999999,
+      "text": " figure out what still needs to be copied and start to copy it."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1030.78,
+      "end": 1034.98,
+      "text": " And of course, being a CLI utility, one of the challenges, of course,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1035.02,
+      "end": 1039,
+      "text": " is that you need to have it in some kind of host system or your own personal laptop,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1039.2,
+      "end": 1042.18,
+      "text": " like wherever, like it needs to be a process that runs somewhere."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1042.44,
+      "end": 1046.3999999999999,
+      "text": " And of course, you need to control that process, make sure it's a long running thing."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1046.94,
+      "end": 1049.6399999999999,
+      "text": " So probably you're going to have some kind of remote machine somewhere,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1049.98,
+      "end": 1052.3,
+      "text": " install the tool there, provide all the credentials,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1052.3,
+      "end": 1055.84,
+      "text": " create the catalog and then run the command and just monitor"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1055.84,
+      "end": 1058.8799999999999,
+      "text": " that the application is progressing without any issues."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1058.8799999999999,
+      "end": 1061.9199999999998,
+      "text": " Okay, it sounds like there's a lot of capability here."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1062.26,
+      "end": 1067.04,
+      "text": " And I guess the thing about building these tools is that it's achievable enough"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1067.04,
+      "end": 1068.8799999999999,
+      "text": " to get version one up and running."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1069.36,
+      "end": 1071.96,
+      "text": " But already, even if you run it once or twice,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1072,
+      "end": 1074.5,
+      "text": " you might be a start to think about how you can make it faster,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1074.6599999999999,
+      "end": 1078.1599999999999,
+      "text": " especially trying to handle different types of data sets."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1078.16,
+      "end": 1083.72,
+      "text": " You mentioned that in this case, the subject was a lot of small files on S3."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1083.9,
+      "end": 1085.42,
+      "text": " You might also have a lot of large files."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1085.66,
+      "end": 1090.24,
+      "text": " And you're trying to optimize for IO and parallelism and request throttling,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1090.3200000000002,
+      "end": 1091.0400000000002,
+      "text": " a lot of that kind of stuff."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1091.1000000000001,
+      "end": 1094.98,
+      "text": " So what kind of performance optimizations did you think about so far?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1095.42,
+      "end": 1096.8400000000001,
+      "text": " Yeah, that's a very good question."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1097.0600000000002,
+      "end": 1102.26,
+      "text": " And I'm going to start with a caveat that I think this is still a very early project."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1102.46,
+      "end": 1105.48,
+      "text": " If you look at the repo, it clearly states that this is experimental."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1105.48,
+      "end": 1109.08,
+      "text": " So don't trust it too much, or I will say trust but verify."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1109.48,
+      "end": 1113.48,
+      "text": " So I'm sure that there are still loads of opportunities to improve it,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1113.54,
+      "end": 1115.1200000000001,
+      "text": " and also in terms of performance."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1115.4,
+      "end": 1119.54,
+      "text": " So with that being said, what have we done so far to try to give you options"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1119.54,
+      "end": 1124.02,
+      "text": " on how you can improve both performance in terms of data transfer,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1124.18,
+      "end": 1128.24,
+      "text": " but also in terms of how much memory is being consumed at the host level."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1128.38,
+      "end": 1131.16,
+      "text": " So if you want to be very memory efficient, for example,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1131.24,
+      "end": 1132.76,
+      "text": " there are options there as well."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1132.76,
+      "end": 1137.56,
+      "text": " So one thing worth mentioning is that we use Node.js streams to copy data,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1137.68,
+      "end": 1139.74,
+      "text": " and that's another thing that I'm a big fan of."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1139.94,
+      "end": 1142.82,
+      "text": " So probably no surprises if people know me."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1143.56,
+      "end": 1148.54,
+      "text": " The idea is that when you run a get object command using the AWS S3 SDK,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1149.18,
+      "end": 1152.64,
+      "text": " the body that you receive in the response is a Node.js stream."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1152.74,
+      "end": 1155.54,
+      "text": " So effectively, you are not eagerly consuming that data."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1155.54,
+      "end": 1159.92,
+      "text": " Almost you can think of that like you have a pointer to where the data is,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1160.34,
+      "end": 1162.72,
+      "text": " and then you can start to fetch as you need it."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1163.18,
+      "end": 1168.8999999999999,
+      "text": " And also Node.js streams give you a nice API where you can effectively combine streams together."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1169.1399999999999,
+      "end": 1172.5,
+      "text": " So you could have a stream to read and another stream to write,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1172.6,
+      "end": 1176.56,
+      "text": " and effectively you can pipe them together and let the data flow from one to another."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1176.72,
+      "end": 1180.22,
+      "text": " And this is very useful because when you do a put object operation,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1180.62,
+      "end": 1184.04,
+      "text": " you also have a stream in the body that effectively you are writing."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1184.04,
+      "end": 1187.86,
+      "text": " And in Node.js terms, you have a readable stream for the get operation"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1187.86,
+      "end": 1190.3,
+      "text": " and a writable stream for the put operation."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1190.52,
+      "end": 1195.36,
+      "text": " So effectively, you can easily combine a readable stream with a writable stream"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1195.36,
+      "end": 1199.3,
+      "text": " and basically just create this pipe where you say read from one place, write to another."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1199.72,
+      "end": 1203.76,
+      "text": " And Node.js takes care of most of the complexity there,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1203.84,
+      "end": 1206.1399999999999,
+      "text": " because for instance, even handles back pressure."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1206.3999999999999,
+      "end": 1209.32,
+      "text": " If you are much faster at reading than you are at writing,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1209.32,
+      "end": 1213.82,
+      "text": " what generally would happen is that you easily exhaust all the memory reading,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1214.04,
+      "end": 1219.02,
+      "text": " and as you try to write, you are not able to flush all this data fast enough."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1219.6599999999999,
+      "end": 1222.28,
+      "text": " So Node.js has a mechanism called back pressure handling,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1222.52,
+      "end": 1227.26,
+      "text": " where effectively it kind of figures out when you have too much data accumulated,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1227.54,
+      "end": 1232.1599999999999,
+      "text": " and it's going to stop reading, give time to the backend system to receive all the writes,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1232.3799999999999,
+      "end": 1233.82,
+      "text": " and then it's going to resume reading."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1233.96,
+      "end": 1236.6,
+      "text": " And all of that stuff happens automatically when you stream."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1236.6,
+      "end": 1239.82,
+      "text": " So I think that's kind of an easy optimization to have,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1240.02,
+      "end": 1243.4399999999998,
+      "text": " because all built in Node.js and we just took advantage of it."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1243.98,
+      "end": 1248.3,
+      "text": " There is some additional complexity, if we want to get into the nitty-gritty details,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1248.6799999999998,
+      "end": 1251.98,
+      "text": " where there is a minimum amount of..."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1251.98,
+      "end": 1254.74,
+      "text": " Like when you use streams, you are effectively reading and writing in chunks."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1254.8799999999999,
+      "end": 1259.1799999999998,
+      "text": " So you get blobs of bytes, and they generally have like a fixed size."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1259.18,
+      "end": 1264.48,
+      "text": " The S3 API forces you to have a consistent chunk size when you're writing,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1264.8400000000001,
+      "end": 1268.8400000000001,
+      "text": " and there is a minimum amount of bytes that that chunk size needs to have."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1269.42,
+      "end": 1271.46,
+      "text": " So we kind of have to do some..."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1271.46,
+      "end": 1273.0600000000002,
+      "text": " It's called like a transform stream."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1273.26,
+      "end": 1277.76,
+      "text": " We need to put something in between that buffers enough data to be able then to write."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1278.24,
+      "end": 1280.8200000000002,
+      "text": " But that's, yeah, just as much complexity as we added,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1280.98,
+      "end": 1283.16,
+      "text": " then not just streams take care of everything else."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1283.28,
+      "end": 1284.64,
+      "text": " And this is actually an interesting part,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1284.64,
+      "end": 1286.44,
+      "text": " because this is another place where you can optimize."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1286.74,
+      "end": 1289.76,
+      "text": " So you can decide to increase the chunk size,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1289.96,
+      "end": 1293.7,
+      "text": " which effectively means you are going to accumulate more memory in the host system,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1293.7,
+      "end": 1298.18,
+      "text": " because effectively you are creating more windows of data that are ready to be flushed."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1298.2800000000002,
+      "end": 1301.7800000000002,
+      "text": " And the bigger they are, of course, the more memory you are consuming in the host system."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1301.7800000000002,
+      "end": 1305.0400000000002,
+      "text": " But at the same time, that means you are doing less API calls"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1305.0400000000002,
+      "end": 1307.38,
+      "text": " to the storage service where you're writing."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1307.64,
+      "end": 1309.44,
+      "text": " So that can be convenient as well,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1309.5200000000002,
+      "end": 1313.0200000000002,
+      "text": " because of course, every API call has an override."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1313.02,
+      "end": 1317.24,
+      "text": " So, yeah, generally it's suggested to try to figure out,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1317.3,
+      "end": 1319.34,
+      "text": " to find a balance where if you keep it too small,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1319.74,
+      "end": 1321.3,
+      "text": " you maybe are doing too many writes,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1321.68,
+      "end": 1324.8799999999999,
+      "text": " and there is an overhead on the operative system and everything else."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1325,
+      "end": 1327.7,
+      "text": " But if you find maybe what is a good chunk size,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1327.7,
+      "end": 1331.82,
+      "text": " then you probably can optimize a little bit more on the write speed as well."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1331.96,
+      "end": 1334.34,
+      "text": " Now, another interesting optimization is concurrency."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1334.62,
+      "end": 1338.54,
+      "text": " Using Node.js, this is effectively you have a language"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1338.54,
+      "end": 1341.48,
+      "text": " that allows you to do concurrency relatively easy."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1341.48,
+      "end": 1345.6,
+      "text": " Just be aware that, of course, this is still a single-threaded type of concurrency."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1346.26,
+      "end": 1348.82,
+      "text": " So in this case, I think it works really well,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1348.9,
+      "end": 1351.94,
+      "text": " because you are effectively waiting for I.O. most of the time."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1352.08,
+      "end": 1355.42,
+      "text": " So as you are waiting, you can have multiple copy operations"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1355.42,
+      "end": 1357.74,
+      "text": " that are kind of interleaved between each other,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1358.2,
+      "end": 1359.48,
+      "text": " and they will progress together."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1359.6200000000001,
+      "end": 1361.8600000000001,
+      "text": " But of course, this works up to a certain point."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1361.86,
+      "end": 1367.76,
+      "text": " So you can try to figure out what is the maximum amount of concurrency that I can use,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1368.08,
+      "end": 1369.58,
+      "text": " and there is a parameter you can specify,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1369.82,
+      "end": 1373.04,
+      "text": " to the point where you don't see an improvement of speed anymore,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1373.04,
+      "end": 1376.26,
+      "text": " just because there is so much interleaved operation"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1376.26,
+      "end": 1379.7199999999998,
+      "text": " that effectively you are wasting more time just jumping from one operation to another,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1379.84,
+      "end": 1382.62,
+      "text": " rather than actually copying the data and doing progress."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1382.62,
+      "end": 1386.9199999999998,
+      "text": " So I think at some point, it might be beneficial to use proper parallelism,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1387.02,
+      "end": 1390.12,
+      "text": " so trying to spin up multiple processes to do the copy."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1390.3999999999999,
+      "end": 1392.82,
+      "text": " And this is something that is supported by the tool,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1392.9199999999998,
+      "end": 1394.4399999999998,
+      "text": " but might be a little bit tricky."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1394.7199999999998,
+      "end": 1398.56,
+      "text": " And actually, the AWS S3 sync does something similar as well,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1398.9399999999998,
+      "end": 1400.4799999999998,
+      "text": " where effectively you can create a catalog"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1400.4799999999998,
+      "end": 1403.6399999999999,
+      "text": " only for a certain prefix in your source S3 bucket."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1403.8999999999999,
+      "end": 1408.28,
+      "text": " So effectively, you end up with multiple catalogs as per many prefixes you use."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1408.28,
+      "end": 1412.56,
+      "text": " And then you can take those catalogs, and even in different machines, if you want,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1412.68,
+      "end": 1416.52,
+      "text": " you can do the copy operation only for those subsets of all the data."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1416.94,
+      "end": 1419.96,
+      "text": " So effectively, you can parallelize the copy across multiple machines,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1419.96,
+      "end": 1422.16,
+      "text": " which gives you more parallelism."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1422.34,
+      "end": 1425.04,
+      "text": " Probably you can use more bandwidth as well,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1425.1,
+      "end": 1428.18,
+      "text": " because of course, bandwidth at some point can become a bottleneck as well."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1428.56,
+      "end": 1431.8799999999999,
+      "text": " The only issue with that is that it is a little bit more complex to set up."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1431.98,
+      "end": 1434.58,
+      "text": " And also, it's always a little bit challenging to figure out"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1434.58,
+      "end": 1439.74,
+      "text": " what are some good prefixes that I can use to effectively spread equally"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1439.74,
+      "end": 1445.3799999999999,
+      "text": " the amount of data that is being copied at every point of your parallelized solution."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1445.6799999999998,
+      "end": 1447.6599999999999,
+      "text": " So it is an option, it is supported,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1447.78,
+      "end": 1449.6799999999998,
+      "text": " but I guess depending on the shape of your data,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1449.78,
+      "end": 1453.82,
+      "text": " it might be easier or harder to effectively adopt this solution."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1454.36,
+      "end": 1457.54,
+      "text": " You mentioned that it's still in the early stages."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1457.8,
+      "end": 1461.6799999999998,
+      "text": " So what would you like to see in terms of roadmap?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1461.9399999999998,
+      "end": 1462.84,
+      "text": " What doesn't it do yet?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1462.84,
+      "end": 1467.4599999999998,
+      "text": " Do you have any call to action for the audience to get contributing on this?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1467.6799999999998,
+      "end": 1470.98,
+      "text": " Yeah, I think there are two sets of things worth discussing."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1471.1599999999999,
+      "end": 1473.78,
+      "text": " One is like things that are not supported by design,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1474.02,
+      "end": 1478.22,
+      "text": " and other things that are not supported just because we didn't have the time"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1478.22,
+      "end": 1480.28,
+      "text": " or the immediate need for those features."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1480.5,
+      "end": 1484.26,
+      "text": " So the things that are not supported by design are things like copying,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1484.72,
+      "end": 1489.3,
+      "text": " I don't know, attributes, or tags, or ACL rules,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1489.3,
+      "end": 1494.7,
+      "text": " or anything, I guess, related, anything that falls outside just the data of the objects themselves."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1494.7,
+      "end": 1500.5,
+      "text": " Like in S3, you have so many options of things you can configure, storage classes, life cycles,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1500.9199999999998,
+      "end": 1503.68,
+      "text": " things you can configure at the object level, at the bucket level."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1504.1599999999999,
+      "end": 1508.06,
+      "text": " This tool intentionally doesn't try to do to replicate any of this."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1508.06,
+      "end": 1512.26,
+      "text": " And one of the reasons is because this was not our immediate need."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1512.3799999999999,
+      "end": 1517.8799999999999,
+      "text": " But then the other reason is if you analyze the problem a bit pragmatically,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1518.46,
+      "end": 1524.4199999999998,
+      "text": " different S3 compatible storages are going to have a different level of support for those features."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1524.96,
+      "end": 1527.86,
+      "text": " So trying to be comprehensive and support all of these things,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1527.8999999999999,
+      "end": 1530.02,
+      "text": " I think you easily end up with like a matrix."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1530.28,
+      "end": 1531.96,
+      "text": " So what is supported and not supported,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1531.96,
+      "end": 1537.4,
+      "text": " then it becomes quickly obvious that either you create a system that is like hyper configurable"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1537.4,
+      "end": 1540.6000000000001,
+      "text": " and then let the user figure out which configuration works for them,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1540.7,
+      "end": 1546.64,
+      "text": " or it becomes effectively impossible to maintain this matrix of what storage supports what feature"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1546.64,
+      "end": 1550.04,
+      "text": " and then try to automatically leverage whatever is supported."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1550.04,
+      "end": 1553.3600000000001,
+      "text": " So that's something that by design, we didn't even try to implement."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1553.8400000000001,
+      "end": 1556.04,
+      "text": " Similarly, also encryption is another thing."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1556.24,
+      "end": 1561.2,
+      "text": " Like if you have encrypted objects, I'm not actually sure I haven't done a lot of testing,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1561.2,
+      "end": 1563.9,
+      "text": " but we don't try to provide any option at this stage."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1564.0800000000002,
+      "end": 1569.82,
+      "text": " So that is something that might get in the way if you're actually working with encrypted data in buckets."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1570,
+      "end": 1572.7,
+      "text": " I guess it depends also on the encryption mechanism you are using."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1573.56,
+      "end": 1576.32,
+      "text": " And the one thing that actually I would like to see,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1576.44,
+      "end": 1578.94,
+      "text": " but we just didn't have the time to implement it ourselves,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1579.14,
+      "end": 1581.78,
+      "text": " is some kind of support for multi-part uploads."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1582.04,
+      "end": 1586.64,
+      "text": " Because this tool worked really well for us because all the files were relatively small."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1586.64,
+      "end": 1593.7,
+      "text": " But I guess if you have some kind of media intensive application where maybe you have lots of big images or even videos,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1594.0200000000002,
+      "end": 1596.8400000000001,
+      "text": " and you can have files that spans multiple gigabytes,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1597.24,
+      "end": 1600.44,
+      "text": " then maybe this won't be the most efficient way to copy your files."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1600.5800000000002,
+      "end": 1604.8200000000002,
+      "text": " Probably you want to do some kind of multi-part upload to try to parallelize as much as possible,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1604.92,
+      "end": 1606.3200000000002,
+      "text": " even the individual objects."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1606.5800000000002,
+      "end": 1610.46,
+      "text": " So if anyone is open, maybe you are using this tool and you find it useful."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1610.76,
+      "end": 1612.5400000000002,
+      "text": " It's open source, so feel free to send a PR."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1612.54,
+      "end": 1614.84,
+      "text": " This is one feature that we would love to see."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1615.04,
+      "end": 1615.1399999999999,
+      "text": " Nice."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1615.6599999999999,
+      "end": 1617.7,
+      "text": " And it would be great to get more development on this,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1617.78,
+      "end": 1619.6599999999999,
+      "text": " because if we look at some of the alternative solutions,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1620,
+      "end": 1621.52,
+      "text": " there's a couple of open source ones out there,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1621.6,
+      "end": 1624.82,
+      "text": " but a lot of them seem to have been written by people who needed to solve a problem"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1624.82,
+      "end": 1627,
+      "text": " and then maybe not maintained so well."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1627.28,
+      "end": 1632.6599999999999,
+      "text": " There's one from AWS Labs, which is relatively new, but written in Golang."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1632.84,
+      "end": 1637.84,
+      "text": " It uses S3 batch operations, so AWS only doesn't really solve a problem."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1638.34,
+      "end": 1641.34,
+      "text": " There's an older one called S3 S3 Mirror on GitHub."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1641.34,
+      "end": 1645.1599999999999,
+      "text": " It's a Java-based one that allows you to mirror buckets from one to the other"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1645.1599999999999,
+      "end": 1646.9599999999998,
+      "text": " or from a local file system."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1647.28,
+      "end": 1650.6,
+      "text": " And then there's one called NoxCopy, which was written in Ruby quite a while ago,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1650.6599999999999,
+      "end": 1652.1999999999998,
+      "text": " but it seems to be quite deprecated."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1652.4199999999998,
+      "end": 1655.8,
+      "text": " Now, if we look at not-so-open-source options,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1655.8999999999999,
+      "end": 1658.48,
+      "text": " there's one called RClone S3 as well,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1658.6799999999998,
+      "end": 1662.52,
+      "text": " and that's like a tool that allows you to copy data between lots of different sources."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1662.6999999999998,
+      "end": 1666.78,
+      "text": " So that could be FTP, Dropbox, Google Drive, and it also includes S3."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1667.1799999999998,
+      "end": 1669.76,
+      "text": " So it seems quite powerful, but we haven't tried it yet."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1669.76,
+      "end": 1672.64,
+      "text": " And then there's another paid cloud service called Flexify."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1673.32,
+      "end": 1676.6,
+      "text": " This is actually what DigitalOcean recommends for migrations."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1677.08,
+      "end": 1679.18,
+      "text": " We haven't tried this, but I thought it was worth mentioning"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1679.18,
+      "end": 1681.06,
+      "text": " in case you wanted to just throw money at the problem."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1681.34,
+      "end": 1684.2,
+      "text": " I guess it would be interesting to benchmark this."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1684.62,
+      "end": 1685.9,
+      "text": " It depends on your use case, of course,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1686,
+      "end": 1689.54,
+      "text": " but I wonder would tools like MountPoint for S3,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1689.66,
+      "end": 1691.84,
+      "text": " which we covered on a previous episode,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1692.24,
+      "end": 1694.54,
+      "text": " if you just mount two different S3 buckets"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1694.54,
+      "end": 1696.54,
+      "text": " using different credentials on your file system"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1696.54,
+      "end": 1698.3799999999999,
+      "text": " and then do like R-sync between them."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1698.54,
+      "end": 1700.1399999999999,
+      "text": " What would the performance of that be like?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1700.58,
+      "end": 1701.54,
+      "text": " I'm always kind of interested,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1701.92,
+      "end": 1705.56,
+      "text": " but skeptical about solutions that try to map object storage"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1705.56,
+      "end": 1707.46,
+      "text": " into a file system abstraction."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1708.02,
+      "end": 1710.84,
+      "text": " But MountPoint does work well for some cases,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1710.94,
+      "end": 1715.78,
+      "text": " and same with the Fuse user, what do you call it?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1715.8799999999999,
+      "end": 1718.24,
+      "text": " User file system for S3 as well."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1718.58,
+      "end": 1722.52,
+      "text": " So options that I'm interested to get other people's take on as well."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1722.52,
+      "end": 1725.7,
+      "text": " Yeah, and this seems like a common enough problem"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1725.7,
+      "end": 1729.6,
+      "text": " that I'm surprised that there isn't really a lot of literature out there"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1729.6,
+      "end": 1730.58,
+      "text": " on a lot of solutions."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1730.9,
+      "end": 1733.22,
+      "text": " And I think it's going to become a more common problem"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1733.22,
+      "end": 1736.84,
+      "text": " with all these other solutions that are appearing everywhere."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1737.12,
+      "end": 1739.3799999999999,
+      "text": " So I'm just curious to see what other people have,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1739.62,
+      "end": 1741.04,
+      "text": " like if they had this kind of use case"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1741.04,
+      "end": 1742.84,
+      "text": " and what kind of solutions they came up with."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1743.1,
+      "end": 1745.02,
+      "text": " Will CloudFeller and all these other vendors"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1745.02,
+      "end": 1749.3,
+      "text": " start adding tooling to do one-click import from an S3 bucket, do you think?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1752.28,
+      "end": 1754.8,
+      "text": " I wouldn't be too surprised, to be honest, if they do, because I guess it's in their best interest."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1755.02,
+      "end": 1757.86,
+      "text": " It's almost like all these tools that are trying to compete"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1757.86,
+      "end": 1762.58,
+      "text": " with newsletter things, and they all have imports from MailChimp, right?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1762.96,
+      "end": 1766.56,
+      "text": " Because it makes sense for them to try to make it easier for new customers."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1766.82,
+      "end": 1766.98,
+      "text": " Yes."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1767.1599999999999,
+      "end": 1769.02,
+      "text": " They always work one way only, though."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1769.28,
+      "end": 1771,
+      "text": " They never allow you to export."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1771.48,
+      "end": 1774,
+      "text": " So I think that's all you get for today."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1774.18,
+      "end": 1776.3999999999999,
+      "text": " Again, we are really curious to hear from you."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1776.52,
+      "end": 1777.9199999999998,
+      "text": " Have you dealt with this kind of problem?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1777.92,
+      "end": 1778.8600000000001,
+      "text": " Don't be shy."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1779,
+      "end": 1782.1000000000001,
+      "text": " Let us know, because we are always eager to learn from you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1782.1000000000001,
+      "end": 1785.1200000000001,
+      "text": " and share our experience, not just in one way."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1785.26,
+      "end": 1787.38,
+      "text": " So please give us some of your experience."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1787.5800000000002,
+      "end": 1790.28,
+      "text": " But before we wrap up, let's hear it from our sponsors."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1790.6000000000001,
+      "end": 1793.3000000000002,
+      "text": " We promise you to tell you a little bit more about Fortyrem,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1793.5600000000002,
+      "end": 1797.0600000000002,
+      "text": " and thank you, Fortyrem, for supporting yet another episode of AWS By."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1797.16,
+      "end": 1801.26,
+      "text": " So migrating data is hard, but optimize your cloud setup doesn't have to be."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1801.54,
+      "end": 1804.3600000000001,
+      "text": " That's where our friends at Fortyrem come in."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1804.36,
+      "end": 1809.1999999999998,
+      "text": " It's an AWS advanced consulting partner specialized in serverless first solutions"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1809.1999999999998,
+      "end": 1813.32,
+      "text": " to slash cost, scale seamlessly, and modernize your cloud application."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1813.54,
+      "end": 1816.12,
+      "text": " So whether you are streamlining infrastructure, accelerating development,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1816.24,
+      "end": 1820.1,
+      "text": " or turning your tech team into a profit powerhouse,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1820.6599999999999,
+      "end": 1823.86,
+      "text": " Fortyrem is there to help you out to maximize your AWS investment."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1824.02,
+      "end": 1826.9399999999998,
+      "text": " So check out Fortyrem at fortyrem.com,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1826.94,
+      "end": 1832.1000000000001,
+      "text": " and you can find some trusted partner for your next AWS project, I'm sure."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1832.26,
+      "end": 1835.98,
+      "text": " So thank you, everyone, and we'll see you in the next episode."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1835.98,
+      "end": 1836.24,
+      "text": " Thank you."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1836.24,
+      "end": 1836.3,
+      "text": " Thank you."
+    }
+  ]
+}

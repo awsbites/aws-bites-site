@@ -1,0 +1,4358 @@
+{
+  "speakers": {
+    "spk_0": "spk_0",
+    "spk_1": "spk_1"
+  },
+  "segments": [
+    {
+      "speakerLabel": "spk_0",
+      "start": 0,
+      "end": 24.72,
+      "text": " Let's imagine this. You have built a sleek little web application. It's kind of a mall on it, but it's solid. It's a Rust backend. And maybe in the front end, you're using SolidJS. You see what I did there? And it didn't run well enough. And maybe initially you deployed it on premise. Maybe you have a client that gave you a box where you just put all the code and it's running fine."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 24.72,
+      "end": 44.44,
+      "text": " But now, for whatever reason, it's your turn to host it. And of course, you want to host it in the cloud on AWS. So what do you do? You could roll up your sleeves and dive deep into VPCs, load balancers, ECS, task definition, and all the other delightful complexity that comes with running containers on AWS."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 44.44,
+      "end": 59.26,
+      "text": " Or maybe there is a simpler way. What if there was a service that just took your code or your container, whatever that is, packaged it, built it, deployed it, scaled it, and just gave you a URL and even an HTTPS connection."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 59.519999999999996,
+      "end": 68.16,
+      "text": " And at that point, you are just done. If you do any change in your repo, commit on main, the process will just start again and give you a new version just ready to use."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 68.16,
+      "end": 83.25999999999999,
+      "text": " That's actually the promise of a service called AWS AppRunner. And in this episode, we are putting that promise to test. So we'll share the real story of a project that we recently migrated, why we choose AppRunner for it, and everything we discovered along the way."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 83.42,
+      "end": 88.12,
+      "text": " The good, the bad, and the downright confusing. And there is a lot of confusing spoiler alert."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 88.12,
+      "end": 99.7,
+      "text": " So if you ever wish for an Heroku-like experience on AWS, or if you are just trying to figure out when to use AppRunner, for instance, compared to something like Fargate, hopefully this episode will answer all your questions."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 99.96000000000001,
+      "end": 104.84,
+      "text": " My name is Luciano, and today I'm joined by Connor for another episode of AWS Bites podcast."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 104.84,
+      "end": 120.78,
+      "text": " AWS Bites is sponsored by Forteorem, so thanks Forteorem for making this possible. We'll tell you more about Forteorem later."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 120.92,
+      "end": 124.68,
+      "text": " Connor, do we start by trying to describe what the heck is AppRunner?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 124.80000000000001,
+      "end": 134.82,
+      "text": " Yeah, what is AppRunner? So it's relatively new, a mid-2021 service, and it is yet another way to run containers on AWS."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 134.84,
+      "end": 142.78,
+      "text": " So you're probably familiar with Corey Quinn's rantings about the 17 ways to run containers on AWS."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 143.54,
+      "end": 151.22,
+      "text": " I'm not actually sure if this is the 18th way or the 17th way, but there are a lot of ways."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 151.5,
+      "end": 160.96,
+      "text": " So the tagline for the service is deploy web apps and APIs at scale, and it's definitely more oriented towards web servers."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 160.96,
+      "end": 170.70000000000002,
+      "text": " So, you know, applications that are fronted by some sort of low balancer that accept, you know, HTTP traffic."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 171.02,
+      "end": 177.94,
+      "text": " So who is it for? I guess, you know, if you're a developer, they're trying to simplify that process."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 178.18,
+      "end": 183.48000000000002,
+      "text": " You know, I have an app, I have a Docker file, I want to run this container in the cloud, please."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 183.48,
+      "end": 188.94,
+      "text": " And, you know, AppRunner says that it removes a lot of complexity and moving parts."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 189.29999999999998,
+      "end": 193.6,
+      "text": " And then for your DevOps teams or your ops teams or your cloud wranglers,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 194.04,
+      "end": 203.98,
+      "text": " they also promise to remove a lot of the operational pain, deployment, build container registries, VPC, network topology."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 203.98,
+      "end": 210.2,
+      "text": " You know, apparently we can throw a container over the wall and make it AWS's problem."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 210.34,
+      "end": 211.66,
+      "text": " That's the dream."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 211.88,
+      "end": 213.66,
+      "text": " So focus on building your app."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 214.14,
+      "end": 217.17999999999998,
+      "text": " You know, AppRunner will, has a build process."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 217.32,
+      "end": 218.39999999999998,
+      "text": " It'll build your container."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 218.67999999999998,
+      "end": 221,
+      "text": " It'll push it to an ECR repo."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 221.7,
+      "end": 229.89999999999998,
+      "text": " It'll provision whatever infrastructure is needed, deploy the container, make it available on a magic HTTPS URL."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 229.9,
+      "end": 237.70000000000002,
+      "text": " And then it has support for auto scaling and all the things you'd expect for a solution like this."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 237.96,
+      "end": 239.44,
+      "text": " So that's AppRunner."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 239.6,
+      "end": 243.1,
+      "text": " What was the exact use case, Luciano?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 243.24,
+      "end": 245.96,
+      "text": " What was your test bed for the project, I guess?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 246.32,
+      "end": 253.68,
+      "text": " Yeah, so it was a monolithic container with a web application with both backend and frontend packaged together into one container."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 253.88,
+      "end": 256.6,
+      "text": " Not really relevant, but probably fun for people to know."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 256.6,
+      "end": 259.68,
+      "text": " The backend is written in Rust using the Axum framework."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 259.9,
+      "end": 261.88,
+      "text": " So in that sense, it's a bit of a monolithic framework."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 262.47999999999996,
+      "end": 268.23999999999995,
+      "text": " You put all your business logic, all your HTTP routes into one binary, effectively."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 268.65999999999997,
+      "end": 272.23999999999995,
+      "text": " And then there is a frontend, which is an SPA written in SolidJS."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 272.53999999999996,
+      "end": 279.44,
+      "text": " So all the assets are pre-built and then they are served by the same Axum server on a public path, basically."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 279.44,
+      "end": 286.35999999999996,
+      "text": " So the story for this particular project is that this was an application that was built a few years ago for a very small project."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 286.36,
+      "end": 293.32,
+      "text": " It's also probably not relevant, but probably still fun to know that it's effectively like a quick style mini game."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 293.40000000000003,
+      "end": 299.72,
+      "text": " So it's not really a very complicated or something that is like business critical type of application."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 299.72,
+      "end": 310.44000000000005,
+      "text": " So that was actually a good test bed for trying new things without being too much worried about if we break something, this is going to be like a massive damage for a customer."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 310.96000000000004,
+      "end": 315.54,
+      "text": " So the idea is that originally we were only asked to build the application, something we did very quickly."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 316.08000000000004,
+      "end": 319.48,
+      "text": " And now for whatever reason, that application was actually hosted on-premise."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 319.48,
+      "end": 323.68,
+      "text": " So our deliverable was like, this is the container, go figure it out yourself."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 323.88,
+      "end": 329.40000000000003,
+      "text": " Now we are asked to, OK, can you actually host it and manage it yourself in the cloud?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 329.64000000000004,
+      "end": 337.24,
+      "text": " And of course, because we live and breathe AWS, we try to think, OK, how do we move this container to AWS?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 337.56,
+      "end": 341.8,
+      "text": " And can we use this excuse as a way to experiment with new services?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 342,
+      "end": 344.8,
+      "text": " To be honest, AppRunner has been on our mind for a while."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 344.90000000000003,
+      "end": 347.6,
+      "text": " We never really had a good excuse to try it out."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 347.6,
+      "end": 354.68,
+      "text": " So we felt like, OK, this was actually the right opportunity to give it a spin because it seemed like a really relevant use case,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 355.1,
+      "end": 358.96000000000004,
+      "text": " especially because we didn't want to spend a huge amount of time in doing this migration."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 359.1,
+      "end": 364.32000000000005,
+      "text": " But maybe the question that at this point people have is we talked about AppRunner and more or less what is the idea."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 364.70000000000005,
+      "end": 368.58000000000004,
+      "text": " Probably people are much more familiar with something like Fargate when it comes to container."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 368.78000000000003,
+      "end": 371.02000000000004,
+      "text": " So what is really the difference between the two?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 371.70000000000005,
+      "end": 376.48,
+      "text": " Yeah, so I guess Fargate for me is kind of my meat and potato service."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 376.48,
+      "end": 382.38,
+      "text": " It is my go to service for yeeting a container into AWS usually."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 383.44,
+      "end": 389.46000000000004,
+      "text": " You know, it's whether you have a Greenfields app or you're trying to launder technical debt into AWS."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 389.92,
+      "end": 396.64000000000004,
+      "text": " It seems to be, you know, always the best choice or the least worst choice for getting your container up and running."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 396.64,
+      "end": 402.88,
+      "text": " So, like, it's hugely flexible and the operational burden tends to be tiny, very small."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 403.02,
+      "end": 411.59999999999997,
+      "text": " You know, once you have a Fargate service running, AWS does a really good job of taking care of the tasks that are, you know, fulfilling that service."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 411.6,
+      "end": 415.54,
+      "text": " So it is our go to a lot of time."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 415.70000000000005,
+      "end": 420.94,
+      "text": " But, you know, there's obviously a lot of Terraform and CDK abstractions on top of it."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 421.18,
+      "end": 423.40000000000003,
+      "text": " And it's very easy to get up and running with Fargate."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 423.58000000000004,
+      "end": 430.82000000000005,
+      "text": " But I think you forget as a practitioner that's been using it a lot that there's actually a lot of moving parts involved in Fargate."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 430.82,
+      "end": 450.65999999999997,
+      "text": " So, you know, you need a VPC, private subnets, root tables, NAT gateway, application load balancer, security groups, hard groups, ACM certificate, verified assert, route 53 records, IAM task, execution role, task role, CloudWatch log group, ECS cluster, ECR repo, task definition, ECS service."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 450.66,
+      "end": 459.70000000000005,
+      "text": " And then if you want to deploy it, you probably need GitHub actions, NOIDC identity provider, a granular role, and you need to get your hands dirty and write some GitHub actions."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 459.94,
+      "end": 468.32000000000005,
+      "text": " So it's very easy to forget the level of moving parts involved in just getting a pretty straightforward web app up and running in Fargate, right?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 468.46000000000004,
+      "end": 474.48,
+      "text": " So I guess AppRunner promises to hide a lot of this complexity or at least automate it for you."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 474.48,
+      "end": 476.56,
+      "text": " So it's much more abstracted."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 476.76,
+      "end": 485.04,
+      "text": " We don't have the concept of ALBs or autoscaling groups or networking on the happy path."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 485.20000000000005,
+      "end": 489.18,
+      "text": " And then you don't really have to worry about scaling too much, right?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 489.20000000000005,
+      "end": 492.3,
+      "text": " It has a scale to zero-ish concept."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 492.5,
+      "end": 499.62,
+      "text": " It'll shut down containers and it'll relaunch them after some period of, you know, inactivity."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 499.90000000000003,
+      "end": 502.94,
+      "text": " It'll put them to sleep for you, I guess."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 502.94,
+      "end": 506.86,
+      "text": " So the pricing model on Fargate is well understood, I guess."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 507.08,
+      "end": 510.2,
+      "text": " It's, you know, your kind of vCPU slash gigabyte hours."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 510.44,
+      "end": 525,
+      "text": " And then as mentioned, you have a lot of ancillary costs with a simple Fargate app, whether it's the ALB itself, public IP addresses, or a NAT gateway, which you'll probably have if you want to run Fargate in a private subnet."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 525,
+      "end": 529.68,
+      "text": " So how does the pricing model compare in AppRunner Luciano?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 529.86,
+      "end": 532.02,
+      "text": " What are we looking at to get up and running?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 532.94,
+      "end": 534.72,
+      "text": " Yeah, I think you described it really well."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 534.84,
+      "end": 539.5200000000001,
+      "text": " I think the idea of AppRunner is that it is a much more managed service in a way."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 539.7600000000001,
+      "end": 551.08,
+      "text": " And in that sense, probably similarly to Lambda, for example, that the pricing model is more geared towards you're going to pay for the kind of resources that you're actually using as your application is running."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 551.08,
+      "end": 554.08,
+      "text": " And we mentioned that the service scales down."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 554.48,
+      "end": 556.36,
+      "text": " It doesn't really scale down to zero."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 556.48,
+      "end": 558.9000000000001,
+      "text": " And actually, there is an interesting open conversation on GitHub."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 559.22,
+      "end": 562.08,
+      "text": " We'll post the link in the show notes if you're curious where people are asking."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 562.34,
+      "end": 566.94,
+      "text": " Well, this is not really competitive with something like Google Cloud AppRunner."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 567.08,
+      "end": 567.2,
+      "text": " Sorry."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 568.58,
+      "end": 569.74,
+      "text": " Is it called AppRunner?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 569.94,
+      "end": 570.88,
+      "text": " The Google Cloud one."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 571.4000000000001,
+      "end": 571.6,
+      "text": " No idea."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 571.6,
+      "end": 574.12,
+      "text": " There is a service to run containers."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 574.46,
+      "end": 575.38,
+      "text": " I don't think it's also..."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 575.38,
+      "end": 576.46,
+      "text": " I think it's called Cloud Run."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 576.46,
+      "end": 578.14,
+      "text": " Oh, it might be called AppRun."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 578.4200000000001,
+      "end": 578.64,
+      "text": " Is it?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 579.02,
+      "end": 580,
+      "text": " Yeah, something like that."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 580.0600000000001,
+      "end": 581.66,
+      "text": " There is a very similar name as well."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 581.76,
+      "end": 584.52,
+      "text": " But effectively, there is a similar service in Google Cloud."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 584.66,
+      "end": 587.66,
+      "text": " And lots of people are saying, well, that one scales to zero."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 587.8000000000001,
+      "end": 589.64,
+      "text": " Can you, AWS, please do the same?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 589.76,
+      "end": 591.36,
+      "text": " Let's leave that aside for a moment."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 591.5,
+      "end": 595.4200000000001,
+      "text": " If you're curious, you can check out the link we'll put in the show notes."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 595.42,
+      "end": 601.2199999999999,
+      "text": " So going back to the pricing, the idea is that you have two dimensions, again, very similar to Lambda."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 601.36,
+      "end": 605.4,
+      "text": " So the amount of memory that you are using and the CPU that you are using."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 605.74,
+      "end": 606.16,
+      "text": " So for..."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 607.06,
+      "end": 614.4599999999999,
+      "text": " It's in that sense, similar to Lambda, but there are some fundamental differences because we mentioned this concept of containers can be freezed."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 614.6999999999999,
+      "end": 617.42,
+      "text": " So you will need to have at least one container."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 617.42,
+      "end": 618.24,
+      "text": " That's the minimum."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 618.5,
+      "end": 620.0999999999999,
+      "text": " Of course, you can set your own minimum."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 620.3199999999999,
+      "end": 622.3399999999999,
+      "text": " We'll talk more about scalability later."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 622.34,
+      "end": 625.98,
+      "text": " But imagine that there is always a container there allocated for you."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 626.36,
+      "end": 628.6800000000001,
+      "text": " That container might not be consuming CPU."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 628.88,
+      "end": 630.24,
+      "text": " So in that sense, it's kind of frozen."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 630.8000000000001,
+      "end": 632.2800000000001,
+      "text": " But it's not totally destroyed."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 632.52,
+      "end": 636.86,
+      "text": " Like, for instance, a Lambda instance eventually gets destroyed and even all the memory is released."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 637.38,
+      "end": 639.94,
+      "text": " With AppRunner, it doesn't get released."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 640.12,
+      "end": 643.0600000000001,
+      "text": " Like, there is always one container at least sleeping there."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 643.52,
+      "end": 646.12,
+      "text": " So your memory cost, in a way, can be..."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 646.12,
+      "end": 648.08,
+      "text": " There is like a baseline that is fixed."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 648.08,
+      "end": 655.84,
+      "text": " So whatever is the minimum number of containers that you are setting in the autoscaling groups, you are going to be paying for at least that amount of memory."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 656.1600000000001,
+      "end": 663.64,
+      "text": " Then, of course, if you're, let's say, a cluster, if we can call it like that, if the number of containers, basically, it's very elastic."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 663.7800000000001,
+      "end": 666.94,
+      "text": " Like, if you have lots of traffic, there can be more at some point in time."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 666.94,
+      "end": 668.98,
+      "text": " So, of course, you will be allocating more memory."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 669.4200000000001,
+      "end": 682.22,
+      "text": " And in that sense, you pay overall the memory cost, which I think is 0.07 cents of dollar per gigabyte per hour, which, if you have one container, is about $5 per month."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 682.36,
+      "end": 682.94,
+      "text": " So that's..."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 682.94,
+      "end": 687.2600000000001,
+      "text": " I think that's kind of the baseline for one application you have in..."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 687.2600000000001,
+      "end": 691.46,
+      "text": " Even if it's not getting any traffic, I don't think AppRunner is going to get any cheaper than this."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 691.46,
+      "end": 694.1800000000001,
+      "text": " Then you have the concept of CPU cost."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 694.38,
+      "end": 695.9000000000001,
+      "text": " So the memory is only one dimension."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 696.02,
+      "end": 697.22,
+      "text": " The other dimension is CPU."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 697.6,
+      "end": 702.9200000000001,
+      "text": " And CPU, effectively, when your container is frozen, you are not consuming any CPU."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 703.1800000000001,
+      "end": 708.62,
+      "text": " Even if you have any background task, effectively, your container is put to sleep in a way."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 708.76,
+      "end": 711.62,
+      "text": " So the memory is still allocated, but it's not executing any CPU."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 711.62,
+      "end": 725.02,
+      "text": " And when you are actually handling web requests, so your CPU is running, that time is actually calculated, and you have a cost of $0.064 per vCPU per hour."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 725.16,
+      "end": 731.86,
+      "text": " And you can also configure the number of vCPUs that you need per container if you're doing something, for instance, that requires multithreading."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 732.1,
+      "end": 738.6,
+      "text": " So if your app is active all the time and you have one container, the CPU cost is $46 a month."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 738.6,
+      "end": 749.02,
+      "text": " So that, I think, gives you the idea that even if you have only one container and it's working 24-7 all the time, I think you will get to a cost of about $50 per month for that."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 749.26,
+      "end": 753.08,
+      "text": " So that kind of gives you, I guess, the ballpark of what could be the cost."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 753.3000000000001,
+      "end": 757.76,
+      "text": " The good thing is that there is no load balancer cost, which, if I remember correctly, is something about $30."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 758.88,
+      "end": 759.96,
+      "text": " Correct me if I'm wrong."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 760.26,
+      "end": 761.5,
+      "text": " So you are not paying for that."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 761.6,
+      "end": 765.2,
+      "text": " So that's kind of absorbed in the rest of the cost, which is a good thing."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 765.28,
+      "end": 768.1800000000001,
+      "text": " Like, actually, you don't even see the load balancers in your own account."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 768.18,
+      "end": 770.18,
+      "text": " So AWS is totally managing that."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 770.3599999999999,
+      "end": 771.8199999999999,
+      "text": " Then there are some extra costs."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 772,
+      "end": 777.4,
+      "text": " For instance, if you enable the feature of automatic deployments, the one that Connor, you described."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 777.8199999999999,
+      "end": 781.54,
+      "text": " So you just connect your repo and let AWS do everything else."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 781.68,
+      "end": 784.2199999999999,
+      "text": " I think there is a cost of like $1 per month."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 784.42,
+      "end": 789.8199999999999,
+      "text": " But then there is also a build fee because, of course, your build might be very simple and very quick."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 790.1999999999999,
+      "end": 794.8,
+      "text": " But maybe you're doing something extremely complex that might take, I don't know, half an hour to build."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 794.8,
+      "end": 798.0799999999999,
+      "text": " So that time is build with an extra cost."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 798.5799999999999,
+      "end": 801.78,
+      "text": " And it's $0.005 per minute."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 802.06,
+      "end": 803.12,
+      "text": " So keep it in mind."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 803.24,
+      "end": 808.6999999999999,
+      "text": " Like, if you have a very long build, probably you might want to invest in kind of building it yourself."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 808.9,
+      "end": 812.9399999999999,
+      "text": " Because there is also another mode where you can build it yourself and then just publish the container."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 813.18,
+      "end": 816.9399999999999,
+      "text": " And then tell AppRunner, please release this new version of the container."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 817.18,
+      "end": 820.16,
+      "text": " So you are not forced to go with the totally managed approach."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 820.16,
+      "end": 822.36,
+      "text": " You can still handle the build yourself if you want."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 822.56,
+      "end": 826.76,
+      "text": " If you let AWS do it, just keep in mind that there is an extra cost."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 827.48,
+      "end": 832.42,
+      "text": " Now, if we want to talk a little bit about networking, because I think that's an interesting point."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 832.74,
+      "end": 835.74,
+      "text": " We already mentioned that it's kind of all abstracted for you."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 835.86,
+      "end": 841.42,
+      "text": " Like, you don't even know in which network your AppRunner or your containers are running."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 841.6,
+      "end": 845.3199999999999,
+      "text": " Like, you don't really define a VPC and put the containers there."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 845.4,
+      "end": 847.8199999999999,
+      "text": " It's more magic that AWS does for you."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 847.82,
+      "end": 852.5600000000001,
+      "text": " So for people that miss EC2 Classic, this is a throwback maybe."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 852.6600000000001,
+      "end": 856.96,
+      "text": " They can get back to that experience of not worrying about a VPC."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 857.24,
+      "end": 858,
+      "text": " Pretty much, yeah."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 858.0400000000001,
+      "end": 863.4000000000001,
+      "text": " Or even, I don't know, sometimes when you just use Lambda and you don't put it in a VPC, it's running somewhere magically."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 863.5600000000001,
+      "end": 865.2800000000001,
+      "text": " You don't have to worry too much about that."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 865.5400000000001,
+      "end": 866.5400000000001,
+      "text": " Which I think is good."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 866.62,
+      "end": 869.72,
+      "text": " Like, I think it removes lots of complexity for many use cases."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 870.1600000000001,
+      "end": 875.0200000000001,
+      "text": " Except that for almost every application, at some point you need to connect to another base, right?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 875.0600000000001,
+      "end": 876.4000000000001,
+      "text": " To do anything useful."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 876.4,
+      "end": 878.5,
+      "text": " So that creates a problem."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 878.68,
+      "end": 893.6999999999999,
+      "text": " Because if you have a database, I don't know, an RDS or an Aurora cluster running in a VPC, then how do you connect your application that is running somewhere that you don't even know to a VPC that you actually are well aware about and you actually control in your own account?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 923.7,
+      "end": 929.58,
+      "text": " Whatever networking AWS is provisioning for you to the actual networking where you have your own database."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 930.0600000000001,
+      "end": 933.88,
+      "text": " And at that point, you can decide to do different things."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 934.1,
+      "end": 945.72,
+      "text": " Like, effectively, you can say all the traffic that my application is generating, like either to connect to a database or maybe go and pull, I don't know, a file from an HTTP."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 945.72,
+      "end": 950.72,
+      "text": " Or maybe connect to a S3 or maybe if you want to send an event through EventBridge."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 950.9200000000001,
+      "end": 955.58,
+      "text": " So whatever is internal or external traffic is going to go through that VPC that you control."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 956,
+      "end": 961.64,
+      "text": " So at that point, you need to be aware of creating all necessary things like routing table, NAT gateways."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 961.64,
+      "end": 968.74,
+      "text": " Yeah, everything from a networking perspective to make sure that traffic can be routed correctly to your services."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 969.34,
+      "end": 975.4,
+      "text": " So I think that's the interesting part about networking that generally is very easy to get started with."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 975.62,
+      "end": 984.96,
+      "text": " But then I think eventually you still need to take a little bit of complexity because unless you don't need a database, which is like most cases, or maybe you are using a database that is not even on AWS."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 984.96,
+      "end": 991.08,
+      "text": " And you can just use the public network for connecting to your database, which I don't know if I would necessarily recommend."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 991.26,
+      "end": 999.9000000000001,
+      "text": " But yeah, I think for most serious use cases, I think you still need to understand a little bit of networking and make sure you understand how to connect a runner to your own VPC."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1000.3000000000001,
+      "end": 1000.38,
+      "text": " Gotcha."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1000.76,
+      "end": 1004.34,
+      "text": " It's great to have the escape hatch, I guess, right?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1004.4200000000001,
+      "end": 1008.02,
+      "text": " That if you're on some very happy path, it's great to not have to worry about this stuff."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1008.02,
+      "end": 1018.1999999999999,
+      "text": " But they didn't make it a Mickey Mouse service, I guess, by not being able to integrate with the well-known VPC fundamentals, I guess."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1018.52,
+      "end": 1019.3,
+      "text": " Okay, that's good."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1019.3199999999999,
+      "end": 1019.86,
+      "text": " Yeah, pretty much."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1020.1,
+      "end": 1025.98,
+      "text": " Yeah, next topic I guess we can explore is maybe deep dive a little bit on the concept of autoscaling."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1026.18,
+      "end": 1030.3799999999999,
+      "text": " We've kind of mentioned it briefly, but I think it's interesting to understand it a little bit more."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1030.52,
+      "end": 1036,
+      "text": " It's probably based on the existing load balancer autoscaling groups."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1036,
+      "end": 1042.32,
+      "text": " But again, it's something that has been a little bit abstracted for you, like you don't have to provision autoscaling groups."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1042.82,
+      "end": 1051.1,
+      "text": " It's more you have some configuration dials that you can play with to effectively define what are the rules for which I have maybe a container to start with."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1051.36,
+      "end": 1053.7,
+      "text": " And if there is more traffic, I want more containers."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1053.92,
+      "end": 1060.7,
+      "text": " And then if this traffic goes down eventually, I want to reduce the number of containers, basically, elastically, based on traffic."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1060.7,
+      "end": 1074.18,
+      "text": " So you actually have, actually, the first thing worth mentioning, as we said, is that you can specify, just to configure a single container, so a single instance of your application, you can specify virtual CPU and virtual memory."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1074.32,
+      "end": 1076.26,
+      "text": " For both, you actually have very limited choices."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1076.5,
+      "end": 1080.3400000000001,
+      "text": " Like for CPU, you have 0.25, 0.5, 1, 2, and 4."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1080.82,
+      "end": 1084.18,
+      "text": " For virtual memory, you have 2 gigabytes, 3 gigabytes, 4 gigabytes."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1084.6200000000001,
+      "end": 1084.96,
+      "text": " Wow."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1085.32,
+      "end": 1088.02,
+      "text": " Okay, it is quite limited in an memory footprint then."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1088.02,
+      "end": 1092.2,
+      "text": " And I guess that's probably good enough for most web applications."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1092.54,
+      "end": 1100.18,
+      "text": " So again, it's another symptom that this is a service built for web applications in mind and web applications only."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1100.6399999999999,
+      "end": 1104.86,
+      "text": " Like I don't think you are expected to do, I don't know, data crunching or like massive processing."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1105.42,
+      "end": 1107.68,
+      "text": " It's more you are going to be handling HTTP traffic."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1108.28,
+      "end": 1112.36,
+      "text": " So probably these characteristics will cover 99% of the use cases."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1112.6399999999999,
+      "end": 1116.32,
+      "text": " Then in terms of autoscaling, you have three parameters you can play with."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1116.32,
+      "end": 1120.54,
+      "text": " One is max concurrency, then you have max size and min size."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1120.6799999999998,
+      "end": 1122,
+      "text": " Now, what is max concurrency?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1122.2,
+      "end": 1127.74,
+      "text": " It's basically all the requests that you are receiving through this invisible load balancers."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1127.8799999999999,
+      "end": 1129.62,
+      "text": " They are effectively being monitored."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1130.04,
+      "end": 1138.56,
+      "text": " And you are effectively saying with this max concurrency, how many requests per seconds can one single instance of your application handle?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1138.7,
+      "end": 1144.5,
+      "text": " So you can set this number, I think the maximum is 200, which I thought was very disappointing."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1144.5,
+      "end": 1147.24,
+      "text": " So I believe it's something between like one and 200."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1147.24,
+      "end": 1158.42,
+      "text": " But basically what it means, let's say if you set it to 200, is that as soon as you have 201 requests per second, AWS is going to spawn up a new instance of the container."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1158.52,
+      "end": 1160.24,
+      "text": " Of course, you can have limits."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1160.68,
+      "end": 1165.72,
+      "text": " So you have this concept of minimum number of containers, so min size, which goes from one."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1165.84,
+      "end": 1166.56,
+      "text": " One is the minimum."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1166.9,
+      "end": 1167.52,
+      "text": " Max size."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1167.78,
+      "end": 1168.98,
+      "text": " I don't know if there is a maximum."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1169.16,
+      "end": 1172.44,
+      "text": " I didn't check, but it's effectively, let's say you put 20, right?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1172.44,
+      "end": 1174.92,
+      "text": " You are never going to have more than 20 containers."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1175.06,
+      "end": 1182.3400000000001,
+      "text": " So if you really have a huge amount of traffic, eventually your containers are going to start to struggle a little bit because you are not going to spin up more instances."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1182.54,
+      "end": 1184.26,
+      "text": " And this is just a cost control measure."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1184.46,
+      "end": 1190.16,
+      "text": " So you can put reasonable boundaries in place so that your containers are not going to scale indefinitely."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1191.94,
+      "end": 1198.94,
+      "text": " I guess, yeah, I guess that covers more or less what you need to know about instance configuration and auto scaling."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1199.18,
+      "end": 1200.16,
+      "text": " What about security?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1200.16,
+      "end": 1209.3200000000002,
+      "text": " Yeah, it's always good to kick the tires on a new service and see how you or your team might shoot themselves in the foot, I guess."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1209.46,
+      "end": 1213.42,
+      "text": " So I had a quick play with AppRunner myself."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1213.8000000000002,
+      "end": 1225.72,
+      "text": " I guess one of the interesting things is if you are integrating it with GitHub or your VCS of choice, which is probably the way most teams will go to take advantage of the automation."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1225.72,
+      "end": 1234.3,
+      "text": " In the GitHub case, anyway, it uses the AWS connector for GitHub, GitHub app, which is used by a variety of services."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1235.5,
+      "end": 1242.7,
+      "text": " You can let that have access to your entire GitHub org, or you can actually limit it to specific repos as well, which is nice."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1242.7,
+      "end": 1249.1200000000001,
+      "text": " So the team that are responsible for your GitHub organization might be happy with that."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1250.06,
+      "end": 1260.04,
+      "text": " It does have the kind of load a secret into an environment variable functionality, like you'd get with Fargate and ECS, which is fantastic."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1260.04,
+      "end": 1263.28,
+      "text": " So you can specify a Secrets Manager secret."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1263.84,
+      "end": 1268.98,
+      "text": " And thankfully, also SSM Parameter Store parameters can be loaded dynamically as well."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1269.1,
+      "end": 1276.12,
+      "text": " So there's a couple of services now where they'll try and strong arm you into using Secrets Manager to get that $0.40 per month."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1276.12,
+      "end": 1280.1599999999999,
+      "text": " So great to see Parameter Store as a first class citizen there."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1280.3999999999999,
+      "end": 1285.76,
+      "text": " And it is just a great pattern for loading Secrets at runtime into a containerized app."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1285.8999999999999,
+      "end": 1293.4399999999998,
+      "text": " It has a concept called Instance Role, which is exactly like EC2 Instance Profile or an ECS Task Role."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1293.8,
+      "end": 1300.7199999999998,
+      "text": " So credentials, temporary credentials that the container will assume at runtime."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1300.72,
+      "end": 1305.9,
+      "text": " So again, you can give it granular IAM policies, which is fantastic."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1306.3600000000001,
+      "end": 1308.8,
+      "text": " It has WAF integration, which is great."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1309,
+      "end": 1315.68,
+      "text": " And then from a, I guess, operational point of view, does seem to have really good Terraform coverage as well."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1315.88,
+      "end": 1320.92,
+      "text": " So, you know, lets you put some governance and opinionated tooling around the pattern."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1321.1000000000001,
+      "end": 1327.22,
+      "text": " It's not just a click ops, click buttons in the console to get easy containers solution."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1327.22,
+      "end": 1338.46,
+      "text": " Like if it fits your use case and you want to lean into AppRunner, it does look like there's ways to build it into like an existing robust software development lifecycle around infrastructure."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1338.82,
+      "end": 1342.54,
+      "text": " You don't have to use the click ops escape hatch, which is great."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1343.44,
+      "end": 1346.74,
+      "text": " One question I wanted to ask you, Luciano, is you mentioned background jobs."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1346.74,
+      "end": 1357.7,
+      "text": " You know, it's very typical if you have a web app, you might have some sort of utils instance or you want to have a runner or something that consumes messages from a queue."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1357.9,
+      "end": 1368.38,
+      "text": " In this kind of AppRunner, you know, web app paradigm, how do you run background tasks or kind of ad hoc tasks that are not HTTP requests, I guess?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1368.68,
+      "end": 1371.02,
+      "text": " Yeah, that's a great question because I think it's very common."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1371.02,
+      "end": 1379.4,
+      "text": " For instance, I don't know if you use something like Laravel or Ruby or Rails, like all this kind of NVC monolithic web frameworks."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1379.6399999999999,
+      "end": 1383.2,
+      "text": " I think at least all the ones I've seen, they have a concept of background tasks."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1383.46,
+      "end": 1386.98,
+      "text": " So make it easy for you to keep the responses to the users very fast."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1387.24,
+      "end": 1397.36,
+      "text": " But then whenever you need to do something that is not necessarily correlated to the response you want to give to the user, like, I don't know, sign up a user to a newsletter, send an email, that kind of stuff."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1397.36,
+      "end": 1404.1999999999998,
+      "text": " You probably want to schedule a background task, reply to the user, okay, as soon as possible, and then in the background process that particular request."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1404.56,
+      "end": 1408.84,
+      "text": " And yeah, as I said, many frameworks have all of that machinery built in."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1409,
+      "end": 1412.6599999999999,
+      "text": " So I think it's common for people to just use this kind of functionality."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1413.2199999999998,
+      "end": 1421.84,
+      "text": " I think when you go to AppRunner, there is a little bit of a caveat that you need to keep in mind because considering the idea that your instance can be frozen at some point,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1421.84,
+      "end": 1432.22,
+      "text": " you might end up in a situation if you have an application with very low sparse traffic, then maybe a user comes in, makes a request, something goes in the queue, nothing happens for a while."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1432.36,
+      "end": 1433.9599999999998,
+      "text": " So effectively, everything is frozen."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1434.3999999999999,
+      "end": 1441.52,
+      "text": " And that background task never has a chance to run until maybe in a few days, another request comes in, everything is woken up."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1441.62,
+      "end": 1445.76,
+      "text": " And then effectively, the CPU has time also to deal with the background task."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1445.76,
+      "end": 1455.7,
+      "text": " So this is something to be, I think, aware that probably not ideal to use this kind of characteristics from web framework when you're using AppRunner, especially if you have very low traffic."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1455.86,
+      "end": 1459.54,
+      "text": " Like if you have very frequent traffic, probably it's not something you're going to notice."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1459.78,
+      "end": 1462.64,
+      "text": " But just be aware that you have very sparse traffic."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1463.1,
+      "end": 1471.2,
+      "text": " You might end up in a situation where your background task just gets frozen and delayed indefinitely, or at least correlated to your web traffic patterns."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1471.2,
+      "end": 1479.6200000000001,
+      "text": " So I would say that an easier approach is just since you are in AWS leverage event services like EventBridge and Lambda."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1479.82,
+      "end": 1483.02,
+      "text": " This is actually how we solved it for this specific application."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1483.24,
+      "end": 1486.96,
+      "text": " We had a concept of background jobs, specific for newsletter and sending emails."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1487.24,
+      "end": 1493.5,
+      "text": " And then there were some monthly reports just to collect some statistics, create some reports and send them by email."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1493.8,
+      "end": 1497.1200000000001,
+      "text": " So all of that stuff now is literally just there is EventBridge."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1497.12,
+      "end": 1500.6999999999998,
+      "text": " So whenever the app needs to schedule something, it creates an event."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1501.2199999999998,
+      "end": 1506.32,
+      "text": " And then Lambda captures that event, will process it totally decoupled from the main application."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1506.6599999999999,
+      "end": 1516.02,
+      "text": " And then whenever the job is done, of course, yeah, there are mechanisms to notify that to the application if the application needs to know about that job being completed."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1516.3,
+      "end": 1520.78,
+      "text": " So this is something I think was worth mentioning because it wasn't very obvious at first."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1520.78,
+      "end": 1529.06,
+      "text": " It's something that we realized in due course and we didn't expect to have to do some rework on the application to kind of adjust for this particular use case."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1530.34,
+      "end": 1532.8999999999999,
+      "text": " Something similar, I guess, just to put you on the spot."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1533.04,
+      "end": 1534.3799999999999,
+      "text": " You mentioned Laravel or Rails."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1534.94,
+      "end": 1541.2,
+      "text": " Very common to run database migrations or something on a single host during deployment."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1541.5,
+      "end": 1545,
+      "text": " There is apprunner.yaml, which people might be familiar with."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1545.3799999999999,
+      "end": 1547.86,
+      "text": " Codebuild.yaml and similar files."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1548.04,
+      "end": 1549.8799999999999,
+      "text": " And there's different phases and stuff."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1549.88,
+      "end": 1559.72,
+      "text": " Is there some sort of lifecycle hooks or something where you can run code that you want to happen once, I guess, as part of an apprunner deploy?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1560.6000000000001,
+      "end": 1562.16,
+      "text": " That's a very good question as well."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1562.3200000000002,
+      "end": 1563.2800000000002,
+      "text": " Not that I'm aware."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1563.4,
+      "end": 1565.44,
+      "text": " Like, I couldn't see anything like that."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1565.74,
+      "end": 1568.38,
+      "text": " We do use migrations for this particular application."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1568.72,
+      "end": 1574.5800000000002,
+      "text": " I think the advantage there is that this particular migration system will put a lock on the database."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1574.58,
+      "end": 1580.28,
+      "text": " So effectively, whichever instance starts the migration first will have precedence."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1580.3999999999999,
+      "end": 1583.04,
+      "text": " And then all the other ones will be like, okay, this is a no-op."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1583.5,
+      "end": 1585.1999999999998,
+      "text": " So it kind of works."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1585.36,
+      "end": 1586.1399999999999,
+      "text": " No problem."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1586.3,
+      "end": 1589.54,
+      "text": " But I remember this was an old Laravel application."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1589.6799999999998,
+      "end": 1593.02,
+      "text": " So I don't know if this is something that they solved now in Laravel itself."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1593.5,
+      "end": 1595.5,
+      "text": " That this locking mechanism wasn't there."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1595.5,
+      "end": 1598.54,
+      "text": " So this approach wouldn't have worked there."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1598.68,
+      "end": 1601.56,
+      "text": " Because effectively, you could have two containers starting at the same time."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1601.64,
+      "end": 1605.14,
+      "text": " And they would both crash because they are conflicting on running the migrations."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1605.64,
+      "end": 1607.66,
+      "text": " So I guess something to be aware."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1608.02,
+      "end": 1614.56,
+      "text": " In the past, this is also something we solved with Lambda by creating custom resources that were run before a new deployment."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1614.56,
+      "end": 1618.3799999999999,
+      "text": " And effectively, all the migration logic is in the custom resource."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1618.5,
+      "end": 1621.4199999999998,
+      "text": " Which could be a bit annoying when you're using a monolithic framework."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1621.4199999999998,
+      "end": 1625.32,
+      "text": " Because effectively, you are suddenly removing all that code."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1625.6,
+      "end": 1628.36,
+      "text": " Which is generally very nice, abstracted in those frameworks."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1628.52,
+      "end": 1629.74,
+      "text": " And you have to put it in a Lambda."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1629.8799999999999,
+      "end": 1632.06,
+      "text": " And it's not always straightforward to do all of that."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1632.24,
+      "end": 1635.8999999999999,
+      "text": " So yeah, this might be another point where you might find a little bit of friction."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1636.36,
+      "end": 1637.94,
+      "text": " Just because of the running model."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1638.12,
+      "end": 1643.52,
+      "text": " But I think in general, when you take frameworks like Laravel or, I don't know, Ruby or Rails."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1643.52,
+      "end": 1648.42,
+      "text": " It's very hardly they are built with that level of scalability in mind."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1648.42,
+      "end": 1651.42,
+      "text": " It's more like it's going to run in a big VPS."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1651.86,
+      "end": 1653.28,
+      "text": " And then everyone is up."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1653.58,
+      "end": 1656.22,
+      "text": " So this is at least my experience with those kind of frameworks."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1656.56,
+      "end": 1658.1399999999999,
+      "text": " The serverful approach."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1658.84,
+      "end": 1662.04,
+      "text": " Okay, so should we try to do a final analysis?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1662.26,
+      "end": 1665.2,
+      "text": " I'm going to try to say what I liked and what I didn't like."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1665.36,
+      "end": 1666.06,
+      "text": " Let's do it."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1666.32,
+      "end": 1667.94,
+      "text": " What's the good, the bad, and the ugly?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1668.76,
+      "end": 1669.2,
+      "text": " Exactly."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1669.46,
+      "end": 1672.76,
+      "text": " So I think my opinion, and feel free to disagree with me,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1672.76,
+      "end": 1677,
+      "text": " is that it's really nice that you don't have to worry about managing lots of stuff."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1677.22,
+      "end": 1679.14,
+      "text": " You made a very comprehensive list."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1679.54,
+      "end": 1680.74,
+      "text": " Networking, load balancers."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1680.84,
+      "end": 1682.12,
+      "text": " I'm not going to repeat all of that."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1682.32,
+      "end": 1686.84,
+      "text": " But you have a path that is almost like the good old times of Eroku."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1687.1,
+      "end": 1689.9,
+      "text": " Modern times probably fly.io or Railway."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1690.2,
+      "end": 1692.18,
+      "text": " I think it's a very similar experience."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1692.36,
+      "end": 1695.8799999999999,
+      "text": " It's like I don't want to know anything or almost anything about infrastructure."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1695.88,
+      "end": 1700.8400000000001,
+      "text": " I want to focus on an app, building an app, and then just throw it over the wall."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1701.1200000000001,
+      "end": 1702.3000000000002,
+      "text": " AWS, this is my repo."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1702.46,
+      "end": 1703.24,
+      "text": " Go figure it out."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1703.4,
+      "end": 1707,
+      "text": " I think this is a very appealing proposition for most people."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1707.6000000000001,
+      "end": 1711.7600000000002,
+      "text": " And I think this is a common struggle that a lot of people that are starting with AWS"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1711.7600000000002,
+      "end": 1716.5600000000002,
+      "text": " would somehow describe as, yes, I just wanted to deploy this one app,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1716.56,
+      "end": 1719.1399999999999,
+      "text": " and then I spent the next two years learning AWS."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1720,
+      "end": 1723.34,
+      "text": " So I think I felt that myself a few years ago."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1723.48,
+      "end": 1726.8799999999999,
+      "text": " And I know that a lot of people are feeling this kind of stress of,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1727.12,
+      "end": 1730.8999999999999,
+      "text": " I thought this was simpler, and then suddenly I need to take a PhD in AWS"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1730.8999999999999,
+      "end": 1732.84,
+      "text": " to do the most basic thing."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1733.32,
+      "end": 1738.34,
+      "text": " I think with services like AppRunner, this is going to be less and less the case."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1738.44,
+      "end": 1740.56,
+      "text": " So I think this is very welcome, in my opinion."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1740.56,
+      "end": 1746.02,
+      "text": " And also, if you know Fargate, this is another simplification from Fargate."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1746.24,
+      "end": 1749.2,
+      "text": " I think knowing Fargate is absolutely a great skill,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1749.6399999999999,
+      "end": 1751.56,
+      "text": " but sometimes you just want something simpler."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1751.6799999999998,
+      "end": 1753.1399999999999,
+      "text": " So this can be another option."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1753.6399999999999,
+      "end": 1756.54,
+      "text": " Another thing that I noticed, and this is probably due to,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1756.76,
+      "end": 1759.3999999999999,
+      "text": " actually, I'm not really sure what is the main reason for this,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1759.46,
+      "end": 1763,
+      "text": " but I had the impression, and I don't have hard evidence or benchmarks,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1763.54,
+      "end": 1767.12,
+      "text": " but I had the impression that doing a deployment is generally much faster"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1767.12,
+      "end": 1770.9399999999998,
+      "text": " than my experience in deploying web applications on Fargate."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1771.32,
+      "end": 1775.8799999999999,
+      "text": " So again, it might just be due to my bad configuration in Fargate,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1776.1399999999999,
+      "end": 1778.9199999999998,
+      "text": " but I had a feeling that, yeah, AppRunner is like,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1779.06,
+      "end": 1782.6799999999998,
+      "text": " you can literally deploy a new version in seconds or maybe a minute"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1782.6799999999998,
+      "end": 1785.84,
+      "text": " rather than having to wait for 10 minutes for all the L checks"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1785.84,
+      "end": 1787.4599999999998,
+      "text": " and everything to stabilize."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1787.82,
+      "end": 1791.02,
+      "text": " And also the idea of autoscaling configurations is pretty cool."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1791.4799999999998,
+      "end": 1794.2199999999998,
+      "text": " I don't know if we mentioned this, but we mentioned the parameters."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1794.22,
+      "end": 1797.28,
+      "text": " What you can do, you can actually create multiple configurations."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1797.5,
+      "end": 1800.3,
+      "text": " So you could have, I don't know, a Christmas event configuration"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1800.3,
+      "end": 1803.1200000000001,
+      "text": " for when you expect a lot of traffic,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1803.34,
+      "end": 1807,
+      "text": " and then you can just turn it on and off for specific deployments."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1807.22,
+      "end": 1809.7,
+      "text": " So you are not limited to one configuration."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1809.84,
+      "end": 1812.64,
+      "text": " You can create sets of different scalability properties,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1812.9,
+      "end": 1814.96,
+      "text": " if we want to call it like that, or configurations,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1814.96,
+      "end": 1817.5,
+      "text": " and then you can assign them to every deployment."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1817.64,
+      "end": 1821.14,
+      "text": " So I think that's a nice thing for those kind of applications"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1821.14,
+      "end": 1824.22,
+      "text": " that can be very seasonal and maybe you want to be ready"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1824.22,
+      "end": 1825.66,
+      "text": " for when the season starts."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1826.16,
+      "end": 1828.8600000000001,
+      "text": " You're just going to flip the switch, change the configuration group,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1829.24,
+      "end": 1830.14,
+      "text": " and that's already prepared."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1830.26,
+      "end": 1833.0200000000002,
+      "text": " You don't have to do the maths again or think about,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1833.2800000000002,
+      "end": 1835.18,
+      "text": " okay, how many containers do we need now?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1835.46,
+      "end": 1837.42,
+      "text": " You prepare all of this configuration up front,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1837.42,
+      "end": 1838.5200000000002,
+      "text": " and then you can just use it."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1838.5200000000002,
+      "end": 1842.88,
+      "text": " Yeah, it's interesting too that they went with that requests model, right?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1842.92,
+      "end": 1846.48,
+      "text": " Instead of the classic, you know, aggregate CPU usage"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1846.48,
+      "end": 1848.18,
+      "text": " across a fleet of instances,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1848.18,
+      "end": 1849.6000000000001,
+      "text": " which is kind of hard to reason about."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1849.8200000000002,
+      "end": 1851.3600000000001,
+      "text": " With this, it seems like you can be like,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1851.46,
+      "end": 1855.5800000000002,
+      "text": " oh, no, we expect this many requests per second on Black Friday"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1855.5800000000002,
+      "end": 1857.1000000000001,
+      "text": " because that's what we had last year,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1857.3200000000002,
+      "end": 1860.8200000000002,
+      "text": " and it's a bit easier to reason about the level of load maybe"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1860.8200000000002,
+      "end": 1861.74,
+      "text": " and your scaling."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1862,
+      "end": 1862.64,
+      "text": " Yeah, pretty much."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1862.7,
+      "end": 1863.94,
+      "text": " And I also think that in general,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1863.94,
+      "end": 1866.0800000000002,
+      "text": " you could easily benchmark your own,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1866.22,
+      "end": 1867.8400000000001,
+      "text": " like one instance of a container"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1867.8400000000001,
+      "end": 1870.42,
+      "text": " and see how many requests it can handle"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1870.42,
+      "end": 1873.88,
+      "text": " with a similar kind of vCPU memory model as well."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1874.28,
+      "end": 1876.68,
+      "text": " Maybe you just run it as a container locally"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1876.68,
+      "end": 1880.18,
+      "text": " with constrained access to the actual resources of the host machine,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1880.38,
+      "end": 1882.26,
+      "text": " and you see, okay, it can handle, I don't know,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1882.52,
+      "end": 1884.48,
+      "text": " reasonably well 100 requests per second."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1884.64,
+      "end": 1885.52,
+      "text": " That can be your number."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1885.66,
+      "end": 1888.6200000000001,
+      "text": " I think it's much easier to think about scalability that way"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1888.6200000000001,
+      "end": 1892.92,
+      "text": " rather than trying to predict how much CPU means."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1892.92,
+      "end": 1893.78,
+      "text": " I don't know."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1893.96,
+      "end": 1896,
+      "text": " Now you need another instance or something like that."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1896.6000000000001,
+      "end": 1896.68,
+      "text": " Yeah."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1897.14,
+      "end": 1900.3400000000001,
+      "text": " Especially, I think, because lots of, for instance,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1900.34,
+      "end": 1905.9399999999998,
+      "text": " this Rust application uses an async framework,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1906.1399999999999,
+      "end": 1908.52,
+      "text": " so it's very efficient in dealing with requests."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1908.98,
+      "end": 1910.76,
+      "text": " So I was actually a bit disappointed."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1910.9199999999998,
+      "end": 1912.98,
+      "text": " This is, I think, my first bad note,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1913.08,
+      "end": 1914.6,
+      "text": " that the maximum is 200"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1914.6,
+      "end": 1918.54,
+      "text": " because my benchmark shows that it can easily handle"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1918.54,
+      "end": 1920.58,
+      "text": " much more than that with one container,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1921.1399999999999,
+      "end": 1924.1999999999998,
+      "text": " but AWS is forcing me to have that as a maximum bound."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1924.2,
+      "end": 1927.26,
+      "text": " So if suddenly I have, I don't know, 400 requests per second,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1927.54,
+      "end": 1928.72,
+      "text": " it's going to scale it,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1928.8600000000001,
+      "end": 1930.82,
+      "text": " even though it doesn't really need to scale"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1930.82,
+      "end": 1933.0800000000002,
+      "text": " because one container could deal with that just fine."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1933.38,
+      "end": 1933.48,
+      "text": " Okay."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1933.6000000000001,
+      "end": 1935.24,
+      "text": " This is the opposite."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1935.46,
+      "end": 1937.82,
+      "text": " You should rewrite it in Python instead of Rust"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1937.82,
+      "end": 1942.44,
+      "text": " so that you're getting more CPU cycles per container."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1942.78,
+      "end": 1943.18,
+      "text": " Exactly."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1943.4,
+      "end": 1943.52,
+      "text": " Yeah."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1945.1200000000001,
+      "end": 1945.56,
+      "text": " Yeah."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1945.5800000000002,
+      "end": 1946.94,
+      "text": " One reason not to use Rust."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1947.78,
+      "end": 1948.22,
+      "text": " Okay."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1948.3600000000001,
+      "end": 1951.0800000000002,
+      "text": " So the other thing that I was a little bit disappointed,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1951.08,
+      "end": 1954.02,
+      "text": " probably a little bit more than just a little bit,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1954.26,
+      "end": 1956.4399999999998,
+      "text": " was significantly disappointed with this,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1956.58,
+      "end": 1960.02,
+      "text": " is that I was using CDK for all the infrastructure's code,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1960.34,
+      "end": 1962.32,
+      "text": " and the support is pretty bad,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1962.46,
+      "end": 1964.1799999999998,
+      "text": " and this is probably an understatement."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1964.62,
+      "end": 1966.6599999999999,
+      "text": " So you only have CFN resources,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1966.9199999999998,
+      "end": 1969.6999999999998,
+      "text": " so the basic level of resources."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1970,
+      "end": 1972.96,
+      "text": " So it maps exactly what you have in CloudFormation."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1972.96,
+      "end": 1975.6599999999999,
+      "text": " There is no simplification whatsoever."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1975.86,
+      "end": 1978.1799999999998,
+      "text": " It's like, okay, you need to be extremely explicit,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1978.58,
+      "end": 1979.72,
+      "text": " which is a bit annoying,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1979.72,
+      "end": 1981.34,
+      "text": " but it's not just that."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1981.58,
+      "end": 1984.2,
+      "text": " It's that some features are not even exposed"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1984.2,
+      "end": 1985.92,
+      "text": " in CloudFormation itself."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1986.1000000000001,
+      "end": 1988.24,
+      "text": " So, of course, they are not even in CDK."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1988.52,
+      "end": 1989.82,
+      "text": " And this is the case, for instance,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1989.84,
+      "end": 1993.48,
+      "text": " if you want to associate a custom domain to your application,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1993.94,
+      "end": 1996.78,
+      "text": " all of that stuff is not exposed in CloudFormation."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1996.96,
+      "end": 1998.16,
+      "text": " So you need to..."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1998.16,
+      "end": 2002.06,
+      "text": " It exists in the UI, in the web UI, and in the CLI."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2002.3,
+      "end": 2004.3,
+      "text": " So, of course, the usual thing there"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2004.3,
+      "end": 2006.02,
+      "text": " is that you create your own custom resource,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2006.38,
+      "end": 2008.9,
+      "text": " and you kind of solve the problem yourself,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2008.9,
+      "end": 2010.74,
+      "text": " and there is actually a very nice article"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2010.74,
+      "end": 2013.5800000000002,
+      "text": " that shows you how you can do a custom resource"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2013.5800000000002,
+      "end": 2015.7800000000002,
+      "text": " using CloudFormation and Python."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2016.5,
+      "end": 2018.52,
+      "text": " It's written by Mark Van Olsten,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2018.7,
+      "end": 2019.8000000000002,
+      "text": " the CTO of Xebia."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2020.3000000000002,
+      "end": 2021.64,
+      "text": " So we'll have a link in the show notes"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2021.64,
+      "end": 2023,
+      "text": " if you want to do something like that."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2023,
+      "end": 2025.78,
+      "text": " I kind of copied that and then did it myself,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2025.78,
+      "end": 2029.02,
+      "text": " and it was still, I think, more than 200 lines of code"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2029.02,
+      "end": 2030.78,
+      "text": " that I would have loved to avoid."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2030.98,
+      "end": 2033.08,
+      "text": " So please, AWS, fix this,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2033.16,
+      "end": 2035.5,
+      "text": " because I think anyone reasonably is going to need"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2035.5,
+      "end": 2038.36,
+      "text": " to have a custom domain if it's like a public web application."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2038.68,
+      "end": 2040.14,
+      "text": " And I would say,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2040.3,
+      "end": 2042.4,
+      "text": " hopefully everyone is doing infrastructure as code."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2042.9,
+      "end": 2045.18,
+      "text": " So if you are in those two buckets,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2045.3,
+      "end": 2046.78,
+      "text": " it's like, yeah, then you have a problem"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2046.78,
+      "end": 2049.12,
+      "text": " that requires a lot more code than it should."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2049.12,
+      "end": 2052.5,
+      "text": " Then the other problem is that if your custom domain"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2052.5,
+      "end": 2054.2999999999997,
+      "text": " is actually an Apex domain,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2054.46,
+      "end": 2056.54,
+      "text": " so let's say that you have example.com"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2056.54,
+      "end": 2060.14,
+      "text": " and you want to expose the application on example.com,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2060.2599999999998,
+      "end": 2063.06,
+      "text": " that means that you need to create an alias record"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2063.06,
+      "end": 2067.12,
+      "text": " that points to the specific app runner domain."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2067.8399999999997,
+      "end": 2069.8599999999997,
+      "text": " I don't know if it's the right terminology,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2070.2,
+      "end": 2071.8199999999997,
+      "text": " but the fact that you need to create an alias record."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2072.08,
+      "end": 2074.1,
+      "text": " And if you ever used alias records,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2074.2599999999998,
+      "end": 2077.74,
+      "text": " there is this concept that you have predefined targets."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2077.74,
+      "end": 2079.24,
+      "text": " So there are AWS services"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2079.24,
+      "end": 2081.5,
+      "text": " that can be a target of an alias record."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2082.02,
+      "end": 2083.3599999999997,
+      "text": " And app runner is one of those,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2083.58,
+      "end": 2085.68,
+      "text": " but yet again, this is not exposed"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2085.68,
+      "end": 2087.9199999999996,
+      "text": " in the CDK CloudFormation level."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2088.12,
+      "end": 2089.9799999999996,
+      "text": " So there is a workaround as well,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2090.04,
+      "end": 2091.72,
+      "text": " and we'll have a link in the show notes."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2091.8399999999997,
+      "end": 2093,
+      "text": " I'm not going to explain exactly"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2093,
+      "end": 2096.7599999999998,
+      "text": " how this alias Route 53 mechanism works."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2096.8999999999996,
+      "end": 2099.12,
+      "text": " Maybe this is a topic for an entire other episode,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2099.3199999999997,
+      "end": 2100.64,
+      "text": " if people are curious."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2100.9399999999996,
+      "end": 2103.64,
+      "text": " But effectively, if you know certain configuration parameters"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2103.64,
+      "end": 2106.74,
+      "text": " and will point you to the documentation,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2106.74,
+      "end": 2109.4199999999996,
+      "text": " you can recreate this functionality yourself."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2109.9399999999996,
+      "end": 2111.4599999999996,
+      "text": " But again, I found myself writing"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2111.4599999999996,
+      "end": 2113.12,
+      "text": " probably other 30 lines of code"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2113.12,
+      "end": 2114.22,
+      "text": " that I didn't want to write."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2114.3799999999997,
+      "end": 2116.2,
+      "text": " It was interesting to learn a little bit more"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2116.2,
+      "end": 2120.06,
+      "text": " about how this alias mechanism works in Route 53."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2120.2599999999998,
+      "end": 2122.2799999999997,
+      "text": " It's not magic at the end of the day,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2122.3999999999996,
+      "end": 2124.8599999999997,
+      "text": " but it is just painful that you have to go through"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2124.8599999999997,
+      "end": 2127.4199999999996,
+      "text": " all of this extra research and code"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2127.4199999999996,
+      "end": 2129.54,
+      "text": " just to be able to use an Apex domain"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2129.54,
+      "end": 2130.3799999999997,
+      "text": " for your application."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2130.7,
+      "end": 2133.16,
+      "text": " And in general, I think the pain"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2133.16,
+      "end": 2134.66,
+      "text": " was everywhere in the docs."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2134.66,
+      "end": 2136.98,
+      "text": " I think all the docs are not bad,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2137.08,
+      "end": 2139.68,
+      "text": " but they are only geared towards people"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2139.68,
+      "end": 2142.62,
+      "text": " that want to click ops the whole application."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2142.7999999999997,
+      "end": 2144.72,
+      "text": " I think that experience is actually quite well done."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2144.96,
+      "end": 2146.42,
+      "text": " But if you are a cloud practitioner,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2146.54,
+      "end": 2147.72,
+      "text": " again, don't do that."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2147.8999999999996,
+      "end": 2149.52,
+      "text": " Please use infrastructure as code."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2149.96,
+      "end": 2152.24,
+      "text": " And AWS, please support people more"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2152.24,
+      "end": 2154.56,
+      "text": " to be able to use infrastructure as code."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2155.2799999999997,
+      "end": 2157.18,
+      "text": " And yeah, then there are other nitpicks"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2157.18,
+      "end": 2159.3599999999997,
+      "text": " that can be easily improved by AWS."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2159.36,
+      "end": 2162.78,
+      "text": " For instance, your log groups,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2162.92,
+      "end": 2164.1600000000003,
+      "text": " they are created automatically,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2164.6,
+      "end": 2165.54,
+      "text": " but they are endless."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2166.38,
+      "end": 2168.86,
+      "text": " And there is one log group for every deployment."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2169.06,
+      "end": 2170.7400000000002,
+      "text": " So if you are iterating very quickly"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2170.7400000000002,
+      "end": 2171.92,
+      "text": " on your application,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2172.38,
+      "end": 2174.1800000000003,
+      "text": " I think suddenly you'll have hundreds"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2174.1800000000003,
+      "end": 2175.6400000000003,
+      "text": " and hundreds of log groups"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2175.6400000000003,
+      "end": 2176.84,
+      "text": " and you'll end up paying"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2176.84,
+      "end": 2178.76,
+      "text": " some significant amount of money."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2179.34,
+      "end": 2181.1800000000003,
+      "text": " So to be fair, this is similar"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2181.1800000000003,
+      "end": 2182.96,
+      "text": " to what happens by default in Lambda,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2183.1,
+      "end": 2184.6,
+      "text": " but at least in Lambda with CDK,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2185.02,
+      "end": 2186.34,
+      "text": " they made it somewhat easier"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2186.34,
+      "end": 2187.7200000000003,
+      "text": " to configure this parameter."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2188.2400000000002,
+      "end": 2189.96,
+      "text": " So hopefully they can do something similar"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2189.96,
+      "end": 2191.6200000000003,
+      "text": " for AppRunner as well."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2191.86,
+      "end": 2193.1800000000003,
+      "text": " And yeah, I think in general,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2193.34,
+      "end": 2195.44,
+      "text": " all these problems are not showstoppers."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2195.56,
+      "end": 2197.58,
+      "text": " It's just, I think the whole experience"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2197.58,
+      "end": 2200.94,
+      "text": " can be much nicer if AWS improved it."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2201.2400000000002,
+      "end": 2202.98,
+      "text": " My general worry is that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2202.98,
+      "end": 2205.2000000000003,
+      "text": " while I was bumping into all these issues,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2205.5,
+      "end": 2208.28,
+      "text": " I found posts that were like three years old"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2208.28,
+      "end": 2209.58,
+      "text": " where people already complained"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2209.58,
+      "end": 2211.6800000000003,
+      "text": " about these issues and they are still open."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2211.98,
+      "end": 2213.56,
+      "text": " So I'm just a little bit concerned"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2213.56,
+      "end": 2216.28,
+      "text": " questioning what is the level of investment"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2216.28,
+      "end": 2217.88,
+      "text": " for AWS on this service?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2218.1200000000003,
+      "end": 2219.5800000000004,
+      "text": " Is it just something that they tried,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2219.7000000000003,
+      "end": 2220.5400000000004,
+      "text": " but they are not necessarily"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2220.5400000000004,
+      "end": 2221.78,
+      "text": " fully committed to it?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2221.96,
+      "end": 2223.2200000000003,
+      "text": " Or maybe, I don't know,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2223.28,
+      "end": 2225.0400000000004,
+      "text": " eventually they would decide to invest more"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2225.0400000000004,
+      "end": 2226.98,
+      "text": " and improve all these rough edges."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2227.2200000000003,
+      "end": 2229.0400000000004,
+      "text": " So I hope the case is the latter"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2229.0400000000004,
+      "end": 2230.0400000000004,
+      "text": " because I think in general,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2230.1200000000003,
+      "end": 2231.1000000000004,
+      "text": " I like the service."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2231.26,
+      "end": 2232.6000000000004,
+      "text": " I just hope it doesn't become"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2232.6000000000004,
+      "end": 2235.1000000000004,
+      "text": " another AWS Abandonware service"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2235.1000000000004,
+      "end": 2237.3,
+      "text": " where yes, eventually you figure out"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2237.3,
+      "end": 2238.1200000000003,
+      "text": " all the rough edges"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2238.1200000000003,
+      "end": 2239.9,
+      "text": " and you have your copy-paste solutions"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2239.9,
+      "end": 2240.78,
+      "text": " for all of those,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2240.98,
+      "end": 2242.5600000000004,
+      "text": " but it's just not the nice experience"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2242.5600000000004,
+      "end": 2244.5,
+      "text": " that I wish we could have"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2244.5,
+      "end": 2247.38,
+      "text": " as cloud practitioners and users of AWS."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2249.92,
+      "end": 2252.9,
+      "text": " I look forward to the blog post, migrating your AWS AppRunner apps"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2252.9,
+      "end": 2254.7,
+      "text": " to ECS Fargate"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2254.7,
+      "end": 2257.64,
+      "text": " that will be published in 2029."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2257.92,
+      "end": 2258.48,
+      "text": " Yeah."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2259.06,
+      "end": 2260.5,
+      "text": " Hopefully that's not the case."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2260.62,
+      "end": 2263.08,
+      "text": " Maybe we'll have more of the opposite use cases."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2263.48,
+      "end": 2263.82,
+      "text": " Yeah."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2263.9,
+      "end": 2265.2,
+      "text": " And finally, it would be nice"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2265.2,
+      "end": 2266.48,
+      "text": " if it did scale to zero"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2266.48,
+      "end": 2268.84,
+      "text": " because Google Cloud Run,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2268.98,
+      "end": 2271.02,
+      "text": " that's the name I was not remembering before."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2271.02,
+      "end": 2272.48,
+      "text": " Everyone is saying,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2272.66,
+      "end": 2273.92,
+      "text": " I didn't use it myself,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2274.06,
+      "end": 2275.18,
+      "text": " so I cannot speak to it,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2275.2599999999998,
+      "end": 2276.12,
+      "text": " but everyone is saying"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2276.12,
+      "end": 2278.9,
+      "text": " it's like very similar type of user experience"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2278.9,
+      "end": 2282.2599999999998,
+      "text": " plus generally much cheaper and simpler"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2282.2599999999998,
+      "end": 2284.22,
+      "text": " because automatically scales to zero."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2284.34,
+      "end": 2285.7,
+      "text": " You don't even have to configure it."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2285.82,
+      "end": 2287.64,
+      "text": " So it would be nice to have something like that."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2287.8,
+      "end": 2289.54,
+      "text": " Now, should we try to summarize"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2289.54,
+      "end": 2292.64,
+      "text": " why we would prefer AppRunner to Fargate"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2292.64,
+      "end": 2293.8,
+      "text": " or the other way around?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2294.8,
+      "end": 2296.48,
+      "text": " Um, it depends, right?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2297.34,
+      "end": 2299.4,
+      "text": " Are we allowed to say that on the podcast?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2299.4,
+      "end": 2301.78,
+      "text": " As consultants, we are, I think."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2301.92,
+      "end": 2302.6,
+      "text": " It depends."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2304.84,
+      "end": 2308.48,
+      "text": " Yeah, I guess, yeah, if you're looking for that batteries included option,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2308.92,
+      "end": 2311.2400000000002,
+      "text": " AppRunner really does seem like a no-brainer."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2311.42,
+      "end": 2315.1600000000003,
+      "text": " I took it for a quick spin earlier today"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2315.1600000000003,
+      "end": 2319.14,
+      "text": " and you can get from GitHub repo with Dockerfile"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2319.14,
+      "end": 2322.14,
+      "text": " to running web app in minutes, literally."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2322.4,
+      "end": 2324.94,
+      "text": " So it's fantastic for that."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2325.08,
+      "end": 2326.62,
+      "text": " I think it'll be great for teams"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2326.62,
+      "end": 2329.08,
+      "text": " that maybe have a lot of prototypes"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2329.08,
+      "end": 2331.3399999999997,
+      "text": " or they want to deploy feature branches"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2331.3399999999997,
+      "end": 2334.38,
+      "text": " to hosted containers."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2335.1,
+      "end": 2338.18,
+      "text": " The fact that you can get that kind of $5 per month"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2338.18,
+      "end": 2342.8199999999997,
+      "text": " price point for mostly stopped apps"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2342.8199999999997,
+      "end": 2344.44,
+      "text": " that you interact with infrequently,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2344.64,
+      "end": 2345.7599999999998,
+      "text": " I think it's going to be great"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2345.7599999999998,
+      "end": 2347.04,
+      "text": " for that kind of use case."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2347.7,
+      "end": 2350.58,
+      "text": " And yeah, maybe it will become the go-to"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2350.58,
+      "end": 2353.3199999999997,
+      "text": " for your initial, you know,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2353.36,
+      "end": 2355.06,
+      "text": " it'll jump to the top of the list maybe"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2355.06,
+      "end": 2356.96,
+      "text": " in terms of what tool should I consider"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2356.96,
+      "end": 2358.2799999999997,
+      "text": " for hosting my container."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2358.84,
+      "end": 2359.72,
+      "text": " And then you maybe,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2360.06,
+      "end": 2361.88,
+      "text": " if you start hitting a lot of rough edges,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2362.1,
+      "end": 2364.2599999999998,
+      "text": " then it's time to look at Fargate."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2364.54,
+      "end": 2366.62,
+      "text": " So maybe just slot it into"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2366.62,
+      "end": 2368.04,
+      "text": " kind of that existing hierarchy"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2368.04,
+      "end": 2369.84,
+      "text": " maybe that every practitioner has,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2369.92,
+      "end": 2370.84,
+      "text": " you know, where maybe you're like"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2370.84,
+      "end": 2372.94,
+      "text": " trying to minimize the amount of effort"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2372.94,
+      "end": 2374,
+      "text": " or inference."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2374.08,
+      "end": 2374.54,
+      "text": " You might be like,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2374.64,
+      "end": 2375.96,
+      "text": " can I do it in a step function?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2376.1,
+      "end": 2376.36,
+      "text": " No."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2376.56,
+      "end": 2376.72,
+      "text": " Okay."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2376.7999999999997,
+      "end": 2377.64,
+      "text": " Can I do it in Lambda?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2377.98,
+      "end": 2378.2799999999997,
+      "text": " No."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2378.5,
+      "end": 2378.7,
+      "text": " Okay."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2379.04,
+      "end": 2380.18,
+      "text": " Can I do it in AppRunner?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2380.4599999999996,
+      "end": 2381.4399999999996,
+      "text": " Can I do it in Fargate?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2381.62,
+      "end": 2383.3599999999997,
+      "text": " So I feel like AppRunner"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2383.3599999999997,
+      "end": 2385.04,
+      "text": " is just going to slot into that"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2385.04,
+      "end": 2387.66,
+      "text": " decision tree that we all have."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2388.06,
+      "end": 2388.9399999999996,
+      "text": " But yeah, for me,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2388.9399999999996,
+      "end": 2390.3999999999996,
+      "text": " it's definitely a service"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2390.3999999999996,
+      "end": 2391.7,
+      "text": " that is worth luck."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2391.8199999999997,
+      "end": 2392.68,
+      "text": " And it's definitely something"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2392.68,
+      "end": 2393.8599999999997,
+      "text": " I'll be playing around with"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2393.8599999999997,
+      "end": 2395.2999999999997,
+      "text": " and looking at Terraform coverage"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2395.2999999999997,
+      "end": 2397.68,
+      "text": " and hoping to use it a little more."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2397.9199999999996,
+      "end": 2398.4399999999996,
+      "text": " What about you?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2398.68,
+      "end": 2400.1,
+      "text": " Yeah, I'm curious to hear your feedback"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2400.1,
+      "end": 2401.48,
+      "text": " on the Terraform coverage."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2401.72,
+      "end": 2403.72,
+      "text": " I hope it's better than the CDK"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2403.72,
+      "end": 2404.7599999999998,
+      "text": " CloudFormation one."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2405.02,
+      "end": 2406.68,
+      "text": " So yeah, please let me know about that."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2406.98,
+      "end": 2407.8199999999997,
+      "text": " Yeah, I think the only thing"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2407.8199999999997,
+      "end": 2409.6,
+      "text": " I'd like to add is that pricing,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2409.6,
+      "end": 2411,
+      "text": " it's an interesting one"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2411,
+      "end": 2411.8799999999997,
+      "text": " because I think it can,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2412.1,
+      "end": 2413.16,
+      "text": " it could go either way"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2413.16,
+      "end": 2414.9199999999996,
+      "text": " when you compare it with Fargate."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2415.04,
+      "end": 2416.16,
+      "text": " Because I think the fact"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2416.16,
+      "end": 2416.8199999999997,
+      "text": " that you're not paying"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2416.8199999999997,
+      "end": 2418.3199999999997,
+      "text": " for a load balancer, for example,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2418.8999999999996,
+      "end": 2420.2999999999997,
+      "text": " could make it much cheaper"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2420.2999999999997,
+      "end": 2421.8599999999997,
+      "text": " just because you don't have"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2421.8599999999997,
+      "end": 2424.3199999999997,
+      "text": " those 30 bucks fixed per month."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2424.52,
+      "end": 2425.56,
+      "text": " But at the same time,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2425.56,
+      "end": 2426.7799999999997,
+      "text": " I think there is a premium"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2426.7799999999997,
+      "end": 2428.9199999999996,
+      "text": " on the cost of memory and CPU."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2429.14,
+      "end": 2430.22,
+      "text": " So I think if you're really"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2430.22,
+      "end": 2432.7599999999998,
+      "text": " doing an intensive use case,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2432.7599999999998,
+      "end": 2434.04,
+      "text": " like you're running dozens"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2434.04,
+      "end": 2435.7799999999997,
+      "text": " of instances of your containers,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2435.78,
+      "end": 2437.44,
+      "text": " probably I think there is a point"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2437.44,
+      "end": 2440.0400000000004,
+      "text": " where Fargate becomes cheaper"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2440.0400000000004,
+      "end": 2441.02,
+      "text": " than uprunner."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2441.4,
+      "end": 2443.1800000000003,
+      "text": " So I don't really have hard data."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2443.36,
+      "end": 2444.92,
+      "text": " So this is just an assumption for now."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2445.0400000000004,
+      "end": 2446.44,
+      "text": " So feel free to experiment"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2446.44,
+      "end": 2448,
+      "text": " with cost calculator"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2448,
+      "end": 2449.2000000000003,
+      "text": " or your own spreadsheet"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2449.2000000000003,
+      "end": 2450.78,
+      "text": " and figure it out exactly"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2450.78,
+      "end": 2452.82,
+      "text": " if the pricing will work for you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2452.82,
+      "end": 2453.92,
+      "text": " or not, depending on"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2453.92,
+      "end": 2455.26,
+      "text": " whatever are your metrics."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2455.5,
+      "end": 2456.84,
+      "text": " So I think that brings us"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2456.84,
+      "end": 2458,
+      "text": " to the end of this episode."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2458.2200000000003,
+      "end": 2459.5400000000004,
+      "text": " And sorry, this was a little bit"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2459.5400000000004,
+      "end": 2460.46,
+      "text": " of a longer one,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2460.46,
+      "end": 2462.7,
+      "text": " but hopefully you found value on it."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2463.06,
+      "end": 2464.84,
+      "text": " And hopefully you are now curious"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2464.84,
+      "end": 2466.84,
+      "text": " to use uprunner, give it a spin."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2467.06,
+      "end": 2468.34,
+      "text": " And maybe you find out"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2468.34,
+      "end": 2469.7400000000002,
+      "text": " that it's easier and better"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2469.7400000000002,
+      "end": 2471.54,
+      "text": " than Fargate for your own use cases,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2471.9,
+      "end": 2472.56,
+      "text": " or maybe not."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2472.7400000000002,
+      "end": 2473.88,
+      "text": " Definitely let us know."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2474.14,
+      "end": 2474.96,
+      "text": " We are really curious."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2475.34,
+      "end": 2476.86,
+      "text": " As always, we want to know"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2476.86,
+      "end": 2477.94,
+      "text": " what are you using"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2477.94,
+      "end": 2479.6,
+      "text": " for your own little tests,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2479.8,
+      "end": 2480.5,
+      "text": " but more importantly,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2480.56,
+      "end": 2481.1,
+      "text": " what are you using"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2481.1,
+      "end": 2482.16,
+      "text": " in production and why."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2482.52,
+      "end": 2483.96,
+      "text": " So please share your stories"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2483.96,
+      "end": 2484.82,
+      "text": " because this is how"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2484.82,
+      "end": 2485.86,
+      "text": " we all get better"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2485.86,
+      "end": 2487.42,
+      "text": " by sharing our stories"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2487.42,
+      "end": 2488.1,
+      "text": " with each other,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2488.3,
+      "end": 2489.68,
+      "text": " lesson learned and so on."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2489.68,
+      "end": 2490.8199999999997,
+      "text": " Now, before we go,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2490.94,
+      "end": 2492.24,
+      "text": " a big thanks to our sponsor."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2492.68,
+      "end": 2493.64,
+      "text": " So thank you for Teorem"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2493.64,
+      "end": 2496.14,
+      "text": " for powering yet another episode"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2496.14,
+      "end": 2497.14,
+      "text": " of AWS Bites."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2497.3799999999997,
+      "end": 2497.8799999999997,
+      "text": " At Forteorem,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2498.02,
+      "end": 2499.1,
+      "text": " we believe that serverless"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2499.1,
+      "end": 2499.7999999999997,
+      "text": " should be simple,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2499.96,
+      "end": 2501.08,
+      "text": " scalable and cost-effective"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2501.08,
+      "end": 2502.46,
+      "text": " and we help teams"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2502.46,
+      "end": 2503.3799999999997,
+      "text": " to just do that."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2503.54,
+      "end": 2504.22,
+      "text": " So whether you are"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2504.22,
+      "end": 2505.2999999999997,
+      "text": " diving into containers,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2505.5,
+      "end": 2507.02,
+      "text": " stepping into event-driven architecture"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2507.02,
+      "end": 2509.14,
+      "text": " or scaling a global SaaS platform"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2509.14,
+      "end": 2509.64,
+      "text": " to AWS,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2510.2799999999997,
+      "end": 2512.22,
+      "text": " our team is there to help you."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2512.48,
+      "end": 2513.96,
+      "text": " So visit Forteorem.com"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2513.96,
+      "end": 2515.64,
+      "text": " to see how we can help you"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2515.64,
+      "end": 2517.06,
+      "text": " to build faster, better"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2517.06,
+      "end": 2518.8999999999996,
+      "text": " and with more confidence on AWS."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2518.9,
+      "end": 2519.96,
+      "text": " Thank you very much"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2519.96,
+      "end": 2521.6800000000003,
+      "text": " and we'll see you in the next one."
+    }
+  ]
+}

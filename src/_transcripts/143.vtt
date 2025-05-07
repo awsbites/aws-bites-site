@@ -1,0 +1,2901 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:24.720
+Let's imagine this. You have built a sleek little web application. It's kind of a mall on it, but it's solid. It's a Rust backend. And maybe in the front end, you're using SolidJS. You see what I did there? And it didn't run well enough. And maybe initially you deployed it on premise. Maybe you have a client that gave you a box where you just put all the code and it's running fine.
+
+2
+00:00:24.720 --> 00:00:44.440
+But now, for whatever reason, it's your turn to host it. And of course, you want to host it in the cloud on AWS. So what do you do? You could roll up your sleeves and dive deep into VPCs, load balancers, ECS, task definition, and all the other delightful complexity that comes with running containers on AWS.
+
+3
+00:00:44.440 --> 00:00:59.260
+Or maybe there is a simpler way. What if there was a service that just took your code or your container, whatever that is, packaged it, built it, deployed it, scaled it, and just gave you a URL and even an HTTPS connection.
+
+4
+00:00:59.520 --> 00:01:08.160
+And at that point, you are just done. If you do any change in your repo, commit on main, the process will just start again and give you a new version just ready to use.
+
+5
+00:01:08.160 --> 00:01:23.260
+That's actually the promise of a service called AWS App Runner. And in this episode, we are putting that promise to test. So we'll share the real story of a project that we recently migrated, why we choose App Runner for it, and everything we discovered along the way.
+
+6
+00:01:23.420 --> 00:01:28.120
+The good, the bad, and the downright confusing. And there is a lot of confusing spoiler alert.
+
+7
+00:01:28.120 --> 00:01:39.700
+So if you ever wish for an Heroku-like experience on AWS, or if you are just trying to figure out when to use App Runner, for instance, compared to something like Fargate, hopefully this episode will answer all your questions.
+
+8
+00:01:39.960 --> 00:01:44.840
+My name is Luciano, and today I'm joined by Conor for another episode of AWS Bites podcast.
+
+9
+00:01:44.840 --> 00:02:00.780
+AWS Bites is sponsored by fourTheorem, so thanks fourTheorem for making this possible. We'll tell you more about fourTheorem later.
+
+10
+00:02:00.920 --> 00:02:04.680
+Conor, do we start by trying to describe what the heck is App Runner?
+
+11
+00:02:04.800 --> 00:02:14.820
+Yeah, what is App Runner? So it's relatively new, a mid-2021 service, and it is yet another way to run containers on AWS.
+
+12
+00:02:14.840 --> 00:02:22.780
+So you're probably familiar with Corey Quinn's rantings about the 17 ways to run containers on AWS.
+
+13
+00:02:23.540 --> 00:02:31.220
+I'm not actually sure if this is the 18th way or the 17th way, but there are a lot of ways.
+
+14
+00:02:31.500 --> 00:02:40.960
+So the tagline for the service is deploy web apps and APIs at scale, and it's definitely more oriented towards web servers.
+
+15
+00:02:40.960 --> 00:02:50.700
+So, you know, applications that are fronted by some sort of low balancer that accept, you know, HTTP traffic.
+
+16
+00:02:51.020 --> 00:02:57.940
+So who is it for? I guess, you know, if you're a developer, they're trying to simplify that process.
+
+17
+00:02:58.180 --> 00:03:03.480
+You know, I have an app, I have a Docker file, I want to run this container in the cloud, please.
+
+18
+00:03:03.480 --> 00:03:08.940
+And, you know, App Runner says that it removes a lot of complexity and moving parts.
+
+19
+00:03:09.300 --> 00:03:13.600
+And then for your DevOps teams or your ops teams or your cloud wranglers,
+
+20
+00:03:14.040 --> 00:03:23.980
+they also promise to remove a lot of the operational pain, deployment, build container registries, VPC, network topology.
+
+21
+00:03:23.980 --> 00:03:30.200
+You know, apparently we can throw a container over the wall and make it AWS's problem.
+
+22
+00:03:30.340 --> 00:03:31.660
+That's the dream.
+
+23
+00:03:31.880 --> 00:03:33.660
+So focus on building your app.
+
+24
+00:03:34.140 --> 00:03:37.180
+You know, App Runner will, has a build process.
+
+25
+00:03:37.320 --> 00:03:38.400
+It'll build your container.
+
+26
+00:03:38.680 --> 00:03:41.000
+It'll push it to an ECR repo.
+
+27
+00:03:41.700 --> 00:03:49.900
+It'll provision whatever infrastructure is needed, deploy the container, make it available on a magic HTTPS URL.
+
+28
+00:03:49.900 --> 00:03:57.700
+And then it has support for auto scaling and all the things you'd expect for a solution like this.
+
+29
+00:03:57.960 --> 00:03:59.440
+So that's App Runner.
+
+30
+00:03:59.600 --> 00:04:03.100
+What was the exact use case, Luciano?
+
+31
+00:04:03.240 --> 00:04:05.960
+What was your test bed for the project, I guess?
+
+32
+00:04:06.320 --> 00:04:13.680
+Yeah, so it was a monolithic container with a web application with both backend and frontend packaged together into one container.
+
+33
+00:04:13.880 --> 00:04:16.600
+Not really relevant, but probably fun for people to know.
+
+34
+00:04:16.600 --> 00:04:19.680
+The backend is written in Rust using the Axum framework.
+
+35
+00:04:19.900 --> 00:04:21.880
+So in that sense, it's a bit of a monolithic framework.
+
+36
+00:04:22.480 --> 00:04:28.240
+You put all your business logic, all your HTTP routes into one binary, effectively.
+
+37
+00:04:28.660 --> 00:04:32.240
+And then there is a frontend, which is an SPA written in SolidJS.
+
+38
+00:04:32.540 --> 00:04:39.440
+So all the assets are pre-built and then they are served by the same Axum server on a public path, basically.
+
+39
+00:04:39.440 --> 00:04:46.360
+So the story for this particular project is that this was an application that was built a few years ago for a very small project.
+
+40
+00:04:46.360 --> 00:04:53.320
+It's also probably not relevant, but probably still fun to know that it's effectively like a quick style mini game.
+
+41
+00:04:53.400 --> 00:04:59.720
+So it's not really a very complicated or something that is like business critical type of application.
+
+42
+00:04:59.720 --> 00:05:10.440
+So that was actually a good test bed for trying new things without being too much worried about if we break something, this is going to be like a massive damage for a customer.
+
+43
+00:05:10.960 --> 00:05:15.540
+So the idea is that originally we were only asked to build the application, something we did very quickly.
+
+44
+00:05:16.080 --> 00:05:19.480
+And now for whatever reason, that application was actually hosted on-premise.
+
+45
+00:05:19.480 --> 00:05:23.680
+So our deliverable was like, this is the container, go figure it out yourself.
+
+46
+00:05:23.880 --> 00:05:29.400
+Now we are asked to, OK, can you actually host it and manage it yourself in the cloud?
+
+47
+00:05:29.640 --> 00:05:37.240
+And of course, because we live and breathe AWS, we try to think, OK, how do we move this container to AWS?
+
+48
+00:05:37.560 --> 00:05:41.800
+And can we use this excuse as a way to experiment with new services?
+
+49
+00:05:42.000 --> 00:05:44.800
+To be honest, App Runner has been on our mind for a while.
+
+50
+00:05:44.900 --> 00:05:47.600
+We never really had a good excuse to try it out.
+
+51
+00:05:47.600 --> 00:05:54.680
+So we felt like, OK, this was actually the right opportunity to give it a spin because it seemed like a really relevant use case,
+
+52
+00:05:55.100 --> 00:05:58.960
+especially because we didn't want to spend a huge amount of time in doing this migration.
+
+53
+00:05:59.100 --> 00:06:04.320
+But maybe the question that at this point people have is we talked about App Runner and more or less what is the idea.
+
+54
+00:06:04.700 --> 00:06:08.580
+Probably people are much more familiar with something like Fargate when it comes to container.
+
+55
+00:06:08.780 --> 00:06:11.020
+So what is really the difference between the two?
+
+56
+00:06:11.700 --> 00:06:16.480
+Yeah, so I guess Fargate for me is kind of my meat and potato service.
+
+57
+00:06:16.480 --> 00:06:22.380
+It is my go to service for yeeting a container into AWS usually.
+
+58
+00:06:23.440 --> 00:06:29.460
+You know, it's whether you have a Greenfields app or you're trying to launder technical debt into AWS.
+
+59
+00:06:29.920 --> 00:06:36.640
+It seems to be, you know, always the best choice or the least worst choice for getting your container up and running.
+
+60
+00:06:36.640 --> 00:06:42.880
+So, like, it's hugely flexible and the operational burden tends to be tiny, very small.
+
+61
+00:06:43.020 --> 00:06:51.600
+You know, once you have a Fargate service running, AWS does a really good job of taking care of the tasks that are, you know, fulfilling that service.
+
+62
+00:06:51.600 --> 00:06:55.540
+So it is our go to a lot of time.
+
+63
+00:06:55.700 --> 00:07:00.940
+But, you know, there's obviously a lot of Terraform and CDK abstractions on top of it.
+
+64
+00:07:01.180 --> 00:07:03.400
+And it's very easy to get up and running with Fargate.
+
+65
+00:07:03.580 --> 00:07:10.820
+But I think you forget as a practitioner that's been using it a lot that there's actually a lot of moving parts involved in Fargate.
+
+66
+00:07:10.820 --> 00:07:30.660
+So, you know, you need a VPC, private subnets, root tables, NAT gateway, application load balancer, security groups, hard groups, ACM certificate, verified assert, route 53 records, IAM task, execution role, task role, CloudWatch log group, ECS cluster, ECR repo, task definition, ECS service.
+
+67
+00:07:30.660 --> 00:07:39.700
+And then if you want to deploy it, you probably need GitHub actions, NOIDC identity provider, a granular role, and you need to get your hands dirty and write some GitHub actions.
+
+68
+00:07:39.940 --> 00:07:48.320
+So it's very easy to forget the level of moving parts involved in just getting a pretty straightforward web app up and running in Fargate, right?
+
+69
+00:07:48.460 --> 00:07:54.480
+So I guess App Runner promises to hide a lot of this complexity or at least automate it for you.
+
+70
+00:07:54.480 --> 00:07:56.560
+So it's much more abstracted.
+
+71
+00:07:56.760 --> 00:08:05.040
+We don't have the concept of ALBs or autoscaling groups or networking on the happy path.
+
+72
+00:08:05.200 --> 00:08:09.180
+And then you don't really have to worry about scaling too much, right?
+
+73
+00:08:09.200 --> 00:08:12.300
+It has a scale to zero-ish concept.
+
+74
+00:08:12.500 --> 00:08:19.620
+It'll shut down containers and it'll relaunch them after some period of, you know, inactivity.
+
+75
+00:08:19.900 --> 00:08:22.940
+It'll put them to sleep for you, I guess.
+
+76
+00:08:22.940 --> 00:08:26.860
+So the pricing model on Fargate is well understood, I guess.
+
+77
+00:08:27.080 --> 00:08:30.200
+It's, you know, your kind of vCPU slash gigabyte hours.
+
+78
+00:08:30.440 --> 00:08:45.000
+And then as mentioned, you have a lot of ancillary costs with a simple Fargate app, whether it's the ALB itself, public IP addresses, or a NAT gateway, which you'll probably have if you want to run Fargate in a private subnet.
+
+79
+00:08:45.000 --> 00:08:49.680
+So how does the pricing model compare in App Runner Luciano?
+
+80
+00:08:49.860 --> 00:08:52.020
+What are we looking at to get up and running?
+
+81
+00:08:52.940 --> 00:08:54.720
+Yeah, I think you described it really well.
+
+82
+00:08:54.840 --> 00:08:59.520
+I think the idea of App Runner is that it is a much more managed service in a way.
+
+83
+00:08:59.760 --> 00:09:11.080
+And in that sense, probably similarly to Lambda, for example, that the pricing model is more geared towards you're going to pay for the kind of resources that you're actually using as your application is running.
+
+84
+00:09:11.080 --> 00:09:14.080
+And we mentioned that the service scales down.
+
+85
+00:09:14.480 --> 00:09:16.360
+It doesn't really scale down to zero.
+
+86
+00:09:16.480 --> 00:09:18.900
+And actually, there is an interesting open conversation on GitHub.
+
+87
+00:09:19.220 --> 00:09:22.080
+We'll post the link in the show notes if you're curious where people are asking.
+
+88
+00:09:22.340 --> 00:09:26.940
+Well, this is not really competitive with something like Google Cloud App Runner.
+
+89
+00:09:27.080 --> 00:09:27.200
+Sorry.
+
+90
+00:09:28.580 --> 00:09:29.740
+Is it called App Runner?
+
+91
+00:09:29.940 --> 00:09:30.880
+The Google Cloud one.
+
+92
+00:09:31.400 --> 00:09:31.600
+No idea.
+
+93
+00:09:31.600 --> 00:09:34.120
+There is a service to run containers.
+
+94
+00:09:34.460 --> 00:09:35.380
+I don't think it's also...
+
+95
+00:09:35.380 --> 00:09:36.460
+I think it's called Cloud Run.
+
+96
+00:09:36.460 --> 00:09:38.140
+Oh, it might be called AppRun.
+
+97
+00:09:38.420 --> 00:09:38.640
+Is it?
+
+98
+00:09:39.020 --> 00:09:40.000
+Yeah, something like that.
+
+99
+00:09:40.060 --> 00:09:41.660
+There is a very similar name as well.
+
+100
+00:09:41.760 --> 00:09:44.520
+But effectively, there is a similar service in Google Cloud.
+
+101
+00:09:44.660 --> 00:09:47.660
+And lots of people are saying, well, that one scales to zero.
+
+102
+00:09:47.800 --> 00:09:49.640
+Can you, AWS, please do the same?
+
+103
+00:09:49.760 --> 00:09:51.360
+Let's leave that aside for a moment.
+
+104
+00:09:51.500 --> 00:09:55.420
+If you're curious, you can check out the link we'll put in the show notes.
+
+105
+00:09:55.420 --> 00:10:01.220
+So going back to the pricing, the idea is that you have two dimensions, again, very similar to Lambda.
+
+106
+00:10:01.360 --> 00:10:05.400
+So the amount of memory that you are using and the CPU that you are using.
+
+107
+00:10:05.740 --> 00:10:06.160
+So for...
+
+108
+00:10:07.060 --> 00:10:14.460
+It's in that sense, similar to Lambda, but there are some fundamental differences because we mentioned this concept of containers can be freezed.
+
+109
+00:10:14.700 --> 00:10:17.420
+So you will need to have at least one container.
+
+110
+00:10:17.420 --> 00:10:18.240
+That's the minimum.
+
+111
+00:10:18.500 --> 00:10:20.100
+Of course, you can set your own minimum.
+
+112
+00:10:20.320 --> 00:10:22.340
+We'll talk more about scalability later.
+
+113
+00:10:22.340 --> 00:10:25.980
+But imagine that there is always a container there allocated for you.
+
+114
+00:10:26.360 --> 00:10:28.680
+That container might not be consuming CPU.
+
+115
+00:10:28.880 --> 00:10:30.240
+So in that sense, it's kind of frozen.
+
+116
+00:10:30.800 --> 00:10:32.280
+But it's not totally destroyed.
+
+117
+00:10:32.520 --> 00:10:36.860
+Like, for instance, a Lambda instance eventually gets destroyed and even all the memory is released.
+
+118
+00:10:37.380 --> 00:10:39.940
+With App Runner, it doesn't get released.
+
+119
+00:10:40.120 --> 00:10:43.060
+Like, there is always one container at least sleeping there.
+
+120
+00:10:43.520 --> 00:10:46.120
+So your memory cost, in a way, can be...
+
+121
+00:10:46.120 --> 00:10:48.080
+There is like a baseline that is fixed.
+
+122
+00:10:48.080 --> 00:10:55.840
+So whatever is the minimum number of containers that you are setting in the autoscaling groups, you are going to be paying for at least that amount of memory.
+
+123
+00:10:56.160 --> 00:11:03.640
+Then, of course, if you're, let's say, a cluster, if we can call it like that, if the number of containers, basically, it's very elastic.
+
+124
+00:11:03.780 --> 00:11:06.940
+Like, if you have lots of traffic, there can be more at some point in time.
+
+125
+00:11:06.940 --> 00:11:08.980
+So, of course, you will be allocating more memory.
+
+126
+00:11:09.420 --> 00:11:22.220
+And in that sense, you pay overall the memory cost, which I think is 0.07 cents of dollar per gigabyte per hour, which, if you have one container, is about $5 per month.
+
+127
+00:11:22.360 --> 00:11:22.940
+So that's...
+
+128
+00:11:22.940 --> 00:11:27.260
+I think that's kind of the baseline for one application you have in...
+
+129
+00:11:27.260 --> 00:11:31.460
+Even if it's not getting any traffic, I don't think App Runner is going to get any cheaper than this.
+
+130
+00:11:31.460 --> 00:11:34.180
+Then you have the concept of CPU cost.
+
+131
+00:11:34.380 --> 00:11:35.900
+So the memory is only one dimension.
+
+132
+00:11:36.020 --> 00:11:37.220
+The other dimension is CPU.
+
+133
+00:11:37.600 --> 00:11:42.920
+And CPU, effectively, when your container is frozen, you are not consuming any CPU.
+
+134
+00:11:43.180 --> 00:11:48.620
+Even if you have any background task, effectively, your container is put to sleep in a way.
+
+135
+00:11:48.760 --> 00:11:51.620
+So the memory is still allocated, but it's not executing any CPU.
+
+136
+00:11:51.620 --> 00:12:05.020
+And when you are actually handling web requests, so your CPU is running, that time is actually calculated, and you have a cost of $0.064 per vCPU per hour.
+
+137
+00:12:05.160 --> 00:12:11.860
+And you can also configure the number of vCPUs that you need per container if you're doing something, for instance, that requires multithreading.
+
+138
+00:12:12.100 --> 00:12:18.600
+So if your app is active all the time and you have one container, the CPU cost is $46 a month.
+
+139
+00:12:18.600 --> 00:12:29.020
+So that, I think, gives you the idea that even if you have only one container and it's working 24-7 all the time, I think you will get to a cost of about $50 per month for that.
+
+140
+00:12:29.260 --> 00:12:33.080
+So that kind of gives you, I guess, the ballpark of what could be the cost.
+
+141
+00:12:33.300 --> 00:12:37.760
+The good thing is that there is no load balancer cost, which, if I remember correctly, is something about $30.
+
+142
+00:12:38.880 --> 00:12:39.960
+Correct me if I'm wrong.
+
+143
+00:12:40.260 --> 00:12:41.500
+So you are not paying for that.
+
+144
+00:12:41.600 --> 00:12:45.200
+So that's kind of absorbed in the rest of the cost, which is a good thing.
+
+145
+00:12:45.280 --> 00:12:48.180
+Like, actually, you don't even see the load balancers in your own account.
+
+146
+00:12:48.180 --> 00:12:50.180
+So AWS is totally managing that.
+
+147
+00:12:50.360 --> 00:12:51.820
+Then there are some extra costs.
+
+148
+00:12:52.000 --> 00:12:57.400
+For instance, if you enable the feature of automatic deployments, the one that Conor, you described.
+
+149
+00:12:57.820 --> 00:13:01.540
+So you just connect your repo and let AWS do everything else.
+
+150
+00:13:01.680 --> 00:13:04.220
+I think there is a cost of like $1 per month.
+
+151
+00:13:04.420 --> 00:13:09.820
+But then there is also a build fee because, of course, your build might be very simple and very quick.
+
+152
+00:13:10.200 --> 00:13:14.800
+But maybe you're doing something extremely complex that might take, I don't know, half an hour to build.
+
+153
+00:13:14.800 --> 00:13:18.080
+So that time is build with an extra cost.
+
+154
+00:13:18.580 --> 00:13:21.780
+And it's $0.005 per minute.
+
+155
+00:13:22.060 --> 00:13:23.120
+So keep it in mind.
+
+156
+00:13:23.240 --> 00:13:28.700
+Like, if you have a very long build, probably you might want to invest in kind of building it yourself.
+
+157
+00:13:28.900 --> 00:13:32.940
+Because there is also another mode where you can build it yourself and then just publish the container.
+
+158
+00:13:33.180 --> 00:13:36.940
+And then tell App Runner, please release this new version of the container.
+
+159
+00:13:37.180 --> 00:13:40.160
+So you are not forced to go with the totally managed approach.
+
+160
+00:13:40.160 --> 00:13:42.360
+You can still handle the build yourself if you want.
+
+161
+00:13:42.560 --> 00:13:46.760
+If you let AWS do it, just keep in mind that there is an extra cost.
+
+162
+00:13:47.480 --> 00:13:52.420
+Now, if we want to talk a little bit about networking, because I think that's an interesting point.
+
+163
+00:13:52.740 --> 00:13:55.740
+We already mentioned that it's kind of all abstracted for you.
+
+164
+00:13:55.860 --> 00:14:01.420
+Like, you don't even know in which network your App Runner or your containers are running.
+
+165
+00:14:01.600 --> 00:14:05.320
+Like, you don't really define a VPC and put the containers there.
+
+166
+00:14:05.400 --> 00:14:07.820
+It's more magic that AWS does for you.
+
+167
+00:14:07.820 --> 00:14:12.560
+So for people that miss EC2 Classic, this is a throwback maybe.
+
+168
+00:14:12.660 --> 00:14:16.960
+They can get back to that experience of not worrying about a VPC.
+
+169
+00:14:17.240 --> 00:14:18.000
+Pretty much, yeah.
+
+170
+00:14:18.040 --> 00:14:23.400
+Or even, I don't know, sometimes when you just use Lambda and you don't put it in a VPC, it's running somewhere magically.
+
+171
+00:14:23.560 --> 00:14:25.280
+You don't have to worry too much about that.
+
+172
+00:14:25.540 --> 00:14:26.540
+Which I think is good.
+
+173
+00:14:26.620 --> 00:14:29.720
+Like, I think it removes lots of complexity for many use cases.
+
+174
+00:14:30.160 --> 00:14:35.020
+Except that for almost every application, at some point you need to connect to another base, right?
+
+175
+00:14:35.060 --> 00:14:36.400
+To do anything useful.
+
+176
+00:14:36.400 --> 00:14:38.500
+So that creates a problem.
+
+177
+00:14:38.680 --> 00:14:53.700
+Because if you have a database, I don't know, an RDS or an Aurora cluster running in a VPC, then how do you connect your application that is running somewhere that you don't even know to a VPC that you actually are well aware about and you actually control in your own account?
+
+178
+00:15:23.700 --> 00:15:29.580
+Whatever networking AWS is provisioning for you to the actual networking where you have your own database.
+
+179
+00:15:30.060 --> 00:15:33.880
+And at that point, you can decide to do different things.
+
+180
+00:15:34.100 --> 00:15:45.720
+Like, effectively, you can say all the traffic that my application is generating, like either to connect to a database or maybe go and pull, I don't know, a file from an HTTP.
+
+181
+00:15:45.720 --> 00:15:50.720
+Or maybe connect to a S3 or maybe if you want to send an event through EventBridge.
+
+182
+00:15:50.920 --> 00:15:55.580
+So whatever is internal or external traffic is going to go through that VPC that you control.
+
+183
+00:15:56.000 --> 00:16:01.640
+So at that point, you need to be aware of creating all necessary things like routing table, NAT gateways.
+
+184
+00:16:01.640 --> 00:16:08.740
+Yeah, everything from a networking perspective to make sure that traffic can be routed correctly to your services.
+
+185
+00:16:09.340 --> 00:16:15.400
+So I think that's the interesting part about networking that generally is very easy to get started with.
+
+186
+00:16:15.620 --> 00:16:24.960
+But then I think eventually you still need to take a little bit of complexity because unless you don't need a database, which is like most cases, or maybe you are using a database that is not even on AWS.
+
+187
+00:16:24.960 --> 00:16:31.080
+And you can just use the public network for connecting to your database, which I don't know if I would necessarily recommend.
+
+188
+00:16:31.260 --> 00:16:39.900
+But yeah, I think for most serious use cases, I think you still need to understand a little bit of networking and make sure you understand how to connect a runner to your own VPC.
+
+189
+00:16:40.300 --> 00:16:40.380
+Gotcha.
+
+190
+00:16:40.760 --> 00:16:44.340
+It's great to have the escape hatch, I guess, right?
+
+191
+00:16:44.420 --> 00:16:48.020
+That if you're on some very happy path, it's great to not have to worry about this stuff.
+
+192
+00:16:48.020 --> 00:16:58.200
+But they didn't make it a Mickey Mouse service, I guess, by not being able to integrate with the well-known VPC fundamentals, I guess.
+
+193
+00:16:58.520 --> 00:16:59.300
+Okay, that's good.
+
+194
+00:16:59.320 --> 00:16:59.860
+Yeah, pretty much.
+
+195
+00:17:00.100 --> 00:17:05.980
+Yeah, next topic I guess we can explore is maybe deep dive a little bit on the concept of autoscaling.
+
+196
+00:17:06.180 --> 00:17:10.380
+We've kind of mentioned it briefly, but I think it's interesting to understand it a little bit more.
+
+197
+00:17:10.520 --> 00:17:16.000
+It's probably based on the existing load balancer autoscaling groups.
+
+198
+00:17:16.000 --> 00:17:22.320
+But again, it's something that has been a little bit abstracted for you, like you don't have to provision autoscaling groups.
+
+199
+00:17:22.820 --> 00:17:31.100
+It's more you have some configuration dials that you can play with to effectively define what are the rules for which I have maybe a container to start with.
+
+200
+00:17:31.360 --> 00:17:33.700
+And if there is more traffic, I want more containers.
+
+201
+00:17:33.920 --> 00:17:40.700
+And then if this traffic goes down eventually, I want to reduce the number of containers, basically, elastically, based on traffic.
+
+202
+00:17:40.700 --> 00:17:54.180
+So you actually have, actually, the first thing worth mentioning, as we said, is that you can specify, just to configure a single container, so a single instance of your application, you can specify virtual CPU and virtual memory.
+
+203
+00:17:54.320 --> 00:17:56.260
+For both, you actually have very limited choices.
+
+204
+00:17:56.500 --> 00:18:00.340
+Like for CPU, you have 0.25, 0.5, 1, 2, and 4.
+
+205
+00:18:00.820 --> 00:18:04.180
+For virtual memory, you have 2 gigabytes, 3 gigabytes, 4 gigabytes.
+
+206
+00:18:04.620 --> 00:18:04.960
+Wow.
+
+207
+00:18:05.320 --> 00:18:08.020
+Okay, it is quite limited in an memory footprint then.
+
+208
+00:18:08.020 --> 00:18:12.200
+And I guess that's probably good enough for most web applications.
+
+209
+00:18:12.540 --> 00:18:20.180
+So again, it's another symptom that this is a service built for web applications in mind and web applications only.
+
+210
+00:18:20.640 --> 00:18:24.860
+Like I don't think you are expected to do, I don't know, data crunching or like massive processing.
+
+211
+00:18:25.420 --> 00:18:27.680
+It's more you are going to be handling HTTP traffic.
+
+212
+00:18:28.280 --> 00:18:32.360
+So probably these characteristics will cover 99% of the use cases.
+
+213
+00:18:32.640 --> 00:18:36.320
+Then in terms of autoscaling, you have three parameters you can play with.
+
+214
+00:18:36.320 --> 00:18:40.540
+One is max concurrency, then you have max size and min size.
+
+215
+00:18:40.680 --> 00:18:42.000
+Now, what is max concurrency?
+
+216
+00:18:42.200 --> 00:18:47.740
+It's basically all the requests that you are receiving through this invisible load balancers.
+
+217
+00:18:47.880 --> 00:18:49.620
+They are effectively being monitored.
+
+218
+00:18:50.040 --> 00:18:58.560
+And you are effectively saying with this max concurrency, how many requests per seconds can one single instance of your application handle?
+
+219
+00:18:58.700 --> 00:19:04.500
+So you can set this number, I think the maximum is 200, which I thought was very disappointing.
+
+220
+00:19:04.500 --> 00:19:07.240
+So I believe it's something between like one and 200.
+
+221
+00:19:07.240 --> 00:19:18.420
+But basically what it means, let's say if you set it to 200, is that as soon as you have 201 requests per second, AWS is going to spawn up a new instance of the container.
+
+222
+00:19:18.520 --> 00:19:20.240
+Of course, you can have limits.
+
+223
+00:19:20.680 --> 00:19:25.720
+So you have this concept of minimum number of containers, so min size, which goes from one.
+
+224
+00:19:25.840 --> 00:19:26.560
+One is the minimum.
+
+225
+00:19:26.900 --> 00:19:27.520
+Max size.
+
+226
+00:19:27.780 --> 00:19:28.980
+I don't know if there is a maximum.
+
+227
+00:19:29.160 --> 00:19:32.440
+I didn't check, but it's effectively, let's say you put 20, right?
+
+228
+00:19:32.440 --> 00:19:34.920
+You are never going to have more than 20 containers.
+
+229
+00:19:35.060 --> 00:19:42.340
+So if you really have a huge amount of traffic, eventually your containers are going to start to struggle a little bit because you are not going to spin up more instances.
+
+230
+00:19:42.540 --> 00:19:44.260
+And this is just a cost control measure.
+
+231
+00:19:44.460 --> 00:19:50.160
+So you can put reasonable boundaries in place so that your containers are not going to scale indefinitely.
+
+232
+00:19:51.940 --> 00:19:58.940
+I guess, yeah, I guess that covers more or less what you need to know about instance configuration and auto scaling.
+
+233
+00:19:59.180 --> 00:20:00.160
+What about security?
+
+234
+00:20:00.160 --> 00:20:09.320
+Yeah, it's always good to kick the tires on a new service and see how you or your team might shoot themselves in the foot, I guess.
+
+235
+00:20:09.460 --> 00:20:13.420
+So I had a quick play with App Runner myself.
+
+236
+00:20:13.800 --> 00:20:25.720
+I guess one of the interesting things is if you are integrating it with GitHub or your VCS of choice, which is probably the way most teams will go to take advantage of the automation.
+
+237
+00:20:25.720 --> 00:20:34.300
+In the GitHub case, anyway, it uses the AWS connector for GitHub, GitHub app, which is used by a variety of services.
+
+238
+00:20:35.500 --> 00:20:42.700
+You can let that have access to your entire GitHub org, or you can actually limit it to specific repos as well, which is nice.
+
+239
+00:20:42.700 --> 00:20:49.120
+So the team that are responsible for your GitHub organization might be happy with that.
+
+240
+00:20:50.060 --> 00:21:00.040
+It does have the kind of load a secret into an environment variable functionality, like you'd get with Fargate and ECS, which is fantastic.
+
+241
+00:21:00.040 --> 00:21:03.280
+So you can specify a Secrets Manager secret.
+
+242
+00:21:03.840 --> 00:21:08.980
+And thankfully, also SSM Parameter Store parameters can be loaded dynamically as well.
+
+243
+00:21:09.100 --> 00:21:16.120
+So there's a couple of services now where they'll try and strong arm you into using Secrets Manager to get that $0.40 per month.
+
+244
+00:21:16.120 --> 00:21:20.160
+So great to see Parameter Store as a first class citizen there.
+
+245
+00:21:20.400 --> 00:21:25.760
+And it is just a great pattern for loading Secrets at runtime into a containerized app.
+
+246
+00:21:25.900 --> 00:21:33.440
+It has a concept called Instance Role, which is exactly like EC2 Instance Profile or an ECS Task Role.
+
+247
+00:21:33.800 --> 00:21:40.720
+So credentials, temporary credentials that the container will assume at runtime.
+
+248
+00:21:40.720 --> 00:21:45.900
+So again, you can give it granular IAM policies, which is fantastic.
+
+249
+00:21:46.360 --> 00:21:48.800
+It has WAF integration, which is great.
+
+250
+00:21:49.000 --> 00:21:55.680
+And then from a, I guess, operational point of view, does seem to have really good Terraform coverage as well.
+
+251
+00:21:55.880 --> 00:22:00.920
+So, you know, lets you put some governance and opinionated tooling around the pattern.
+
+252
+00:22:01.100 --> 00:22:07.220
+It's not just a click ops, click buttons in the console to get easy containers solution.
+
+253
+00:22:07.220 --> 00:22:18.460
+Like if it fits your use case and you want to lean into App Runner, it does look like there's ways to build it into like an existing robust software development lifecycle around infrastructure.
+
+254
+00:22:18.820 --> 00:22:22.540
+You don't have to use the click ops escape hatch, which is great.
+
+255
+00:22:23.440 --> 00:22:26.740
+One question I wanted to ask you, Luciano, is you mentioned background jobs.
+
+256
+00:22:26.740 --> 00:22:37.700
+You know, it's very typical if you have a web app, you might have some sort of utils instance or you want to have a runner or something that consumes messages from a queue.
+
+257
+00:22:37.900 --> 00:22:48.380
+In this kind of App Runner, you know, web app paradigm, how do you run background tasks or kind of ad hoc tasks that are not HTTP requests, I guess?
+
+258
+00:22:48.680 --> 00:22:51.020
+Yeah, that's a great question because I think it's very common.
+
+259
+00:22:51.020 --> 00:22:59.400
+For instance, I don't know if you use something like Laravel or Ruby or Rails, like all this kind of NVC monolithic web frameworks.
+
+260
+00:22:59.640 --> 00:23:03.200
+I think at least all the ones I've seen, they have a concept of background tasks.
+
+261
+00:23:03.460 --> 00:23:06.980
+So make it easy for you to keep the responses to the users very fast.
+
+262
+00:23:07.240 --> 00:23:17.360
+But then whenever you need to do something that is not necessarily correlated to the response you want to give to the user, like, I don't know, sign up a user to a newsletter, send an email, that kind of stuff.
+
+263
+00:23:17.360 --> 00:23:24.200
+You probably want to schedule a background task, reply to the user, okay, as soon as possible, and then in the background process that particular request.
+
+264
+00:23:24.560 --> 00:23:28.840
+And yeah, as I said, many frameworks have all of that machinery built in.
+
+265
+00:23:29.000 --> 00:23:32.660
+So I think it's common for people to just use this kind of functionality.
+
+266
+00:23:33.220 --> 00:23:41.840
+I think when you go to App Runner, there is a little bit of a caveat that you need to keep in mind because considering the idea that your instance can be frozen at some point,
+
+267
+00:23:41.840 --> 00:23:52.220
+you might end up in a situation if you have an application with very low sparse traffic, then maybe a user comes in, makes a request, something goes in the queue, nothing happens for a while.
+
+268
+00:23:52.360 --> 00:23:53.960
+So effectively, everything is frozen.
+
+269
+00:23:54.400 --> 00:24:01.520
+And that background task never has a chance to run until maybe in a few days, another request comes in, everything is woken up.
+
+270
+00:24:01.620 --> 00:24:05.760
+And then effectively, the CPU has time also to deal with the background task.
+
+271
+00:24:05.760 --> 00:24:15.700
+So this is something to be, I think, aware that probably not ideal to use this kind of characteristics from web framework when you're using App Runner, especially if you have very low traffic.
+
+272
+00:24:15.860 --> 00:24:19.540
+Like if you have very frequent traffic, probably it's not something you're going to notice.
+
+273
+00:24:19.780 --> 00:24:22.640
+But just be aware that you have very sparse traffic.
+
+274
+00:24:23.100 --> 00:24:31.200
+You might end up in a situation where your background task just gets frozen and delayed indefinitely, or at least correlated to your web traffic patterns.
+
+275
+00:24:31.200 --> 00:24:39.620
+So I would say that an easier approach is just since you are in AWS leverage event services like EventBridge and Lambda.
+
+276
+00:24:39.820 --> 00:24:43.020
+This is actually how we solved it for this specific application.
+
+277
+00:24:43.240 --> 00:24:46.960
+We had a concept of background jobs, specific for newsletter and sending emails.
+
+278
+00:24:47.240 --> 00:24:53.500
+And then there were some monthly reports just to collect some statistics, create some reports and send them by email.
+
+279
+00:24:53.800 --> 00:24:57.120
+So all of that stuff now is literally just there is EventBridge.
+
+280
+00:24:57.120 --> 00:25:00.700
+So whenever the app needs to schedule something, it creates an event.
+
+281
+00:25:01.220 --> 00:25:06.320
+And then Lambda captures that event, will process it totally decoupled from the main application.
+
+282
+00:25:06.660 --> 00:25:16.020
+And then whenever the job is done, of course, yeah, there are mechanisms to notify that to the application if the application needs to know about that job being completed.
+
+283
+00:25:16.300 --> 00:25:20.780
+So this is something I think was worth mentioning because it wasn't very obvious at first.
+
+284
+00:25:20.780 --> 00:25:29.060
+It's something that we realized in due course and we didn't expect to have to do some rework on the application to kind of adjust for this particular use case.
+
+285
+00:25:30.340 --> 00:25:32.900
+Something similar, I guess, just to put you on the spot.
+
+286
+00:25:33.040 --> 00:25:34.380
+You mentioned Laravel or Rails.
+
+287
+00:25:34.940 --> 00:25:41.200
+Very common to run database migrations or something on a single host during deployment.
+
+288
+00:25:41.500 --> 00:25:45.000
+There is apprunner.yaml, which people might be familiar with.
+
+289
+00:25:45.380 --> 00:25:47.860
+Codebuild.yaml and similar files.
+
+290
+00:25:48.040 --> 00:25:49.880
+And there's different phases and stuff.
+
+291
+00:25:49.880 --> 00:25:59.720
+Is there some sort of lifecycle hooks or something where you can run code that you want to happen once, I guess, as part of an apprunner deploy?
+
+292
+00:26:00.600 --> 00:26:02.160
+That's a very good question as well.
+
+293
+00:26:02.320 --> 00:26:03.280
+Not that I'm aware.
+
+294
+00:26:03.400 --> 00:26:05.440
+Like, I couldn't see anything like that.
+
+295
+00:26:05.740 --> 00:26:08.380
+We do use migrations for this particular application.
+
+296
+00:26:08.720 --> 00:26:14.580
+I think the advantage there is that this particular migration system will put a lock on the database.
+
+297
+00:26:14.580 --> 00:26:20.280
+So effectively, whichever instance starts the migration first will have precedence.
+
+298
+00:26:20.400 --> 00:26:23.040
+And then all the other ones will be like, okay, this is a no-op.
+
+299
+00:26:23.500 --> 00:26:25.200
+So it kind of works.
+
+300
+00:26:25.360 --> 00:26:26.140
+No problem.
+
+301
+00:26:26.300 --> 00:26:29.540
+But I remember this was an old Laravel application.
+
+302
+00:26:29.680 --> 00:26:33.020
+So I don't know if this is something that they solved now in Laravel itself.
+
+303
+00:26:33.500 --> 00:26:35.500
+That this locking mechanism wasn't there.
+
+304
+00:26:35.500 --> 00:26:38.540
+So this approach wouldn't have worked there.
+
+305
+00:26:38.680 --> 00:26:41.560
+Because effectively, you could have two containers starting at the same time.
+
+306
+00:26:41.640 --> 00:26:45.140
+And they would both crash because they are conflicting on running the migrations.
+
+307
+00:26:45.640 --> 00:26:47.660
+So I guess something to be aware.
+
+308
+00:26:48.020 --> 00:26:54.560
+In the past, this is also something we solved with Lambda by creating custom resources that were run before a new deployment.
+
+309
+00:26:54.560 --> 00:26:58.380
+And effectively, all the migration logic is in the custom resource.
+
+310
+00:26:58.500 --> 00:27:01.420
+Which could be a bit annoying when you're using a monolithic framework.
+
+311
+00:27:01.420 --> 00:27:05.320
+Because effectively, you are suddenly removing all that code.
+
+312
+00:27:05.600 --> 00:27:08.360
+Which is generally very nice, abstracted in those frameworks.
+
+313
+00:27:08.520 --> 00:27:09.740
+And you have to put it in a Lambda.
+
+314
+00:27:09.880 --> 00:27:12.060
+And it's not always straightforward to do all of that.
+
+315
+00:27:12.240 --> 00:27:15.900
+So yeah, this might be another point where you might find a little bit of friction.
+
+316
+00:27:16.360 --> 00:27:17.940
+Just because of the running model.
+
+317
+00:27:18.120 --> 00:27:23.520
+But I think in general, when you take frameworks like Laravel or, I don't know, Ruby or Rails.
+
+318
+00:27:23.520 --> 00:27:28.420
+It's very hardly they are built with that level of scalability in mind.
+
+319
+00:27:28.420 --> 00:27:31.420
+It's more like it's going to run in a big VPS.
+
+320
+00:27:31.860 --> 00:27:33.280
+And then everyone is up.
+
+321
+00:27:33.580 --> 00:27:36.220
+So this is at least my experience with those kind of frameworks.
+
+322
+00:27:36.560 --> 00:27:38.140
+The serverful approach.
+
+323
+00:27:38.840 --> 00:27:42.040
+Okay, so should we try to do a final analysis?
+
+324
+00:27:42.260 --> 00:27:45.200
+I'm going to try to say what I liked and what I didn't like.
+
+325
+00:27:45.360 --> 00:27:46.060
+Let's do it.
+
+326
+00:27:46.320 --> 00:27:47.940
+What's the good, the bad, and the ugly?
+
+327
+00:27:48.760 --> 00:27:49.200
+Exactly.
+
+328
+00:27:49.460 --> 00:27:52.760
+So I think my opinion, and feel free to disagree with me,
+
+329
+00:27:52.760 --> 00:27:57.000
+is that it's really nice that you don't have to worry about managing lots of stuff.
+
+330
+00:27:57.220 --> 00:27:59.140
+You made a very comprehensive list.
+
+331
+00:27:59.540 --> 00:28:00.740
+Networking, load balancers.
+
+332
+00:28:00.840 --> 00:28:02.120
+I'm not going to repeat all of that.
+
+333
+00:28:02.320 --> 00:28:06.840
+But you have a path that is almost like the good old times of Eroku.
+
+334
+00:28:07.100 --> 00:28:09.900
+Modern times probably fly.io or Railway.
+
+335
+00:28:10.200 --> 00:28:12.180
+I think it's a very similar experience.
+
+336
+00:28:12.360 --> 00:28:15.880
+It's like I don't want to know anything or almost anything about infrastructure.
+
+337
+00:28:15.880 --> 00:28:20.840
+I want to focus on an app, building an app, and then just throw it over the wall.
+
+338
+00:28:21.120 --> 00:28:22.300
+AWS, this is my repo.
+
+339
+00:28:22.460 --> 00:28:23.240
+Go figure it out.
+
+340
+00:28:23.400 --> 00:28:27.000
+I think this is a very appealing proposition for most people.
+
+341
+00:28:27.600 --> 00:28:31.760
+And I think this is a common struggle that a lot of people that are starting with AWS
+
+342
+00:28:31.760 --> 00:28:36.560
+would somehow describe as, yes, I just wanted to deploy this one app,
+
+343
+00:28:36.560 --> 00:28:39.140
+and then I spent the next two years learning AWS.
+
+344
+00:28:40.000 --> 00:28:43.340
+So I think I felt that myself a few years ago.
+
+345
+00:28:43.480 --> 00:28:46.880
+And I know that a lot of people are feeling this kind of stress of,
+
+346
+00:28:47.120 --> 00:28:50.900
+I thought this was simpler, and then suddenly I need to take a PhD in AWS
+
+347
+00:28:50.900 --> 00:28:52.840
+to do the most basic thing.
+
+348
+00:28:53.320 --> 00:28:58.340
+I think with services like App Runner, this is going to be less and less the case.
+
+349
+00:28:58.440 --> 00:29:00.560
+So I think this is very welcome, in my opinion.
+
+350
+00:29:00.560 --> 00:29:06.020
+And also, if you know Fargate, this is another simplification from Fargate.
+
+351
+00:29:06.240 --> 00:29:09.200
+I think knowing Fargate is absolutely a great skill,
+
+352
+00:29:09.640 --> 00:29:11.560
+but sometimes you just want something simpler.
+
+353
+00:29:11.680 --> 00:29:13.140
+So this can be another option.
+
+354
+00:29:13.640 --> 00:29:16.540
+Another thing that I noticed, and this is probably due to,
+
+355
+00:29:16.760 --> 00:29:19.400
+actually, I'm not really sure what is the main reason for this,
+
+356
+00:29:19.460 --> 00:29:23.000
+but I had the impression, and I don't have hard evidence or benchmarks,
+
+357
+00:29:23.540 --> 00:29:27.120
+but I had the impression that doing a deployment is generally much faster
+
+358
+00:29:27.120 --> 00:29:30.940
+than my experience in deploying web applications on Fargate.
+
+359
+00:29:31.320 --> 00:29:35.880
+So again, it might just be due to my bad configuration in Fargate,
+
+360
+00:29:36.140 --> 00:29:38.920
+but I had a feeling that, yeah, App Runner is like,
+
+361
+00:29:39.060 --> 00:29:42.680
+you can literally deploy a new version in seconds or maybe a minute
+
+362
+00:29:42.680 --> 00:29:45.840
+rather than having to wait for 10 minutes for all the L checks
+
+363
+00:29:45.840 --> 00:29:47.460
+and everything to stabilize.
+
+364
+00:29:47.820 --> 00:29:51.020
+And also the idea of autoscaling configurations is pretty cool.
+
+365
+00:29:51.480 --> 00:29:54.220
+I don't know if we mentioned this, but we mentioned the parameters.
+
+366
+00:29:54.220 --> 00:29:57.280
+What you can do, you can actually create multiple configurations.
+
+367
+00:29:57.500 --> 00:30:00.300
+So you could have, I don't know, a Christmas event configuration
+
+368
+00:30:00.300 --> 00:30:03.120
+for when you expect a lot of traffic,
+
+369
+00:30:03.340 --> 00:30:07.000
+and then you can just turn it on and off for specific deployments.
+
+370
+00:30:07.220 --> 00:30:09.700
+So you are not limited to one configuration.
+
+371
+00:30:09.840 --> 00:30:12.640
+You can create sets of different scalability properties,
+
+372
+00:30:12.900 --> 00:30:14.960
+if we want to call it like that, or configurations,
+
+373
+00:30:14.960 --> 00:30:17.500
+and then you can assign them to every deployment.
+
+374
+00:30:17.640 --> 00:30:21.140
+So I think that's a nice thing for those kind of applications
+
+375
+00:30:21.140 --> 00:30:24.220
+that can be very seasonal and maybe you want to be ready
+
+376
+00:30:24.220 --> 00:30:25.660
+for when the season starts.
+
+377
+00:30:26.160 --> 00:30:28.860
+You're just going to flip the switch, change the configuration group,
+
+378
+00:30:29.240 --> 00:30:30.140
+and that's already prepared.
+
+379
+00:30:30.260 --> 00:30:33.020
+You don't have to do the maths again or think about,
+
+380
+00:30:33.280 --> 00:30:35.180
+okay, how many containers do we need now?
+
+381
+00:30:35.460 --> 00:30:37.420
+You prepare all of this configuration up front,
+
+382
+00:30:37.420 --> 00:30:38.520
+and then you can just use it.
+
+383
+00:30:38.520 --> 00:30:42.880
+Yeah, it's interesting too that they went with that requests model, right?
+
+384
+00:30:42.920 --> 00:30:46.480
+Instead of the classic, you know, aggregate CPU usage
+
+385
+00:30:46.480 --> 00:30:48.180
+across a fleet of instances,
+
+386
+00:30:48.180 --> 00:30:49.600
+which is kind of hard to reason about.
+
+387
+00:30:49.820 --> 00:30:51.360
+With this, it seems like you can be like,
+
+388
+00:30:51.460 --> 00:30:55.580
+oh, no, we expect this many requests per second on Black Friday
+
+389
+00:30:55.580 --> 00:30:57.100
+because that's what we had last year,
+
+390
+00:30:57.320 --> 00:31:00.820
+and it's a bit easier to reason about the level of load maybe
+
+391
+00:31:00.820 --> 00:31:01.740
+and your scaling.
+
+392
+00:31:02.000 --> 00:31:02.640
+Yeah, pretty much.
+
+393
+00:31:02.700 --> 00:31:03.940
+And I also think that in general,
+
+394
+00:31:03.940 --> 00:31:06.080
+you could easily benchmark your own,
+
+395
+00:31:06.220 --> 00:31:07.840
+like one instance of a container
+
+396
+00:31:07.840 --> 00:31:10.420
+and see how many requests it can handle
+
+397
+00:31:10.420 --> 00:31:13.880
+with a similar kind of vCPU memory model as well.
+
+398
+00:31:14.280 --> 00:31:16.680
+Maybe you just run it as a container locally
+
+399
+00:31:16.680 --> 00:31:20.180
+with constrained access to the actual resources of the host machine,
+
+400
+00:31:20.380 --> 00:31:22.260
+and you see, okay, it can handle, I don't know,
+
+401
+00:31:22.520 --> 00:31:24.480
+reasonably well 100 requests per second.
+
+402
+00:31:24.640 --> 00:31:25.520
+That can be your number.
+
+403
+00:31:25.660 --> 00:31:28.620
+I think it's much easier to think about scalability that way
+
+404
+00:31:28.620 --> 00:31:32.920
+rather than trying to predict how much CPU means.
+
+405
+00:31:32.920 --> 00:31:33.780
+I don't know.
+
+406
+00:31:33.960 --> 00:31:36.000
+Now you need another instance or something like that.
+
+407
+00:31:36.600 --> 00:31:36.680
+Yeah.
+
+408
+00:31:37.140 --> 00:31:40.340
+Especially, I think, because lots of, for instance,
+
+409
+00:31:40.340 --> 00:31:45.940
+this Rust application uses an async framework,
+
+410
+00:31:46.140 --> 00:31:48.520
+so it's very efficient in dealing with requests.
+
+411
+00:31:48.980 --> 00:31:50.760
+So I was actually a bit disappointed.
+
+412
+00:31:50.920 --> 00:31:52.980
+This is, I think, my first bad note,
+
+413
+00:31:53.080 --> 00:31:54.600
+that the maximum is 200
+
+414
+00:31:54.600 --> 00:31:58.540
+because my benchmark shows that it can easily handle
+
+415
+00:31:58.540 --> 00:32:00.580
+much more than that with one container,
+
+416
+00:32:01.140 --> 00:32:04.200
+but AWS is forcing me to have that as a maximum bound.
+
+417
+00:32:04.200 --> 00:32:07.260
+So if suddenly I have, I don't know, 400 requests per second,
+
+418
+00:32:07.540 --> 00:32:08.720
+it's going to scale it,
+
+419
+00:32:08.860 --> 00:32:10.820
+even though it doesn't really need to scale
+
+420
+00:32:10.820 --> 00:32:13.080
+because one container could deal with that just fine.
+
+421
+00:32:13.380 --> 00:32:13.480
+Okay.
+
+422
+00:32:13.600 --> 00:32:15.240
+This is the opposite.
+
+423
+00:32:15.460 --> 00:32:17.820
+You should rewrite it in Python instead of Rust
+
+424
+00:32:17.820 --> 00:32:22.440
+so that you're getting more CPU cycles per container.
+
+425
+00:32:22.780 --> 00:32:23.180
+Exactly.
+
+426
+00:32:23.400 --> 00:32:23.520
+Yeah.
+
+427
+00:32:25.120 --> 00:32:25.560
+Yeah.
+
+428
+00:32:25.580 --> 00:32:26.940
+One reason not to use Rust.
+
+429
+00:32:27.780 --> 00:32:28.220
+Okay.
+
+430
+00:32:28.360 --> 00:32:31.080
+So the other thing that I was a little bit disappointed,
+
+431
+00:32:31.080 --> 00:32:34.020
+probably a little bit more than just a little bit,
+
+432
+00:32:34.260 --> 00:32:36.440
+was significantly disappointed with this,
+
+433
+00:32:36.580 --> 00:32:40.020
+is that I was using CDK for all the infrastructure's code,
+
+434
+00:32:40.340 --> 00:32:42.320
+and the support is pretty bad,
+
+435
+00:32:42.460 --> 00:32:44.180
+and this is probably an understatement.
+
+436
+00:32:44.620 --> 00:32:46.660
+So you only have CFN resources,
+
+437
+00:32:46.920 --> 00:32:49.700
+so the basic level of resources.
+
+438
+00:32:50.000 --> 00:32:52.960
+So it maps exactly what you have in CloudFormation.
+
+439
+00:32:52.960 --> 00:32:55.660
+There is no simplification whatsoever.
+
+440
+00:32:55.860 --> 00:32:58.180
+It's like, okay, you need to be extremely explicit,
+
+441
+00:32:58.580 --> 00:32:59.720
+which is a bit annoying,
+
+442
+00:32:59.720 --> 00:33:01.340
+but it's not just that.
+
+443
+00:33:01.580 --> 00:33:04.200
+It's that some features are not even exposed
+
+444
+00:33:04.200 --> 00:33:05.920
+in CloudFormation itself.
+
+445
+00:33:06.100 --> 00:33:08.240
+So, of course, they are not even in CDK.
+
+446
+00:33:08.520 --> 00:33:09.820
+And this is the case, for instance,
+
+447
+00:33:09.840 --> 00:33:13.480
+if you want to associate a custom domain to your application,
+
+448
+00:33:13.940 --> 00:33:16.780
+all of that stuff is not exposed in CloudFormation.
+
+449
+00:33:16.960 --> 00:33:18.160
+So you need to...
+
+450
+00:33:18.160 --> 00:33:22.060
+It exists in the UI, in the web UI, and in the CLI.
+
+451
+00:33:22.300 --> 00:33:24.300
+So, of course, the usual thing there
+
+452
+00:33:24.300 --> 00:33:26.020
+is that you create your own custom resource,
+
+453
+00:33:26.380 --> 00:33:28.900
+and you kind of solve the problem yourself,
+
+454
+00:33:28.900 --> 00:33:30.740
+and there is actually a very nice article
+
+455
+00:33:30.740 --> 00:33:33.580
+that shows you how you can do a custom resource
+
+456
+00:33:33.580 --> 00:33:35.780
+using CloudFormation and Python.
+
+457
+00:33:36.500 --> 00:33:38.520
+It's written by Mark Van Olsten,
+
+458
+00:33:38.700 --> 00:33:39.800
+the CTO of Xebia.
+
+459
+00:33:40.300 --> 00:33:41.640
+So we'll have a link in the show notes
+
+460
+00:33:41.640 --> 00:33:43.000
+if you want to do something like that.
+
+461
+00:33:43.000 --> 00:33:45.780
+I kind of copied that and then did it myself,
+
+462
+00:33:45.780 --> 00:33:49.020
+and it was still, I think, more than 200 lines of code
+
+463
+00:33:49.020 --> 00:33:50.780
+that I would have loved to avoid.
+
+464
+00:33:50.980 --> 00:33:53.080
+So please, AWS, fix this,
+
+465
+00:33:53.160 --> 00:33:55.500
+because I think anyone reasonably is going to need
+
+466
+00:33:55.500 --> 00:33:58.360
+to have a custom domain if it's like a public web application.
+
+467
+00:33:58.680 --> 00:34:00.140
+And I would say,
+
+468
+00:34:00.300 --> 00:34:02.400
+hopefully everyone is doing infrastructure as code.
+
+469
+00:34:02.900 --> 00:34:05.180
+So if you are in those two buckets,
+
+470
+00:34:05.300 --> 00:34:06.780
+it's like, yeah, then you have a problem
+
+471
+00:34:06.780 --> 00:34:09.120
+that requires a lot more code than it should.
+
+472
+00:34:09.120 --> 00:34:12.500
+Then the other problem is that if your custom domain
+
+473
+00:34:12.500 --> 00:34:14.300
+is actually an Apex domain,
+
+474
+00:34:14.460 --> 00:34:16.540
+so let's say that you have example.com
+
+475
+00:34:16.540 --> 00:34:20.140
+and you want to expose the application on example.com,
+
+476
+00:34:20.260 --> 00:34:23.060
+that means that you need to create an alias record
+
+477
+00:34:23.060 --> 00:34:27.120
+that points to the specific app runner domain.
+
+478
+00:34:27.840 --> 00:34:29.860
+I don't know if it's the right terminology,
+
+479
+00:34:30.200 --> 00:34:31.820
+but the fact that you need to create an alias record.
+
+480
+00:34:32.080 --> 00:34:34.100
+And if you ever used alias records,
+
+481
+00:34:34.260 --> 00:34:37.740
+there is this concept that you have predefined targets.
+
+482
+00:34:37.740 --> 00:34:39.240
+So there are AWS services
+
+483
+00:34:39.240 --> 00:34:41.500
+that can be a target of an alias record.
+
+484
+00:34:42.020 --> 00:34:43.360
+And app runner is one of those,
+
+485
+00:34:43.580 --> 00:34:45.680
+but yet again, this is not exposed
+
+486
+00:34:45.680 --> 00:34:47.920
+in the CDK CloudFormation level.
+
+487
+00:34:48.120 --> 00:34:49.980
+So there is a workaround as well,
+
+488
+00:34:50.040 --> 00:34:51.720
+and we'll have a link in the show notes.
+
+489
+00:34:51.840 --> 00:34:53.000
+I'm not going to explain exactly
+
+490
+00:34:53.000 --> 00:34:56.760
+how this alias Route 53 mechanism works.
+
+491
+00:34:56.900 --> 00:34:59.120
+Maybe this is a topic for an entire other episode,
+
+492
+00:34:59.320 --> 00:35:00.640
+if people are curious.
+
+493
+00:35:00.940 --> 00:35:03.640
+But effectively, if you know certain configuration parameters
+
+494
+00:35:03.640 --> 00:35:06.740
+and will point you to the documentation,
+
+495
+00:35:06.740 --> 00:35:09.420
+you can recreate this functionality yourself.
+
+496
+00:35:09.940 --> 00:35:11.460
+But again, I found myself writing
+
+497
+00:35:11.460 --> 00:35:13.120
+probably other 30 lines of code
+
+498
+00:35:13.120 --> 00:35:14.220
+that I didn't want to write.
+
+499
+00:35:14.380 --> 00:35:16.200
+It was interesting to learn a little bit more
+
+500
+00:35:16.200 --> 00:35:20.060
+about how this alias mechanism works in Route 53.
+
+501
+00:35:20.260 --> 00:35:22.280
+It's not magic at the end of the day,
+
+502
+00:35:22.400 --> 00:35:24.860
+but it is just painful that you have to go through
+
+503
+00:35:24.860 --> 00:35:27.420
+all of this extra research and code
+
+504
+00:35:27.420 --> 00:35:29.540
+just to be able to use an Apex domain
+
+505
+00:35:29.540 --> 00:35:30.380
+for your application.
+
+506
+00:35:30.700 --> 00:35:33.160
+And in general, I think the pain
+
+507
+00:35:33.160 --> 00:35:34.660
+was everywhere in the docs.
+
+508
+00:35:34.660 --> 00:35:36.980
+I think all the docs are not bad,
+
+509
+00:35:37.080 --> 00:35:39.680
+but they are only geared towards people
+
+510
+00:35:39.680 --> 00:35:42.620
+that want to click ops the whole application.
+
+511
+00:35:42.800 --> 00:35:44.720
+I think that experience is actually quite well done.
+
+512
+00:35:44.960 --> 00:35:46.420
+But if you are a cloud practitioner,
+
+513
+00:35:46.540 --> 00:35:47.720
+again, don't do that.
+
+514
+00:35:47.900 --> 00:35:49.520
+Please use infrastructure as code.
+
+515
+00:35:49.960 --> 00:35:52.240
+And AWS, please support people more
+
+516
+00:35:52.240 --> 00:35:54.560
+to be able to use infrastructure as code.
+
+517
+00:35:55.280 --> 00:35:57.180
+And yeah, then there are other nitpicks
+
+518
+00:35:57.180 --> 00:35:59.360
+that can be easily improved by AWS.
+
+519
+00:35:59.360 --> 00:36:02.780
+For instance, your log groups,
+
+520
+00:36:02.920 --> 00:36:04.160
+they are created automatically,
+
+521
+00:36:04.600 --> 00:36:05.540
+but they are endless.
+
+522
+00:36:06.380 --> 00:36:08.860
+And there is one log group for every deployment.
+
+523
+00:36:09.060 --> 00:36:10.740
+So if you are iterating very quickly
+
+524
+00:36:10.740 --> 00:36:11.920
+on your application,
+
+525
+00:36:12.380 --> 00:36:14.180
+I think suddenly you'll have hundreds
+
+526
+00:36:14.180 --> 00:36:15.640
+and hundreds of log groups
+
+527
+00:36:15.640 --> 00:36:16.840
+and you'll end up paying
+
+528
+00:36:16.840 --> 00:36:18.760
+some significant amount of money.
+
+529
+00:36:19.340 --> 00:36:21.180
+So to be fair, this is similar
+
+530
+00:36:21.180 --> 00:36:22.960
+to what happens by default in Lambda,
+
+531
+00:36:23.100 --> 00:36:24.600
+but at least in Lambda with CDK,
+
+532
+00:36:25.020 --> 00:36:26.340
+they made it somewhat easier
+
+533
+00:36:26.340 --> 00:36:27.720
+to configure this parameter.
+
+534
+00:36:28.240 --> 00:36:29.960
+So hopefully they can do something similar
+
+535
+00:36:29.960 --> 00:36:31.620
+for App Runner as well.
+
+536
+00:36:31.860 --> 00:36:33.180
+And yeah, I think in general,
+
+537
+00:36:33.340 --> 00:36:35.440
+all these problems are not showstoppers.
+
+538
+00:36:35.560 --> 00:36:37.580
+It's just, I think the whole experience
+
+539
+00:36:37.580 --> 00:36:40.940
+can be much nicer if AWS improved it.
+
+540
+00:36:41.240 --> 00:36:42.980
+My general worry is that
+
+541
+00:36:42.980 --> 00:36:45.200
+while I was bumping into all these issues,
+
+542
+00:36:45.500 --> 00:36:48.280
+I found posts that were like three years old
+
+543
+00:36:48.280 --> 00:36:49.580
+where people already complained
+
+544
+00:36:49.580 --> 00:36:51.680
+about these issues and they are still open.
+
+545
+00:36:51.980 --> 00:36:53.560
+So I'm just a little bit concerned
+
+546
+00:36:53.560 --> 00:36:56.280
+questioning what is the level of investment
+
+547
+00:36:56.280 --> 00:36:57.880
+for AWS on this service?
+
+548
+00:36:58.120 --> 00:36:59.580
+Is it just something that they tried,
+
+549
+00:36:59.700 --> 00:37:00.540
+but they are not necessarily
+
+550
+00:37:00.540 --> 00:37:01.780
+fully committed to it?
+
+551
+00:37:01.960 --> 00:37:03.220
+Or maybe, I don't know,
+
+552
+00:37:03.280 --> 00:37:05.040
+eventually they would decide to invest more
+
+553
+00:37:05.040 --> 00:37:06.980
+and improve all these rough edges.
+
+554
+00:37:07.220 --> 00:37:09.040
+So I hope the case is the latter
+
+555
+00:37:09.040 --> 00:37:10.040
+because I think in general,
+
+556
+00:37:10.120 --> 00:37:11.100
+I like the service.
+
+557
+00:37:11.260 --> 00:37:12.600
+I just hope it doesn't become
+
+558
+00:37:12.600 --> 00:37:15.100
+another AWS Abandonware service
+
+559
+00:37:15.100 --> 00:37:17.300
+where yes, eventually you figure out
+
+560
+00:37:17.300 --> 00:37:18.120
+all the rough edges
+
+561
+00:37:18.120 --> 00:37:19.900
+and you have your copy-paste solutions
+
+562
+00:37:19.900 --> 00:37:20.780
+for all of those,
+
+563
+00:37:20.980 --> 00:37:22.560
+but it's just not the nice experience
+
+564
+00:37:22.560 --> 00:37:24.500
+that I wish we could have
+
+565
+00:37:24.500 --> 00:37:27.380
+as cloud practitioners and users of AWS.
+
+566
+00:37:29.920 --> 00:37:32.900
+I look forward to the blog post, migrating your AWS App Runner apps
+
+567
+00:37:32.900 --> 00:37:34.700
+to ECS Fargate
+
+568
+00:37:34.700 --> 00:37:37.640
+that will be published in 2029.
+
+569
+00:37:37.920 --> 00:37:38.480
+Yeah.
+
+570
+00:37:39.060 --> 00:37:40.500
+Hopefully that's not the case.
+
+571
+00:37:40.620 --> 00:37:43.080
+Maybe we'll have more of the opposite use cases.
+
+572
+00:37:43.480 --> 00:37:43.820
+Yeah.
+
+573
+00:37:43.900 --> 00:37:45.200
+And finally, it would be nice
+
+574
+00:37:45.200 --> 00:37:46.480
+if it did scale to zero
+
+575
+00:37:46.480 --> 00:37:48.840
+because Google Cloud Run,
+
+576
+00:37:48.980 --> 00:37:51.020
+that's the name I was not remembering before.
+
+577
+00:37:51.020 --> 00:37:52.480
+Everyone is saying,
+
+578
+00:37:52.660 --> 00:37:53.920
+I didn't use it myself,
+
+579
+00:37:54.060 --> 00:37:55.180
+so I cannot speak to it,
+
+580
+00:37:55.260 --> 00:37:56.120
+but everyone is saying
+
+581
+00:37:56.120 --> 00:37:58.900
+it's like very similar type of user experience
+
+582
+00:37:58.900 --> 00:38:02.260
+plus generally much cheaper and simpler
+
+583
+00:38:02.260 --> 00:38:04.220
+because automatically scales to zero.
+
+584
+00:38:04.340 --> 00:38:05.700
+You don't even have to configure it.
+
+585
+00:38:05.820 --> 00:38:07.640
+So it would be nice to have something like that.
+
+586
+00:38:07.800 --> 00:38:09.540
+Now, should we try to summarize
+
+587
+00:38:09.540 --> 00:38:12.640
+why we would prefer App Runner to Fargate
+
+588
+00:38:12.640 --> 00:38:13.800
+or the other way around?
+
+589
+00:38:14.800 --> 00:38:16.480
+Um, it depends, right?
+
+590
+00:38:17.340 --> 00:38:19.400
+Are we allowed to say that on the podcast?
+
+591
+00:38:19.400 --> 00:38:21.780
+As consultants, we are, I think.
+
+592
+00:38:21.920 --> 00:38:22.600
+It depends.
+
+593
+00:38:24.840 --> 00:38:28.480
+Yeah, I guess, yeah, if you're looking for that batteries included option,
+
+594
+00:38:28.920 --> 00:38:31.240
+App Runner really does seem like a no-brainer.
+
+595
+00:38:31.420 --> 00:38:35.160
+I took it for a quick spin earlier today
+
+596
+00:38:35.160 --> 00:38:39.140
+and you can get from GitHub repo with Dockerfile
+
+597
+00:38:39.140 --> 00:38:42.140
+to running web app in minutes, literally.
+
+598
+00:38:42.400 --> 00:38:44.940
+So it's fantastic for that.
+
+599
+00:38:45.080 --> 00:38:46.620
+I think it'll be great for teams
+
+600
+00:38:46.620 --> 00:38:49.080
+that maybe have a lot of prototypes
+
+601
+00:38:49.080 --> 00:38:51.340
+or they want to deploy feature branches
+
+602
+00:38:51.340 --> 00:38:54.380
+to hosted containers.
+
+603
+00:38:55.100 --> 00:38:58.180
+The fact that you can get that kind of $5 per month
+
+604
+00:38:58.180 --> 00:39:02.820
+price point for mostly stopped apps
+
+605
+00:39:02.820 --> 00:39:04.440
+that you interact with infrequently,
+
+606
+00:39:04.640 --> 00:39:05.760
+I think it's going to be great
+
+607
+00:39:05.760 --> 00:39:07.040
+for that kind of use case.
+
+608
+00:39:07.700 --> 00:39:10.580
+And yeah, maybe it will become the go-to
+
+609
+00:39:10.580 --> 00:39:13.320
+for your initial, you know,
+
+610
+00:39:13.360 --> 00:39:15.060
+it'll jump to the top of the list maybe
+
+611
+00:39:15.060 --> 00:39:16.960
+in terms of what tool should I consider
+
+612
+00:39:16.960 --> 00:39:18.280
+for hosting my container.
+
+613
+00:39:18.840 --> 00:39:19.720
+And then you maybe,
+
+614
+00:39:20.060 --> 00:39:21.880
+if you start hitting a lot of rough edges,
+
+615
+00:39:22.100 --> 00:39:24.260
+then it's time to look at Fargate.
+
+616
+00:39:24.540 --> 00:39:26.620
+So maybe just slot it into
+
+617
+00:39:26.620 --> 00:39:28.040
+kind of that existing hierarchy
+
+618
+00:39:28.040 --> 00:39:29.840
+maybe that every practitioner has,
+
+619
+00:39:29.920 --> 00:39:30.840
+you know, where maybe you're like
+
+620
+00:39:30.840 --> 00:39:32.940
+trying to minimize the amount of effort
+
+621
+00:39:32.940 --> 00:39:34.000
+or inference.
+
+622
+00:39:34.080 --> 00:39:34.540
+You might be like,
+
+623
+00:39:34.640 --> 00:39:35.960
+can I do it in a step function?
+
+624
+00:39:36.100 --> 00:39:36.360
+No.
+
+625
+00:39:36.560 --> 00:39:36.720
+Okay.
+
+626
+00:39:36.800 --> 00:39:37.640
+Can I do it in Lambda?
+
+627
+00:39:37.980 --> 00:39:38.280
+No.
+
+628
+00:39:38.500 --> 00:39:38.700
+Okay.
+
+629
+00:39:39.040 --> 00:39:40.180
+Can I do it in App Runner?
+
+630
+00:39:40.460 --> 00:39:41.440
+Can I do it in Fargate?
+
+631
+00:39:41.620 --> 00:39:43.360
+So I feel like App Runner
+
+632
+00:39:43.360 --> 00:39:45.040
+is just going to slot into that
+
+633
+00:39:45.040 --> 00:39:47.660
+decision tree that we all have.
+
+634
+00:39:48.060 --> 00:39:48.940
+But yeah, for me,
+
+635
+00:39:48.940 --> 00:39:50.400
+it's definitely a service
+
+636
+00:39:50.400 --> 00:39:51.700
+that is worth luck.
+
+637
+00:39:51.820 --> 00:39:52.680
+And it's definitely something
+
+638
+00:39:52.680 --> 00:39:53.860
+I'll be playing around with
+
+639
+00:39:53.860 --> 00:39:55.300
+and looking at Terraform coverage
+
+640
+00:39:55.300 --> 00:39:57.680
+and hoping to use it a little more.
+
+641
+00:39:57.920 --> 00:39:58.440
+What about you?
+
+642
+00:39:58.680 --> 00:40:00.100
+Yeah, I'm curious to hear your feedback
+
+643
+00:40:00.100 --> 00:40:01.480
+on the Terraform coverage.
+
+644
+00:40:01.720 --> 00:40:03.720
+I hope it's better than the CDK
+
+645
+00:40:03.720 --> 00:40:04.760
+CloudFormation one.
+
+646
+00:40:05.020 --> 00:40:06.680
+So yeah, please let me know about that.
+
+647
+00:40:06.980 --> 00:40:07.820
+Yeah, I think the only thing
+
+648
+00:40:07.820 --> 00:40:09.600
+I'd like to add is that pricing,
+
+649
+00:40:09.600 --> 00:40:11.000
+it's an interesting one
+
+650
+00:40:11.000 --> 00:40:11.880
+because I think it can,
+
+651
+00:40:12.100 --> 00:40:13.160
+it could go either way
+
+652
+00:40:13.160 --> 00:40:14.920
+when you compare it with Fargate.
+
+653
+00:40:15.040 --> 00:40:16.160
+Because I think the fact
+
+654
+00:40:16.160 --> 00:40:16.820
+that you're not paying
+
+655
+00:40:16.820 --> 00:40:18.320
+for a load balancer, for example,
+
+656
+00:40:18.900 --> 00:40:20.300
+could make it much cheaper
+
+657
+00:40:20.300 --> 00:40:21.860
+just because you don't have
+
+658
+00:40:21.860 --> 00:40:24.320
+those 30 bucks fixed per month.
+
+659
+00:40:24.520 --> 00:40:25.560
+But at the same time,
+
+660
+00:40:25.560 --> 00:40:26.780
+I think there is a premium
+
+661
+00:40:26.780 --> 00:40:28.920
+on the cost of memory and CPU.
+
+662
+00:40:29.140 --> 00:40:30.220
+So I think if you're really
+
+663
+00:40:30.220 --> 00:40:32.760
+doing an intensive use case,
+
+664
+00:40:32.760 --> 00:40:34.040
+like you're running dozens
+
+665
+00:40:34.040 --> 00:40:35.780
+of instances of your containers,
+
+666
+00:40:35.780 --> 00:40:37.440
+probably I think there is a point
+
+667
+00:40:37.440 --> 00:40:40.040
+where Fargate becomes cheaper
+
+668
+00:40:40.040 --> 00:40:41.020
+than uprunner.
+
+669
+00:40:41.400 --> 00:40:43.180
+So I don't really have hard data.
+
+670
+00:40:43.360 --> 00:40:44.920
+So this is just an assumption for now.
+
+671
+00:40:45.040 --> 00:40:46.440
+So feel free to experiment
+
+672
+00:40:46.440 --> 00:40:48.000
+with cost calculator
+
+673
+00:40:48.000 --> 00:40:49.200
+or your own spreadsheet
+
+674
+00:40:49.200 --> 00:40:50.780
+and figure it out exactly
+
+675
+00:40:50.780 --> 00:40:52.820
+if the pricing will work for you
+
+676
+00:40:52.820 --> 00:40:53.920
+or not, depending on
+
+677
+00:40:53.920 --> 00:40:55.260
+whatever are your metrics.
+
+678
+00:40:55.500 --> 00:40:56.840
+So I think that brings us
+
+679
+00:40:56.840 --> 00:40:58.000
+to the end of this episode.
+
+680
+00:40:58.220 --> 00:40:59.540
+And sorry, this was a little bit
+
+681
+00:40:59.540 --> 00:41:00.460
+of a longer one,
+
+682
+00:41:00.460 --> 00:41:02.700
+but hopefully you found value on it.
+
+683
+00:41:03.060 --> 00:41:04.840
+And hopefully you are now curious
+
+684
+00:41:04.840 --> 00:41:06.840
+to use uprunner, give it a spin.
+
+685
+00:41:07.060 --> 00:41:08.340
+And maybe you find out
+
+686
+00:41:08.340 --> 00:41:09.740
+that it's easier and better
+
+687
+00:41:09.740 --> 00:41:11.540
+than Fargate for your own use cases,
+
+688
+00:41:11.900 --> 00:41:12.560
+or maybe not.
+
+689
+00:41:12.740 --> 00:41:13.880
+Definitely let us know.
+
+690
+00:41:14.140 --> 00:41:14.960
+We are really curious.
+
+691
+00:41:15.340 --> 00:41:16.860
+As always, we want to know
+
+692
+00:41:16.860 --> 00:41:17.940
+what are you using
+
+693
+00:41:17.940 --> 00:41:19.600
+for your own little tests,
+
+694
+00:41:19.800 --> 00:41:20.500
+but more importantly,
+
+695
+00:41:20.560 --> 00:41:21.100
+what are you using
+
+696
+00:41:21.100 --> 00:41:22.160
+in production and why.
+
+697
+00:41:22.520 --> 00:41:23.960
+So please share your stories
+
+698
+00:41:23.960 --> 00:41:24.820
+because this is how
+
+699
+00:41:24.820 --> 00:41:25.860
+we all get better
+
+700
+00:41:25.860 --> 00:41:27.420
+by sharing our stories
+
+701
+00:41:27.420 --> 00:41:28.100
+with each other,
+
+702
+00:41:28.300 --> 00:41:29.680
+lesson learned and so on.
+
+703
+00:41:29.680 --> 00:41:30.820
+Now, before we go,
+
+704
+00:41:30.940 --> 00:41:32.240
+a big thanks to our sponsor.
+
+705
+00:41:32.680 --> 00:41:33.640
+So thank you fourTheorem
+
+706
+00:41:33.640 --> 00:41:36.140
+for powering yet another episode
+
+707
+00:41:36.140 --> 00:41:37.140
+of AWS Bites.
+
+708
+00:41:37.380 --> 00:41:37.880
+At fourTheorem,
+
+709
+00:41:38.020 --> 00:41:39.100
+we believe that serverless
+
+710
+00:41:39.100 --> 00:41:39.800
+should be simple,
+
+711
+00:41:39.960 --> 00:41:41.080
+scalable and cost-effective
+
+712
+00:41:41.080 --> 00:41:42.460
+and we help teams
+
+713
+00:41:42.460 --> 00:41:43.380
+to just do that.
+
+714
+00:41:43.540 --> 00:41:44.220
+So whether you are
+
+715
+00:41:44.220 --> 00:41:45.300
+diving into containers,
+
+716
+00:41:45.500 --> 00:41:47.020
+stepping into event-driven architecture
+
+717
+00:41:47.020 --> 00:41:49.140
+or scaling a global SaaS platform
+
+718
+00:41:49.140 --> 00:41:49.640
+to AWS,
+
+719
+00:41:50.280 --> 00:41:52.220
+our team is there to help you.
+
+720
+00:41:52.480 --> 00:41:53.960
+So visit fourTheorem.com
+
+721
+00:41:53.960 --> 00:41:55.640
+to see how we can help you
+
+722
+00:41:55.640 --> 00:41:57.060
+to build faster, better
+
+723
+00:41:57.060 --> 00:41:58.900
+and with more confidence on AWS.
+
+724
+00:41:58.900 --> 00:41:59.960
+Thank you very much
+
+725
+00:41:59.960 --> 00:42:01.680
+and we'll see you in the next one.

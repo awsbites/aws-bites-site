@@ -3,7 +3,7 @@ episode: 144
 title: "Lambda Billing Changes, Cold Start Costs, and Log Savings: What You Need to Know"
 youtube_id: "BkxCltzTUZo"
 spotify_link: "https://creators.spotify.com/pod/show/aws-bites/episodes/144--Lambda-Billing-Changes--Cold-Start-Costs--and-Log-Savings-What-You-Need-to-Know-e336tea"
-publish_date: 2025-05-22
+publish_date: 2025-05-23
 ---
 
 Cost is always top of mind when building in the cloud, and recently AWS has

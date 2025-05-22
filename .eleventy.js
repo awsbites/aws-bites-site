@@ -103,11 +103,10 @@ module.exports = function (eleventyConfig) {
           await fs.mkdir(folderDest)
         }
 
+        // trying to download this image from YouTube before the video is actually published will give us
+        // a 404. If that's the case, we don't want to break the build, so we will use a default placeholder image
         let imageStream = createReadStream(path.join(__dirname, 'src', '_includes', 'static', 'awsbites-og.png'))
-
         try {
-          // trying to download this image from YouTube before the video is actually published will give us
-          // a 404. If that's the case, we don't want to break the build, so we will use a default image
           const url = `https://i.ytimg.com/vi/${id}/maxresdefault.jpg`
           const response = await axios.get(url, { responseType: 'stream' })
           imageStream = response.data

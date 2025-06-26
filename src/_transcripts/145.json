@@ -1,0 +1,1910 @@
+{
+  "speakers": {
+    "spk_0": "spk_0",
+    "spk_1": "spk_1"
+  },
+  "segments": [
+    {
+      "speakerLabel": "spk_0",
+      "start": 0,
+      "end": 5.8,
+      "text": " Not so long ago, we did a deep dive into Amazon Aurora, and we talked about all the non-trivial"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 5.8,
+      "end": 10.3,
+      "text": " things that you need to do to set it up. If you missed that episode, it's episode 122,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 10.540000000000001,
+      "end": 14.9,
+      "text": " so check it out. But today, we're going to be talking about something a little bit different,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 15.24,
+      "end": 19.62,
+      "text": " because one of the things we said about Aurora Serverless is that it is definitely something"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 19.62,
+      "end": 25.92,
+      "text": " that doesn't necessarily reach what we would call the gold standard of serverlessness that we think"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 25.92,
+      "end": 31.28,
+      "text": " when we think about something, some data storage, like, for example, DynamoDB. So that changed"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 31.28,
+      "end": 39.32,
+      "text": " recently when Amazon challenged themselves and released a new database called Aurora the SQL."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 39.78,
+      "end": 45.72,
+      "text": " This happened at reInvent last year, and just a few weeks ago, this new shiny database became"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 45.72,
+      "end": 50.620000000000005,
+      "text": " generally available. We finally tried out, and we found where it excels, what are the limits,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 50.96,
+      "end": 55.88,
+      "text": " and today we're going to talk through all of this, what we found out, and a lot more. We got a fully"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 55.88,
+      "end": 60.28,
+      "text": " working code example that we will be sharing during this episode, and we'll also talk about"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 60.28,
+      "end": 65.7,
+      "text": " how we stress tested it and did some performance and scalability measures. So welcome to another"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 65.7,
+      "end": 71,
+      "text": " episode of AWS Bites. My name is Luciano, and as always, I'm joined by Eoin, so let's get started."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 79.36,
+      "end": 84.38,
+      "text": " AWS Bites is brought to you by Forteorem. Stay tuned until the end of this episode to find out more"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 84.38,
+      "end": 89.08,
+      "text": " about Forteorem. So let's start with a little bit of an introduction. When you're choosing a database,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 89.42,
+      "end": 94.16,
+      "text": " there are always a few questions that you end up asking yourself. The first one might be, for example,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 94.25999999999999,
+      "end": 101.44,
+      "text": " scalability. How will this database scale both up and down to handle changing loads, for example?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 101.82,
+      "end": 106.46,
+      "text": " Maybe you're building a small project, like a startup thing that you want to experiment with."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 107,
+      "end": 111.69999999999999,
+      "text": " Chances are maybe you're lucky and it goes very successfully. So what happens to the database?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 111.7,
+      "end": 115.18,
+      "text": " Is it something you need to worry about, or is it going to scale automatically to handle"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 115.18,
+      "end": 120.28,
+      "text": " the success of the new application? The other aspect might be cost, for example. How much is"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 120.28,
+      "end": 125.34,
+      "text": " it going to cost? And again, this might be related as well with scalability. How does the cost change"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 125.34,
+      "end": 130.58,
+      "text": " as you scale, for example? What is the billing model, for example? Availability is another question."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 130.88,
+      "end": 136.38,
+      "text": " What happens if your database might not be available all the time? Like what kind of mechanism do you need"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 136.38,
+      "end": 140.66,
+      "text": " to put in place? Or maybe something you can rely on and you don't have to worry too much without doing any"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 140.66,
+      "end": 146.48,
+      "text": " kind of intervention yourself. Complexity is another element. How much stuff do you need to manage,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 146.64,
+      "end": 152.06,
+      "text": " set up, care, and maintain over time? SQL versus no SQL is probably one of the biggest questions that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 152.06,
+      "end": 156.6,
+      "text": " most developers would ask themselves because it changes really the way you build the application,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 156.6,
+      "end": 164.46,
+      "text": " the kind of data model you can store, and then the type of mechanism that you have to deal with the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 164.46,
+      "end": 169.5,
+      "text": " data. So that's always a very important trade-off that you need to figure it out, depending on the kind"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 169.5,
+      "end": 174.9,
+      "text": " of application you are building. The SQL, interesting enough, is a SQL database. It's a distributed SQL"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 174.9,
+      "end": 180.58,
+      "text": " database, and it's designed to make these choices a little bit easier than other alternatives,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 180.96,
+      "end": 186.38,
+      "text": " especially when it comes to scale, availability, and complexity. So we'll get on cost a little bit"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 186.38,
+      "end": 192.88,
+      "text": " later in this episode. So how does the SQL make scale, availability, and complexity a little bit easier"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 192.88,
+      "end": 198.28,
+      "text": " than the alternatives we have seen so far in AWS? The first thing is that the SQL scales automatically,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 198.28,
+      "end": 203.56,
+      "text": " and virtually infinitely, meaning that effectively you don't have to worry. You can start very small,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 203.56,
+      "end": 209.32,
+      "text": " and then as your application grows, as your user grows, the SQL should manage automatically all the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 209.32,
+      "end": 215.8,
+      "text": " scaling in terms of storage, compute, and querying separately. They also guarantee you five nines of"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 215.8,
+      "end": 222.10000000000002,
+      "text": " availability. So again, another aspect that you shouldn't be worried about. And you can create"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 222.10000000000002,
+      "end": 228.02,
+      "text": " a multi-region cluster, and in that case, you get five nines of availability, yes. You can also create"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 228.02,
+      "end": 232.64000000000001,
+      "text": " a single cluster. In that case, you get four nines of availability. But still, I think it's a pretty"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 232.64000000000001,
+      "end": 238.28,
+      "text": " good number, given the fact that you don't have to worry about managing pretty much anything. And what we"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 238.28,
+      "end": 244.22000000000003,
+      "text": " found out in our experiment is that it is by far the simplest SQL database to set up. It's pretty much as"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 244.22,
+      "end": 249.44,
+      "text": " simple as creating a DynamoDB table, and you have a cluster up and running. So effectively, there is"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 249.44,
+      "end": 254.52,
+      "text": " almost no configuration. There is no patching. There is no maintenance. The only setup you might need is"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 254.52,
+      "end": 260.96,
+      "text": " to add multi-region support and backups, for example. So I would say it scores very high in our serverless"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 260.96,
+      "end": 265.48,
+      "text": " scale. Another interesting thing that might be relevant for you as a developer is that it is"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 265.48,
+      "end": 271.26,
+      "text": " Postgres compatible. I will put an asterisk there. We'll probably talk a little bit more about why the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 271.26,
+      "end": 276.92,
+      "text": " asterisk throughout this episode. But the idea is that you can use any Postgres connector client,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 276.92,
+      "end": 281.71999999999997,
+      "text": " and it should work for most of the operation. And yeah, as I said, there are some limitations and"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 281.71999999999997,
+      "end": 286.03999999999996,
+      "text": " some trade-offs that you should be aware you should consider. But most of the things work,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 286.15999999999997,
+      "end": 291.8,
+      "text": " which means that generally you can test locally with a local normal Postgres container, for example."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 292.02,
+      "end": 297.48,
+      "text": " And then when you want to test remotely, you can use the SQL. But yes, there are limitations. So Eoin,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 297.48,
+      "end": 304,
+      "text": " what are you going to tell us about that? So right now, DSQL is Postgres version 16 compatible."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 304.44,
+      "end": 310.42,
+      "text": " So it uses the Postgres query parser, the planner, the optimizer, the type system, and the SQL dialect."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 310.76,
+      "end": 317.44,
+      "text": " And you get asset transactions. A difference with most databases is that it uses optimistic"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 317.44,
+      "end": 323.06,
+      "text": " concurrency control. And normally you would get a pessimistic locking approach. The optimistic"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 323.06,
+      "end": 328.2,
+      "text": " approach lets transactions in a distributed environment like DSQL run without locking delays."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 329.3,
+      "end": 334.3,
+      "text": " Checks for conflicts then only happen at commit time. From a developer's point of view, this means"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 334.3,
+      "end": 339.76,
+      "text": " that you should know when transactions may fail and build in retry support. They won't fail as early"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 339.76,
+      "end": 345.08,
+      "text": " as you might be used to. If you watch some of the interesting deep dive talks from reInvent,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 345.08,
+      "end": 351.08,
+      "text": " you'll know that Amazon uses their time sync service to ensure that transactions are isolated."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 351.82,
+      "end": 355.52,
+      "text": " And we'll link to a video that will go into that detail."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 356.78,
+      "end": 361.78,
+      "text": " Now, authentication is AWS IAM only. So this is one thing you need to be mindful of."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 362.03999999999996,
+      "end": 366.12,
+      "text": " You get an admin role for your cluster, and then you can create additional database roles"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 366.12,
+      "end": 370.53999999999996,
+      "text": " in with SQL. And then you can associate those with IAM role ARNs."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 370.54,
+      "end": 377.3,
+      "text": " Then you use normal SQL grants to give specific permissions to these roles. So username, password,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 377.46000000000004,
+      "end": 381.94,
+      "text": " authentication, all that kind of stuff, Kerberos, anything else you might need, you won't get that."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 382.62,
+      "end": 386.58000000000004,
+      "text": " Now, in terms of limitations, one of the big ones is that foreign key constraints are not supported."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 387.38,
+      "end": 392.56,
+      "text": " Obviously, if you're coming from DynamoDB, you don't get them there either. So you might not miss them."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 393.08000000000004,
+      "end": 398.8,
+      "text": " But it is one that will likely cause incompatibility issues with existing tools and ORMs."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 398.8,
+      "end": 403.16,
+      "text": " It's definitely possible to design a great application without foreign keys."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 403.72,
+      "end": 408.96000000000004,
+      "text": " But we've already experienced issues with ORMs and schema migration tools that rely on them by default."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 409.16,
+      "end": 411.54,
+      "text": " So you can expect to do some work."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 412.04,
+      "end": 416.8,
+      "text": " It's also worth mentioning that there are a few downsides to foreign key constraints."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 417.16,
+      "end": 422.78000000000003,
+      "text": " So we recommend reading a PlanetScale article on the topic, which we'll link in the description below."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 423.72,
+      "end": 425.98,
+      "text": " PlanetScale is another SaaS database provider."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 425.98,
+      "end": 430.34000000000003,
+      "text": " I think we talked about Neon in the past, which was recently acquired by, I think, Databricks."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 431.8,
+      "end": 436.46000000000004,
+      "text": " DSQL is a little bit comparable to those options, I think, in terms of the ease of setup."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 437.14000000000004,
+      "end": 440.98,
+      "text": " Another limitation is that if you want to create indexes, which you probably will,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 441.46000000000004,
+      "end": 444.26,
+      "text": " you can't just do a create index statement like you might be used to."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 444.38,
+      "end": 450.46000000000004,
+      "text": " Instead, you have to run create index async, which creates a specific DSQL type of asynchronous index."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 450.46,
+      "end": 456.68,
+      "text": " But when you do that, you get a job ID that you can monitor since that index is being built asynchronously in the background."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 457.18,
+      "end": 461.71999999999997,
+      "text": " And again, when it comes to things like schema generation tools, schema migration tools,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 461.71999999999997,
+      "end": 465.15999999999997,
+      "text": " you might have to do some work to make sure that it's using the right syntax."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 473.28000000000003,
+      "end": 477.58000000000004,
+      "text": " Yeah, this is one of the most annoying things that I found so far, especially because if you are used to use something like an ORM, where maybe indices are created automatically through your own migrations,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 477.78000000000003,
+      "end": 479.92,
+      "text": " maybe if you're testing locally with a regular Postgres,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 480.46000000000004,
+      "end": 488.56,
+      "text": " this is one of the places where your code will need to start to diverge between a local environment with a simple Postgres and DSQL in production."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 488.56,
+      "end": 492.1,
+      "text": " But I digress. There are other limitations we want to talk about."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 492.52,
+      "end": 499.32,
+      "text": " For instance, you cannot create materialized views and temporary views, so you can only create unmaterialized views."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 499.76,
+      "end": 502.12,
+      "text": " Similarly, temporary tables are not supported."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 502.46,
+      "end": 508.78,
+      "text": " You can only have one database in a cluster, but within the cluster, you can actually have multiple schemas, so it's not that bad."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 509.3,
+      "end": 516.56,
+      "text": " No triggers or stored procedures, so that's another limitation that if you have those things in an existing application that you're thinking to migrate,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 516.56,
+      "end": 522.1199999999999,
+      "text": " you need to think carefully because that's a feature that you need to live without, at least for the foreseeable future."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 522.8599999999999,
+      "end": 529.4399999999999,
+      "text": " And you cannot create columns of the type sequence, which is also another common thing that many ORMs will do out of the box,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 529.5999999999999,
+      "end": 532.1999999999999,
+      "text": " so be careful about that if you use an ORM."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 532.4599999999999,
+      "end": 536.9399999999999,
+      "text": " Partitions as well are not supported, which in fairness doesn't make a whole lot of sense,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 537.4599999999999,
+      "end": 540.8199999999999,
+      "text": " because probably DSQL internally manages all of that automatically."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 541.2199999999999,
+      "end": 545.68,
+      "text": " And this is probably another big one. Postgres extensions are not supported."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 545.68,
+      "end": 550.3,
+      "text": " So if you are a user of things like PG vector, it's not something you get here,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 550.4,
+      "end": 553.8399999999999,
+      "text": " so you'll need to figure out how to live without that if you want to use DSQL."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 554.78,
+      "end": 562.18,
+      "text": " Serial sequence types and foreign key limitations can create problems, again, when you're using an ORM or a migration system,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 562.42,
+      "end": 566.9799999999999,
+      "text": " and it's one of these problems where if you really want to use them,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 567.02,
+      "end": 570.5,
+      "text": " because maybe out of the box you get them by a tool that you're using,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 570.5,
+      "end": 577.26,
+      "text": " then you need to figure out how do I do the same or an alternative thing in production when I ship my code to AWS."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 577.68,
+      "end": 586.14,
+      "text": " So that's probably the biggest friction point that we found so far while trying to build an application using tools like ORMs and migration tools."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 586.48,
+      "end": 588.7,
+      "text": " Let's get into our open source application, shall we?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 588.7,
+      "end": 593.08,
+      "text": " So we're going to link in the description below to our GitHub repo,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 593.32,
+      "end": 598.6600000000001,
+      "text": " where we've created an API-based application that you could deploy, and you can test it out for yourself."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 598.82,
+      "end": 599.6600000000001,
+      "text": " And there's quite a lot in it."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 600.6400000000001,
+      "end": 602.46,
+      "text": " The API itself isn't that complicated."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 602.74,
+      "end": 606.72,
+      "text": " It's just two, I think, entities in there."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 607.1,
+      "end": 611.84,
+      "text": " One which allows you to create lists, and in those lists you can create items."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 611.84,
+      "end": 617.8000000000001,
+      "text": " So there are two resources, and you get your usual post, put, patch, delete, and get endpoints."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 618.4,
+      "end": 622.5,
+      "text": " And the technology behind this is mainly Node.js and TypeScript-based."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 622.8000000000001,
+      "end": 627.5600000000001,
+      "text": " So it's a Fastify API backend using Lambda and the Drizzle ORM."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 628.1600000000001,
+      "end": 630.6,
+      "text": " It's a Lambda-lith, monolithic Lambda."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 631.7,
+      "end": 635.1,
+      "text": " You might be interested in that because we've talked about the pros and cons of those in the past,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 635.22,
+      "end": 637.12,
+      "text": " but it worked well for us in this case."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 637.46,
+      "end": 638.1800000000001,
+      "text": " Made it quite simple."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 638.88,
+      "end": 640.6,
+      "text": " It uses power tools for TypeScript."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 640.6,
+      "end": 643.52,
+      "text": " We've got an API Gateway, REST API in front of it."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 644.16,
+      "end": 648.66,
+      "text": " We've got endpoints to generate an open API specification automatically from the types."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 649.44,
+      "end": 652.94,
+      "text": " And we have load testing built into this repo as well,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 652.98,
+      "end": 656.14,
+      "text": " and we'll talk a little bit more about this load testing in a second."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 656.88,
+      "end": 660.72,
+      "text": " The whole thing is deployed then with CDK, so you can deploy the API pretty easily."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 661.14,
+      "end": 664.12,
+      "text": " There's two stacks, one that creates the database cluster with dSQL."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 665.28,
+      "end": 668.32,
+      "text": " I think we mentioned before that it has almost no configuration."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 668.32,
+      "end": 670.5400000000001,
+      "text": " I think, in fact, it has a zero configuration."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 670.74,
+      "end": 672.44,
+      "text": " There are no options when you create a cluster."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 672.58,
+      "end": 674.2600000000001,
+      "text": " The only thing you can do is add regions."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 675.22,
+      "end": 680.96,
+      "text": " Now, for load testing, we did a bit of thinking and exploring what we can use for this."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 681.44,
+      "end": 686.34,
+      "text": " And a lot of these load testing tools can take a lot of setup and that sort of thing."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 686.34,
+      "end": 695.1,
+      "text": " But we wanted to try and get some metrics so that we could give you some real data on how this works rather than just talking about our subjective perspective."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 696.0400000000001,
+      "end": 701.84,
+      "text": " We ended up landing on K6, which is a tool from Grafana that does load testing."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 702.26,
+      "end": 703.86,
+      "text": " And it's a really simple tool to use."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 703.86,
+      "end": 711.08,
+      "text": " You could just write your test script in JavaScript, and it will run it in its own special optimized runtime for load testing."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 712.14,
+      "end": 716.82,
+      "text": " So we tested 1,000 virtual users over two minutes using K6."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 717.86,
+      "end": 723.1800000000001,
+      "text": " What this essentially means is that it's a session."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 723.34,
+      "end": 727.38,
+      "text": " It'll create 1,000 concurrent sessions and just run them repeatedly for two minutes."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 727.38,
+      "end": 731.26,
+      "text": " And this is just all from one machine, running it from the laptop."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 732.24,
+      "end": 742.98,
+      "text": " You can also use, if you want to pay, you could pay Grafana to distribute this workload around the world for you and create a more realistic global load test."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 743.78,
+      "end": 745.74,
+      "text": " But we didn't go to that expense."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 745.84,
+      "end": 748.4,
+      "text": " We just did run it locally, and it was enough for what we needed."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 749.4,
+      "end": 754.54,
+      "text": " So it's going to create lists, create items and lists, do delete, put patch operations for each session."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 754.54,
+      "end": 757.38,
+      "text": " And then we had a look at the performance."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 757.7199999999999,
+      "end": 759.4599999999999,
+      "text": " So we have a few ways of measuring performance."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 759.7199999999999,
+      "end": 763.54,
+      "text": " We've got CloudWatch metrics, and we've got X-ray tracing as well."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 764.78,
+      "end": 770.5,
+      "text": " And there was a couple of new features that we haven't tried in X-ray before that we were able to avail of."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 770.9399999999999,
+      "end": 780.56,
+      "text": " So looking at the metrics that you get out of the box with D-SQL, it doesn't give you anything like, I think, RDS performance insights,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 780.56,
+      "end": 783.4599999999999,
+      "text": " which will give you more detailed query performance."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 783.46,
+      "end": 789.48,
+      "text": " But it will tell you how many transactions you have, how much compute it's using in terms of compute milliseconds,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 790.3000000000001,
+      "end": 793.9200000000001,
+      "text": " how many bytes are being written and read, things like commit latency."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 794.6800000000001,
+      "end": 798.64,
+      "text": " It's all very interesting, but nothing particularly outstanding there."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 798.7800000000001,
+      "end": 805.7,
+      "text": " We could just see that we were getting tens of thousands of transactions, in fact, hundreds of thousands of transactions happening."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 805.7,
+      "end": 815.1800000000001,
+      "text": " But what we did was we used PowerTools tracing from TypeScript and X-ray to capture the Lambda statistics,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 815.4200000000001,
+      "end": 818.34,
+      "text": " but also instrumenting the SQL queries as well."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 818.72,
+      "end": 824.94,
+      "text": " So instrumenting the database driver, the Postgres database driver, so that we could see what query performance was like."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 824.94,
+      "end": 831.94,
+      "text": " And because we were using a monolithic Lambda, we were taking an approach where we annotated each route with,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 832.8000000000001,
+      "end": 840.44,
+      "text": " we annotated traces with the route, basically, so we could see on an individual request level what the performance metrics were like."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 840.44,
+      "end": 845.5600000000001,
+      "text": " And one of the new features I mentioned in X-ray is transaction search."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 845.5600000000001,
+      "end": 851.7800000000001,
+      "text": " And this is essentially a way of getting open telemetry format traces in CloudWatch logs."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 852.22,
+      "end": 858.6,
+      "text": " And then you have like a CloudWatch logs insights type query interface in the AWS console."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 858.8800000000001,
+      "end": 863.6400000000001,
+      "text": " And you can run statistics on all of your traces and spans and durations."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 863.64,
+      "end": 868.6999999999999,
+      "text": " And you can get all of those for 100% of your traces, not just a sample."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 868.96,
+      "end": 877.4399999999999,
+      "text": " So what we saw from that is that the Lambda runtime statistics for different routes, they varied quite a lot."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 877.78,
+      "end": 891.6,
+      "text": " But we were getting, I think, you know, average of between 20 milliseconds and 100 milliseconds of latency for the Lambda function execution."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 891.6,
+      "end": 902.64,
+      "text": " Now, looking at the percentiles, then, for P95, we were seeing that some of them, like retrieving all lists, were taking like half a second."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 903.0600000000001,
+      "end": 913.76,
+      "text": " And if we look at the P99 stats, there were some even greater ones, like the maximum ones were more like 700 seconds or 900 seconds."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 913.76,
+      "end": 917.18,
+      "text": " So we wanted to drill into this a little bit more."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 917.3199999999999,
+      "end": 926.54,
+      "text": " So looking deeper at the query segments themselves, we can see that most of the queries are double-digit milliseconds."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 926.98,
+      "end": 930.5,
+      "text": " So quite most of them are definitely like in the 10 to 20 second range."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 930.74,
+      "end": 933.06,
+      "text": " But there are some which are still like 100 milliseconds."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 934.06,
+      "end": 937.22,
+      "text": " And if you look at the maximum ones, they go into like half a second."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 937.22,
+      "end": 939.5600000000001,
+      "text": " So there's quite a lot of variance here."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 939.6800000000001,
+      "end": 941.02,
+      "text": " And we ran it multiple times."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 941.02,
+      "end": 942.6,
+      "text": " And we ran it over multiple days."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 942.94,
+      "end": 944.9200000000001,
+      "text": " But we still saw this level of variation."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 945.32,
+      "end": 953.78,
+      "text": " And it's interesting because sometimes Amazon in their DSQL marketing talk about single-digit query performance, similar to DynamoDB."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 954.34,
+      "end": 957.46,
+      "text": " Now, you do see those in terms of the minimum values."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 957.6800000000001,
+      "end": 963.0400000000001,
+      "text": " But they're still, like if you look at the P90, you're looking at three-digit milliseconds for query performance."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 963.04,
+      "end": 965.62,
+      "text": " So it's generally good, I would say."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 965.8199999999999,
+      "end": 970.7199999999999,
+      "text": " But if you're looking at really critical low-latency workloads, that's something you might want to consider."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 971.92,
+      "end": 977.4599999999999,
+      "text": " Of course, when you're talking about databases, you also want to look at the connection time."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 977.76,
+      "end": 985.6999999999999,
+      "text": " And this is a critical thing, especially with Lambda, where you don't have things like RDS proxy, which we talked about in that Aurora episode, 122."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 985.7,
+      "end": 993.4200000000001,
+      "text": " So we wanted to look at cold starts and try and measure how much of that was being consumed by database connection time."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 994.26,
+      "end": 1005,
+      "text": " And our average cold start time is about 537 milliseconds, which I think is not unusual for Node.js runtime, but probably on the higher end."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1005,
+      "end": 1012.12,
+      "text": " But we also want to see, like, okay, how much of that is initializing Fastify and all our other third-party dependencies."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1013.48,
+      "end": 1020.92,
+      "text": " So we looked at the, we added actually instrumentation and specific CloudWatch metrics for the database initialization time."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1021.28,
+      "end": 1025.12,
+      "text": " And that's the time to initialize your database driver, establish a connection."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1025.5,
+      "end": 1029.74,
+      "text": " We run a test query, which is really, like, tiny and very short in duration."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1029.94,
+      "end": 1031.08,
+      "text": " It's just, like, select one."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1031.08,
+      "end": 1041.06,
+      "text": " And we saw that the connection time was between kind of 200 and 300 milliseconds for initializing your database."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1041.32,
+      "end": 1045.4399999999998,
+      "text": " So that's definitely a significant part of that cold start time."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1045.78,
+      "end": 1050.1399999999999,
+      "text": " It's the lion's share, maybe 50 to 70% of it."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1050.8,
+      "end": 1054.96,
+      "text": " It would be nice if there was a way to have faster connections."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1055.24,
+      "end": 1059,
+      "text": " But it's still, I would say, altogether not too bad."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1059,
+      "end": 1072.22,
+      "text": " And for the majority of SaaS applications, given that you're still getting quite a lot of single millisecond query time and double-digit query time, I think it's pretty good, but could do better."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1072.54,
+      "end": 1077.24,
+      "text": " We should try that in Rust to see if the connection is established faster."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1077.5,
+      "end": 1079.36,
+      "text": " But, yeah, it's not something we have experimented."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1079.88,
+      "end": 1084.7,
+      "text": " Actually, yeah, there is an interesting article by Benjamin Pyle, who did a whole lot of research."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1084.7,
+      "end": 1087,
+      "text": " Which actually has two articles."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1087.42,
+      "end": 1088.46,
+      "text": " We'll link them in the show notes."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1088.6200000000001,
+      "end": 1092.26,
+      "text": " But one of them is about using Rust to query DSQL."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1093,
+      "end": 1098.98,
+      "text": " And then the subsequent one is about trying to improve the query performance further by using Memento as a cache."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1099.5,
+      "end": 1101.28,
+      "text": " Those are definitely worth reading."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1101.78,
+      "end": 1101.94,
+      "text": " Awesome."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1102.5,
+      "end": 1105.3600000000001,
+      "text": " Should we talk instead about high availability of multiregions?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1105.5800000000002,
+      "end": 1106.16,
+      "text": " Let's do it."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1106.66,
+      "end": 1107.3400000000001,
+      "text": " Let's get serious."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1107.34,
+      "end": 1117.86,
+      "text": " Okay, so yeah, that's definitely another topic that might be important to you, especially when you care about how the data is replicated and trying to make sure you're not going to lose any data."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1118.1799999999998,
+      "end": 1121.74,
+      "text": " If you're running in production, you have critical applications running on the SQL."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1122.08,
+      "end": 1126.4599999999998,
+      "text": " So as we said, you have two options, either a multiregion and a single region cluster."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1126.46,
+      "end": 1132.26,
+      "text": " So if you decide to use a single region cluster, automatically it uses three availability zones."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1132.54,
+      "end": 1137.3,
+      "text": " And every transaction is automatically committed to all of those three availability zones."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1137.44,
+      "end": 1141.1200000000001,
+      "text": " If you use a multiregion DSQL, it gives you more availability."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1141.54,
+      "end": 1145.08,
+      "text": " And each region is effectively linked to a cluster."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1145.24,
+      "end": 1148.3,
+      "text": " And you get read and write endpoints with strong consistency."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1148.3,
+      "end": 1154.32,
+      "text": " Every time you do write new data, that data is synchronously replicated across regions."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1155.1,
+      "end": 1163.72,
+      "text": " And effectively you get a zero or PO, recovery point objective, which basically means that if a region fails at any point, you are not losing any data."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1164.28,
+      "end": 1167.56,
+      "text": " So to set up multiregion, there are a few steps that you need to follow."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1167.56,
+      "end": 1185.48,
+      "text": " So you have basically, you need to have two or more participated regions and a witness region, which is basically a region that does not have a read or write endpoint, but is there just to, because it maintains an encrypted copy of the transaction log and ensures the five nines of availability."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1185.48,
+      "end": 1189.4,
+      "text": " So effectively it's just used to provide availability and support recovery."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1189.92,
+      "end": 1194.38,
+      "text": " Now note that right now, only US regions are supported as witness regions."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1194.74,
+      "end": 1196.92,
+      "text": " This is something that you need to be aware."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1197.32,
+      "end": 1199.2,
+      "text": " Hopefully it's going to be improved over time."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1199.72,
+      "end": 1213.7,
+      "text": " But effectively, if you are trying to achieve the highest level of availability and at the same time you are worried about data sovereignty, maybe there is a little bit of a conflict there where you might not be able to use the SQL to the fullest capacity."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1213.7,
+      "end": 1218.94,
+      "text": " I think now is the time where we get to talk about pricing, the time everyone is waiting for."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1219.96,
+      "end": 1226.46,
+      "text": " Yeah, and this is where we try to make it clear how expensive or cheap it is, but ultimately fail because it depends."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1227.04,
+      "end": 1228.06,
+      "text": " But let's give it a go anyway."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1228.64,
+      "end": 1235.2,
+      "text": " Similar to DynamoDB, it has these units that are counted as you read and write with a separate storage cost as well."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1236.14,
+      "end": 1242.18,
+      "text": " The units are called distributed processing units or DPUs, and the cost will vary per region."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1242.18,
+      "end": 1246.02,
+      "text": " In Ireland, it's like $9.50 for 1 million units."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1246.5600000000002,
+      "end": 1251.54,
+      "text": " But note that this is quite a bit more expensive than $8, which is what you get in the US regions."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1251.96,
+      "end": 1256.14,
+      "text": " But I think if you go to Asia-Pacific regions, it's like $10 plus."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1256.3600000000001,
+      "end": 1257.8200000000002,
+      "text": " So it does vary quite a lot by region."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1258.24,
+      "end": 1261.18,
+      "text": " And then it's 36 cents per gigabyte of storage."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1261.18,
+      "end": 1268.18,
+      "text": " Now, there's a difference when you're comparing to DynamoDB because DynamoDB builds for reads and writes."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1268.48,
+      "end": 1275.7,
+      "text": " And it's pretty clear what a DynamoDB write capacity unit and read capacity unit means in terms of the amount of data being read and written."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1275.92,
+      "end": 1277.38,
+      "text": " You can do a calculation on it."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1277.78,
+      "end": 1279.26,
+      "text": " With dSQL, there's a lot more to it."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1279.5600000000002,
+      "end": 1281.26,
+      "text": " But it's also a bit more vague."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1281.26,
+      "end": 1284.7,
+      "text": " Like, dSQL's DPUs are based on reads, writes, but also compute."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1285.12,
+      "end": 1288.74,
+      "text": " And you can't really predict how much each query is going to use."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1289.64,
+      "end": 1295.2,
+      "text": " I suppose it kind of makes sense that they've got this additional compute metric that they count into the billing."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1295.2,
+      "end": 1300.26,
+      "text": " Because SQL allows you to run complex queries where DynamoDB doesn't."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1301.24,
+      "end": 1306.1,
+      "text": " And that means they're going to consume more than just IO overhead."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1306.1,
+      "end": 1308,
+      "text": " And it's not going to be deterministic."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1308.4399999999998,
+      "end": 1313.98,
+      "text": " So there's no way that we can know of to calculate DPUs for your queries in advance."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1314.1799999999998,
+      "end": 1315.52,
+      "text": " You just have to try and measure."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1316.58,
+      "end": 1325.34,
+      "text": " Thankfully, there are usage metrics in CloudWatch for all of the things that are factors in your cost calculation."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1326.3,
+      "end": 1332.08,
+      "text": " And Mark Bowes has provided a script that you can use to get a cost estimate based on this usage."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1332.08,
+      "end": 1334.76,
+      "text": " And he also has a good article on dSQL pricing."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1335.12,
+      "end": 1337.54,
+      "text": " The link for that is below too."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1338.3999999999999,
+      "end": 1347.48,
+      "text": " And we actually found that when reading another useful article by Alessandro Volpeccella, which is called the Amazon dSQL pricing guide."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1347.9199999999998,
+      "end": 1349.04,
+      "text": " So check those out for sure."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1349.6599999999999,
+      "end": 1355.34,
+      "text": " You do have a free tier with 100,000 DPUs and a gigabyte of storage per month."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1356.26,
+      "end": 1360.06,
+      "text": " Interregion transfer will incur cost and data egress to the internet."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1360.06,
+      "end": 1365.36,
+      "text": " That, as always, incurs a cost beyond the usual 100 gigabyte free tier."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1365.74,
+      "end": 1368.24,
+      "text": " You should also include the cost of keeping backups."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1368.84,
+      "end": 1372.24,
+      "text": " And you can, by the way, integrate dSQL with AWS backup."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1373.1799999999998,
+      "end": 1379.3999999999999,
+      "text": " So overall, it's difficult to say how cheap or expensive dSQL can be compared to RDS or even Aurora serverless."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1379.72,
+      "end": 1380.44,
+      "text": " It just depends."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1380.7,
+      "end": 1381.7,
+      "text": " It can be very cheap."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1381.76,
+      "end": 1385.12,
+      "text": " And a lot of the articles I've seen give examples that seem very cheap."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1385.12,
+      "end": 1391.26,
+      "text": " But we can also see how with significant load, it can get quite expensive for high load applications."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1391.9399999999998,
+      "end": 1399.7399999999998,
+      "text": " If we talk about our load test, for example, we said we measured 1,000 virtual users hammering the system constantly for two minutes."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1399.74,
+      "end": 1411.68,
+      "text": " And already, like having run that maybe half a dozen times this month using a script that was provided by MacBose in that article, it'll be linked."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1411.82,
+      "end": 1416,
+      "text": " There's a really nice script that'll just check your CloudWatch metrics and spit out a dollar amount."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1416.2,
+      "end": 1417.26,
+      "text": " It will be an estimate."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1417.26,
+      "end": 1428.28,
+      "text": " But it's already saying that for us, having run that workload for, let's say, maybe all together somewhere in the 10 to 20 minute range, it's like $3."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1428.86,
+      "end": 1432.86,
+      "text": " So that's just for minutes of usage for thousands of users."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1433.48,
+      "end": 1443.58,
+      "text": " So if you have constant high load, you might want to think about investing in the pain of infrastructure management and using something like Aurora or RDS or something else."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1443.58,
+      "end": 1452.58,
+      "text": " But still, I would say definitely give it a try and measure it because the amount of effort it will take away, the amount of development time and cost it will save you will be pretty massive."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1452.9399999999998,
+      "end": 1454.8,
+      "text": " So when should we use it?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1454.84,
+      "end": 1456.8799999999999,
+      "text": " Let's give our pros and cons."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1457.34,
+      "end": 1458.1599999999999,
+      "text": " Who's it good for?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1458.78,
+      "end": 1459.86,
+      "text": " Who should steer clear of it?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1460.12,
+      "end": 1464.1999999999998,
+      "text": " Yes, I'm going to try my best to summarize that, although it's always a difficult choice."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1464.32,
+      "end": 1466.02,
+      "text": " It isn't very binary."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1466.3999999999999,
+      "end": 1472.1799999999998,
+      "text": " So let's see what can we bring into the mix to help you figure out if it's good for your project or not."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1472.18,
+      "end": 1489,
+      "text": " So I would say that if you're building a new Greenfield application where you don't have to spend too much time effectively taking code that you have already written, maybe assuming a generic Postgres and trying to move it out where you might find unsupported features, in that case, it's probably a good starting point."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1489.14,
+      "end": 1490.68,
+      "text": " Like you have less things to worry about."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1490.9,
+      "end": 1495.7,
+      "text": " So definitely if you're doing something new, it might be worth considering it."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1495.7,
+      "end": 1499.92,
+      "text": " Another thing is when you have a desire to minimize infrastructure maintenance."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1499.92,
+      "end": 1515.94,
+      "text": " So maybe you are doing a migration, but the cost that you would have by trying to figure out exactly things that you need to change, change them so that this equal is fully supported, maybe eventually becomes worth it because then you have less maintenance costs."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1515.94,
+      "end": 1519.3,
+      "text": " So that could be kind of a trade-off worth exploring as well."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1520.0800000000002,
+      "end": 1527.8200000000002,
+      "text": " Another thing is that you have estimated costs for expected workload and know the cost trade-off makes sense."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1528.0800000000002,
+      "end": 1538.06,
+      "text": " So effectively, if you have done maybe a few experiments with this equal and you have a fairly good understanding of the usage patterns, they're not going to change too much."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1538.06,
+      "end": 1542.3,
+      "text": " So you kind of could guess quite exactly how much it's going to cost you."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1542.52,
+      "end": 1545.02,
+      "text": " And you see it's actually going to be much cheaper than alternatives."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1545.34,
+      "end": 1548.96,
+      "text": " That could be another great use case that might justify a migration."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1549.34,
+      "end": 1560.8999999999999,
+      "text": " And if you're not using libraries or tools that are requiring some of the unsupported features in the SQL, or maybe if you're not using any of those Postgres extensions, and some of them are actually quite common."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1560.9,
+      "end": 1566.46,
+      "text": " So it might actually be possible that that becomes one of the blockers along the road."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1567.4,
+      "end": 1579.3200000000002,
+      "text": " So consider that as well as another thing that effectively, if you fall into all of these buckets, it might be worth exploring it and deciding then whether you want to stick with it or not."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1579.32,
+      "end": 1589.98,
+      "text": " Now, if we want to summarize things that maybe can easily get on your path, and maybe at that point you should definitely avoid the SQL, let me try to give you a few pointers."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1590.74,
+      "end": 1602.52,
+      "text": " So one reason might be that you have an existing application that will require too much work, and at that point it might not be worth anymore to invest that time compared to the benefits that you might get by migrating to it."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1602.52,
+      "end": 1609.8,
+      "text": " Another thing might be if you need to guarantee foreign key constraints, those are not supported, so nothing you can do about that."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1610.16,
+      "end": 1613.74,
+      "text": " Very similarly, if you need traditional indexes, that's a problem."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1613.9,
+      "end": 1617.9,
+      "text": " There are indices you can use, but you'll need to change your code to be able to use those."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1618.1399999999999,
+      "end": 1622.18,
+      "text": " So consider the cost into implementing those changes as well."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1622.74,
+      "end": 1630.46,
+      "text": " If you need store procedures, extensions, and things like that, then again, those are not supported, so nothing you can do about that."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1630.46,
+      "end": 1636.7,
+      "text": " If you have predictable load, maybe it's not going to be the most cost-effective solution for you."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1637.2,
+      "end": 1646.32,
+      "text": " And if you have already invested in provision capacity, so you have invested upfront, maybe switching is not going to give you the saving benefits that you get with provision capacity."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1647,
+      "end": 1656.44,
+      "text": " Another thing is that if you need to use different authentication mechanisms, like Kerberos, for instance, we mentioned, only IAM is supported, so that's another blocker for you."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1657.1000000000001,
+      "end": 1659.3400000000001,
+      "text": " So with this, we get to the end of this episode."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1659.34,
+      "end": 1663.36,
+      "text": " As we promised you, we'll have to spend a few words about Forteorem."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1663.58,
+      "end": 1666.6799999999998,
+      "text": " Thank you for sponsoring another episode of AWS Bites."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1667.6799999999998,
+      "end": 1674.32,
+      "text": " Forteorem is the consulting company we work for, and at Forteorem, we believe that cloud should be simple, scalable, and cost-effective."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1675,
+      "end": 1678.02,
+      "text": " So we help teams around the world to just do that."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1678.02,
+      "end": 1691.3799999999999,
+      "text": " So whether you're diving into containers, stepping into event-driven architecture, or scaling a global SaaS platform on AWS, or even trying to keep Cloudspan under control, our team is available as your back."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1691.6,
+      "end": 1697.8,
+      "text": " So definitely reach out, visit Forteorem.com, and see how we can help you to be successful with AWS."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1697.8,
+      "end": 1701.54,
+      "text": " We link all of the resources we mentioned in the show notes."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1702.06,
+      "end": 1703.58,
+      "text": " So that's everything we have for today."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1704,
+      "end": 1705.44,
+      "text": " I hope you enjoyed this episode."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1705.62,
+      "end": 1711.9199999999998,
+      "text": " I hope you are curious to try the sequel, and let us know if you like it or not, what kind of solutions are you going to build with it."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1712.32,
+      "end": 1714.46,
+      "text": " Thank you, and we'll see you in the next episode."
+    }
+  ]
+}

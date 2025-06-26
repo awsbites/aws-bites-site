@@ -1,0 +1,1269 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:05.800
+Not so long ago, we did a deep dive into Amazon Aurora, and we talked about all the non-trivial
+
+2
+00:00:05.800 --> 00:00:10.300
+things that you need to do to set it up. If you missed that episode, it's episode 122,
+
+3
+00:00:10.540 --> 00:00:14.900
+so check it out. But today, we're going to be talking about something a little bit different,
+
+4
+00:00:15.240 --> 00:00:19.620
+because one of the things we said about Aurora Serverless is that it is definitely something
+
+5
+00:00:19.620 --> 00:00:25.920
+that doesn't necessarily reach what we would call the gold standard of serverlessness that we think
+
+6
+00:00:25.920 --> 00:00:31.280
+when we think about something, some data storage, like, for example, DynamoDB. So that changed
+
+7
+00:00:31.280 --> 00:00:39.320
+recently when Amazon challenged themselves and released a new database called Aurora the SQL.
+
+8
+00:00:39.780 --> 00:00:45.720
+This happened at reInvent last year, and just a few weeks ago, this new shiny database became
+
+9
+00:00:45.720 --> 00:00:50.620
+generally available. We finally tried out, and we found where it excels, what are the limits,
+
+10
+00:00:50.960 --> 00:00:55.880
+and today we're going to talk through all of this, what we found out, and a lot more. We got a fully
+
+11
+00:00:55.880 --> 00:01:00.280
+working code example that we will be sharing during this episode, and we'll also talk about
+
+12
+00:01:00.280 --> 00:01:05.700
+how we stress tested it and did some performance and scalability measures. So welcome to another
+
+13
+00:01:05.700 --> 00:01:11.000
+episode of AWS Bites. My name is Luciano, and as always, I'm joined by Eoin, so let's get started.
+
+14
+00:01:19.360 --> 00:01:24.380
+AWS Bites is brought to you by Forteorem. Stay tuned until the end of this episode to find out more
+
+15
+00:01:24.380 --> 00:01:29.080
+about Forteorem. So let's start with a little bit of an introduction. When you're choosing a database,
+
+16
+00:01:29.420 --> 00:01:34.160
+there are always a few questions that you end up asking yourself. The first one might be, for example,
+
+17
+00:01:34.260 --> 00:01:41.440
+scalability. How will this database scale both up and down to handle changing loads, for example?
+
+18
+00:01:41.820 --> 00:01:46.460
+Maybe you're building a small project, like a startup thing that you want to experiment with.
+
+19
+00:01:47.000 --> 00:01:51.700
+Chances are maybe you're lucky and it goes very successfully. So what happens to the database?
+
+20
+00:01:51.700 --> 00:01:55.180
+Is it something you need to worry about, or is it going to scale automatically to handle
+
+21
+00:01:55.180 --> 00:02:00.280
+the success of the new application? The other aspect might be cost, for example. How much is
+
+22
+00:02:00.280 --> 00:02:05.340
+it going to cost? And again, this might be related as well with scalability. How does the cost change
+
+23
+00:02:05.340 --> 00:02:10.580
+as you scale, for example? What is the billing model, for example? Availability is another question.
+
+24
+00:02:10.880 --> 00:02:16.380
+What happens if your database might not be available all the time? Like what kind of mechanism do you need
+
+25
+00:02:16.380 --> 00:02:20.660
+to put in place? Or maybe something you can rely on and you don't have to worry too much without doing any
+
+26
+00:02:20.660 --> 00:02:26.480
+kind of intervention yourself. Complexity is another element. How much stuff do you need to manage,
+
+27
+00:02:26.640 --> 00:02:32.060
+set up, care, and maintain over time? SQL versus no SQL is probably one of the biggest questions that
+
+28
+00:02:32.060 --> 00:02:36.600
+most developers would ask themselves because it changes really the way you build the application,
+
+29
+00:02:36.600 --> 00:02:44.460
+the kind of data model you can store, and then the type of mechanism that you have to deal with the
+
+30
+00:02:44.460 --> 00:02:49.500
+data. So that's always a very important trade-off that you need to figure it out, depending on the kind
+
+31
+00:02:49.500 --> 00:02:54.900
+of application you are building. The SQL, interesting enough, is a SQL database. It's a distributed SQL
+
+32
+00:02:54.900 --> 00:03:00.580
+database, and it's designed to make these choices a little bit easier than other alternatives,
+
+33
+00:03:00.960 --> 00:03:06.380
+especially when it comes to scale, availability, and complexity. So we'll get on cost a little bit
+
+34
+00:03:06.380 --> 00:03:12.880
+later in this episode. So how does the SQL make scale, availability, and complexity a little bit easier
+
+35
+00:03:12.880 --> 00:03:18.280
+than the alternatives we have seen so far in AWS? The first thing is that the SQL scales automatically,
+
+36
+00:03:18.280 --> 00:03:23.560
+and virtually infinitely, meaning that effectively you don't have to worry. You can start very small,
+
+37
+00:03:23.560 --> 00:03:29.320
+and then as your application grows, as your user grows, the SQL should manage automatically all the
+
+38
+00:03:29.320 --> 00:03:35.800
+scaling in terms of storage, compute, and querying separately. They also guarantee you five nines of
+
+39
+00:03:35.800 --> 00:03:42.100
+availability. So again, another aspect that you shouldn't be worried about. And you can create
+
+40
+00:03:42.100 --> 00:03:48.020
+a multi-region cluster, and in that case, you get five nines of availability, yes. You can also create
+
+41
+00:03:48.020 --> 00:03:52.640
+a single cluster. In that case, you get four nines of availability. But still, I think it's a pretty
+
+42
+00:03:52.640 --> 00:03:58.280
+good number, given the fact that you don't have to worry about managing pretty much anything. And what we
+
+43
+00:03:58.280 --> 00:04:04.220
+found out in our experiment is that it is by far the simplest SQL database to set up. It's pretty much as
+
+44
+00:04:04.220 --> 00:04:09.440
+simple as creating a DynamoDB table, and you have a cluster up and running. So effectively, there is
+
+45
+00:04:09.440 --> 00:04:14.520
+almost no configuration. There is no patching. There is no maintenance. The only setup you might need is
+
+46
+00:04:14.520 --> 00:04:20.960
+to add multi-region support and backups, for example. So I would say it scores very high in our serverless
+
+47
+00:04:20.960 --> 00:04:25.480
+scale. Another interesting thing that might be relevant for you as a developer is that it is
+
+48
+00:04:25.480 --> 00:04:31.260
+Postgres compatible. I will put an asterisk there. We'll probably talk a little bit more about why the
+
+49
+00:04:31.260 --> 00:04:36.920
+asterisk throughout this episode. But the idea is that you can use any Postgres connector client,
+
+50
+00:04:36.920 --> 00:04:41.720
+and it should work for most of the operation. And yeah, as I said, there are some limitations and
+
+51
+00:04:41.720 --> 00:04:46.040
+some trade-offs that you should be aware you should consider. But most of the things work,
+
+52
+00:04:46.160 --> 00:04:51.800
+which means that generally you can test locally with a local normal Postgres container, for example.
+
+53
+00:04:52.020 --> 00:04:57.480
+And then when you want to test remotely, you can use the SQL. But yes, there are limitations. So Eoin,
+
+54
+00:04:57.480 --> 00:05:04.000
+what are you going to tell us about that? So right now, DSQL is Postgres version 16 compatible.
+
+55
+00:05:04.440 --> 00:05:10.420
+So it uses the Postgres query parser, the planner, the optimizer, the type system, and the SQL dialect.
+
+56
+00:05:10.760 --> 00:05:17.440
+And you get asset transactions. A difference with most databases is that it uses optimistic
+
+57
+00:05:17.440 --> 00:05:23.060
+concurrency control. And normally you would get a pessimistic locking approach. The optimistic
+
+58
+00:05:23.060 --> 00:05:28.200
+approach lets transactions in a distributed environment like DSQL run without locking delays.
+
+59
+00:05:29.300 --> 00:05:34.300
+Checks for conflicts then only happen at commit time. From a developer's point of view, this means
+
+60
+00:05:34.300 --> 00:05:39.760
+that you should know when transactions may fail and build in retry support. They won't fail as early
+
+61
+00:05:39.760 --> 00:05:45.080
+as you might be used to. If you watch some of the interesting deep dive talks from reInvent,
+
+62
+00:05:45.080 --> 00:05:51.080
+you'll know that Amazon uses their time sync service to ensure that transactions are isolated.
+
+63
+00:05:51.820 --> 00:05:55.520
+And we'll link to a video that will go into that detail.
+
+64
+00:05:56.780 --> 00:06:01.780
+Now, authentication is AWS IAM only. So this is one thing you need to be mindful of.
+
+65
+00:06:02.040 --> 00:06:06.120
+You get an admin role for your cluster, and then you can create additional database roles
+
+66
+00:06:06.120 --> 00:06:10.540
+in with SQL. And then you can associate those with IAM role ARNs.
+
+67
+00:06:10.540 --> 00:06:17.300
+Then you use normal SQL grants to give specific permissions to these roles. So username, password,
+
+68
+00:06:17.460 --> 00:06:21.940
+authentication, all that kind of stuff, Kerberos, anything else you might need, you won't get that.
+
+69
+00:06:22.620 --> 00:06:26.580
+Now, in terms of limitations, one of the big ones is that foreign key constraints are not supported.
+
+70
+00:06:27.380 --> 00:06:32.560
+Obviously, if you're coming from DynamoDB, you don't get them there either. So you might not miss them.
+
+71
+00:06:33.080 --> 00:06:38.800
+But it is one that will likely cause incompatibility issues with existing tools and ORMs.
+
+72
+00:06:38.800 --> 00:06:43.160
+It's definitely possible to design a great application without foreign keys.
+
+73
+00:06:43.720 --> 00:06:48.960
+But we've already experienced issues with ORMs and schema migration tools that rely on them by default.
+
+74
+00:06:49.160 --> 00:06:51.540
+So you can expect to do some work.
+
+75
+00:06:52.040 --> 00:06:56.800
+It's also worth mentioning that there are a few downsides to foreign key constraints.
+
+76
+00:06:57.160 --> 00:07:02.780
+So we recommend reading a PlanetScale article on the topic, which we'll link in the description below.
+
+77
+00:07:03.720 --> 00:07:05.980
+PlanetScale is another SaaS database provider.
+
+78
+00:07:05.980 --> 00:07:10.340
+I think we talked about Neon in the past, which was recently acquired by, I think, Databricks.
+
+79
+00:07:11.800 --> 00:07:16.460
+DSQL is a little bit comparable to those options, I think, in terms of the ease of setup.
+
+80
+00:07:17.140 --> 00:07:20.980
+Another limitation is that if you want to create indexes, which you probably will,
+
+81
+00:07:21.460 --> 00:07:24.260
+you can't just do a create index statement like you might be used to.
+
+82
+00:07:24.380 --> 00:07:30.460
+Instead, you have to run create index async, which creates a specific DSQL type of asynchronous index.
+
+83
+00:07:30.460 --> 00:07:36.680
+But when you do that, you get a job ID that you can monitor since that index is being built asynchronously in the background.
+
+84
+00:07:37.180 --> 00:07:41.720
+And again, when it comes to things like schema generation tools, schema migration tools,
+
+85
+00:07:41.720 --> 00:07:45.160
+you might have to do some work to make sure that it's using the right syntax.
+
+86
+00:07:53.280 --> 00:07:57.580
+Yeah, this is one of the most annoying things that I found so far, especially because if you are used to use something like an ORM, where maybe indices are created automatically through your own migrations,
+
+87
+00:07:57.780 --> 00:07:59.920
+maybe if you're testing locally with a regular Postgres,
+
+88
+00:08:00.460 --> 00:08:08.560
+this is one of the places where your code will need to start to diverge between a local environment with a simple Postgres and DSQL in production.
+
+89
+00:08:08.560 --> 00:08:12.100
+But I digress. There are other limitations we want to talk about.
+
+90
+00:08:12.520 --> 00:08:19.320
+For instance, you cannot create materialized views and temporary views, so you can only create unmaterialized views.
+
+91
+00:08:19.760 --> 00:08:22.120
+Similarly, temporary tables are not supported.
+
+92
+00:08:22.460 --> 00:08:28.780
+You can only have one database in a cluster, but within the cluster, you can actually have multiple schemas, so it's not that bad.
+
+93
+00:08:29.300 --> 00:08:36.560
+No triggers or stored procedures, so that's another limitation that if you have those things in an existing application that you're thinking to migrate,
+
+94
+00:08:36.560 --> 00:08:42.120
+you need to think carefully because that's a feature that you need to live without, at least for the foreseeable future.
+
+95
+00:08:42.860 --> 00:08:49.440
+And you cannot create columns of the type sequence, which is also another common thing that many ORMs will do out of the box,
+
+96
+00:08:49.600 --> 00:08:52.200
+so be careful about that if you use an ORM.
+
+97
+00:08:52.460 --> 00:08:56.940
+Partitions as well are not supported, which in fairness doesn't make a whole lot of sense,
+
+98
+00:08:57.460 --> 00:09:00.820
+because probably DSQL internally manages all of that automatically.
+
+99
+00:09:01.220 --> 00:09:05.680
+And this is probably another big one. Postgres extensions are not supported.
+
+100
+00:09:05.680 --> 00:09:10.300
+So if you are a user of things like PG vector, it's not something you get here,
+
+101
+00:09:10.400 --> 00:09:13.840
+so you'll need to figure out how to live without that if you want to use DSQL.
+
+102
+00:09:14.780 --> 00:09:22.180
+Serial sequence types and foreign key limitations can create problems, again, when you're using an ORM or a migration system,
+
+103
+00:09:22.420 --> 00:09:26.980
+and it's one of these problems where if you really want to use them,
+
+104
+00:09:27.020 --> 00:09:30.500
+because maybe out of the box you get them by a tool that you're using,
+
+105
+00:09:30.500 --> 00:09:37.260
+then you need to figure out how do I do the same or an alternative thing in production when I ship my code to AWS.
+
+106
+00:09:37.680 --> 00:09:46.140
+So that's probably the biggest friction point that we found so far while trying to build an application using tools like ORMs and migration tools.
+
+107
+00:09:46.480 --> 00:09:48.700
+Let's get into our open source application, shall we?
+
+108
+00:09:48.700 --> 00:09:53.080
+So we're going to link in the description below to our GitHub repo,
+
+109
+00:09:53.320 --> 00:09:58.660
+where we've created an API-based application that you could deploy, and you can test it out for yourself.
+
+110
+00:09:58.820 --> 00:09:59.660
+And there's quite a lot in it.
+
+111
+00:10:00.640 --> 00:10:02.460
+The API itself isn't that complicated.
+
+112
+00:10:02.740 --> 00:10:06.720
+It's just two, I think, entities in there.
+
+113
+00:10:07.100 --> 00:10:11.840
+One which allows you to create lists, and in those lists you can create items.
+
+114
+00:10:11.840 --> 00:10:17.800
+So there are two resources, and you get your usual post, put, patch, delete, and get endpoints.
+
+115
+00:10:18.400 --> 00:10:22.500
+And the technology behind this is mainly Node.js and TypeScript-based.
+
+116
+00:10:22.800 --> 00:10:27.560
+So it's a Fastify API backend using Lambda and the Drizzle ORM.
+
+117
+00:10:28.160 --> 00:10:30.600
+It's a Lambda-lith, monolithic Lambda.
+
+118
+00:10:31.700 --> 00:10:35.100
+You might be interested in that because we've talked about the pros and cons of those in the past,
+
+119
+00:10:35.220 --> 00:10:37.120
+but it worked well for us in this case.
+
+120
+00:10:37.460 --> 00:10:38.180
+Made it quite simple.
+
+121
+00:10:38.880 --> 00:10:40.600
+It uses power tools for TypeScript.
+
+122
+00:10:40.600 --> 00:10:43.520
+We've got an API Gateway, REST API in front of it.
+
+123
+00:10:44.160 --> 00:10:48.660
+We've got endpoints to generate an open API specification automatically from the types.
+
+124
+00:10:49.440 --> 00:10:52.940
+And we have load testing built into this repo as well,
+
+125
+00:10:52.980 --> 00:10:56.140
+and we'll talk a little bit more about this load testing in a second.
+
+126
+00:10:56.880 --> 00:11:00.720
+The whole thing is deployed then with CDK, so you can deploy the API pretty easily.
+
+127
+00:11:01.140 --> 00:11:04.120
+There's two stacks, one that creates the database cluster with dSQL.
+
+128
+00:11:05.280 --> 00:11:08.320
+I think we mentioned before that it has almost no configuration.
+
+129
+00:11:08.320 --> 00:11:10.540
+I think, in fact, it has a zero configuration.
+
+130
+00:11:10.740 --> 00:11:12.440
+There are no options when you create a cluster.
+
+131
+00:11:12.580 --> 00:11:14.260
+The only thing you can do is add regions.
+
+132
+00:11:15.220 --> 00:11:20.960
+Now, for load testing, we did a bit of thinking and exploring what we can use for this.
+
+133
+00:11:21.440 --> 00:11:26.340
+And a lot of these load testing tools can take a lot of setup and that sort of thing.
+
+134
+00:11:26.340 --> 00:11:35.100
+But we wanted to try and get some metrics so that we could give you some real data on how this works rather than just talking about our subjective perspective.
+
+135
+00:11:36.040 --> 00:11:41.840
+We ended up landing on K6, which is a tool from Grafana that does load testing.
+
+136
+00:11:42.260 --> 00:11:43.860
+And it's a really simple tool to use.
+
+137
+00:11:43.860 --> 00:11:51.080
+You could just write your test script in JavaScript, and it will run it in its own special optimized runtime for load testing.
+
+138
+00:11:52.140 --> 00:11:56.820
+So we tested 1,000 virtual users over two minutes using K6.
+
+139
+00:11:57.860 --> 00:12:03.180
+What this essentially means is that it's a session.
+
+140
+00:12:03.340 --> 00:12:07.380
+It'll create 1,000 concurrent sessions and just run them repeatedly for two minutes.
+
+141
+00:12:07.380 --> 00:12:11.260
+And this is just all from one machine, running it from the laptop.
+
+142
+00:12:12.240 --> 00:12:22.980
+You can also use, if you want to pay, you could pay Grafana to distribute this workload around the world for you and create a more realistic global load test.
+
+143
+00:12:23.780 --> 00:12:25.740
+But we didn't go to that expense.
+
+144
+00:12:25.840 --> 00:12:28.400
+We just did run it locally, and it was enough for what we needed.
+
+145
+00:12:29.400 --> 00:12:34.540
+So it's going to create lists, create items and lists, do delete, put patch operations for each session.
+
+146
+00:12:34.540 --> 00:12:37.380
+And then we had a look at the performance.
+
+147
+00:12:37.720 --> 00:12:39.460
+So we have a few ways of measuring performance.
+
+148
+00:12:39.720 --> 00:12:43.540
+We've got CloudWatch metrics, and we've got X-ray tracing as well.
+
+149
+00:12:44.780 --> 00:12:50.500
+And there was a couple of new features that we haven't tried in X-ray before that we were able to avail of.
+
+150
+00:12:50.940 --> 00:13:00.560
+So looking at the metrics that you get out of the box with D-SQL, it doesn't give you anything like, I think, RDS performance insights,
+
+151
+00:13:00.560 --> 00:13:03.460
+which will give you more detailed query performance.
+
+152
+00:13:03.460 --> 00:13:09.480
+But it will tell you how many transactions you have, how much compute it's using in terms of compute milliseconds,
+
+153
+00:13:10.300 --> 00:13:13.920
+how many bytes are being written and read, things like commit latency.
+
+154
+00:13:14.680 --> 00:13:18.640
+It's all very interesting, but nothing particularly outstanding there.
+
+155
+00:13:18.780 --> 00:13:25.700
+We could just see that we were getting tens of thousands of transactions, in fact, hundreds of thousands of transactions happening.
+
+156
+00:13:25.700 --> 00:13:35.180
+But what we did was we used PowerTools tracing from TypeScript and X-ray to capture the Lambda statistics,
+
+157
+00:13:35.420 --> 00:13:38.340
+but also instrumenting the SQL queries as well.
+
+158
+00:13:38.720 --> 00:13:44.940
+So instrumenting the database driver, the Postgres database driver, so that we could see what query performance was like.
+
+159
+00:13:44.940 --> 00:13:51.940
+And because we were using a monolithic Lambda, we were taking an approach where we annotated each route with,
+
+160
+00:13:52.800 --> 00:14:00.440
+we annotated traces with the route, basically, so we could see on an individual request level what the performance metrics were like.
+
+161
+00:14:00.440 --> 00:14:05.560
+And one of the new features I mentioned in X-ray is transaction search.
+
+162
+00:14:05.560 --> 00:14:11.780
+And this is essentially a way of getting open telemetry format traces in CloudWatch logs.
+
+163
+00:14:12.220 --> 00:14:18.600
+And then you have like a CloudWatch logs insights type query interface in the AWS console.
+
+164
+00:14:18.880 --> 00:14:23.640
+And you can run statistics on all of your traces and spans and durations.
+
+165
+00:14:23.640 --> 00:14:28.700
+And you can get all of those for 100% of your traces, not just a sample.
+
+166
+00:14:28.960 --> 00:14:37.440
+So what we saw from that is that the Lambda runtime statistics for different routes, they varied quite a lot.
+
+167
+00:14:37.780 --> 00:14:51.600
+But we were getting, I think, you know, average of between 20 milliseconds and 100 milliseconds of latency for the Lambda function execution.
+
+168
+00:14:51.600 --> 00:15:02.640
+Now, looking at the percentiles, then, for P95, we were seeing that some of them, like retrieving all lists, were taking like half a second.
+
+169
+00:15:03.060 --> 00:15:13.760
+And if we look at the P99 stats, there were some even greater ones, like the maximum ones were more like 700 seconds or 900 seconds.
+
+170
+00:15:13.760 --> 00:15:17.180
+So we wanted to drill into this a little bit more.
+
+171
+00:15:17.320 --> 00:15:26.540
+So looking deeper at the query segments themselves, we can see that most of the queries are double-digit milliseconds.
+
+172
+00:15:26.980 --> 00:15:30.500
+So quite most of them are definitely like in the 10 to 20 second range.
+
+173
+00:15:30.740 --> 00:15:33.060
+But there are some which are still like 100 milliseconds.
+
+174
+00:15:34.060 --> 00:15:37.220
+And if you look at the maximum ones, they go into like half a second.
+
+175
+00:15:37.220 --> 00:15:39.560
+So there's quite a lot of variance here.
+
+176
+00:15:39.680 --> 00:15:41.020
+And we ran it multiple times.
+
+177
+00:15:41.020 --> 00:15:42.600
+And we ran it over multiple days.
+
+178
+00:15:42.940 --> 00:15:44.920
+But we still saw this level of variation.
+
+179
+00:15:45.320 --> 00:15:53.780
+And it's interesting because sometimes Amazon in their DSQL marketing talk about single-digit query performance, similar to DynamoDB.
+
+180
+00:15:54.340 --> 00:15:57.460
+Now, you do see those in terms of the minimum values.
+
+181
+00:15:57.680 --> 00:16:03.040
+But they're still, like if you look at the P90, you're looking at three-digit milliseconds for query performance.
+
+182
+00:16:03.040 --> 00:16:05.620
+So it's generally good, I would say.
+
+183
+00:16:05.820 --> 00:16:10.720
+But if you're looking at really critical low-latency workloads, that's something you might want to consider.
+
+184
+00:16:11.920 --> 00:16:17.460
+Of course, when you're talking about databases, you also want to look at the connection time.
+
+185
+00:16:17.760 --> 00:16:25.700
+And this is a critical thing, especially with Lambda, where you don't have things like RDS proxy, which we talked about in that Aurora episode, 122.
+
+186
+00:16:25.700 --> 00:16:33.420
+So we wanted to look at cold starts and try and measure how much of that was being consumed by database connection time.
+
+187
+00:16:34.260 --> 00:16:45.000
+And our average cold start time is about 537 milliseconds, which I think is not unusual for Node.js runtime, but probably on the higher end.
+
+188
+00:16:45.000 --> 00:16:52.120
+But we also want to see, like, okay, how much of that is initializing Fastify and all our other third-party dependencies.
+
+189
+00:16:53.480 --> 00:17:00.920
+So we looked at the, we added actually instrumentation and specific CloudWatch metrics for the database initialization time.
+
+190
+00:17:01.280 --> 00:17:05.120
+And that's the time to initialize your database driver, establish a connection.
+
+191
+00:17:05.500 --> 00:17:09.740
+We run a test query, which is really, like, tiny and very short in duration.
+
+192
+00:17:09.940 --> 00:17:11.080
+It's just, like, select one.
+
+193
+00:17:11.080 --> 00:17:21.060
+And we saw that the connection time was between kind of 200 and 300 milliseconds for initializing your database.
+
+194
+00:17:21.320 --> 00:17:25.440
+So that's definitely a significant part of that cold start time.
+
+195
+00:17:25.780 --> 00:17:30.140
+It's the lion's share, maybe 50 to 70% of it.
+
+196
+00:17:30.800 --> 00:17:34.960
+It would be nice if there was a way to have faster connections.
+
+197
+00:17:35.240 --> 00:17:39.000
+But it's still, I would say, altogether not too bad.
+
+198
+00:17:39.000 --> 00:17:52.220
+And for the majority of SaaS applications, given that you're still getting quite a lot of single millisecond query time and double-digit query time, I think it's pretty good, but could do better.
+
+199
+00:17:52.540 --> 00:17:57.240
+We should try that in Rust to see if the connection is established faster.
+
+200
+00:17:57.500 --> 00:17:59.360
+But, yeah, it's not something we have experimented.
+
+201
+00:17:59.880 --> 00:18:04.700
+Actually, yeah, there is an interesting article by Benjamin Pyle, who did a whole lot of research.
+
+202
+00:18:04.700 --> 00:18:07.000
+Which actually has two articles.
+
+203
+00:18:07.420 --> 00:18:08.460
+We'll link them in the show notes.
+
+204
+00:18:08.620 --> 00:18:12.260
+But one of them is about using Rust to query DSQL.
+
+205
+00:18:13.000 --> 00:18:18.980
+And then the subsequent one is about trying to improve the query performance further by using Memento as a cache.
+
+206
+00:18:19.500 --> 00:18:21.280
+Those are definitely worth reading.
+
+207
+00:18:21.780 --> 00:18:21.940
+Awesome.
+
+208
+00:18:22.500 --> 00:18:25.360
+Should we talk instead about high availability of multiregions?
+
+209
+00:18:25.580 --> 00:18:26.160
+Let's do it.
+
+210
+00:18:26.660 --> 00:18:27.340
+Let's get serious.
+
+211
+00:18:27.340 --> 00:18:37.860
+Okay, so yeah, that's definitely another topic that might be important to you, especially when you care about how the data is replicated and trying to make sure you're not going to lose any data.
+
+212
+00:18:38.180 --> 00:18:41.740
+If you're running in production, you have critical applications running on the SQL.
+
+213
+00:18:42.080 --> 00:18:46.460
+So as we said, you have two options, either a multiregion and a single region cluster.
+
+214
+00:18:46.460 --> 00:18:52.260
+So if you decide to use a single region cluster, automatically it uses three availability zones.
+
+215
+00:18:52.540 --> 00:18:57.300
+And every transaction is automatically committed to all of those three availability zones.
+
+216
+00:18:57.440 --> 00:19:01.120
+If you use a multiregion DSQL, it gives you more availability.
+
+217
+00:19:01.540 --> 00:19:05.080
+And each region is effectively linked to a cluster.
+
+218
+00:19:05.240 --> 00:19:08.300
+And you get read and write endpoints with strong consistency.
+
+219
+00:19:08.300 --> 00:19:14.320
+Every time you do write new data, that data is synchronously replicated across regions.
+
+220
+00:19:15.100 --> 00:19:23.720
+And effectively you get a zero or PO, recovery point objective, which basically means that if a region fails at any point, you are not losing any data.
+
+221
+00:19:24.280 --> 00:19:27.560
+So to set up multiregion, there are a few steps that you need to follow.
+
+222
+00:19:27.560 --> 00:19:45.480
+So you have basically, you need to have two or more participated regions and a witness region, which is basically a region that does not have a read or write endpoint, but is there just to, because it maintains an encrypted copy of the transaction log and ensures the five nines of availability.
+
+223
+00:19:45.480 --> 00:19:49.400
+So effectively it's just used to provide availability and support recovery.
+
+224
+00:19:49.920 --> 00:19:54.380
+Now note that right now, only US regions are supported as witness regions.
+
+225
+00:19:54.740 --> 00:19:56.920
+This is something that you need to be aware.
+
+226
+00:19:57.320 --> 00:19:59.200
+Hopefully it's going to be improved over time.
+
+227
+00:19:59.720 --> 00:20:13.700
+But effectively, if you are trying to achieve the highest level of availability and at the same time you are worried about data sovereignty, maybe there is a little bit of a conflict there where you might not be able to use the SQL to the fullest capacity.
+
+228
+00:20:13.700 --> 00:20:18.940
+I think now is the time where we get to talk about pricing, the time everyone is waiting for.
+
+229
+00:20:19.960 --> 00:20:26.460
+Yeah, and this is where we try to make it clear how expensive or cheap it is, but ultimately fail because it depends.
+
+230
+00:20:27.040 --> 00:20:28.060
+But let's give it a go anyway.
+
+231
+00:20:28.640 --> 00:20:35.200
+Similar to DynamoDB, it has these units that are counted as you read and write with a separate storage cost as well.
+
+232
+00:20:36.140 --> 00:20:42.180
+The units are called distributed processing units or DPUs, and the cost will vary per region.
+
+233
+00:20:42.180 --> 00:20:46.020
+In Ireland, it's like $9.50 for 1 million units.
+
+234
+00:20:46.560 --> 00:20:51.540
+But note that this is quite a bit more expensive than $8, which is what you get in the US regions.
+
+235
+00:20:51.960 --> 00:20:56.140
+But I think if you go to Asia-Pacific regions, it's like $10 plus.
+
+236
+00:20:56.360 --> 00:20:57.820
+So it does vary quite a lot by region.
+
+237
+00:20:58.240 --> 00:21:01.180
+And then it's 36 cents per gigabyte of storage.
+
+238
+00:21:01.180 --> 00:21:08.180
+Now, there's a difference when you're comparing to DynamoDB because DynamoDB builds for reads and writes.
+
+239
+00:21:08.480 --> 00:21:15.700
+And it's pretty clear what a DynamoDB write capacity unit and read capacity unit means in terms of the amount of data being read and written.
+
+240
+00:21:15.920 --> 00:21:17.380
+You can do a calculation on it.
+
+241
+00:21:17.780 --> 00:21:19.260
+With dSQL, there's a lot more to it.
+
+242
+00:21:19.560 --> 00:21:21.260
+But it's also a bit more vague.
+
+243
+00:21:21.260 --> 00:21:24.700
+Like, dSQL's DPUs are based on reads, writes, but also compute.
+
+244
+00:21:25.120 --> 00:21:28.740
+And you can't really predict how much each query is going to use.
+
+245
+00:21:29.640 --> 00:21:35.200
+I suppose it kind of makes sense that they've got this additional compute metric that they count into the billing.
+
+246
+00:21:35.200 --> 00:21:40.260
+Because SQL allows you to run complex queries where DynamoDB doesn't.
+
+247
+00:21:41.240 --> 00:21:46.100
+And that means they're going to consume more than just IO overhead.
+
+248
+00:21:46.100 --> 00:21:48.000
+And it's not going to be deterministic.
+
+249
+00:21:48.440 --> 00:21:53.980
+So there's no way that we can know of to calculate DPUs for your queries in advance.
+
+250
+00:21:54.180 --> 00:21:55.520
+You just have to try and measure.
+
+251
+00:21:56.580 --> 00:22:05.340
+Thankfully, there are usage metrics in CloudWatch for all of the things that are factors in your cost calculation.
+
+252
+00:22:06.300 --> 00:22:12.080
+And Mark Bowes has provided a script that you can use to get a cost estimate based on this usage.
+
+253
+00:22:12.080 --> 00:22:14.760
+And he also has a good article on dSQL pricing.
+
+254
+00:22:15.120 --> 00:22:17.540
+The link for that is below too.
+
+255
+00:22:18.400 --> 00:22:27.480
+And we actually found that when reading another useful article by Alessandro Volpeccella, which is called the Amazon dSQL pricing guide.
+
+256
+00:22:27.920 --> 00:22:29.040
+So check those out for sure.
+
+257
+00:22:29.660 --> 00:22:35.340
+You do have a free tier with 100,000 DPUs and a gigabyte of storage per month.
+
+258
+00:22:36.260 --> 00:22:40.060
+Interregion transfer will incur cost and data egress to the internet.
+
+259
+00:22:40.060 --> 00:22:45.360
+That, as always, incurs a cost beyond the usual 100 gigabyte free tier.
+
+260
+00:22:45.740 --> 00:22:48.240
+You should also include the cost of keeping backups.
+
+261
+00:22:48.840 --> 00:22:52.240
+And you can, by the way, integrate dSQL with AWS backup.
+
+262
+00:22:53.180 --> 00:22:59.400
+So overall, it's difficult to say how cheap or expensive dSQL can be compared to RDS or even Aurora serverless.
+
+263
+00:22:59.720 --> 00:23:00.440
+It just depends.
+
+264
+00:23:00.700 --> 00:23:01.700
+It can be very cheap.
+
+265
+00:23:01.760 --> 00:23:05.120
+And a lot of the articles I've seen give examples that seem very cheap.
+
+266
+00:23:05.120 --> 00:23:11.260
+But we can also see how with significant load, it can get quite expensive for high load applications.
+
+267
+00:23:11.940 --> 00:23:19.740
+If we talk about our load test, for example, we said we measured 1,000 virtual users hammering the system constantly for two minutes.
+
+268
+00:23:19.740 --> 00:23:31.680
+And already, like having run that maybe half a dozen times this month using a script that was provided by MacBose in that article, it'll be linked.
+
+269
+00:23:31.820 --> 00:23:36.000
+There's a really nice script that'll just check your CloudWatch metrics and spit out a dollar amount.
+
+270
+00:23:36.200 --> 00:23:37.260
+It will be an estimate.
+
+271
+00:23:37.260 --> 00:23:48.280
+But it's already saying that for us, having run that workload for, let's say, maybe all together somewhere in the 10 to 20 minute range, it's like $3.
+
+272
+00:23:48.860 --> 00:23:52.860
+So that's just for minutes of usage for thousands of users.
+
+273
+00:23:53.480 --> 00:24:03.580
+So if you have constant high load, you might want to think about investing in the pain of infrastructure management and using something like Aurora or RDS or something else.
+
+274
+00:24:03.580 --> 00:24:12.580
+But still, I would say definitely give it a try and measure it because the amount of effort it will take away, the amount of development time and cost it will save you will be pretty massive.
+
+275
+00:24:12.940 --> 00:24:14.800
+So when should we use it?
+
+276
+00:24:14.840 --> 00:24:16.880
+Let's give our pros and cons.
+
+277
+00:24:17.340 --> 00:24:18.160
+Who's it good for?
+
+278
+00:24:18.780 --> 00:24:19.860
+Who should steer clear of it?
+
+279
+00:24:20.120 --> 00:24:24.200
+Yes, I'm going to try my best to summarize that, although it's always a difficult choice.
+
+280
+00:24:24.320 --> 00:24:26.020
+It isn't very binary.
+
+281
+00:24:26.400 --> 00:24:32.180
+So let's see what can we bring into the mix to help you figure out if it's good for your project or not.
+
+282
+00:24:32.180 --> 00:24:49.000
+So I would say that if you're building a new Greenfield application where you don't have to spend too much time effectively taking code that you have already written, maybe assuming a generic Postgres and trying to move it out where you might find unsupported features, in that case, it's probably a good starting point.
+
+283
+00:24:49.140 --> 00:24:50.680
+Like you have less things to worry about.
+
+284
+00:24:50.900 --> 00:24:55.700
+So definitely if you're doing something new, it might be worth considering it.
+
+285
+00:24:55.700 --> 00:24:59.920
+Another thing is when you have a desire to minimize infrastructure maintenance.
+
+286
+00:24:59.920 --> 00:25:15.940
+So maybe you are doing a migration, but the cost that you would have by trying to figure out exactly things that you need to change, change them so that this equal is fully supported, maybe eventually becomes worth it because then you have less maintenance costs.
+
+287
+00:25:15.940 --> 00:25:19.300
+So that could be kind of a trade-off worth exploring as well.
+
+288
+00:25:20.080 --> 00:25:27.820
+Another thing is that you have estimated costs for expected workload and know the cost trade-off makes sense.
+
+289
+00:25:28.080 --> 00:25:38.060
+So effectively, if you have done maybe a few experiments with this equal and you have a fairly good understanding of the usage patterns, they're not going to change too much.
+
+290
+00:25:38.060 --> 00:25:42.300
+So you kind of could guess quite exactly how much it's going to cost you.
+
+291
+00:25:42.520 --> 00:25:45.020
+And you see it's actually going to be much cheaper than alternatives.
+
+292
+00:25:45.340 --> 00:25:48.960
+That could be another great use case that might justify a migration.
+
+293
+00:25:49.340 --> 00:26:00.900
+And if you're not using libraries or tools that are requiring some of the unsupported features in the SQL, or maybe if you're not using any of those Postgres extensions, and some of them are actually quite common.
+
+294
+00:26:00.900 --> 00:26:06.460
+So it might actually be possible that that becomes one of the blockers along the road.
+
+295
+00:26:07.400 --> 00:26:19.320
+So consider that as well as another thing that effectively, if you fall into all of these buckets, it might be worth exploring it and deciding then whether you want to stick with it or not.
+
+296
+00:26:19.320 --> 00:26:29.980
+Now, if we want to summarize things that maybe can easily get on your path, and maybe at that point you should definitely avoid the SQL, let me try to give you a few pointers.
+
+297
+00:26:30.740 --> 00:26:42.520
+So one reason might be that you have an existing application that will require too much work, and at that point it might not be worth anymore to invest that time compared to the benefits that you might get by migrating to it.
+
+298
+00:26:42.520 --> 00:26:49.800
+Another thing might be if you need to guarantee foreign key constraints, those are not supported, so nothing you can do about that.
+
+299
+00:26:50.160 --> 00:26:53.740
+Very similarly, if you need traditional indexes, that's a problem.
+
+300
+00:26:53.900 --> 00:26:57.900
+There are indices you can use, but you'll need to change your code to be able to use those.
+
+301
+00:26:58.140 --> 00:27:02.180
+So consider the cost into implementing those changes as well.
+
+302
+00:27:02.740 --> 00:27:10.460
+If you need store procedures, extensions, and things like that, then again, those are not supported, so nothing you can do about that.
+
+303
+00:27:10.460 --> 00:27:16.700
+If you have predictable load, maybe it's not going to be the most cost-effective solution for you.
+
+304
+00:27:17.200 --> 00:27:26.320
+And if you have already invested in provision capacity, so you have invested upfront, maybe switching is not going to give you the saving benefits that you get with provision capacity.
+
+305
+00:27:27.000 --> 00:27:36.440
+Another thing is that if you need to use different authentication mechanisms, like Kerberos, for instance, we mentioned, only IAM is supported, so that's another blocker for you.
+
+306
+00:27:37.100 --> 00:27:39.340
+So with this, we get to the end of this episode.
+
+307
+00:27:39.340 --> 00:27:43.360
+As we promised you, we'll have to spend a few words about Forteorem.
+
+308
+00:27:43.580 --> 00:27:46.680
+Thank you for sponsoring another episode of AWS Bites.
+
+309
+00:27:47.680 --> 00:27:54.320
+Forteorem is the consulting company we work for, and at Forteorem, we believe that cloud should be simple, scalable, and cost-effective.
+
+310
+00:27:55.000 --> 00:27:58.020
+So we help teams around the world to just do that.
+
+311
+00:27:58.020 --> 00:28:11.380
+So whether you're diving into containers, stepping into event-driven architecture, or scaling a global SaaS platform on AWS, or even trying to keep Cloudspan under control, our team is available as your back.
+
+312
+00:28:11.600 --> 00:28:17.800
+So definitely reach out, visit Forteorem.com, and see how we can help you to be successful with AWS.
+
+313
+00:28:17.800 --> 00:28:21.540
+We link all of the resources we mentioned in the show notes.
+
+314
+00:28:22.060 --> 00:28:23.580
+So that's everything we have for today.
+
+315
+00:28:24.000 --> 00:28:25.440
+I hope you enjoyed this episode.
+
+316
+00:28:25.620 --> 00:28:31.920
+I hope you are curious to try the sequel, and let us know if you like it or not, what kind of solutions are you going to build with it.
+
+317
+00:28:32.320 --> 00:28:34.460
+Thank you, and we'll see you in the next episode.

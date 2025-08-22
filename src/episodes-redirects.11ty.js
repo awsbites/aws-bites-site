@@ -1,3 +1,5 @@
+const settings = require('./_data/settings.js')
+
 class EpisodesRedirects {
   data () {
     return {
@@ -10,7 +12,7 @@ class EpisodesRedirects {
     const redirects = []
 
     for (const item of collections.publishedEpisodes.reverse()) {
-      redirects.push(`/${item.data.episode} ${item.url}`)
+      redirects.push(`/${item.data.episode} ${settings.website}${item.url}`)
     }
 
     return redirects.join('\n')

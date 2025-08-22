@@ -12,7 +12,7 @@ class EpisodesRedirects {
     const redirects = []
 
     for (const item of collections.publishedEpisodes.reverse()) {
-      redirects.push(`/${item.data.episode} ${settings.website}${item.url}`)
+      redirects.push(`/${item.data.episode} ${new URL(item.url, settings.website).toString()}`)
     }
 
     return redirects.join('\n')

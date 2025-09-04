@@ -1,0 +1,1653 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:05.980
+What if Java is too old for serverless is the biggest myth holding teams back in 2025?
+
+2
+00:00:06.400 --> 00:00:12.320
+Today, we are putting that idea to the test with someone who has seen Java succeed at a very high
+
+3
+00:00:12.320 --> 00:00:17.940
+scale, especially with Lambda. I'm joined by Mark Sailes, former AWS engineer and internationally
+
+4
+00:00:17.940 --> 00:00:23.600
+recognized expert on Java and all things serverless. By the way, if you know me, you probably know that
+
+5
+00:00:23.600 --> 00:00:28.300
+Java isn't necessarily on my list of favorite programming languages when it comes to Lambda,
+
+6
+00:00:28.300 --> 00:00:32.800
+especially. But if there is somebody who can judge my mind, that's definitely Mark.
+
+7
+00:00:33.160 --> 00:00:40.300
+I have compiled a long list of questions, so we'll cover all things Lambda and Java. And just to give
+
+8
+00:00:40.300 --> 00:00:45.660
+you a spoiler, I'm very keen to hear when Java is the right call for Lambda and when it isn't,
+
+9
+00:00:45.900 --> 00:00:49.920
+what are the trade-offs that actually matter, and what are the tools that move the needle,
+
+10
+00:00:50.080 --> 00:00:54.700
+especially when it comes to latency and cost. And you know, we'll probably be talking a lot
+
+11
+00:00:54.700 --> 00:00:59.720
+about Snapstart and provision concurrency and things like that. I'm sure that Mark will also
+
+12
+00:00:59.720 --> 00:01:04.720
+share some practical tips, and those tips I'm sure are going to be valuable for both juniors and
+
+13
+00:01:04.720 --> 00:01:09.460
+experts. So I hope you are going to enjoy this episode. My name is Luciano. This is another episode
+
+14
+00:01:09.460 --> 00:01:23.620
+of AWS Bites. And today we are joined by Mark Sailes. So Mark, thank you for joining us. And I just want to start by letting you introduce yourself.
+
+15
+00:01:23.620 --> 00:01:28.900
+Thank you very much. And it's great to be here.
+
+16
+00:01:28.900 --> 00:01:33.920
+I've watched a lot of your episodes. They're all really cool. So it's great to be part of this podcast.
+
+17
+00:01:33.920 --> 00:01:41.840
+So yeah, I'm Mark Sailes. I worked at AWS for six and a half years. And at that time,
+
+18
+00:01:42.060 --> 00:01:46.800
+I did a whole heap of different jobs in different industries, all to do with solutions architecture.
+
+19
+00:01:47.460 --> 00:01:53.240
+And then the majority of my time was as a specialist solutions architect for serverless,
+
+20
+00:01:53.360 --> 00:01:59.380
+so really diving deep into serverless workloads with some of AWS's biggest customers. And that was just
+
+21
+00:01:59.380 --> 00:02:06.060
+a fantastic experience. It really did give me a lot of insight into how big companies are using
+
+22
+00:02:06.060 --> 00:02:13.040
+serverless. Some of the scale that Lambda can handle, which is just fantastic. And then,
+
+23
+00:02:13.420 --> 00:02:21.640
+yeah, where I found my niche, which was helping customers who are using Java that just don't have a
+
+24
+00:02:21.640 --> 00:02:28.340
+lot of material to kind of learn from. So I spent a lot of time looking at what their problems were,
+
+25
+00:02:28.340 --> 00:02:32.740
+and then trying to work with the service teams to fix them. And that was something that I really
+
+26
+00:02:32.740 --> 00:02:38.320
+enjoyed and something I hadn't really done before in my developer kind of led career. So yeah,
+
+27
+00:02:38.400 --> 00:02:44.240
+definitely, you know, looking behind the scenes into the product side of the business and seeing how it works.
+
+28
+00:02:44.240 --> 00:02:49.560
+That's a great intro. Thank you for sharing that.
+
+29
+00:02:49.560 --> 00:02:54.260
+I remember in one of our previous conversations, you mentioned you had been working on something like 100 projects or close to that with
+
+30
+00:02:54.260 --> 00:03:02.740
+AWS. And I assume many of them involving Java. So I'm sure you heard a lot that criticism of Java being
+
+31
+00:03:02.740 --> 00:03:09.040
+around for a long time. It's kind of an outdated language. So I guess my question would be why? Well,
+
+32
+00:03:09.160 --> 00:03:14.700
+I'm sure that's not true that there are ways to kind of dismantle that myth. But in general,
+
+33
+00:03:14.700 --> 00:03:16.780
+why should we bet on Java in 2025?
+
+34
+00:03:18.460 --> 00:03:25.480
+I, you know, I really don't think we should be coming at, you know, it in that direction. You
+
+35
+00:03:25.480 --> 00:03:31.420
+know, when I come to a new project, or come to an existing project that I'm looking at again,
+
+36
+00:03:31.820 --> 00:03:37.900
+I don't start with saying, which language should I use? You know, if I'm working as a team lead,
+
+37
+00:03:37.900 --> 00:03:43.420
+or if I've joined a team, or if I'm an architect working with a team, I look at the skills of that
+
+38
+00:03:43.420 --> 00:03:50.460
+team, and the application that we're working with and the wider context. And that's how I'm choosing
+
+39
+00:03:50.460 --> 00:03:57.660
+every part of the stack, you know, do we have any skills in NoSQL? If we don't have any skills in NoSQL,
+
+40
+00:03:57.660 --> 00:04:03.980
+we probably won't be using DynamoDB. If we haven't got any Go skills, we're probably not going to be
+
+41
+00:04:03.980 --> 00:04:12.220
+writing the code in Go. So I'm thinking much more in that direction. So if I'm speaking with a large
+
+42
+00:04:12.220 --> 00:04:19.760
+bank, and they are wanting to adopt serverless, I am definitely going to help them to adopt serverless,
+
+43
+00:04:19.820 --> 00:04:24.820
+because serverless is really going to help that business to actually gain some momentum and cut
+
+44
+00:04:24.820 --> 00:04:30.560
+some of the overhead that they've traditionally spent a long time dealing with. And Java is one of
+
+45
+00:04:30.560 --> 00:04:35.440
+those things where, you know, it got a bad reputation, and it hasn't been able to shrug
+
+46
+00:04:35.440 --> 00:04:44.220
+that bad reputation off. And I talk about it similar to the way that Lambda used to have a bad reputation
+
+47
+00:04:44.220 --> 00:04:50.860
+with VPC. If you've been using Lambda for long enough, you'll remember if you had a VPC attached
+
+48
+00:04:50.860 --> 00:04:58.460
+Lambda function, a cold start would take at least 30 seconds. But now, no one even considers that because
+
+49
+00:04:58.460 --> 00:05:06.380
+it's kind of been fixed. And the same is true of Java. You know, there's a lot of tools and
+
+50
+00:05:06.380 --> 00:05:11.680
+techniques that you can use. Some of them easy, some of them hard, some of them, you know, you don't
+
+51
+00:05:11.680 --> 00:05:18.380
+need to invest much time into. You know, it's very easy to get a cold start less than one second.
+
+52
+00:05:18.380 --> 00:05:26.300
+But can you get the same sort of cold start as a Rust function with 128 megabytes of memory? No.
+
+53
+00:05:26.300 --> 00:05:34.940
+But that's just the different behaviors of the language. And, you know, teams have been using Java for a long time.
+
+54
+00:05:34.940 --> 00:05:40.300
+They're very familiar with Java. They have all of their tools, libraries written in Java. So I'm much more
+
+55
+00:05:40.300 --> 00:05:48.300
+interested in helping them to adopt serverless rather than, you know, them having to, you know, rip up everything that they know.
+
+56
+00:05:48.300 --> 00:05:49.420
+And start from scratch.
+
+57
+00:05:55.580 --> 00:06:01.900
+And to be fair, one of the things that I really like about Lambda and FaaS in general is that you could use a language for most of the code base. And then in those very small pieces of the entire
+
+58
+00:06:01.900 --> 00:06:06.860
+software where you need, I don't know, some different characteristics, it might be performance, it might be
+
+59
+00:06:06.860 --> 00:06:11.260
+something else. You can pick another language that maybe is more suitable for that particular
+
+60
+00:06:11.260 --> 00:06:17.820
+absolutely.
+
+61
+00:06:17.820 --> 00:06:23.980
+This is the very nature of distributed systems and being able to have something that's composable. But also, you know, Java does have the capabilities to now compile to
+
+62
+00:06:23.980 --> 00:06:30.620
+native bytecode. So this is a technology that Oracle has developed called GraalVM Native Image. So I have
+
+63
+00:06:30.620 --> 00:06:39.100
+seen that very pattern. I was working with a large bank and they produced a Lambda authorizer for API
+
+64
+00:06:39.100 --> 00:06:45.100
+gateway that had to be low latency. So they spent the time and the effort that is required to use that
+
+65
+00:06:45.100 --> 00:06:51.260
+technology to make sure that it was, you know, cold starting in, you know, 100, 200 milliseconds
+
+66
+00:06:51.260 --> 00:06:56.700
+with 128 megabytes of memory. But, you know, that use case was very specific. It didn't have a lot of
+
+67
+00:06:56.700 --> 00:07:04.540
+dependencies. There was no, you know, external network calls. It was able to be, you know, done in such a way that
+
+68
+00:07:04.540 --> 00:07:09.740
+it really excelled. And the time and effort spent doing that was worthwhile.
+
+69
+00:07:09.740 --> 00:07:17.260
+absolutely.
+
+70
+00:07:17.260 --> 00:07:21.900
+And with that in mind, when you would advise teams to use Java on Lambda and when maybe you will say, actually, for this particular use case, you're better off with something else?
+
+71
+00:07:22.700 --> 00:07:29.740
+So in that scenario, I, you know, the first question I'm asking is what sort of traffic profile are you
+
+72
+00:07:29.740 --> 00:07:39.500
+seeing? What is the kind of ceiling on cold starts that you need? Because that's probably the biggest
+
+73
+00:07:39.500 --> 00:07:46.780
+blocker to get something below, you know, a one second cold start with any meaningful application.
+
+74
+00:07:46.780 --> 00:07:53.580
+So when I say that, I guess I mean, you know, does it need to get parameters from a parameter store or
+
+75
+00:07:53.580 --> 00:07:59.180
+secret manager? Does it need to connect to a database? Does it need to connect to any other AWS services?
+
+76
+00:07:59.180 --> 00:08:05.020
+Is it some sort of meaningful application like a microservice? It's unlikely that you're going to get
+
+77
+00:08:05.020 --> 00:08:12.060
+a 500, 500 millisecond cold start. So if you need something below that number, you either have to put in
+
+78
+00:08:12.700 --> 00:08:19.980
+additional effort to go to ahead of time compilation or use a compiled programming language like Go
+
+79
+00:08:20.700 --> 00:08:28.700
+or Rust or C or C++. But after that, I think the majority of people are building microservices and
+
+80
+00:08:29.180 --> 00:08:36.060
+the world is the world is built on Java microservices. I mean, the amount of spring
+
+81
+00:08:37.020 --> 00:08:43.500
+framework microservices in the world is just phenomenal. And, you know, those are the ones that
+
+82
+00:08:43.500 --> 00:08:50.540
+I see running on EC2 servers, high availability, you know, 10 different environments, and they're just
+
+83
+00:08:50.540 --> 00:08:55.980
+stacking up the costs every month, having to be maintained every month. And those are really the kind of
+
+84
+00:08:55.980 --> 00:09:01.820
+targets that I want to help people migrate to serverless and have a much better life.
+
+85
+00:09:01.820 --> 00:09:07.180
+that makes a lot of sense.
+
+86
+00:09:07.820 --> 00:09:14.140
+I think a slightly related question, what do you think is the unique selling proposition of Java when it comes to serverless and Lambda? Like what's unique about
+
+87
+00:09:14.140 --> 00:09:17.900
+the language itself that maybe other languages don't have?
+
+88
+00:09:24.460 --> 00:09:31.900
+I don't know if it's necessarily to do with serverless, but Java's unique position is that it is the language of integration. It probably, I imagine if there was any sort of data behind this,
+
+89
+00:09:31.900 --> 00:09:39.340
+I'm not sure, but I think it has probably the richest, longest history, the most developed SDKs for a
+
+90
+00:09:39.340 --> 00:09:45.820
+variety of different tools. And I mean, Lambda Snapstart is a really cool technology,
+
+91
+00:09:45.820 --> 00:09:52.460
+being able to have that additional phase that you can affect your Lambda functions at deployment time.
+
+92
+00:09:52.460 --> 00:09:58.300
+So you can do a lot of preparation before your application is ever invoked by a customer.
+
+93
+00:09:58.300 --> 00:10:06.220
+Now, obviously this is now usable by Python and .net. I'm sure it'll be rolled out to the other languages as
+
+94
+00:10:06.220 --> 00:10:13.500
+well. But yeah, I mean, Java is really the language of integration. And that's where I see the superpower.
+
+95
+00:10:21.820 --> 00:10:29.820
+So I will maybe rephrase that as it has been more kind of the adoption patterns rather than the language itself, having specific unique characteristics. Maybe what we could focus on is giving people some examples of,
+
+96
+00:10:29.820 --> 00:10:35.660
+I don't know, use cases where you have seen, where you will say proudly, yes, I think Java was the right choice.
+
+97
+00:10:35.660 --> 00:10:44.540
+And I mean, I've just seen, you know, countless microservices where it has run on EC2.
+
+98
+00:10:44.540 --> 00:10:51.820
+It's a microservice that is an office based application. And it runs from nine to five. I mean, these are the
+
+99
+00:10:51.820 --> 00:10:58.860
+the bread and butter applications that have been written by, by large enterprises for 20, 25 years. And
+
+100
+00:10:58.860 --> 00:11:04.700
+there's that sort of maintainability that Java is famous for. There's no breaking changes, very easy to
+
+101
+00:11:04.700 --> 00:11:13.500
+upgrade. And I don't see serverless being a something that, you know, is has to be only
+
+102
+00:11:14.700 --> 00:11:22.060
+small companies, agile companies. You know, I think one of the real benefits is actually in enterprises where
+
+103
+00:11:22.060 --> 00:11:27.740
+they are having to spend a lot of time doing the high availability fault tolerant architectures,
+
+104
+00:11:28.300 --> 00:11:35.100
+that they're just churning out EC2s. And that's where I see the real, the real benefit is by, you know,
+
+105
+00:11:35.100 --> 00:11:41.660
+bringing that vast volume of applications that has been built over the last 25 years and helping people to
+
+106
+00:11:42.300 --> 00:11:43.740
+gain the benefits of serverless.
+
+107
+00:11:51.180 --> 00:11:56.620
+I will add to that that even the, the ability to offload a lot of the kind of security and compliance aspects, just because you give that to the provider, in this case, AWS with the serverless
+
+108
+00:11:56.620 --> 00:12:01.740
+runtime, I think it will be a huge benefit to this kind of companies because they have entire departments
+
+109
+00:12:01.740 --> 00:12:06.620
+that generally look after those things and reducing the work for those, I think will be extremely
+
+110
+00:12:06.620 --> 00:12:12.540
+beneficial for those businesses.
+
+111
+00:12:12.540 --> 00:12:23.500
+So, you know, for me, that really came to light when I was working at AWS during the Log4Shell vulnerability. So this was when, Java's largest logging framework had a, a critical CVE,
+
+112
+00:12:23.900 --> 00:12:34.460
+which actually scored 10 out of 10 for ability to be enacted and the effect that it could have.
+
+113
+00:12:34.460 --> 00:12:45.660
+And the Lambda team were actually able to work with the AWS Corretto team, which is the team that distribute, Amazon's version of the Java runtime.
+
+114
+00:12:45.660 --> 00:12:57.820
+And they were able to mitigate that attack by, checking whenever a vulnerable class was loaded into the runtime and strip away the vulnerable code.
+
+115
+00:12:57.820 --> 00:13:09.020
+and, you know, for me, that was just an amazing capability that that team was able to, to bring to protect customers, you know, within days of it's being released.
+
+116
+00:13:09.020 --> 00:13:23.020
+And, and being part of that team while that was happening was a real highlight of my, of my career. you know, the, the fact that we saved so many customers from being attacked was, was super cool.
+
+117
+00:13:23.020 --> 00:13:35.740
+That probably goes to show how powerful it is to be able to offload some of that responsibility to a team like the one in AWS that is extremely experienced and they have people on call.
+
+118
+00:13:36.060 --> 00:13:42.980
+So I think it would be very, very unlikely for even a big company to be able to have a team dedicated to this kind of activities.
+
+119
+00:13:43.380 --> 00:13:46.100
+With that level of efficiency, I'd say.
+
+120
+00:13:46.100 --> 00:14:09.180
+And just the fact that it, it would be easy to, you know, even if it hadn't been so transparent, you know, if it would just been an SDK change to, to bump to a, you know, a new version of the runtime, it's just so much easier to do than having to, you know, patch, runtimes and servers and different OSs.
+
+121
+00:14:09.180 --> 00:14:16.040
+I mean, it was very similar when, spectre and heart lead, came out.
+
+122
+00:14:16.200 --> 00:14:35.860
+I was actually a customer of AWS when that happened and we were using, Lambda at the time, but all of the other teams on the floor were using EC2 and they were not only having to patch the machines, but there was also a very, very real risk at that time that the, the patches would, degrade performance on machines.
+
+123
+00:14:35.860 --> 00:14:42.100
+So not only were they having to patch, but they were also having to benchmark to see what capacity they needed to add.
+
+124
+00:14:42.320 --> 00:14:49.020
+Whereas the, the team that I was leading on Lambda, you know, very smugly, we didn't have to make any changes.
+
+125
+00:14:49.320 --> 00:14:53.940
+that patch was already applied to Amazon Linux before the announcements was made.
+
+126
+00:14:54.200 --> 00:15:04.280
+So again, you know, these are very, very attractive features to companies that use Java, which are the enterprise companies that have to be compliant.
+
+127
+00:15:04.280 --> 00:15:06.340
+Absolutely. I totally agree on that.
+
+128
+00:15:06.440 --> 00:15:21.740
+Maybe we can revert a little bit back to some of the points we touched before, because I think I really like the way you, you tend to approach like new, new projects and work with different teams, which is what you have been doing for most time in AWS.
+
+129
+00:15:21.740 --> 00:15:35.960
+So I will probably ask you a bit more about like, what, what is your, let's say strategy for lack of better words, like what kind of common problems and fears you have to, to work with.
+
+130
+00:15:35.960 --> 00:15:41.740
+And then how do you effectively end up with the entire team having a great experience and the project being successful?
+
+131
+00:15:41.740 --> 00:15:53.200
+I, I, I guess typically I get brought in, when teams are having a bad time and they'll probably have spoken to their AWS account team.
+
+132
+00:15:53.640 --> 00:15:56.720
+Maybe they have some experience, but don't have a lot of experience.
+
+133
+00:15:56.720 --> 00:16:04.720
+And, and basically that, that kind of request kind of funnels up to, to somebody in AWS who can handle those sorts of requests.
+
+134
+00:16:04.720 --> 00:16:11.100
+And I was kind of the top most, person in AWS handling a lot of Java Lambda questions.
+
+135
+00:16:11.100 --> 00:16:31.040
+So, you know, typically you'd join a call and people, you know, really enthused about serverless and, and really wanting to make a really good go of it, but just needing some help on how to think about, Java, ephemeral environments, how to use Lambda efficiently.
+
+136
+00:16:31.040 --> 00:16:41.440
+So, you know, very quickly, you can look at their code and say, all right, okay, you you've, you've kind of understood some of it, but maybe not all of it.
+
+137
+00:16:41.600 --> 00:16:46.020
+So, you know, this is an environment that needs to focus on starting up quickly.
+
+138
+00:16:46.020 --> 00:16:54.060
+So do you need, you know, all of these external network calls to, to load in these various things?
+
+139
+00:16:54.600 --> 00:17:00.500
+can you change your architecture slightly to, to be more, more, serverless friendly?
+
+140
+00:17:00.500 --> 00:17:14.500
+You know, can you get away with, you know, changing this library that doesn't really help you to this other library that it's a lot smaller, a lot leaner, and probably includes all of the features that you actually need?
+
+141
+00:17:15.100 --> 00:17:23.520
+you know, just, just giving slight advice into, into cold starts, because that's typically where everyone kind of panics.
+
+142
+00:17:23.520 --> 00:17:26.040
+The, the developers try something new.
+
+143
+00:17:26.180 --> 00:17:29.200
+they're not entirely familiar with the technology.
+
+144
+00:17:29.200 --> 00:17:39.440
+They have a bad experience because they're uploading code, pressing test on the console, getting a cold start, changing the code, uploading it, getting a cold start.
+
+145
+00:17:39.440 --> 00:17:42.200
+And they just think that, that Lambda is really slow.
+
+146
+00:17:42.200 --> 00:17:46.360
+so, you know, typically I talk to them about their use case.
+
+147
+00:17:46.360 --> 00:17:47.880
+What's your traffic profile?
+
+148
+00:17:48.220 --> 00:17:50.680
+What's your existing application latency?
+
+149
+00:17:51.400 --> 00:17:56.720
+And, you know, trying to understand what they're trying to achieve and then working backwards from that.
+
+150
+00:17:56.720 --> 00:18:08.720
+And often when companies just run a benchmark or some sort of, of load test, they'll see that actually the performance is completely different to what they've seen in their development cycles.
+
+151
+00:18:08.720 --> 00:18:12.400
+Because their development cycles are always the worst case scenario.
+
+152
+00:18:13.160 --> 00:18:26.720
+When they do some sort of, you know, nine to five, traffic pattern, then suddenly the P99 is like 50 milliseconds instead of, you know, two seconds, which is what they see during development.
+
+153
+00:18:26.720 --> 00:18:34.540
+And then everyone kind of calms down and, you know, then it just becomes an optimization conversation more than a, you know, a world ending.
+
+154
+00:18:35.020 --> 00:18:36.720
+How is this so slow conversation?
+
+155
+00:18:36.720 --> 00:18:48.200
+that actually reminds me of something that I've seen quite a lot myself, which is, new people approaching Lambda, not realizing the difference between the init phase and the handler phase.
+
+156
+00:18:48.200 --> 00:18:53.960
+And they just ignore the init phase entirely and they put all the initialization logic in the handler.
+
+157
+00:18:53.960 --> 00:19:03.740
+And then they don't realize that they are just accumulating all that extra time for every single request when it could be offloaded at the creation of the Lambda instance.
+
+158
+00:19:03.740 --> 00:19:18.840
+And this, I'm sure I've seen that a million times as well, but I think there are lots of like tactical tips like that, that when you have the experience, you can help teams be much more effective just by spotting those things and helping them to understand them and fix them.
+
+159
+00:19:19.560 --> 00:19:32.120
+And maybe that's a, you know, UX problem in Lambda, you know, you know, it's very clear that the handler is called on a customer request, but, you know, for different languages, it actually handles the init phase differently.
+
+160
+00:19:34.120 --> 00:19:55.800
+And, you know, when you think of technology, all the differences between technology, between something like an on-demand Lambda function and a provision concurrency Lambda function and the expectations and latency, but it's not particularly clear, from a, from a UX or a developer experience point of view, like how you should be programming, those differently for different, latency characteristics.
+
+161
+00:19:55.800 --> 00:20:07.200
+So it's easy for us to, to kind of understand these things after, you know, working with the technology for years and years, but I can definitely understand, you know, newcomers having a hard time with it.
+
+162
+00:20:07.260 --> 00:20:08.740
+So, so very sympathetic.
+
+163
+00:20:08.740 --> 00:20:25.280
+And just to get a little bit more practical, is there, I will say a specific list of tips that you can give people like, I don't know, I'm thinking stuff like which version of Java should they use and should they always use Snapstart and how to configure it correctly?
+
+164
+00:20:25.740 --> 00:20:35.580
+And maybe, I don't know, are there specific JVM flags that you always would enable or maybe, I don't know, consider when to enable and what, which values to use?
+
+165
+00:20:37.180 --> 00:20:40.500
+Mostly you're not really tuning the JVM anymore.
+
+166
+00:20:40.500 --> 00:20:44.960
+That was definitely something of, older versions.
+
+167
+00:20:44.960 --> 00:20:50.260
+but since, you know, the, the newer versions, that's not really a thing.
+
+168
+00:20:50.260 --> 00:21:01.740
+So specifically with, with Lambda runtimes pre Java 17, there was a JVM flag that, AWS recommended.
+
+169
+00:21:01.740 --> 00:21:14.460
+And there's a whole heap of blog articles about a feature flag called tiered compilation, but that was, added by default in, JVM versions after Java 17.
+
+170
+00:21:14.460 --> 00:21:22.660
+So Java 17, Java 21, and probably the future Java 25 will all have this, flag enabled by default.
+
+171
+00:21:22.660 --> 00:21:28.780
+so at the moment, you know, there's probably no JVM flags that I'd recommend at the moment.
+
+172
+00:21:28.780 --> 00:21:41.260
+I think it'd have to be a very specific use case where you would go into something in depth, but you know, normal microservice architectures, you know, there's, there's no real additional, JVM flags.
+
+173
+00:21:41.260 --> 00:21:50.300
+And that's a good thing because we've, we've worked or, you know, I worked with the Lambda team to make sure that these were enabled by default.
+
+174
+00:21:50.640 --> 00:22:00.820
+The sort of things that I like to tell people, straight away is, you know, there's a logging library called Log4J and this is a logging library.
+
+175
+00:22:00.820 --> 00:22:02.340
+That's been around forever.
+
+176
+00:22:02.760 --> 00:22:08.520
+Very, very fantastic piece of software, but now is one and a half megabytes in size.
+
+177
+00:22:08.520 --> 00:22:15.800
+and this, I think is just not, a tailored solution that you probably want to be using in Lambda.
+
+178
+00:22:16.140 --> 00:22:21.640
+So, you know, now I recommend another, another library called Penna.
+
+179
+00:22:22.140 --> 00:22:31.720
+So if you search for, you know, Java, logging library Penna, you'll find this fantastic open source library, which is 50 kilobytes.
+
+180
+00:22:31.720 --> 00:22:43.460
+It does structured, structured, JSON logging has zero external dependencies, super fast, very low garbage, collection overhead.
+
+181
+00:22:43.560 --> 00:22:52.540
+And, you know, these are the sort of things that we need to be, you know, looking out for in this community and helping people to understand that, you know,
+
+182
+00:22:52.540 --> 00:22:58.860
+you've used to have no real consideration about startup time with application servers.
+
+183
+00:22:59.020 --> 00:23:07.900
+It didn't really matter whether your application started up fast or slow because your application servers stayed up for a week, but now we do need to.
+
+184
+00:23:07.900 --> 00:23:16.680
+So what are, the best of breed application dependencies to, to help you do these things that you need to do, quickly and effectively.
+
+185
+00:23:16.680 --> 00:23:26.260
+So Penna is a drop-in replacement for, for the most common, logging abstraction in Java, which is called, SLF4J.
+
+186
+00:23:26.580 --> 00:23:28.120
+And it's a drop-in replacement.
+
+187
+00:23:28.360 --> 00:23:32.520
+So again, you know, it's not even like you have to refactor your code.
+
+188
+00:23:32.680 --> 00:23:40.060
+You can drop in the dependency and your application code will, will continue to log or log in a structured logging way.
+
+189
+00:23:40.060 --> 00:23:45.620
+And you just carry on with your life, but you've gone from a one and a half megabyte dependency to 50 kilobytes.
+
+190
+00:23:45.620 --> 00:23:54.940
+And, you know, those are the sort of considerations that you need to be looking at through your application code to say, am I really focusing on ephemeral environments?
+
+191
+00:23:55.680 --> 00:23:58.880
+You know, is there, is there a better way of doing this?
+
+192
+00:23:59.660 --> 00:24:09.780
+And that is a balancing act because, you know, maybe you don't even need the super, super efficient, cold starts because you have an application profile.
+
+193
+00:24:09.780 --> 00:24:12.780
+It doesn't really cause you to have a lot of cold starts.
+
+194
+00:24:12.780 --> 00:24:21.760
+So it's all weighing up, you know, how much time you want to invest in, you know, technical people always like geeking out on optimization.
+
+195
+00:24:21.760 --> 00:24:26.160
+So it's hard to put the tools down and, and, you know, get on with features.
+
+196
+00:24:26.500 --> 00:24:27.900
+That's, that's absolutely fair.
+
+197
+00:24:28.340 --> 00:24:31.840
+I'm definitely, one of my mistakes.
+
+198
+00:24:31.840 --> 00:24:38.380
+I recognize it's always focusing a bit too much on performance, which sometimes makes sense, but not always.
+
+199
+00:24:38.380 --> 00:24:43.320
+Most of the time, as you said, it's more important to ship features and deliver value to the business.
+
+200
+00:24:43.320 --> 00:24:48.480
+And then whenever performance becomes a bottleneck, you can work on it and improve it.
+
+201
+00:24:48.700 --> 00:24:49.220
+So definitely.
+
+202
+00:24:49.980 --> 00:24:51.460
+That I agree with that point.
+
+203
+00:24:51.980 --> 00:24:56.280
+What about, we mentioned it already, snap start a few times.
+
+204
+00:24:56.280 --> 00:25:09.980
+We mentioned provision concurrency are those things that you would always use by default, or is there like a point where it makes sense to invest into those, those features, enabling them correctly and learn how to use them correctly?
+
+205
+00:25:10.540 --> 00:25:17.900
+I mean, I, I remember distinctly, I, you know, a conversation with a pretty major bank.
+
+206
+00:25:17.900 --> 00:25:24.900
+There was probably 10 people on the call and we were discussing provision concurrency and the cost of provision concurrency.
+
+207
+00:25:25.580 --> 00:25:28.300
+I think they had a concurrency of two at the time.
+
+208
+00:25:29.040 --> 00:25:36.400
+And I was, I was just, man, the, the, the time we've spent discussing this problem and the salaries of everyone in the room.
+
+209
+00:25:36.560 --> 00:25:41.240
+I mean, why are we, why are we even, you know, talking about 20, $30 a month?
+
+210
+00:25:41.240 --> 00:25:51.200
+So provision concurrency is, is definitely a way of, you know, mitigating a lot of the optimizations, but there is a cost involved.
+
+211
+00:25:51.460 --> 00:25:58.300
+I guess what people sometimes forget though, is that provision concurrency can actually be cheaper than on demand.
+
+212
+00:25:58.300 --> 00:26:10.860
+So if you are, if you do have a Lambda function that has significant traffic, then you probably should be using provision concurrency because every invoke with provision concurrency is cheaper.
+
+213
+00:26:10.860 --> 00:26:11.820
+than on demand.
+
+214
+00:26:12.100 --> 00:26:25.260
+So if you can use provision concurrency at the base utilization, you will actually save money, but it does get a bit of a bad rap as a way of kind of optimizing, in exchange for cash.
+
+215
+00:26:25.720 --> 00:26:28.620
+So I'm not against using provision concurrency.
+
+216
+00:26:28.980 --> 00:26:39.620
+but again, it's understanding, how it works and a lot of the optimizations that you would do to, help provision concurrency be even better.
+
+217
+00:26:39.620 --> 00:26:42.460
+help you when you use Snapstart.
+
+218
+00:26:42.640 --> 00:26:50.360
+And I guess at the time of recording Snapstart for Java is I think still free, whereas I don't think it is free for the other languages.
+
+219
+00:26:51.260 --> 00:26:53.980
+so, you know, would I use Snapstart?
+
+220
+00:26:54.200 --> 00:26:55.160
+absolutely.
+
+221
+00:26:55.860 --> 00:27:06.120
+it's gonna, even just turning it on without doing any further optimizations, it is going to save you, latency, using Java.
+
+222
+00:27:06.120 --> 00:27:09.100
+And so I would definitely use it.
+
+223
+00:27:09.280 --> 00:27:16.960
+It does increase the deployment time because now you are using, you have to use, Lambda versions.
+
+224
+00:27:17.180 --> 00:27:25.380
+And each time you deploy a new version, you have to go through a life cycle where a Lambda function is snapshotted.
+
+225
+00:27:25.380 --> 00:27:32.840
+So when you deploy that new version, that code is put onto a separate, fleet of execution environments.
+
+226
+00:27:33.160 --> 00:27:34.720
+It's initialized.
+
+227
+00:27:34.880 --> 00:27:36.780
+You do any work that you need to do.
+
+228
+00:27:37.180 --> 00:27:38.500
+A snapshot is taken.
+
+229
+00:27:38.760 --> 00:27:39.600
+It's encrypted.
+
+230
+00:27:39.980 --> 00:27:41.420
+It's put into storage.
+
+231
+00:27:41.640 --> 00:27:43.820
+That, that whole process takes time.
+
+232
+00:27:44.080 --> 00:27:47.000
+So your deployments do take longer.
+
+233
+00:27:47.000 --> 00:28:10.140
+So you might not necessarily have Snapstart enabled full of your development environments where you're wanting to do, high change cycle, but you would probably have it on all of your, pre-production environments where you want to have, you know, the, the best performance and performance that's going to be applicable or similar to production.
+
+234
+00:28:10.800 --> 00:28:12.160
+That makes a lot of sense.
+
+235
+00:28:12.160 --> 00:28:19.360
+let's stay a little bit longer on this kind of topic, that covers all things optimization.
+
+236
+00:28:19.360 --> 00:28:22.860
+I will say like call starts and performance, maybe cost as well.
+
+237
+00:28:22.860 --> 00:28:28.520
+do you prefer a specific like combination of runtime and by runtime?
+
+238
+00:28:28.740 --> 00:28:38.960
+I mean that the standard supported Java runtimes versus maybe something like, I don't know, a custom image using GraalVM or something like that.
+
+239
+00:28:38.960 --> 00:28:56.480
+And at the same time, you already mentioned some libraries like the login library, but in terms of framework, like you mentioned Spring is like almost ubiquitous in Java, but I know that there has been a lot of advancement with like newer frameworks that tend to be, I guess, more optimized for serverless and microservices.
+
+240
+00:28:56.480 --> 00:29:04.500
+So I'd say, I'm going to phrase the question as like, what's your favorite setup when it comes to Java, if you could pick with like total freedom.
+
+241
+00:29:05.500 --> 00:29:15.020
+So for me, whether I'm building something for myself or whether I'm advising other people, I always start by saying, do you need a framework?
+
+242
+00:29:15.020 --> 00:29:18.700
+Cause if you don't need a framework, then you shouldn't use a framework.
+
+243
+00:29:18.700 --> 00:29:43.920
+So especially for, for event driven architectures, it's probably unlikely that you need a framework unless you have an application that really benefits from dependency injection or, you know, you have a existing set of libraries where, you are used to using dependency injection and you want to maintain similarity across the, the estate, which I can understand.
+
+244
+00:29:43.920 --> 00:29:48.640
+People get annoyed when, you know, certain teams do things in a special different way.
+
+245
+00:29:48.840 --> 00:29:54.680
+I think people should have the flexibility to use the best approaches, but I can understand it from, from both sides.
+
+246
+00:29:54.860 --> 00:30:07.120
+So if you're doing event driven architectures where, you know, you're receiving an S3 object or whether you're processing a messaging, a message from a queue, I think you should definitely be challenging yourself to not use a framework.
+
+247
+00:30:07.120 --> 00:30:12.740
+If you're, if you're used to using Spring, start with no framework and see how far you get.
+
+248
+00:30:12.740 --> 00:30:17.940
+And then if you have to take on an application framework, then, then that's fine.
+
+249
+00:30:17.940 --> 00:30:19.660
+Spring is fantastic.
+
+250
+00:30:20.100 --> 00:30:25.960
+Quarkus and Micronaut are probably the two, next most popular frameworks.
+
+251
+00:30:26.120 --> 00:30:32.860
+And the big thing about those two frameworks is they were both kind of born at the same time in reaction to Spring.
+
+252
+00:30:32.860 --> 00:30:48.860
+And they've both been developed in a way that reduces the amount of, reflection, reflection that is used in the, in the, application framework, which is one of the features of, of Java that tends to lead to more latency.
+
+253
+00:30:48.860 --> 00:30:55.440
+At the same time, Oracle was developing, Graal VM native image.
+
+254
+00:30:55.440 --> 00:31:01.360
+And the, the two things basically accidentally became very well aligned.
+
+255
+00:31:01.360 --> 00:31:06.260
+The, Graal VM native image doesn't really like you using reflection.
+
+256
+00:31:06.260 --> 00:31:08.580
+And these frameworks didn't use reflection.
+
+257
+00:31:08.580 --> 00:31:14.720
+So it was very easy to have an application built with Quarkus or Micronaut.
+
+258
+00:31:14.720 --> 00:31:19.600
+It was very easy to become an ahead of time compiled, binary.
+
+259
+00:31:19.860 --> 00:31:35.900
+Whereas, if you were using other frameworks, previously you would have to hint to the compiler that, you know, this is a resource that's dynamically loaded, which became, you know, an awkward, awkward process.
+
+260
+00:31:35.900 --> 00:31:46.000
+But, but, but since, Spring has done a lot of work to, you know, really, make sure that ahead of time compilation is supported well in Spring.
+
+261
+00:31:46.000 --> 00:31:51.980
+So with Spring Boot 3 and Spring Framework 7, it's really well, supported as well.
+
+262
+00:31:52.140 --> 00:32:01.140
+So, so, you know, really you're looking at the features of these application frameworks as a whole and, and picking which suits, best for you and your project.
+
+263
+00:32:01.140 --> 00:32:05.100
+all of them are very capable and all of them have a lot of support.
+
+264
+00:32:05.100 --> 00:32:09.100
+So Spring is now owned by Broadcom after the acquisition.
+
+265
+00:32:09.540 --> 00:32:13.440
+you know, there's a large open source team working on Spring.
+
+266
+00:32:13.740 --> 00:32:19.800
+Oracle have been adding more developers to, Micronaut and building out the team at Micronaut.
+
+267
+00:32:20.000 --> 00:32:25.080
+And then Red Hat, have been investing heavily in Quarkus for a number of years.
+
+268
+00:32:25.260 --> 00:32:32.380
+So you've got three really good options that are well invested and will, will definitely, stand the test of time.
+
+269
+00:32:32.640 --> 00:32:33.660
+That's pretty cool.
+
+270
+00:32:34.100 --> 00:32:41.080
+And I think I've only used Spring Boot myself, so I cannot speak for the other frameworks, but I only heard very good things.
+
+271
+00:32:41.660 --> 00:32:42.500
+So I'm curious.
+
+272
+00:32:42.860 --> 00:32:46.360
+Maybe eventually I will try them and see how they play with Lambda.
+
+273
+00:32:47.120 --> 00:32:54.800
+So Micronaut has been developed, from a lot of people who spent a lot, a lot of time, building Spring.
+
+274
+00:32:54.800 --> 00:33:05.020
+So they, they looked at Spring, taken ideas and inspirations from it and built kind of their, version of, of an improved application framework.
+
+275
+00:33:05.020 --> 00:33:12.540
+And then the Quarkus team have built something, from scratch, but it's also very standard standards based.
+
+276
+00:33:12.760 --> 00:33:20.500
+Whereas Spring and Micronaut don't really follow the same sort of Java enterprise standards.
+
+277
+00:33:21.000 --> 00:33:24.040
+Quarkus is, is a standard based application.
+
+278
+00:33:24.040 --> 00:33:33.080
+So you can imagine, migrating to Quarkus from, from previous, older, application frameworks easier.
+
+279
+00:33:33.200 --> 00:33:44.200
+So those are kind of some considerations that you can make if you're, if you're potentially moving or migrating applications or wanting to move to more serverless orientated framework.
+
+280
+00:33:44.200 --> 00:33:44.840
+Great.
+
+281
+00:33:45.420 --> 00:33:50.860
+Let's, probably related topic, but sounds like a little bit of a change of subject.
+
+282
+00:33:51.040 --> 00:33:55.580
+So what about testing and maybe developer experience in general?
+
+283
+00:33:55.780 --> 00:34:00.220
+Like how do you generally go about testing your Lambda functions in Java?
+
+284
+00:34:00.740 --> 00:34:03.280
+so I do a lot of testing locally.
+
+285
+00:34:03.760 --> 00:34:06.580
+So I know there's probably kind of like two camps.
+
+286
+00:34:07.260 --> 00:34:12.860
+you know, there's definitely people who love testing in the cloud and I, I love testing in the cloud.
+
+287
+00:34:12.860 --> 00:34:20.880
+But I try and, focus that on my, for my end to end tests where I'm doing integration and unit tests.
+
+288
+00:34:20.880 --> 00:34:23.620
+I, I favor, doing that locally.
+
+289
+00:34:23.780 --> 00:34:27.180
+So I'm a big, fan of local stack.
+
+290
+00:34:27.340 --> 00:34:33.720
+And, I think it's, supports multiple languages now, but, a framework called test containers.
+
+291
+00:34:33.920 --> 00:34:41.960
+And in Java, it's very easy to, you know, spin up a Postgres database from a Docker container.
+
+292
+00:34:41.960 --> 00:34:45.880
+As part of a unit test and integrate my code against that.
+
+293
+00:34:45.960 --> 00:34:52.180
+And in the same way I can boot up, an S3 bucket or well, actually an S3 service.
+
+294
+00:34:52.380 --> 00:34:56.320
+And then I can create a bucket and, you know, add any items that I need to add to it.
+
+295
+00:34:56.420 --> 00:34:59.600
+And I can do that with, you know, other AWS services.
+
+296
+00:34:59.600 --> 00:35:09.540
+So if I want to queue and a Lambda function, it's very easy for me to, to kind of write a integration test that I can integrate, locally.
+
+297
+00:35:09.740 --> 00:35:15.240
+Now, obviously there's going to be stuff that I can't cover, in those tests.
+
+298
+00:35:15.240 --> 00:35:20.140
+And that's where I moved to the cloud for integration, for end-to-end tests.
+
+299
+00:35:20.420 --> 00:35:24.720
+So things like capacity, security, permissions.
+
+300
+00:35:25.340 --> 00:35:35.140
+Those are the sort of things that I'm, I'm looking at an end-to-end point of view, but the rest of the application and the awkward integration stuff I'm kind of doing locally.
+
+301
+00:35:35.140 --> 00:35:37.500
+So I have the, the best tools.
+
+302
+00:35:37.700 --> 00:35:39.900
+I have my, have my idea of choice.
+
+303
+00:35:40.080 --> 00:35:41.800
+I have my debugger.
+
+304
+00:35:42.260 --> 00:35:47.380
+I can, I can do stuff that I'm used to doing and have a lot of experience in the tools with.
+
+305
+00:35:47.500 --> 00:35:48.820
+So that's, that's my approach.
+
+306
+00:35:48.960 --> 00:35:49.860
+That's what works for me.
+
+307
+00:35:50.160 --> 00:35:58.840
+actually, I think I do the same, although mostly with different languages, but I generally try to push the local testing as far as I can.
+
+308
+00:35:59.120 --> 00:36:01.060
+Just because maybe it's just out of habit.
+
+309
+00:36:01.060 --> 00:36:03.860
+That's what I've been doing for the most part of my career.
+
+310
+00:36:04.020 --> 00:36:09.140
+And it's nice to have that fast reload and debugging experience.
+
+311
+00:36:09.440 --> 00:36:18.320
+But yeah, I think at some point you, you have to, to start testing also in the cloud and you end up with kind of a mix of the two approaches for different kinds of tests.
+
+312
+00:36:18.440 --> 00:36:21.800
+So I think that's, I will define it as a pretty standard approach.
+
+313
+00:36:22.560 --> 00:36:30.200
+But yeah, it's sometimes a controversial topic where people will say, well, with the cloud, you only have to test in the cloud because that's the true real environment, right?
+
+314
+00:36:30.200 --> 00:36:44.880
+I think maybe we can agree that I think mocking is on a decline because with distributed systems, it's hard to understand what behavior the system should emit.
+
+315
+00:36:44.880 --> 00:36:49.100
+So I think I'm using mocks less and less.
+
+316
+00:36:49.400 --> 00:37:02.200
+And, you know, I probably can't remember the last time I used mocks in a test because I'm much more likely to favor integration tests with test containers and local stuff.
+
+317
+00:37:02.200 --> 00:37:14.760
+And I feel like that's just way more productive and way more useful from a testing perspective and having to work out what the behavior actually is and then mock that behavior.
+
+318
+00:37:15.120 --> 00:37:20.740
+So that would be my hot take, mocking decline integration testing on the up.
+
+319
+00:37:20.740 --> 00:37:28.680
+which is, I think, something that I'm hearing from many people also with the inverse pyramid of testing model, which goes more or less in the same line.
+
+320
+00:37:29.300 --> 00:37:47.500
+And I find myself as well, maybe for simple cases, simple enough cases that I still see lots of value in mocking, just to be sure that maybe when you have, I don't know, complex behavior in reaction to an external, whatever, event provider database, to make it easy for me to unit test that complex behavior.
+
+321
+00:37:47.500 --> 00:37:53.980
+But then if I have to mock a lot, because I don't know, the event is very complex and it can have so many different states.
+
+322
+00:37:54.700 --> 00:37:57.460
+Then, yeah, I think there is a point where it's not worth it anymore.
+
+323
+00:37:57.460 --> 00:38:03.640
+And you end up spending so much time if you want to be comprehensive and also end up with code that is very brittle.
+
+324
+00:38:03.840 --> 00:38:07.320
+Every time something changes, you better have to rewrite most of your tests.
+
+325
+00:38:07.560 --> 00:38:15.140
+So it's not like I think, yeah, there is a line where it still makes sense, but then you cross that line and it doesn't make too much sense anymore.
+
+326
+00:38:15.140 --> 00:38:23.100
+I really like having, you know, the core journeys as end-to-end tests that run synthetically.
+
+327
+00:38:23.920 --> 00:38:36.880
+So, you know, when I'm designing systems, I'm trying to design systems in a way where I can, you know, segment data and make sure that I can send synthetic test data through the system.
+
+328
+00:38:36.880 --> 00:38:48.580
+So if I cast my mind back to when I worked in the betting industry, we would have a synthetic football match being played via a test handler.
+
+329
+00:38:48.880 --> 00:38:54.920
+So that meant that there was always events going through the system, whether or not there was any real football being played.
+
+330
+00:38:54.920 --> 00:39:01.320
+And that just meant that we were able to see if any component that we'd released had caused a breakage.
+
+331
+00:39:01.760 --> 00:39:07.780
+Because that's the other problem with kind of time-based systems or event-based systems.
+
+332
+00:39:07.940 --> 00:39:13.320
+If there's no events triggering the application, it's hard to know if they are currently in a working state.
+
+333
+00:39:13.320 --> 00:39:23.280
+So synthetic data going through the system that can be segmented in some way from production so that it's not, you know, displayed on the website.
+
+334
+00:39:23.660 --> 00:39:25.780
+I think it's a really, really good trick as well.
+
+335
+00:39:26.040 --> 00:39:35.620
+but probably that requires a significant investment as well because you are effectively building like a simulation of, in that case, like a football match, which might not be very trivial to build.
+
+336
+00:39:35.620 --> 00:39:41.300
+but I think these are the sort of things that you end up thinking is a heavy investment.
+
+337
+00:39:42.120 --> 00:39:57.360
+Well, maybe it is, but when you are able to, I mean, any non-trivial application, so any enterprise application that's going to have any sort of longevity, these are always going to be cost savings that just come back again and again.
+
+338
+00:39:57.860 --> 00:40:02.400
+And being able to have a, you know, a constant benchmark is a really valuable thing.
+
+339
+00:40:02.400 --> 00:40:14.500
+So I would recommend investing in test tools and something that I always did as a tech leader, being able to, you know, not rely on an external dependency for testing.
+
+340
+00:40:14.500 --> 00:40:26.980
+So if I'm integrating with a, I don't know, a data provider, I would often make a substitute of that data provider so that I could change the behavior.
+
+341
+00:40:26.980 --> 00:40:39.780
+You know, what happens to my application when that provider increases in latency or has a timeout period or some other behavior if it changes the format of that data.
+
+342
+00:40:40.280 --> 00:40:46.380
+So being able to have, you know, really strong testing tools allows you to really test your application.
+
+343
+00:40:46.620 --> 00:40:53.740
+Whereas if you just take the happy path of their integration, often you don't see these side quests that go wrong.
+
+344
+00:40:54.260 --> 00:40:56.500
+Awesome. I totally agree with that.
+
+345
+00:40:56.500 --> 00:40:58.560
+Now I think we are getting close to the end.
+
+346
+00:40:58.760 --> 00:41:11.420
+I have only one final question, which is where people can find useful resources and maybe you can share something that is more appealing for beginners, something that can be more interesting for experienced people.
+
+347
+00:41:11.680 --> 00:41:18.940
+And I know you have been investing your own time in building material, books and simulations and lots of other interesting stuff.
+
+348
+00:41:19.000 --> 00:41:23.100
+So feel free to mention all of those things, which I think are super cool and extremely useful.
+
+349
+00:41:23.100 --> 00:41:25.100
+so there is a lot of material.
+
+350
+00:41:25.100 --> 00:41:28.260
+A lot of it is maybe not well connected.
+
+351
+00:41:29.120 --> 00:41:33.120
+So I think more of it will be more and more connected on the Lambda documentation.
+
+352
+00:41:33.360 --> 00:41:34.400
+So that's a good place to start.
+
+353
+00:41:35.020 --> 00:41:44.660
+Serverless Lambda has a whole Java section with material on how to migrate and how to effectively use Java on Lambda.
+
+354
+00:41:44.660 --> 00:41:49.240
+So if you search for that phrase on Google, you'll probably find quite a lot of material.
+
+355
+00:41:49.460 --> 00:41:51.820
+So effectively using Java on Lambda.
+
+356
+00:41:52.180 --> 00:42:02.260
+And yeah, you know, something that I've been thinking about a lot is, you know, I've probably had more conversations about Java and Lambda than pretty much anybody in AWS.
+
+357
+00:42:02.260 --> 00:42:09.520
+And that might be a bold statement, but I think the majority of people who I've worked with would probably agree with me on that.
+
+358
+00:42:10.220 --> 00:42:18.980
+And I started to write down all of my kind of common notes that I would discuss with customers.
+
+359
+00:42:19.280 --> 00:42:20.900
+And I started writing those down.
+
+360
+00:42:20.980 --> 00:42:23.240
+I'd try and do, you know, 500 words a day.
+
+361
+00:42:23.240 --> 00:42:27.540
+And now I think I'm at about 10,000 or 12,000 words.
+
+362
+00:42:28.060 --> 00:42:29.880
+And I've published a e-book.
+
+363
+00:42:30.680 --> 00:42:38.580
+So if you go to my website, sales.co.uk, hopefully link in the description, you'll find a book that you can purchase.
+
+364
+00:42:39.160 --> 00:42:40.280
+It's incomplete.
+
+365
+00:42:40.760 --> 00:42:48.320
+So the price isn't too high, but it has a lot of good material around these sort of topics.
+
+366
+00:42:48.820 --> 00:42:52.260
+So, you know, how do I start thinking about optimizations?
+
+367
+00:42:52.260 --> 00:42:55.780
+How do I get to the lowest possible cold start values?
+
+368
+00:42:56.340 --> 00:43:01.060
+You know, what sort of considerations do I need to think about using observability and Lambda?
+
+369
+00:43:01.680 --> 00:43:02.560
+Those sorts of things.
+
+370
+00:43:02.680 --> 00:43:07.880
+So all of my kind of top tips in a very condensed short e-book.
+
+371
+00:43:08.040 --> 00:43:10.940
+So easy to read and easy to get value from.
+
+372
+00:43:11.240 --> 00:43:16.220
+I'm sure that if somebody buys the book now, they will get also future releases as well, right?
+
+373
+00:43:16.280 --> 00:43:16.500
+Yes.
+
+374
+00:43:16.520 --> 00:43:17.680
+Is that the model you have in mind?
+
+375
+00:43:18.000 --> 00:43:18.640
+absolutely.
+
+376
+00:43:19.400 --> 00:43:19.760
+Awesome.
+
+377
+00:43:19.760 --> 00:43:22.960
+Then we'll put all the links in the show notes.
+
+378
+00:43:23.380 --> 00:43:29.900
+So not just the book, but all the other tools and links to libraries and frameworks that we mentioned today.
+
+379
+00:43:29.900 --> 00:43:44.400
+I also know that you have a few simulations about Lambda, Snapstart priming, and in general, like the lifecycle cold starts and reusage and reclaiming of Lambda environments.
+
+380
+00:43:44.400 --> 00:43:53.800
+I think those two are also two other great resources for people that are starting with serverless and Lambda to really understand what is the model that the platform is giving you.
+
+381
+00:43:53.960 --> 00:44:02.440
+Like visually seeing it, I think it's much more powerful than reading a piece of documentation, trying to imagine in your mind, like all the different phases, I think.
+
+382
+00:44:02.440 --> 00:44:06.160
+And that's why I spent time creating those things.
+
+383
+00:44:06.340 --> 00:44:20.380
+I think once you understand the execution model of a Lambda function, I think a lot of things click and then you start to understand what is a suitable use case, what is not a suitable use case.
+
+384
+00:44:20.380 --> 00:44:26.540
+Maybe where past decisions on applications don't help future performance.
+
+385
+00:44:27.000 --> 00:44:33.960
+So I think that's the real key thing to kind of understand as a new developer learning serverless or learning Lambda, should I say.
+
+386
+00:44:34.620 --> 00:44:35.140
+Absolutely.
+
+387
+00:44:35.540 --> 00:44:40.320
+And to be fair, I think most serverless environments have similar characteristics.
+
+388
+00:44:40.320 --> 00:44:49.380
+So even if you want to go to something else later on, it's definitely useful to know the ins and outs of Lambda and then transpose them to another provider.
+
+389
+00:44:49.480 --> 00:44:49.760
+Absolutely.
+
+390
+00:44:50.120 --> 00:45:07.920
+I mean, you know, a lot of the optimizations that you would do for Lambda, even if you did go to a container environment for whatever reason in the future, you're going to benefit from so much improvement, which means that your horizontal scaling will be faster.
+
+391
+00:45:07.920 --> 00:45:12.880
+And you know, just your costs will be more aligned to the traffic that your application receives.
+
+392
+00:45:13.200 --> 00:45:14.500
+So it's always a win-win.
+
+393
+00:45:14.920 --> 00:45:15.520
+All right.
+
+394
+00:45:15.640 --> 00:45:21.520
+So before we wrap up, I have to give a big shout out to our usual sponsor, fourTheorem.
+
+395
+00:45:21.840 --> 00:45:25.020
+And what I want to say is that I work for fourTheorem.
+
+396
+00:45:25.180 --> 00:45:26.320
+So of course, I'm biased.
+
+397
+00:45:26.760 --> 00:45:29.060
+And at fourTheorem, we work with the cloud.
+
+398
+00:45:29.220 --> 00:45:32.300
+We believe the cloud should be simple, scalable, cost effective.
+
+399
+00:45:32.660 --> 00:45:35.400
+And we help teams to succeed with the cloud.
+
+400
+00:45:35.400 --> 00:45:45.320
+So whether you are using containers or trying to build an event-driven architecture, or even just using SaaS and trying to scale it globally, keep us in mind.
+
+401
+00:45:45.420 --> 00:45:46.420
+We'd love to work with you.
+
+402
+00:45:46.660 --> 00:45:51.880
+Check out fourTheorem.com where you can find everything about fourTheorem, some of our case studies.
+
+403
+00:45:52.340 --> 00:45:54.700
+And of course, feel free to reach out and talk to us.
+
+404
+00:45:54.980 --> 00:45:57.320
+So that brings us to the end of this episode.
+
+405
+00:45:57.600 --> 00:45:59.600
+Mark, it's been a real pleasure to have you.
+
+406
+00:45:59.740 --> 00:46:01.160
+I think I learned a lot.
+
+407
+00:46:01.280 --> 00:46:04.060
+So thank you very much from myself in the first place.
+
+408
+00:46:04.060 --> 00:46:07.700
+Hopefully, everyone else here listening has been learning a lot.
+
+409
+00:46:08.080 --> 00:46:10.420
+Feel free to drop your comments, your experience.
+
+410
+00:46:10.560 --> 00:46:18.380
+We always love to hear from our listeners and learn from them and share everything we learn and build a better cloud together.
+
+411
+00:46:19.040 --> 00:46:20.160
+So thank you very much.
+
+412
+00:46:20.220 --> 00:46:22.380
+And we'll see you in the next episode.
+
+413
+00:46:22.740 --> 00:46:23.120
+Thank you.

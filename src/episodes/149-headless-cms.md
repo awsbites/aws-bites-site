@@ -12,3 +12,17 @@ We dive deep into Strapi, an open-source headless CMS that's changing how we app
 > friendly partner to support you and work with you to de-risk any AWS migration
 > or development project, check them out at
 > [fourtheorem.com](https://fourtheorem.com).
+
+In this episode, we mentioned the following resources:
+
+- [Strapi CMS](https://strapi.io/)
+- [Strapi on GitHub](https://github.com/strapi/strapi)
+- [Strapi Docs](https://docs.strapi.io/)
+- [Strapi S3 Provider](https://www.npmjs.com/package/@strapi/provider-upload-aws-s3)
+- [Strapi installation and pre-requisites](https://docs.strapi.io/cms/installation/cli)
+- [The React Block Content renderer](https://github.com/strapi/blocks-react-renderer)
+- [Contentful](https://www.contentful.com/)
+- [Storyblok](https://www.storyblok.com/)
+- [Sanity](https://www.sanity.io/)
+- [HyGraph](https://hygraph.com/)
+- [Byline CMS](https://bylinecms.app/)

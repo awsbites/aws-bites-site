@@ -1,0 +1,1141 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:06.240
+It's Friday at 4.58pm. Marketing pings. Can we ship a new landing page for Monday with a hero,
+
+2
+00:00:06.420 --> 00:00:11.580
+a gallery, and a testimonial slider? The site is hardcoded. Every change request lands on your
+
+3
+00:00:11.580 --> 00:00:17.060
+plate. If you're lucky, there is a Figma file, but more often than not, it's a grab bag of
+
+4
+00:00:17.060 --> 00:00:22.100
+screenshots and Word documents. So you roll up your sleeves, open your editor, and unstitch that new
+
+5
+00:00:22.100 --> 00:00:28.320
+landing page into pure HTML. And there goes your weekend. Yes, we have done that enough times to
+
+6
+00:00:28.320 --> 00:00:33.980
+know it's not fun, and we know you can relate. Now, what is the alternative? Maybe we can ship a
+
+7
+00:00:33.980 --> 00:00:38.900
+WordPress site and let marketing manage everything themselves. They can pick templates, configure
+
+8
+00:00:38.900 --> 00:00:44.100
+plugins, and publish all the content. We have also done that enough times to know how quickly
+
+9
+00:00:44.100 --> 00:00:50.000
+hosting and securing this kind of setup becomes a nightmare. Plus, we prefer static sites over
+
+10
+00:00:50.000 --> 00:00:56.900
+dynamic ones, so that approach rarely excites us. There has to be a better way, right? What if there
+
+11
+00:00:56.900 --> 00:01:03.320
+were a way to keep content separate from how you fetch and render it? Marketed leaves in the CMS,
+
+12
+00:01:03.680 --> 00:01:08.260
+shaping pages and publishing changes without tapping on your shoulder. Then you pick the tools
+
+13
+00:01:08.260 --> 00:01:14.320
+you love, like Astro, Next.js, SvelteKit, or even a custom Lambda power backend, and you render everything
+
+14
+00:01:14.320 --> 00:01:21.000
+exactly the way your design system expects. You can also choose how update flows. For instance, you can run
+
+15
+00:01:21.000 --> 00:01:27.680
+a dynamic backend that always pulls the later content at request time, or you can keep the website totally
+
+16
+00:01:27.680 --> 00:01:33.760
+static and wired up using something like a web book. When marketing eats publish, that triggers a CI build.
+
+17
+00:01:33.760 --> 00:01:40.620
+Everything is rebuilt and published almost on the fly. On one of our recent projects, we did exactly that,
+
+18
+00:01:40.620 --> 00:01:46.260
+using a tool called Strapi, which is an open source headless CMS written in Node.js. And today, we'll cover what
+
+19
+00:01:46.260 --> 00:01:53.020
+Strapi is, what works for us, things like components, dynamic tone, the blocks editor. We also discuss the rough edges
+
+20
+00:01:53.020 --> 00:01:59.280
+with how to run it well on AWS, and also some tips and tricks that we learned to have some kind of local
+
+21
+00:01:59.280 --> 00:02:05.000
+workflow, and then publish the content remotely when needed. We will also mention Strapi Cloud, but full
+
+22
+00:02:05.000 --> 00:02:11.320
+disclaimer, this episode is not sponsored by Strapi, so this is just our own unfiltered opinion. My name is Luciano,
+
+23
+00:02:11.320 --> 00:02:18.080
+and I'm here with Eoin for another episode of AWS Bites.
+
+24
+00:02:18.080 --> 00:02:26.800
+This episode is brought to you by fourTheorem. We'll mention a little bit more about fourTheorem on the end, so stay tuned.
+
+25
+00:02:26.800 --> 00:02:33.080
+Okay, I admit I overdramatized the intro. I hope you enjoyed it. That's probably just one of the many
+
+26
+00:02:33.080 --> 00:02:38.160
+many use cases that something like Strapi can help you with. So, Eoin, what do you think are other very
+
+27
+00:02:38.160 --> 00:02:41.640
+relevant use cases for this kind of product, and what is the landscape right now?
+
+28
+00:02:48.600 --> 00:02:54.840
+I think I'd put it in the general space of building CRUD applications, and if you're in the software game for a few years, you might find yourself building applications that do CRUD against the database,
+
+29
+00:02:54.840 --> 00:03:00.200
+and a lot of the time you feel like every application you build, you're building some sort of a CMS with some
+
+30
+00:03:00.200 --> 00:03:06.400
+extra features, and you don't often foresee that you need the complexity of a CMS or the flexibility
+
+31
+00:03:06.400 --> 00:03:11.180
+of a CMS, but there's always this trade-off between, you know, can I use something general
+
+32
+00:03:11.180 --> 00:03:14.760
+purpose, or do I really need to build something that's really fine-tuned to our needs, but that
+
+33
+00:03:14.760 --> 00:03:20.820
+we have to spend a lot of time building and maintaining? So, whether you're in, you know, a SaaS company
+
+34
+00:03:20.820 --> 00:03:25.500
+building a SaaS application, which always needs plenty of CRUD, you know, you've got relational
+
+35
+00:03:25.500 --> 00:03:30.060
+model or some sort of NoSQL storage, an API in front of it, and a front-end in front of that,
+
+36
+00:03:30.060 --> 00:03:35.060
+but equally, it could be like a line of business application in an enterprise when, you know,
+
+37
+00:03:35.060 --> 00:03:40.300
+you've got some business user who needs to be able to enter data, retrieve data, and update data
+
+38
+00:03:40.300 --> 00:03:46.080
+from a web app, mobile app, whatever it is. It's a good idea, I think, every so often to look at what's
+
+39
+00:03:46.080 --> 00:03:50.180
+out there that maybe could save you tons and tons of work and stop you from having to reinvent
+
+40
+00:03:50.180 --> 00:03:55.720
+that wheel yet again. And there's a lot of providers in the space with a lot of different
+
+41
+00:03:55.720 --> 00:04:00.080
+trade-offs. So, there's Contentful, which has been around for a good amount of time. I remember using
+
+42
+00:04:00.080 --> 00:04:07.300
+it like seven or eight years ago, I think. Storyblock is another one. Sanity CMS is one called
+
+43
+00:04:07.300 --> 00:04:13.160
+HighGraph, which used to be called Graph CMS, I believe. And we see a lot of these come and go.
+
+44
+00:04:13.300 --> 00:04:18.380
+Byline CMS is another one. Now, that's fully open source, but very new. So, it's very much work
+
+45
+00:04:18.380 --> 00:04:21.860
+in progress. And then there's the one that we'll get to talk about a little bit more today,
+
+46
+00:04:21.860 --> 00:04:29.240
+which is Strapi. Luciano, do you want to give us the 10,000-foot overview of what Strapi is?
+
+47
+00:04:29.680 --> 00:04:35.140
+I'll try my best. So, yeah, the way that Strapi described itself is a headless CMS. And this is
+
+48
+00:04:35.140 --> 00:04:39.900
+the entire category you described. So, probably worth explaining a little bit more what that means.
+
+49
+00:04:40.560 --> 00:04:44.780
+So, the idea is that more typically, like we mentioned at the beginning, the example of WordPress.
+
+50
+00:04:44.780 --> 00:04:50.720
+So, these kind of tools, they try to handle the entire workflow of managing content and then
+
+51
+00:04:50.720 --> 00:04:57.160
+publishing the entire site, rendering that content in a certain way. Where headless CMS are a little
+
+52
+00:04:57.160 --> 00:05:02.200
+bit different is where it's basically they don't try to care too much about how you actually use the
+
+53
+00:05:02.200 --> 00:05:07.860
+data and where you actually render it. They just provide effectively like an admin interface to model
+
+54
+00:05:07.860 --> 00:05:13.920
+your data and then insert it. So, they are more, I guess, geared towards trying to separate the
+
+55
+00:05:13.920 --> 00:05:19.060
+responsibility for whoever manages the content versus whoever needs to use that content programmatically,
+
+56
+00:05:19.540 --> 00:05:24.360
+either to render a static website or even as kind of application model data.
+
+57
+00:05:25.580 --> 00:05:31.000
+And, yeah, Strapi is one of the very few open source ones and it offers a few interesting features
+
+58
+00:05:31.000 --> 00:05:36.660
+that I really like. So, the first one is that the way you fetch the data, it's over a nice REST API.
+
+59
+00:05:37.100 --> 00:05:40.740
+But if you prefer to use something like GraphQL, which I think is really convenient with this kind of
+
+60
+00:05:40.740 --> 00:05:46.760
+data models that where generally you need to kind of combine different pieces of data and depending
+
+61
+00:05:46.760 --> 00:05:50.940
+on the pages you are trying to render, you might need to, you could express everything as like as a
+
+62
+00:05:50.940 --> 00:05:55.580
+one query that gets you all the data you need. In that case, you can also use GraphQL. It's not
+
+63
+00:05:55.580 --> 00:06:00.880
+enabled by default, but you can easily install a plugin to make that available and it works quite well.
+
+64
+00:06:00.880 --> 00:06:10.180
+And the other thing that I really like is that there is kind of a visual content type builder. So,
+
+65
+00:06:10.180 --> 00:06:15.460
+you can run, you can download Strapi and there is even a CLI utility that makes it easy to bootstrap a
+
+66
+00:06:15.460 --> 00:06:21.380
+project. And at that point, you can run a local version of Strapi that uses SQLite. So, you don't
+
+67
+00:06:21.380 --> 00:06:26.680
+even need to have a database server running locally. So, it's just literally a Node.js server that starts
+
+68
+00:06:26.680 --> 00:06:33.260
+locally very easily. And at that point, you can see an admin interface. And in that admin interface,
+
+69
+00:06:33.260 --> 00:06:39.280
+you have effectively an editor that helps you to model your data model. And you can also start to
+
+70
+00:06:39.280 --> 00:06:44.720
+configure all things like roles and permissions, translations, web books. You have a media library
+
+71
+00:06:44.720 --> 00:06:50.280
+where you can upload files and manage them. And there is even an entire growing ecosystem of plugins.
+
+72
+00:06:50.520 --> 00:06:54.820
+So, if you need additional features, chances are that there is a plugin providing this kind of feature.
+
+73
+00:06:54.820 --> 00:06:58.920
+There is also a commercial option, as we mentioned in the intro, that is called Strapi Cloud,
+
+74
+00:06:59.580 --> 00:07:05.780
+where basically, if you eventually need to publish your Strapi instance somewhere to make it usable
+
+75
+00:07:05.780 --> 00:07:10.820
+inside your company or with the customers you're working with, if you don't want the trouble of
+
+76
+00:07:10.820 --> 00:07:14.700
+hosting that, you can just pick the option of using Strapi Cloud and they will take care of all
+
+77
+00:07:14.700 --> 00:07:20.240
+the hosting. So, effectively, it's a SaaS service that the company that develops Strapi offers you.
+
+78
+00:07:20.240 --> 00:07:26.160
+So, one thing we know that is using it, because this is what we have been using in our latest project,
+
+79
+00:07:26.600 --> 00:07:31.720
+is that it looks like, if you just look at the logs, whenever you create a new Strapi instance,
+
+80
+00:07:32.060 --> 00:07:36.620
+it looks like they are actually bootstrapping a new virtual machine in DigitalOcean for every instance
+
+81
+00:07:36.620 --> 00:07:42.280
+you create. And also, every time you upload assets, it looks like they are using some kind of CDN to make
+
+82
+00:07:42.280 --> 00:07:48.920
+those assets easily available and easy to distribute worldwide. So, this is just an inside thing we
+
+83
+00:07:48.920 --> 00:07:52.800
+noticed, which is interesting, just to understand a little bit more what Strapi Cloud is actually
+
+84
+00:07:52.800 --> 00:07:58.740
+offering you when you use that kind of service. Now, Eoin, I'll let you discuss what are some of
+
+85
+00:07:58.740 --> 00:08:01.240
+the other things we really liked about using Strapi.
+
+86
+00:08:06.760 --> 00:08:11.480
+Well, I think using a headless approach, like having that decoupled content from how you render it, is great, because even if a developer or development team is going to say, okay, we're happy
+
+87
+00:08:11.480 --> 00:08:17.560
+to offload all the CRUD to another provider, it's probably too much to expect that there's going to
+
+88
+00:08:17.560 --> 00:08:22.360
+be a frontend that will meet your needs as well. So, it's great that it separates those two things.
+
+89
+00:08:23.480 --> 00:08:30.180
+The modeling that maps to modern frontends is quite nice. So, there's a content type builder,
+
+90
+00:08:30.440 --> 00:08:35.760
+and it supports collection types and single types. And it also has things called components and
+
+91
+00:08:35.760 --> 00:08:41.180
+dynamic zones. And essentially, this is giving you like Lego-like ways to build pages. And then
+
+92
+00:08:41.180 --> 00:08:46.920
+developers can wire components to React or Astro or view components with typed properties.
+
+93
+00:08:48.260 --> 00:08:54.520
+It has a blocks editor as well. So, if you're imagining rich content, often even in a line of
+
+94
+00:08:54.520 --> 00:09:00.060
+business application, you might also want some web page-like content, like blog article type
+
+95
+00:09:00.060 --> 00:09:06.980
+content. And the blocks field allows you to structure these things, but stores content as a
+
+96
+00:09:06.980 --> 00:09:11.420
+JSON tree rather than raw HTML. So, that gives you a lot more flexibility in how you render it.
+
+97
+00:09:12.820 --> 00:09:18.220
+It also has APIs that fit different stacks. So, it's got REST out of the box. You can use GraphQL
+
+98
+00:09:18.220 --> 00:09:24.200
+via a plugin. Both are very powerful for population and filtering. So, it's handy when you want static
+
+99
+00:09:24.200 --> 00:09:30.780
+builds at CI time or on-demand revalidation at runtime. I'd say it's static site friendly as well.
+
+100
+00:09:30.980 --> 00:09:35.420
+So, you can fetch data at build time, publish your assets, and use strappy webhooks to trigger rebuilds
+
+101
+00:09:35.420 --> 00:09:40.020
+when editors hit publish. Your production site doesn't have to talk to the CMS at request time.
+
+102
+00:09:40.420 --> 00:09:44.580
+That's really good for cost, performance, and security, SEO as well, if that matters to you.
+
+103
+00:09:45.100 --> 00:09:50.320
+And then there's a media library with S3. So, it has built-in media management with an official
+
+104
+00:09:50.320 --> 00:09:57.340
+AWS Upload Provider, which is a plugin, and easy CloudFront integration if you want a CDN as well.
+
+105
+00:09:58.040 --> 00:10:02.100
+We'll link to that provider in the show notes if anybody wants to leverage that.
+
+106
+00:10:02.620 --> 00:10:09.040
+Now, Luciana, you've been using this in anger a lot, and I'm pretty impressed with what you've
+
+107
+00:10:09.040 --> 00:10:13.980
+been able to do with it, to be honest. What are some of the things that you really liked and got
+
+108
+00:10:13.980 --> 00:10:14.640
+into in a big way?
+
+109
+00:10:19.500 --> 00:10:23.960
+Yeah, I think I'm going to repeat some of the things you said, but maybe I'm going to try to go a little bit more in detail. For instance, the blocks editor is one of the things that I really enjoyed using,
+
+110
+00:10:24.440 --> 00:10:32.280
+because in the past, every time I was dealing with some kind of rich content type of widget or editor,
+
+111
+00:10:33.020 --> 00:10:39.180
+you always end up with a bunch of HTML. And then the best thing you can do is just take that HTML
+
+112
+00:10:39.180 --> 00:10:44.100
+block and slap it somewhere in a web page, but then you have very limited flexibility in terms of
+
+113
+00:10:44.100 --> 00:10:48.560
+customizing it, in terms of look and feel, or even just making parts of it more dynamic.
+
+114
+00:10:48.560 --> 00:10:53.060
+Imagine, I don't know, there's a picture and you might want to provide an on-click handler that
+
+115
+00:10:53.060 --> 00:10:57.540
+make you zoom the picture, like in a model window, something like that, which could be very common
+
+116
+00:10:57.540 --> 00:11:03.760
+for many websites. Well, that's kind of very limiting, but also has been the dominating approach
+
+117
+00:11:03.760 --> 00:11:08.540
+for a long time. And I think the blocks editor tries to change that approach in a very smart way.
+
+118
+00:11:08.920 --> 00:11:14.960
+So the idea is, again, another abstraction layer. So rather than giving you the fully rendered content that
+
+119
+00:11:14.960 --> 00:11:22.700
+was effectively created through this WYSIWYG type of editor, the editor itself is storing all the
+
+120
+00:11:22.700 --> 00:11:28.140
+different things that you are laying out in your content as effectively like a JSON abstract syntax
+
+121
+00:11:28.140 --> 00:11:34.020
+tree. So everything is a block. Every block has a type, and that type can be a paragraph, a heading,
+
+122
+00:11:34.180 --> 00:11:41.320
+a image, a quote, a table, and more. There are so many different types. And of course, every block can
+
+123
+00:11:41.320 --> 00:11:46.000
+also have children. So this is effectively how you structure the entire content. And then in the end,
+
+124
+00:11:46.080 --> 00:11:51.980
+what you get out of it is literally this blob of JSON. And at this point, it's up to you to decide how
+
+125
+00:11:51.980 --> 00:11:56.780
+to render it. And of course, that comes with some complexity as well, because effectively, you have
+
+126
+00:11:56.780 --> 00:12:01.780
+to deal with a tree-like structure. So you need to figure out, okay, how do I traverse the structure?
+
+127
+00:12:01.780 --> 00:12:07.780
+And how do I render all the different types? So there might be a lot of work involved in just rendering a basic
+
+128
+00:12:07.780 --> 00:12:15.720
+piece of text. So thankfully, Strapi offers some built-in renderers. For instance, if you use React, there is one
+
+129
+00:12:15.720 --> 00:12:22.400
+called blocks React Renderer, we'll have the link in the show notes, which gives you effectively a component that knows how to
+
+130
+00:12:22.400 --> 00:12:30.620
+render the abstract syntax tree with very clear defaults, and allows you also to override some of these defaults. For example, if you want to
+
+131
+00:12:30.620 --> 00:12:37.220
+customize the image block, then you can say, okay, I'm going to provide my own image component. And only when in the
+
+132
+00:12:37.220 --> 00:12:42.780
+abstract syntax tree, there is an image that is going to be rendered, then your component is going to be injected, and you
+
+133
+00:12:42.780 --> 00:12:48.920
+have full control on how to render images. You don't need to specify all the other blocks kind if you are okay with the
+
+134
+00:12:48.920 --> 00:12:55.360
+defaults at that point. So this is pretty cool, because it kind of does all the heavy lifting for you. And it gives you a very easy
+
+135
+00:12:55.360 --> 00:13:01.960
+interface in case you want to customize something. So yeah, that's an experience that I think is really enjoyable, because
+
+136
+00:13:01.960 --> 00:13:23.960
+it unlocks another level of customization. And you can even end up creating your own custom components, which is something that I also enjoyed. So this is outside the block renderer. So you can imagine the block renderer as a field in your data model, where you can say, every time I need rich content, I'm just going to put it in a field, maybe you call that, I don't know, content, or blog body, or whatever that is.
+
+137
+00:13:23.960 --> 00:13:53.940
+But sometimes you want to do something even more flexible, maybe you have a design system where you have things like a hero or a slider, or maybe, I don't know, a preview of a product with a buy button, you have all these kind of widgets that have been taught together with a team of designers, maybe you have an entire design system, you can actually start to map all the components in your design system and make them available in the CMS as well, using this abstraction called components. And effectively, what a component is, is another data model, which is a
+
+138
+00:13:53.940 --> 00:14:05.940
+model that you can use and put it inside your other data models. And it maps the props that you have in your own, let's say you're using React, so you might have a bunch of React components, you can map one to one all the props of every component.
+
+139
+00:14:05.940 --> 00:14:27.940
+of every component in React with the components in Strapi. So what that allows is that then whenever a content editor is working on a page, for example, they could say, okay, here, I want to show a hero. So I'm going to just drag and drop the hero component. And then that hero component is going to start to display all the fields that needs to be populated, which effectively are all the props that are available in your hero component.
+
+140
+00:14:27.940 --> 00:14:57.920
+And the way that you map content with components is through dynamic zones. So dynamic zones is kind of the glue between the two worlds. So effectively, every time you are modeling, let's say, I don't know, let's make the example of a landing page, right? Maybe you have the concept of a landing page as a data model in your CMS. In your landing page, you might just use a dynamic zone to say, in this area of the landing page, the editors are free to
+
+141
+00:14:57.920 --> 00:15:18.920
+pick between all of these components and order them in whichever way they like. So dynamic zone are effectively a way to say which components will be available in which part of the page. And then the marketing team or the content team is totally free to pick among those components, shuffle them in whichever way makes sense and provide all the properties.
+
+142
+00:15:18.920 --> 00:15:39.920
+So those three things I think I really like them. And I think they really unlock that full control in the sense that you still keep everything fully decoupled. But then you can get to the point, like if you are really clever, really put the time to configure things properly, to almost build like your own, I don't know, template builder entirely in Strapi.
+
+143
+00:15:39.920 --> 00:15:52.920
+So the marketing team or the content team will have total freedom to change things around very quickly. And you don't have to always work with a designer just to maybe swap, I don't know, a certain type of header with another one.
+
+144
+00:15:52.920 --> 00:16:16.400
+That sounds great. It seems like you've got the capability there to have entities. If you wanted to do a CRUD application, you can have those specific, you can have that data model there. But if you want to have richer content, like blog articles or other types of content, that's maybe SEO friendly in your application, then things like components and dynamic zones really are there to support that.
+
+145
+00:16:16.400 --> 00:16:43.640
+I'm curious about the data side of things. So if you have, I presume that it's got its own schema under the hood, right? In its relational database. How do you manage data migration, maybe even working locally, working with sample data, synchronizing it between environments? Because this is always a question, no matter what kind of data, what kind of project it is, it always comes up. How do you manage data synchronization across environments?
+
+146
+00:16:43.640 --> 00:17:13.560
+Yeah, I think there are different kinds of workflows that you can put in place. The one that I've personally used, and I think it works decently well, is kind of a local first approach. So effectively, you start a local Strapi instance by using the CLI that creates a project and you can see all the source code, you can install dependencies through NPM. And then at some point, when you're ready, you can just start the instance locally and access the local admin.
+
+147
+00:17:13.560 --> 00:17:43.560
+In the local admin, what you can do is that you have a panel where you can design your data model. And that's effectively like a totally visual experience where you can specify things like what is the name of this data model? Is it a collection? Is it a single type? What are all the fields for every field? What is the type of that field? You can specify is it mandatory or is it optional? Are there other validation rules? Like I don't know, strings, you can check on length, that kind of stuff. Or maybe when it's a string, you can decide is it like a single line input? Or it's like a larger text input?
+
+148
+00:17:43.560 --> 00:18:13.560
+You can choose a file picker. Or you can choose a file picker, all these kind of things that I think are very standard for most CMS. But the nice thing is that you're doing all of this stuff locally. And once you do it visually from the admin, actually, if you check your Git history, well, you just do it like a Git status, I mean, then you can see that it's actually changing files. So it's not really storing all this information in a database, but it's actually building schema files for you. In a schema language that's actually very similar to JSON schema.
+
+149
+00:18:13.560 --> 00:18:43.300
+And everything you do, then eventually you can just commit to Git and keep the entire history. Every time you are starting Strapi, Strapi checks effectively that history against the state of the database and is able to effectively do like a soft migration where it's going to restore the new status. And if there are new fields, it's going to create them or if fields have been removed, it's going to remove them. And you can also insert data locally, which I think is very useful for testing reasons.
+
+150
+00:18:43.300 --> 00:19:11.080
+But then sometimes you end up creating lots of the basic data you need. Like for instance, I've seen in my use case that it's very common to start with like SEO type of data. So you might have a single component with fields like what is the title of the website? What is the SEO description? What is the fav icon? What is the, I don't know. Yeah, all this kind of information that is more something you initially populate because you need it for testing and to start building the pages.
+
+151
+00:19:11.080 --> 00:19:23.180
+And then you realize, well, I've put all these efforts into populating this data locally. There must be an easy way to propagate this data to the actual remote production instance, rather than having to manually do all the work again.
+
+152
+00:19:23.880 --> 00:19:37.820
+And thankfully the CLI that Strapi offer has a feature called transfer. And the way it works is that you can kind of synchronize in both direction. So you can even go from remote to local or from local to remote.
+
+153
+00:19:37.820 --> 00:19:46.820
+And I think both are useful for instance, the case I'm describing is useful. Like you created a bunch of basic data. You want to push it to the remote. So you are not starting to scratch.
+
+154
+00:19:46.820 --> 00:19:57.820
+But then sometimes a content editor is working on the site and they do changes and they tell you, okay, there is some kind of weird bug. An easy way to reproduce that bug locally is that you can pull all the remote data locally.
+
+155
+00:19:57.820 --> 00:20:09.820
+So it's also interesting that this transfer can work in both direction. And the way it works is that you can create a token in the admin UI, either the local one or the remote one.
+
+156
+00:20:09.820 --> 00:20:14.820
+And then you have this kind of source token and destination token, and you can decide how to push the data.
+
+157
+00:20:14.820 --> 00:20:21.820
+And it's gonna, it could be a little bit dangerous because effectively it's going to wipe everything and then copy the data from source to destination.
+
+158
+00:20:21.820 --> 00:20:29.820
+I'm not sure there is a way that you just do like incremental changes, but yeah, just check the docs and make sure you use it properly.
+
+159
+00:20:29.820 --> 00:20:38.820
+But it's cool that they offer this feature where you can use it synchronize data. And by the way, you can also use this as a breach to copy data between two remote instances of Strapi.
+
+160
+00:20:38.820 --> 00:20:50.820
+So for instance, if you are migrating, I don't know, your Strapi instance from a VM to another, or maybe you're just changing the database from a SQLite to, I don't know, maybe a Postgres.
+
+161
+00:20:50.820 --> 00:20:58.820
+You can actually do this migration where you copy everything locally from a source and then locally you copy it to a destination.
+
+162
+00:20:58.820 --> 00:21:05.820
+So we have also done that because in our current project, we are managing multiple instances of Strapi for different brands, but there is a lot of common data.
+
+163
+00:21:05.820 --> 00:21:07.820
+So it was just easy to do it that way.
+
+164
+00:21:07.820 --> 00:21:13.820
+So what is the bad news? What did we not like about Strapi?
+
+165
+00:21:13.820 --> 00:21:22.820
+Yeah, I think there isn't like a huge amount that we didn't like. I think in general, it's like I really like the structure and the principles.
+
+166
+00:21:22.820 --> 00:21:30.820
+And I think there is lots of potential. One thing is that it's, it feels still a little bit immature, although Strapi has been around for a while.
+
+167
+00:21:30.820 --> 00:21:36.820
+It seems like a lot of like, it's really moving very fast and a lot of things are not properly polished.
+
+168
+00:21:36.820 --> 00:21:51.820
+For instance, that it's very common to find the small bugs that can be annoying. Like sometimes one silly thing that I noticed just to give an example is that if you copy a snippet of code from somewhere into the block editor, the block editor also supports the code type.
+
+169
+00:21:51.820 --> 00:22:07.820
+It messes up all the lines and it actually ends up creating a block for each line. And then you have to kind of compact them all together manually, which can be very annoying if you're actually getting, I don't know, like a tech block where you might, where you might have lots of articles with code samples.
+
+170
+00:22:07.820 --> 00:22:18.820
+Then I think it wouldn't be like the best experience. Now, this is just one example I've seen probably a dozens of this kind of small bugs. And I've also seen to be fair that they get resolved fairly quickly.
+
+171
+00:22:18.820 --> 00:22:30.820
+So there is actually a very big active community where people are constantly reporting these bugs. You can see releases, I think weekly, if not more than one release a week and every release has bunch of bug fixes.
+
+172
+00:22:30.820 --> 00:22:41.820
+So hopefully this is going to make the product much more stable in the coming months or years. Also, the documentation can be improved. It can be sometimes misleading.
+
+173
+00:22:41.820 --> 00:22:55.820
+Like for instance, there was a big re-architecture between Strapi 4 to 5, if I remember the version correctly. 5, I think is the latest. So lots of the documentation is still giving you tips for Strapi 4. And sometimes it's not clear when that is the case.
+
+174
+00:22:55.820 --> 00:23:02.820
+So you might end up trying to do something and then it doesn't really work the way you would expect just because the documentation is not fully up to date.
+
+175
+00:23:02.820 --> 00:23:11.820
+So again, I totally expect those things will be fixed over time, especially because there is also a company behind and they are trying to market a product which is Strapi Cloud.
+
+176
+00:23:11.820 --> 00:23:18.820
+So I think it's in their best interest to make the product as polished as possible and to give the best possible user experience.
+
+177
+00:23:18.820 --> 00:23:32.820
+Okay. And given that we said the cloud offering maybe isn't as mature as we might expect, what's the best way we recommend people self-hosting this on AWS?
+
+178
+00:23:32.820 --> 00:23:43.820
+Yeah. And I think I wouldn't say that the cloud isn't mature. I think it's probably a bit simple at this stage, but that's the job for most cases.
+
+179
+00:23:43.820 --> 00:23:49.820
+There might be other reasons why you might want to self-host. Maybe you have, I don't know, data constraints.
+
+180
+00:23:49.820 --> 00:23:57.820
+Like you don't want to publish your data in Strapi. You want to keep it in whatever local deployment you have or even in your own data center. I don't know.
+
+181
+00:23:57.820 --> 00:23:58.820
+What's the problem for you to do?
+
+182
+00:23:58.820 --> 00:23:59.820
+You want to have to be a problem for you to do?
+
+183
+00:23:59.820 --> 00:24:02.820
+Or within your VPC, for instance, if you are in AWS, that could be one reason.
+
+184
+00:24:02.820 --> 00:24:06.820
+Another reason might be maybe you're hosting lots of instances for whatever is your use case.
+
+185
+00:24:06.820 --> 00:24:21.820
+And I think at some point, there might be a level where putting the effort into managing the deployment and hosting yourself might be more cost convenient than having dozens of instances in Strapi Cloud.
+
+186
+00:24:21.820 --> 00:24:31.820
+So, of course, you need to do the maths and see where that point is, but it might be a valid story where it might be more convenient to host it yourself rather than using Strapi Cloud.
+
+187
+00:24:31.820 --> 00:24:38.820
+And especially if you use some of the more enterprise features, like if you need SSO sign up, I think this is one of the more expensive ones.
+
+188
+00:24:38.820 --> 00:24:45.820
+So, if you need it for every single site, I think then you might be better off just hosting it yourself and doing the SSO layer yourself.
+
+189
+00:24:45.820 --> 00:24:52.820
+So, given all of that, I guess the question might be, how do you go about hosting it, for instance, on AWS, right?
+
+190
+00:24:52.820 --> 00:24:55.820
+If you're listening to this podcast, that's what you want to know.
+
+191
+00:24:55.820 --> 00:25:06.820
+And full disclaimer, I haven't tried to do this fully, but I think I understand enough of Strapi now to give kind of an informed potential architecture that you might want to use for hosting Strapi.
+
+192
+00:25:06.820 --> 00:25:16.820
+And just talking about the compute, Strapi is a traditional Node.js server, so you can easily containerize it and run it on Fargate or AppRunner.
+
+193
+00:25:16.820 --> 00:25:21.820
+Or if you have already an EKS cluster, you might even run it on EKS.
+
+194
+00:25:21.820 --> 00:25:30.820
+You can also use it in EC2, of course, but you will need, as always, if you manage bare-bone virtual machines, there is a lot more that you need to manage.
+
+195
+00:25:30.820 --> 00:25:35.820
+So, this is totally up to you to decide if it makes sense or not.
+
+196
+00:25:35.820 --> 00:25:42.820
+Yeah, I think I would prefer personally containers just because it gets a little bit easier and you have less to manage yourself.
+
+197
+00:25:42.820 --> 00:25:48.820
+Then the database, you can use SQLite, we mentioned, and this is the default when you run it locally.
+
+198
+00:25:48.820 --> 00:25:54.820
+But of course, when you start to run it in the cloud, it doesn't make too much sense because you might want to use multiple instances of compute.
+
+199
+00:25:54.820 --> 00:25:56.820
+And at that point, you need a shared database.
+
+200
+00:25:56.820 --> 00:26:00.820
+So, the other options are Postgres, MySQL, or MariaDB.
+
+201
+00:26:00.820 --> 00:26:07.820
+So, you can easily spin up, for instance, an RDS and then connect your instances to that RDS instance.
+
+202
+00:26:07.820 --> 00:26:16.820
+And whichever flavor you like, Postgres or MySQL, I think Strapi uses some kind of ORM in between where it doesn't really make a difference.
+
+203
+00:26:16.820 --> 00:26:21.820
+One thing that they say, though, in the docs, I found this snippet somewhere where they say they don't...
+
+204
+00:26:21.820 --> 00:26:28.820
+They say something a little bit weird because they say, we don't support NoSQL, which makes sense because I think they have a relational model by default.
+
+205
+00:26:28.820 --> 00:26:32.820
+And then the next line is like, we also don't support Aurora.
+
+206
+00:26:32.820 --> 00:26:36.820
+And then I found blog posts of people actually using Aurora.
+
+207
+00:26:36.820 --> 00:26:41.820
+So, I think it's more that they might have seen some bugs, some slight differences.
+
+208
+00:26:41.820 --> 00:26:44.820
+They just don't test it. Maybe it's not in their test coverage.
+
+209
+00:26:44.820 --> 00:26:53.820
+Exactly. So, they basically say, it's up to you if you want to try that at your own risk, but we don't basically take any responsibility if it doesn't work.
+
+210
+00:26:53.820 --> 00:26:58.820
+So, I think Aurora is still a decent choice, but yeah, just be aware of the disclaimer.
+
+211
+00:26:58.820 --> 00:27:07.820
+Then in terms of assets, as we mentioned, there is a plugin that allows you to publish all the assets that you upload into Strapi directly into S3.
+
+212
+00:27:07.820 --> 00:27:12.820
+So, then you can easily create, for instance, a CDN distribution with CloudFront.
+
+213
+00:27:12.820 --> 00:27:15.820
+So, that could be another great option for public websites.
+
+214
+00:27:15.820 --> 00:27:17.820
+Secrets and configurations.
+
+215
+00:27:17.820 --> 00:27:20.820
+So, Strapi needs a few secret parameters.
+
+216
+00:27:20.820 --> 00:27:28.820
+For instance, it creates API tokens, JWT, and also some secrets that then are used internally for encryption.
+
+217
+00:27:28.820 --> 00:27:35.820
+All this stuff is something you can store in Secrets Manager, and then you need to pass it as an environment variable when the container starts,
+
+218
+00:27:35.820 --> 00:27:38.820
+or whenever your process, if you're using EC2, starts.
+
+219
+00:27:38.820 --> 00:27:46.820
+For builds, you can probably use whatever you want, and effectively, it's the same process you would use locally.
+
+220
+00:27:46.820 --> 00:27:56.820
+So, you have a script that you can launch with NPM, Yarn, or PMPM, whatever you prefer to use, that builds a production version of the backend.
+
+221
+00:27:56.820 --> 00:28:02.820
+And then you have a folder where you can take that backend and execute it in a production-ready way.
+
+222
+00:28:02.820 --> 00:28:12.820
+Because, by default, if you run it in development mode, of course, it's much slower, but also gives you more, I guess, debug messages that can be useful in development mode.
+
+223
+00:28:12.820 --> 00:28:18.820
+So, it's important, I guess, to distinguish whenever you are building for production and then whenever you're just running it locally.
+
+224
+00:28:18.820 --> 00:28:24.820
+So, those are two different processes and make sure to set up your CI to use the production process.
+
+225
+00:28:24.820 --> 00:28:32.820
+And finally, if you want to do some security, this really depends because, of course, you have an admin to manage content,
+
+226
+00:28:32.820 --> 00:28:35.820
+and somebody needs to be able to access that admin, right?
+
+227
+00:28:35.820 --> 00:28:42.820
+I'm sure you're going to be working with content editors, or even if you are the content editor yourself, it's not like you want to keep that very open.
+
+228
+00:28:42.820 --> 00:28:47.820
+By default, Strapik gives you a username and password type of access.
+
+229
+00:28:47.820 --> 00:28:51.820
+You can use plugins to do things that are a little bit more advanced, like SSO.
+
+230
+00:28:51.820 --> 00:28:54.820
+You can even have IP allow lists.
+
+231
+00:28:54.820 --> 00:28:56.820
+You also have ORBAC, for instance.
+
+232
+00:28:56.820 --> 00:29:02.820
+You can create different profiles with different roles and give those roles different permission in terms of editing,
+
+233
+00:29:02.820 --> 00:29:05.820
+or even reading different kinds of data models.
+
+234
+00:29:05.820 --> 00:29:09.820
+So, all this stuff is actually quite well done, and you have lots of freedom.
+
+235
+00:29:09.820 --> 00:29:14.820
+One thing that I would like to explore more is maybe if you are using, if you're doing like a static site,
+
+236
+00:29:14.820 --> 00:29:20.820
+and you want to secure as much as possible your admin UI, you might put it in a private VPC on AWS,
+
+237
+00:29:20.820 --> 00:29:27.820
+then give like a VPN access to your content editors, and then your CI is the only thing that can access as well.
+
+238
+00:29:27.820 --> 00:29:32.820
+And then effectively, whenever you are building, you read all the necessary content, render on the pages statically,
+
+239
+00:29:32.820 --> 00:29:37.820
+and then you have just a bunch of HTML, CSS, JavaScript that you need to publish in a CDN.
+
+240
+00:29:37.820 --> 00:29:45.820
+I think that would be a pretty secure setup at that point, and not too complex to do as well.
+
+241
+00:29:45.820 --> 00:29:46.820
+Interesting.
+
+242
+00:29:46.820 --> 00:29:50.820
+Yeah, I guess another thing you might consider if you really want to lock down,
+
+243
+00:29:50.820 --> 00:29:57.820
+but keep that admin page visible to administrators, is you could use a separate load balancer listener,
+
+244
+00:29:57.820 --> 00:30:00.820
+and only allow the paths through that.
+
+245
+00:30:00.820 --> 00:30:06.820
+And then you can put an authorizer on that load balancer like integrated with SSO, which is quite easy to do,
+
+246
+00:30:06.820 --> 00:30:07.820
+at least at a basic level.
+
+247
+00:30:07.820 --> 00:30:14.820
+Application load balancer allows you to do that, so it might be a cheap way of getting that much sought after enterprise SSO stuff.
+
+248
+00:30:14.820 --> 00:30:19.820
+Absolutely, which would be probably the most expensive plan just to unlock that.
+
+249
+00:30:19.820 --> 00:30:27.820
+So I think if you're doing that a lot, it might get to a price point where doing what you just described makes more sense.
+
+250
+00:30:27.820 --> 00:30:30.820
+Yeah, maybe that's a topic for another episode.
+
+251
+00:30:30.820 --> 00:30:37.820
+So it sounds like the people are wondering like where would I use this and where it would fit best.
+
+252
+00:30:37.820 --> 00:30:41.820
+The sweet spot is you kind of want full control over your data models.
+
+253
+00:30:41.820 --> 00:30:46.820
+You probably want self hosting, and you want something which is a headless CMS.
+
+254
+00:30:46.820 --> 00:30:53.820
+You know, it gives you the storage and the API, and it plays nicely then with your serverless applications or your static builds.
+
+255
+00:30:53.820 --> 00:30:57.820
+If all of that ticks, all the boxes get ticked, Strapi is a fairly solid choice.
+
+256
+00:30:57.820 --> 00:31:01.820
+But if you prefer something fully managed, there's a lot of other options out there,
+
+257
+00:31:01.820 --> 00:31:03.820
+and Strapi Cloud is just one of those options.
+
+258
+00:31:03.820 --> 00:31:05.820
+And again, we're not sponsored.
+
+259
+00:31:05.820 --> 00:31:11.820
+This is just, you know, it's great to be able to promote an open source project that remains open source, of course.
+
+260
+00:31:11.820 --> 00:31:14.820
+But there are a lot of options out there, so we mentioned some of them at the start.
+
+261
+00:31:14.820 --> 00:31:19.820
+Even there's a lot of applications in the kind of enterprise low code space, which are much more expensive,
+
+262
+00:31:19.820 --> 00:31:22.820
+and also kind of fit into this category to a certain degree.
+
+263
+00:31:22.820 --> 00:31:27.820
+But it seems like Strapi Cloud is a decent option as well.
+
+264
+00:31:29.820 --> 00:31:33.820
+Yeah, I totally agree with this take, and I think that brings us to the end of this episode.
+
+265
+00:31:33.820 --> 00:31:40.820
+So just to summarize our take, I think we really like Strapi, the content modeling, the dynamic zones, and the block editor.
+
+266
+00:31:40.820 --> 00:31:42.820
+Also, the workflow is generally pretty nice.
+
+267
+00:31:42.820 --> 00:31:49.820
+So work locally, create the data model, you can also create data, move things around to production when needed.
+
+268
+00:31:49.820 --> 00:31:57.820
+With the transfer CLI, I think, yeah, there is a quite good productivity boost in doing things this way, of course,
+
+269
+00:31:57.820 --> 00:32:00.820
+rather than building your own CMS from scratch.
+
+270
+00:32:00.820 --> 00:32:11.820
+And you can even have a quite pleasant experience if you know how to avoid certain small bugs, but I'm sure that those bugs will be fixed as we go in the next few months, years.
+
+271
+00:32:11.820 --> 00:32:16.820
+So I think Strapi can be a valid, very valid option going forward for sure.
+
+272
+00:32:16.820 --> 00:32:22.820
+So again, thank you to fourTheorem for sponsoring another episode of AWS Bites.
+
+273
+00:32:22.820 --> 00:32:26.820
+And fourTheorem is a consulting company specialized on AWS.
+
+274
+00:32:26.820 --> 00:32:31.820
+So if you want help designing an AWS architecture that's simple, scalable, and cost effective,
+
+275
+00:32:31.820 --> 00:32:35.820
+make sure to visit fourTheorem.com and reach out to us if you need more information.
+
+276
+00:32:35.820 --> 00:32:37.820
+Now we'll leave you with a final question.
+
+277
+00:32:37.820 --> 00:32:39.820
+Have you shipped something with Strapi?
+
+278
+00:32:39.820 --> 00:32:42.820
+If you did, I'm curious to know, did you like it?
+
+279
+00:32:42.820 --> 00:32:49.820
+Was working end to end or there was some unexpected hiccup or also another question, how did you host it?
+
+280
+00:32:49.820 --> 00:32:52.820
+Did you go with the cloud option or did you host it yourself?
+
+281
+00:32:52.820 --> 00:32:57.820
+And if you hosted it yourself in AWS, please share your architecture because this is definitely something we're talking about.
+
+282
+00:32:57.820 --> 00:33:00.820
+And we are sure we might be learn a thing or two from you.
+
+283
+00:33:00.820 --> 00:33:09.820
+And if you ever use any other CMS, headless CMS like Strapi, I think it would be also nice to hear your opinion, which ones did you like or not.
+
+284
+00:33:09.820 --> 00:33:14.820
+So let us know in the comments or ping us on socials and we'd love to talk to you.
+
+285
+00:33:14.820 --> 00:33:18.820
+And thank you so much again, and we'll see you in the next episode.

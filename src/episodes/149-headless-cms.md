@@ -2,7 +2,7 @@
 episode: 149
 title: "Headless CMS on AWS"
 youtube_id: "LtuUV_FDQlQ"
-spotify_link: "https://creators.spotify.com/pod/show/aws-bites/episodes/149--Headless-CMS-on-AWS-"
+spotify_link: "https://creators.spotify.com/pod/profile/aws-bites/episodes/149--Headless-CMS-on-AWS-e38dg01"
 publish_date: 2025-09-18
 ---
 

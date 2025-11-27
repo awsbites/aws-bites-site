@@ -1,0 +1,2048 @@
+{
+  "speakers": {
+    "spk_0": "Eoin",
+    "spk_1": "Luciano"
+  },
+  "segments": [
+    {
+      "speakerLabel": "spk_0",
+      "start": 0,
+      "end": 4.62,
+      "text": " Regular listeners know that we are big fans of Fargate for running containers on AWS."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 5.14,
+      "end": 11.88,
+      "text": " Anytime that AWS gives us a nice way of doing less configuration, getting up and running quickly and reliably, we grab the opportunity."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 12.16,
+      "end": 18.62,
+      "text": " Of course, there's always a trade-off when you cede control to a cloud provider, and Fargate is not without its limitations."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 19.18,
+      "end": 25.02,
+      "text": " You don't get to use GPUs, you can't control network bandwidth, and you don't have a large number of storage options."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 25.02,
+      "end": 34.2,
+      "text": " And that means you sometimes need to jump back to ECS on EC2, and then you have to take on the extra work in configuring and securing and keeping those instances running."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 34.64,
+      "end": 46.620000000000005,
+      "text": " We now have the brand new ECSMI managed instances support, and this could be the best of both worlds, promising control over storage, networking, and GPU support with the low management you get with Fargate."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 46.62,
+      "end": 56.5,
+      "text": " We've spent a good bit of time evaluating ECSMI, and we wanted to share with you what we think, and we'll cover GPU support, cost factors, scaling, performance."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 57.08,
+      "end": 62.54,
+      "text": " You'll also hear from us what kind of use cases and workloads are best suited to ECSMI."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 62.81999999999999,
+      "end": 68.24,
+      "text": " So let's dive in. I'm Eoin. I'm back with Luciano for the latest episode of AWS Bites."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 68.24,
+      "end": 81.14,
+      "text": " AWS Bites is brought to you by 4Theorem, and we'll find out more about 4Theorem at the end of the show."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 81.39999999999999,
+      "end": 86.8,
+      "text": " So choosing something to run your containers is always a trade-off between simplicity and cost and control."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 87.08,
+      "end": 92.56,
+      "text": " We've talked about it a lot before, and we've mentioned the simplicity of AppRunner and Fargate, which we both like."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 92.56,
+      "end": 99.86,
+      "text": " And with both of those options, you don't ever really need to think about the underlying EC2 instances that AWS completely hides from you."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 100.12,
+      "end": 109.68,
+      "text": " ECS on EC2 lets you run tasks on a huge range of instances, but you need to pick the AMI, configure the EC2 correctly, ensure it has the ECS agent, all that stuff,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 109.84,
+      "end": 113.34,
+      "text": " and ensure that the instances are scaling in tandem with ECS tasks."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 113.74000000000001,
+      "end": 118.16,
+      "text": " So Luciano, what is this ECSMI, and where does it fit?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 118.16,
+      "end": 129.1,
+      "text": " So yeah, basically, when you say I need to run a container, there is always a hidden requirement baked in, which is you need somewhere a machine that runs that container."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 129.48,
+      "end": 136.44,
+      "text": " And that means thinking about CPU, memory, networking, storage, sometimes even GPUs, as we'll see in the next few minutes."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 136.82,
+      "end": 140.62,
+      "text": " So the real question is how much of that stuff do you want to care about?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 140.7,
+      "end": 144.42,
+      "text": " How much work do you want to put into managing all of that infrastructure?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 144.42,
+      "end": 149.82,
+      "text": " And when it comes to ECS, typically it's a spectrum, and you have two contrasting options."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 150.26,
+      "end": 157.83999999999997,
+      "text": " On one side, you have Fargate, and Eoin, as you put it really well in the introduction, Fargate is almost like the serverless option of containers,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 158.04,
+      "end": 162.5,
+      "text": " if you want to call it like that, where basically you only worry about your application code."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 162.88,
+      "end": 168.54,
+      "text": " You define the task as a container that runs your application, and then whatever is the underlying infrastructure,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 168.73999999999998,
+      "end": 172.35999999999999,
+      "text": " AWS manages all of that and actually hides all of that complexity."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 172.36,
+      "end": 179.92000000000002,
+      "text": " This is great when you need to move fast and when you don't have really advanced requirements in terms of the underlying infrastructure,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 180.20000000000002,
+      "end": 182.3,
+      "text": " which is probably most of the use cases."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 182.66000000000003,
+      "end": 186.60000000000002,
+      "text": " So I think for most people using Fargate, it's probably a good win."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 186.84,
+      "end": 188.98000000000002,
+      "text": " A caveat, maybe if you need something like a GPU."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 189.46,
+      "end": 192.82000000000002,
+      "text": " And in that case, we need to look into the other end of the spectrum,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 192.82,
+      "end": 198.66,
+      "text": " which when looking at ECS is basically you use ECS with EC2 instances,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 198.66,
+      "end": 202.68,
+      "text": " which means when you create a cluster, you need to provision your own EC2 instances,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 203.18,
+      "end": 205.79999999999998,
+      "text": " which suddenly means you need to pick the right instances."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 206.38,
+      "end": 209.14,
+      "text": " You need to decide which operative system are you going to use."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 209.44,
+      "end": 212.78,
+      "text": " You need to make sure you provision all the right software and libraries."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 213.16,
+      "end": 216,
+      "text": " You keep the operative system up to date and so on."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 216,
+      "end": 221.38,
+      "text": " So you are on to AMIs, launch templates, autoscaling groups, patching, maintenance,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 221.64,
+      "end": 224.8,
+      "text": " all that kind of stuff, which for some people can be very joyful,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 225.22,
+      "end": 228.9,
+      "text": " but I think for other people could be very daunting and time-consuming."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 229.32,
+      "end": 235.88,
+      "text": " So in a sense, we could say the ECS managed instances in this spectrum is something that stands in the middle"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 235.88,
+      "end": 238.82,
+      "text": " and it tries to give you the best of both worlds."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 238.82,
+      "end": 244.84,
+      "text": " And so with this third option, basically you keep the flexibility of EC2,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 245.22,
+      "end": 247.42,
+      "text": " but without that management burden."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 247.85999999999999,
+      "end": 257.21999999999997,
+      "text": " So in practice, what this means is that you still need to define somehow what kind of compute power you need,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 257.4,
+      "end": 263.21999999999997,
+      "text": " but rather than actually picking the instances and the operative system and creating AMIs and so on,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 263.53999999999996,
+      "end": 266.88,
+      "text": " you just define a list of requirements and give it to AWS."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 266.88,
+      "end": 272.42,
+      "text": " And then AWS is going to try to select the best machine that fits that list of requirements"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 272.42,
+      "end": 273.68,
+      "text": " and just spin it up for you."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 274.18,
+      "end": 276.96,
+      "text": " You don't even know which operative system is running."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 277.58,
+      "end": 280.78,
+      "text": " Technically, you know, we can tell you it's Amazon Bottlerocket,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 281.21999999999997,
+      "end": 284.74,
+      "text": " but in practice, it doesn't matter because you're not managing that"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 284.74,
+      "end": 287.34,
+      "text": " and you cannot even log in into the machine."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 287.64,
+      "end": 292.06,
+      "text": " So you kind of get a Fargate-like experience where you know there is a machine that is running your container."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 292.3,
+      "end": 294.24,
+      "text": " You don't get to see much of that machine."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 294.24,
+      "end": 299.12,
+      "text": " The advantage compared to Fargate is that you have much more control in expressing the requirements"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 299.12,
+      "end": 300.86,
+      "text": " for the underlying infrastructure."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 301.18,
+      "end": 305.24,
+      "text": " So today we are going to be spending a little bit more time giving you the details of what we learned"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 305.24,
+      "end": 308.56,
+      "text": " by exploring this new option that you have in ECS."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 308.82,
+      "end": 313.32,
+      "text": " But I think we should start by talking about costs,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 313.40000000000003,
+      "end": 317.56,
+      "text": " because I think there are some important nuances there that we need to clarify up front."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 317.56,
+      "end": 319.7,
+      "text": " Yeah, I think so."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 319.78000000000003,
+      "end": 324.38,
+      "text": " We normally talk about cost at the end, but since it's such a big aspect of the pitch"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 324.38,
+      "end": 327.86,
+      "text": " around ECS managed instances, let's give the lowdown now."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 328.64,
+      "end": 331.22,
+      "text": " The pricing model itself is reasonably straightforward."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 331.8,
+      "end": 334.1,
+      "text": " You're paying for the underlying EC2, right?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 334.14,
+      "end": 337.88,
+      "text": " So you pay the normal EC2 per second pricing for the instances."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 337.88,
+      "end": 344.38,
+      "text": " And that includes the normal benefits you would get with compute savings plans or reserved instances, etc.,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 344.38,
+      "end": 345.46,
+      "text": " if you have those enabled."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 346.24,
+      "end": 352.38,
+      "text": " And this is a big part of the cost calculation with ECS MI, that you can use reserved instances."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 352.78,
+      "end": 354.08,
+      "text": " It's not an option you have with Fargate."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 354.76,
+      "end": 359.88,
+      "text": " Now, the important other point is that there is a management fee on top of that EC2 pricing."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 359.88,
+      "end": 367.96,
+      "text": " So AWS provides a separate ECS managed instances price list of the fees per instance type on the pricing page."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 368.21999999999997,
+      "end": 370.02,
+      "text": " So you have to look at each instance type."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 370.2,
+      "end": 374.86,
+      "text": " But we just did a calculation of like analysis of all the data against the EC2 instance pricing."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 375.15999999999997,
+      "end": 378.74,
+      "text": " And it seems like it's 12% is the management fee overhead."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 378.94,
+      "end": 381.26,
+      "text": " And that's based on the on-demand instance price."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 381.5,
+      "end": 383.44,
+      "text": " So in some cases, that might be fine."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 384,
+      "end": 388.42,
+      "text": " You can accept, I think, as much as we all hate giving money to AWS,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 388.42,
+      "end": 394.90000000000003,
+      "text": " if they're doing a little bit more work and investing in infrastructure to lower your total cost of ownership"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 394.90000000000003,
+      "end": 399.16,
+      "text": " and reduce the maintenance effort, the management fee might seem fair."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 399.92,
+      "end": 405.24,
+      "text": " But on the other hand, it does kind of challenge the claim that ECS MI is a more cost-effective approach."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 405.58000000000004,
+      "end": 408.8,
+      "text": " If you're benefiting from compute savings plans or reserved instances,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 409.1,
+      "end": 413.64,
+      "text": " you're still going to pay 12% of the on-demand cost for the managed instances."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 414.64,
+      "end": 418.38,
+      "text": " So you would need to do that calculation and figure out what works out for you."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 418.42,
+      "end": 423.14000000000004,
+      "text": " But do bear in mind the total cost of ownership and the time you'll save because that's not trivial."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 423.94,
+      "end": 425.82,
+      "text": " There is one more bit of bad news."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 426.26,
+      "end": 430.66,
+      "text": " At least as of today, ECS MI does not support spot instances."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 431.04,
+      "end": 435.56,
+      "text": " Now with ECS on EC2 and ECS on Fargate, you have a spot option."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 435.86,
+      "end": 437.8,
+      "text": " With ECS MI, right now, you don't."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 438.14,
+      "end": 444.44,
+      "text": " So that's a pity, especially since we thought we'd be able to use this to get really, really cheap infrastructure."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 444.44,
+      "end": 447.38,
+      "text": " But that's not really the case."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 447.46,
+      "end": 448.46,
+      "text": " That's the key caveat, right?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 448.5,
+      "end": 451.02,
+      "text": " It's not automatically true that ECS MI will save you money."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 451.26,
+      "end": 453.84,
+      "text": " Depending on your workload, how much you benefit from spot today,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 454.34,
+      "end": 456.82,
+      "text": " how mature your existing ECS on EC2 setup is,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 457.2,
+      "end": 461,
+      "text": " you may already still come out ahead running your own EC2 capacity,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 461.38,
+      "end": 464.56,
+      "text": " especially if you've invested time in rightsizing, scaling policies,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 465.22,
+      "end": 467.8,
+      "text": " AMI pipelines, operational playbooks, all of that."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 467.8,
+      "end": 472.26,
+      "text": " And you've got your compute savings plans, reserved instances, all of that already sorted."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 473,
+      "end": 479.54,
+      "text": " ECS MI is essentially trading some control and a margin on top of on-demand pricing for reduced operational work."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 479.82,
+      "end": 484.22,
+      "text": " And whether that trade is worth it really depends on your story and your constraints."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 484.48,
+      "end": 489.64,
+      "text": " The only honest answer here is to benchmark it against your workload and your current costs."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 489.86,
+      "end": 491.26,
+      "text": " I'm afraid we can't do that for you."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 491.36,
+      "end": 492.62,
+      "text": " But we did do some work."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 492.98,
+      "end": 496.52,
+      "text": " So do we want to talk about our story and how we evaluated ECS MI?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 496.52,
+      "end": 500.44,
+      "text": " Hey, Luciano, do you want to talk about how we got started and how people will get started?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 501.06,
+      "end": 502.14,
+      "text": " Yeah, I think it's a good idea."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 502.26,
+      "end": 504.34,
+      "text": " But maybe before we actually get into that,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 504.38,
+      "end": 509.62,
+      "text": " I think it's useful to give some plain English definitions for the necessary terminology"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 509.62,
+      "end": 514.54,
+      "text": " that you are going to encounter when dealing with ECS and especially managed instances."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 514.8,
+      "end": 517.06,
+      "text": " Because, yeah, if you haven't used ECS in a while,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 517.24,
+      "end": 520.38,
+      "text": " I think there is a lot of terminology that is not necessarily obvious."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 520.6,
+      "end": 522.28,
+      "text": " So I always get confused myself."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 522.46,
+      "end": 524.24,
+      "text": " So I think it's just a good refresher."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 524.24,
+      "end": 525.68,
+      "text": " So let's start with cluster."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 525.68,
+      "end": 531.7199999999999,
+      "text": " So with cluster, you can say it's basically like a logical home for your ECS workloads."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 531.9599999999999,
+      "end": 534.76,
+      "text": " It's basically where you define tasks that can run."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 535.66,
+      "end": 541.78,
+      "text": " And effectively, underneath a cluster, you have basically servers that are powering all of that machinery."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 542.18,
+      "end": 543.38,
+      "text": " Then we have task definition."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 543.68,
+      "end": 548.04,
+      "text": " So a task definition, you can think of it like a blueprint for container workloads,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 548.04,
+      "end": 555.56,
+      "text": " which doesn't just contain a container image, but it also contains the specifications such as how much CPU do you need,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 555.76,
+      "end": 559.24,
+      "text": " memory, maybe environment variables, networking configuration, and so on."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 559.4,
+      "end": 562.18,
+      "text": " Then you have a task as opposed to task definition."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 562.36,
+      "end": 567.86,
+      "text": " So task definition is the blueprint, while a task is actually a running copy of that task definition."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 567.86,
+      "end": 572.08,
+      "text": " So it's almost like you have an instance that is running for that specific task definition."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 572.64,
+      "end": 579.84,
+      "text": " And as you might have one task definition, you might have multiple tasks that use the same definition to distribute that workload."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 580,
+      "end": 587.7,
+      "text": " Then you have the concept of service, which is also a bit confusing because sometimes I find it feels almost the same as a task definition,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 587.7,
+      "end": 594.34,
+      "text": " but actually it's a bit more in the sense that it's almost like what keeps the tasks running."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 594.98,
+      "end": 597.1,
+      "text": " So the task definition gives you the blueprint."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 597.44,
+      "end": 599.1400000000001,
+      "text": " The task is the actual instance running."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 599.58,
+      "end": 606.6400000000001,
+      "text": " But a service is basically where you specify how many tasks do you want and what are the conditions for which these tasks should run."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 606.96,
+      "end": 608.7,
+      "text": " So that includes, for instance, deployments."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 609.5,
+      "end": 615.24,
+      "text": " Like, for instance, if you're going from version 1 to version 2, how you do roll out those version changes."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 615.24,
+      "end": 624.14,
+      "text": " Or maybe auto scaling, like if you have specific requirements where, I don't know, maybe depending on traffic or maybe depending on work available in a queue,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 624.42,
+      "end": 626.52,
+      "text": " you might want to scale things up and down."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 626.6800000000001,
+      "end": 629.26,
+      "text": " You define all of that stuff in the service definition."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 629.94,
+      "end": 631.48,
+      "text": " Then we have capacity provider."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 632,
+      "end": 638.64,
+      "text": " And basically, capacity provider bridges the gap between ECS and where compute comes from."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 638.88,
+      "end": 644.46,
+      "text": " So that can be, for instance, ECS is more like a service that manages container, if you want."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 644.46,
+      "end": 648.46,
+      "text": " And you can think of it as it's abstracting the underlying infrastructure."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 649.48,
+      "end": 653.82,
+      "text": " So when you work with capacity providers, you actually say, okay, what kind of abstraction do you want to use?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 654.34,
+      "end": 657.5600000000001,
+      "text": " And that can be Fargate in the case of a more serverless option."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 658.08,
+      "end": 663.58,
+      "text": " It can be EC2 with auto scaling groups or EC2 with managed instances."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 664.0600000000001,
+      "end": 672.1800000000001,
+      "text": " For managed instances, the capacity provider is basically where you have to describe what kind of instances are acceptable using something called attributes."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 672.18,
+      "end": 675.02,
+      "text": " And there are generally two options."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 675.2399999999999,
+      "end": 679.42,
+      "text": " One is the default capacity provider, which is pretty much automatic."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 679.42,
+      "end": 685.54,
+      "text": " So it tries to select the most cost-optimized general purpose instances for your workload requirements."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 685.74,
+      "end": 691.52,
+      "text": " Or you can also use custom capacity providers where you have more control in specifying those attributes,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 691.8199999999999,
+      "end": 696.88,
+      "text": " which are things like the vCPU count, memory, CPU manufacturers."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 696.88,
+      "end": 707.5,
+      "text": " If you need any accelerator, which is not just GPUs, you can even use, I think, like TPUs and FPGAs as well."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 708.08,
+      "end": 711.82,
+      "text": " So, yeah, basically, this covers also what an attribute is."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 711.98,
+      "end": 717.06,
+      "text": " It's basically a list of desirable features of your underlying infrastructure."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 717.06,
+      "end": 722.4,
+      "text": " And you can even get more specific, like technically you don't want to hardcode the instance types,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 722.68,
+      "end": 729,
+      "text": " but you can even define a subset of instance types that are acceptable if you want,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 729.14,
+      "end": 736.3599999999999,
+      "text": " or as we say, the kind of CPU that they need, or maybe if you want burstable performance or bare metal instances."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 736.36,
+      "end": 744.94,
+      "text": " So it can get pretty granular and you can imagine like a big filtering query across all the possible available instances in AWS,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 745.62,
+      "end": 750.42,
+      "text": " just trying to select the best one in terms of cost effectively is the best one,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 750.52,
+      "end": 753.2,
+      "text": " but also matching all the requirements that you are providing."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 753.48,
+      "end": 759.6800000000001,
+      "text": " So hopefully that's a good introduction before we start to talk about what are the things that you need to do step by step"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 759.6800000000001,
+      "end": 764.48,
+      "text": " to get to a running deployment using ECS managed instances."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 764.48,
+      "end": 769.4200000000001,
+      "text": " Okay, we'll try and go through the list of steps then as comprehensively as we can."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 769.88,
+      "end": 773.44,
+      "text": " I mean, it starts with an ECS cluster like you might have used before."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 773.6,
+      "end": 775.24,
+      "text": " You may already have one that you can use."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 775.64,
+      "end": 779.74,
+      "text": " So you'll need your VPC, you need to create your cluster or use one if you've got one already."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 780.2,
+      "end": 783.14,
+      "text": " And then managed instances needs two IAM roles."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 783.48,
+      "end": 788.48,
+      "text": " One is going to be the instance profile role, which is the same as you always have with EC2."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 788.48,
+      "end": 793.74,
+      "text": " And then you've got an infrastructure role, which is the one that ECS MI would use to launch your instances"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 793.74,
+      "end": 797.14,
+      "text": " and pass that other role to the instance itself."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 797.52,
+      "end": 799.7,
+      "text": " You need a security group, of course."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 799.98,
+      "end": 806.38,
+      "text": " And then you get into the real MI specific stuff, like the capacity provider Luciano was already explaining very well."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 806.38,
+      "end": 811.64,
+      "text": " You can start with a default capacity provider and ECS will just pick the capacity for you."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 812,
+      "end": 820.84,
+      "text": " Or if you want to specify those instance attributes, like VPCPU and memory, CPU manufacturer, accelerators, storage, networking."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 821.48,
+      "end": 824.04,
+      "text": " It's basically like, it's a bit like SQL, right?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 824.08,
+      "end": 829.8,
+      "text": " You're just providing a list of filters for all of the instance types that are supported by ECS MI."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 829.8,
+      "end": 836.7199999999999,
+      "text": " Then you attach your capacity provider to the cluster and you're ready to start thinking about tasks and containers."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 837.26,
+      "end": 842.24,
+      "text": " So you publish your container image to ECR and define a task definition."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 843.0999999999999,
+      "end": 849,
+      "text": " One thing is that in your task definition, you should specify managed instances compatibility."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 849.3599999999999,
+      "end": 850.4799999999999,
+      "text": " There's a new value for that."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 850.8199999999999,
+      "end": 854.42,
+      "text": " And then you can add your containers, your environment variables, logging, etc."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 854.42,
+      "end": 864.06,
+      "text": " And if you need GPUs in your container, that's also something you need to specify with the GPU count attribute, resource attribute in your container as well."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 864.3399999999999,
+      "end": 869.52,
+      "text": " Then you will set up your task role as normal to give the actual task its permissions."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 870.3,
+      "end": 872.36,
+      "text": " And you can create an ECS service."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 872.4799999999999,
+      "end": 874.64,
+      "text": " You don't absolutely have to create an ECS service."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 874.78,
+      "end": 876.8399999999999,
+      "text": " You can always just run tasks directly in the cluster."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 877.3199999999999,
+      "end": 884.26,
+      "text": " ECS services are what I think 95% of workloads are using because they will scale for you."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 884.42,
+      "end": 885.42,
+      "text": " And have other features."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 885.42,
+      "end": 894.5,
+      "text": " So you will set the capacity provider strategies on your service to the managed instances capacity provider name."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 894.6999999999999,
+      "end": 899.52,
+      "text": " And then you may want to set a desired count or let the service scale that for you."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 900.18,
+      "end": 910.36,
+      "text": " Another interesting point when we're talking about CDK is that if you're using managed instances, you're still using the Fargate service level two construct, which is a bit confusing."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 910.36,
+      "end": 912.86,
+      "text": " But that's the way it is right now."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 912.94,
+      "end": 915.52,
+      "text": " There's official examples from AWS using that."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 915.9,
+      "end": 918.36,
+      "text": " And our own example we'll share later does the same."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 918.5,
+      "end": 919.76,
+      "text": " We'll talk about that in a bit."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 920.2,
+      "end": 925.4,
+      "text": " If you want auto scaling, you can also add your deployment auto scaling in the ECS service too."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 925.4,
+      "end": 930.8199999999999,
+      "text": " And then you will deploy the stack, trigger your workload."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 931.62,
+      "end": 944.38,
+      "text": " And based on your scaling configuration, you should see tasks starting in ECS, managed EC2 instances starting, and they'll appear in your ECS console under infrastructure, but also in the EC2 console."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 944.38,
+      "end": 950.24,
+      "text": " So that's roughly the list of steps you need to get going."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 951.64,
+      "end": 954.64,
+      "text": " Luciano, do you want to talk a bit more about that CDK support?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 954.88,
+      "end": 959.4,
+      "text": " Because, and maybe we'll talk about the code example we have as well, because there's not a lot out there."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 959.54,
+      "end": 964.38,
+      "text": " And we thought we'd try and add some examples that people might use as a basis for their own."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 964.38,
+      "end": 976.08,
+      "text": " Yes, so we are going to make available this template or example, if you want to call it like that, which uses CDK to provision an application running on ECS, managed instances."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 976.58,
+      "end": 980.32,
+      "text": " And yeah, this is just our honest attempt at providing an example."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 980.56,
+      "end": 985.12,
+      "text": " It might not be the best one going forward because, yeah, we just tried to build it from scratch."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 985.24,
+      "end": 988.74,
+      "text": " We didn't really find a huge amount of reference or examples out there."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 988.74,
+      "end": 997.8,
+      "text": " So hopefully this is our first good attempt, but we're definitely going to rely on the rest of the community to improve it or provide other examples as well."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 998.1800000000001,
+      "end": 999.46,
+      "text": " So what do we do in this template?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 999.62,
+      "end": 1006.16,
+      "text": " So we make a little bit of an assumption, which is not necessarily what you might want to do, but it's one use case."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1006.36,
+      "end": 1014.74,
+      "text": " And the use case is basically you have a workload that needs GPU, and this workload runs based on tasks that are available on a queue."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1014.74,
+      "end": 1019.72,
+      "text": " So it automatically scales to zero. If there is nothing in the queue, you have nothing running."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1019.96,
+      "end": 1029.6200000000001,
+      "text": " If you drop messages in the queue, it will spin up all the necessary infrastructure until it processes everything from the queue and then shuts down all the infrastructure again."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1029.9,
+      "end": 1034.04,
+      "text": " And we actually provide two examples."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1034.34,
+      "end": 1039.7,
+      "text": " So there is almost like a vanilla container that the only code you will find, it's Python code, by the way,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1039.7,
+      "end": 1045.6200000000001,
+      "text": " is just pulling from the queue and then just telling you this is the message, do whatever you want with it."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1045.8400000000001,
+      "end": 1048.64,
+      "text": " And then we have a little bit of a more realistic example."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1048.8400000000001,
+      "end": 1050.2,
+      "text": " So the first one is almost like a template."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1050.4,
+      "end": 1054.48,
+      "text": " You can put whatever business logic you need inside of the container and deploy it."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1054.64,
+      "end": 1062.24,
+      "text": " While the second one, it's a realistic example where we use OpenAI Whisper to transcribe a podcast audio that is coming from S3."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1062.24,
+      "end": 1070.7,
+      "text": " You might remember we have talked about our current solution to transcribe this very podcast that is using SageMakers today."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1070.88,
+      "end": 1078.5,
+      "text": " So maybe eventually this is going to become a replacement if we see that there is an improvement in terms of pricing and or performance."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1078.84,
+      "end": 1083.46,
+      "text": " We haven't done all the maths yet to decide whether this is the solution we want to go."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1083.8,
+      "end": 1086.68,
+      "text": " But technically, we could prove that this solution works."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1086.8,
+      "end": 1088.16,
+      "text": " So it might be an alternative."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1088.16,
+      "end": 1094.98,
+      "text": " So I think it's important to mention what did we learn while writing all this CDK code."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1095.0600000000002,
+      "end": 1096.3200000000002,
+      "text": " It's not huge."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1096.44,
+      "end": 1100.0400000000002,
+      "text": " I think it's a file with just a couple of hundreds of lines of code."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1100.42,
+      "end": 1106.5600000000002,
+      "text": " And yeah, already Eoin mentioned the limitation that you have to use this Fargate service, which is a little bit counterintuitive."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1106.96,
+      "end": 1113.4,
+      "text": " Looks like you're doing something wrong because we know we already mentioned today that Fargate is a different way of using ECS."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1113.4,
+      "end": 1121.0600000000002,
+      "text": " I think it's just that the team hasn't created a more specific construct just to be able to work with managed instances."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1121.38,
+      "end": 1125,
+      "text": " So Fargate is probably the best approximation you get so far."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1125.16,
+      "end": 1127.8600000000001,
+      "text": " But it doesn't just get confusing because of the name."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1128.1200000000001,
+      "end": 1133.46,
+      "text": " It gets confusing also because you will have attributes that are available to you."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1133.46,
+      "end": 1136.96,
+      "text": " But then those attributes don't really do anything useful."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1137.18,
+      "end": 1149.6000000000001,
+      "text": " And this is something that misled us into thinking that you could use spot instances, for example, because there is a very long attribute that is called something like max spot price as percentage of optimal on-demand price."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1149.6,
+      "end": 1157.4199999999998,
+      "text": " Something like that, that basically makes you think, OK, this is a way for me to be able to select spot instances."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1158.12,
+      "end": 1167.1,
+      "text": " And we spend hours just trying to figure out what was the right configuration to get a spot instance, only to eventually find out that this attribute is ignored."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1167.52,
+      "end": 1171.4399999999998,
+      "text": " And there is no way, at least today, that you can get a spot instance."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1171.44,
+      "end": 1177.78,
+      "text": " So this is another side effect of having this Fargate service construct, which is, again, just an approximation."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1178.24,
+      "end": 1181.14,
+      "text": " But you get probably more than what you actually need."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1181.18,
+      "end": 1182.0800000000002,
+      "text": " And it's just confusing."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1182.9,
+      "end": 1187.46,
+      "text": " And then, again, we already mentioned there is a little bit of a lack of documentation and proper examples."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1187.8600000000001,
+      "end": 1190.92,
+      "text": " But we are confident this is just something that is going to improve."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1191.04,
+      "end": 1191.9,
+      "text": " It's a new service."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1192.02,
+      "end": 1195.54,
+      "text": " And it's probably normal that there isn't a lot out there yet."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1195.54,
+      "end": 1198.48,
+      "text": " So hopefully we can help a little with this one example."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1198.68,
+      "end": 1203,
+      "text": " But, yeah, we look forward to seeing more examples from the rest of the community."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1203.34,
+      "end": 1205.84,
+      "text": " So what do you think is that of the GPU support?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1205.96,
+      "end": 1209.68,
+      "text": " Because this was, I think, a big component in our tests."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1210.02,
+      "end": 1216.02,
+      "text": " Yeah, I think you've asked publicly on the podcast many times for AWS to add GPU support to Fargate."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1216.12,
+      "end": 1217.02,
+      "text": " It was on your wish list."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1217.12,
+      "end": 1217.68,
+      "text": " And Lambda."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1218.02,
+      "end": 1218.34,
+      "text": " Well done."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1219.06,
+      "end": 1219.3799999999999,
+      "text": " Oh, yeah."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1219.72,
+      "end": 1220.86,
+      "text": " OK, good luck with that."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1223.28,
+      "end": 1224.98,
+      "text": " But look, it did work with GPUs."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1224.98,
+      "end": 1226.96,
+      "text": " We were able to use it for the podcast case."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1226.96,
+      "end": 1228.54,
+      "text": " I mean, it is."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1228.74,
+      "end": 1233.58,
+      "text": " I think we did share our frustrations with SageMaker, batch transforms in the past, which we use for the podcast."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1233.8600000000001,
+      "end": 1234.6,
+      "text": " It works."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1234.8,
+      "end": 1238.6200000000001,
+      "text": " And it has worked very reliably since we started using it with the whisper to do the transcription."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1239.08,
+      "end": 1241.5,
+      "text": " But the overall process takes about 30 minutes."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1241.68,
+      "end": 1248,
+      "text": " And the majority of that is just overhead while we wait for SageMaker to get a container up and running."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1248.1,
+      "end": 1249.46,
+      "text": " So we were looking for other options."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1249.7,
+      "end": 1251.92,
+      "text": " And this worked reasonably well, I think I can say."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1252.44,
+      "end": 1254.84,
+      "text": " You can select a number of GPU accelerators."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1254.84,
+      "end": 1256.4599999999998,
+      "text": " Which is good."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1256.9599999999998,
+      "end": 1259.72,
+      "text": " I'm sure these days people will have lots of use cases in mind."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1260.4599999999998,
+      "end": 1263.4399999999998,
+      "text": " But also bear in mind that you may need to request a quota increase."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1263.6,
+      "end": 1266.98,
+      "text": " Because GPUs don't just become available automatically on your account."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1267.36,
+      "end": 1274.1599999999999,
+      "text": " They want to protect you from bill shock by making you ask explicitly for the really expensive instance types."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1274.8799999999999,
+      "end": 1277.02,
+      "text": " GPUs typically belong to that category."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1277.02,
+      "end": 1284.34,
+      "text": " So make sure you get the service quotas in quickly if you want to launch ECS-MI production next week."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1284.76,
+      "end": 1286.66,
+      "text": " Now, that's GPU support."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1287.2,
+      "end": 1291.22,
+      "text": " Should we talk about where ECS-MI fits for use cases, Luciano?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1291.22,
+      "end": 1291.82,
+      "text": " Yes."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1291.82,
+      "end": 1306.46,
+      "text": " So if you have reserved instances or capacity reservation and you want to combine the benefits of using those things with the ease of management of ECS, I think using managed instances, it's a good idea."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1306.46,
+      "end": 1314.28,
+      "text": " And basically you get something that is close to target in terms of experience, but with a lot more control on the underlying hardware."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1314.28,
+      "end": 1318.86,
+      "text": " So, for instance, you can enable GPUs this way, which was our main use case."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1319.3999999999999,
+      "end": 1325.3999999999999,
+      "text": " Other thing that might be really useful is, for instance, when you need fine-grained control over storage and networking."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1325.74,
+      "end": 1333.5,
+      "text": " Maybe because you are doing something that requires very specific performance or very specific characteristics in either the storage or the networking layer."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1333.5,
+      "end": 1343.8,
+      "text": " But if we want to provide some more practical examples, what we did was basically a low-volume AI workload that required GPU."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1344.2,
+      "end": 1359.12,
+      "text": " In our case, it was audio transcriptions, but you can imagine something like, I don't know, you have a bucket, a three bucket full of pictures, and you want to come up with, I don't know, automatically labeling all these pictures or maybe creating captions, that kind of stuff."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1359.12,
+      "end": 1366.6599999999999,
+      "text": " That could be another very similar use case, and I think you can very easily change our container example to build something like that."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1366.9599999999998,
+      "end": 1376.32,
+      "text": " So, I think this is a very good use case, and you can just summarize it as when there is work to do, and you need very specific infrastructure for that work to happen."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1376.9799999999998,
+      "end": 1385.58,
+      "text": " You just define all of it, put the work as a message in a queue, and you know that it's going to scale up when needed and scale to zero when all the work has been completed."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1385.58,
+      "end": 1398.36,
+      "text": " So, I think that's an excellent use case, and I can see ourselves as an AWS consulting company using this kind of approach often enough because we see the kind of problem happening in many different ways very often."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1399.22,
+      "end": 1405.62,
+      "text": " Another thing we see a lot, especially with financial services customers, is HPC, high-performance computing."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1405.62,
+      "end": 1416.8799999999999,
+      "text": " And this is the case where basically you need to have lots of compute, but also lots of performance in terms of networking and disk access."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1417.6799999999998,
+      "end": 1422.8799999999999,
+      "text": " So, using something like ECSMI can be a very good option."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1423.1399999999999,
+      "end": 1429.6399999999999,
+      "text": " And we haven't done a lot of experimentation yet, but I think it's a very interesting fit, at least on the paper."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1429.76,
+      "end": 1434.78,
+      "text": " So, we want to test it more and see if it's really something we can run in production for this use case."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1434.78,
+      "end": 1442.8799999999999,
+      "text": " And in general, in our experience, we could say that starting a single task took three to four minutes for the use case we just described."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1443.16,
+      "end": 1446.96,
+      "text": " So, we didn't do a huge amount of testing with many containers."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1447.22,
+      "end": 1450.16,
+      "text": " Like, generally, we were trying to run one instance and one container."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1450.6399999999999,
+      "end": 1454.12,
+      "text": " But I think it would be really interesting to see how much this scales and how fast."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1454.32,
+      "end": 1456.04,
+      "text": " Can you run thousands of containers?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1456.04,
+      "end": 1464.6599999999999,
+      "text": " And if it's possible and there is very little overhead, then there are a lot of other scenarios that are interesting and possibly even competing with Lambda."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1464.96,
+      "end": 1466.08,
+      "text": " So, I don't know."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1466.18,
+      "end": 1471.54,
+      "text": " I think we'll need to see what is the timing there and the volumes that you can get to."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1471.76,
+      "end": 1476.48,
+      "text": " But definitely something worth experimenting more because it might unlock a lot of other use cases."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1476.48,
+      "end": 1480.4,
+      "text": " But I think that that only tells you what you can do with it."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1480.5,
+      "end": 1487.3,
+      "text": " I think that it's also interesting to see what are some use cases that you should definitely not use ECSMI for."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1487.5,
+      "end": 1489.28,
+      "text": " I don't think there are that many, to be fair."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1489.48,
+      "end": 1493,
+      "text": " But one thing that's pointed out of the documentation is around strong isolation."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1493.34,
+      "end": 1501.1,
+      "text": " Because Fargate, you may know that it uses these really cool firecracker VMs that offer very strong guarantees around isolation."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1501.1,
+      "end": 1504.02,
+      "text": " With ECSMI, you're still using EC2."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1504.56,
+      "end": 1510.24,
+      "text": " Tasks can be running on the same instance, which means you don't have the same level of guaranteed isolation and security."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1510.58,
+      "end": 1514.4399999999998,
+      "text": " You can configure ECSMI to run tasks on separate instances."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1514.8999999999999,
+      "end": 1520.4599999999998,
+      "text": " But then you're kind of losing the benefit of being able to pack multiple containers on a shared instance for cost and efficiency."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1521,
+      "end": 1523.8,
+      "text": " So, security-conscious workloads."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1524.32,
+      "end": 1525.28,
+      "text": " Take note of that."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1525.56,
+      "end": 1529.98,
+      "text": " If you need a custom AMI for whatever reason, you have special monitoring security agents."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1529.98,
+      "end": 1530.72,
+      "text": " You can't, right?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1530.76,
+      "end": 1532.8600000000001,
+      "text": " You can't use managed instances with a custom AMI."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1532.96,
+      "end": 1533.6200000000001,
+      "text": " That's the whole point."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1533.76,
+      "end": 1534.42,
+      "text": " It's managed."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1535.76,
+      "end": 1540.8600000000001,
+      "text": " And I think, lastly, if you want to shell into the instance itself, you can't do that again."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1540.94,
+      "end": 1543.3,
+      "text": " Just like Fargate, you can shell into the underlying instance."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1543.46,
+      "end": 1546.96,
+      "text": " You can ECS exec into the container itself, but not into the host."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1547.24,
+      "end": 1547.82,
+      "text": " And that's it, really."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1547.94,
+      "end": 1554.6,
+      "text": " I think there isn't that long list of use cases I wouldn't explore ECSMI for."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1554.72,
+      "end": 1556.78,
+      "text": " I think it's quite broad in its applications."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1556.78,
+      "end": 1559.72,
+      "text": " It's probably time to wrap this up."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1560.08,
+      "end": 1564.3799999999999,
+      "text": " I think, overall, we think this is a good addition to ECS suite."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1564.72,
+      "end": 1568.06,
+      "text": " Pricing might be a bit of a downer, but that completely depends, as always."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1568.36,
+      "end": 1569.62,
+      "text": " So, worth evaluating carefully."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1570.34,
+      "end": 1572.94,
+      "text": " The lack of support for spot instances, I think, was the biggest disappointment."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1573.46,
+      "end": 1575.12,
+      "text": " But we hope it's going to be there eventually."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1575.7,
+      "end": 1578.78,
+      "text": " The documentation and CDK support could be better."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1579.1,
+      "end": 1579.8999999999999,
+      "text": " Lots more examples."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1580.18,
+      "end": 1583.3799999999999,
+      "text": " Again, something that we hope will improve with time and more adoption."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1583.38,
+      "end": 1586.16,
+      "text": " We can see ourselves using ECSMI in production."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1586.6200000000001,
+      "end": 1589.14,
+      "text": " So, I think, overall, we're pretty positive on it."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1589.5400000000002,
+      "end": 1594.3600000000001,
+      "text": " But if you've got any more thoughts on ECSMI, reach out to us and let us know in the comments"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1594.3600000000001,
+      "end": 1596,
+      "text": " below or on social media."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1596.38,
+      "end": 1598,
+      "text": " All our links will be in the description."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1598.5600000000002,
+      "end": 1601.9,
+      "text": " Finally, I just want to thank 4Theorem again for powering this episode."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1602.16,
+      "end": 1608.5,
+      "text": " If you want help designing an AWS architecture that's simple, scalable, and cost-sane, head to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1608.5,
+      "end": 1609.6000000000001,
+      "text": " 4Theorem.com."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1610.0200000000002,
+      "end": 1610.42,
+      "text": " Thank you."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1610.42,
+      "end": 1611.44,
+      "text": " We'll see you in the next one."
+    }
+  ]
+}

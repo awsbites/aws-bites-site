@@ -1,0 +1,1361 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:04.620
+Regular listeners know that we are big fans of Fargate for running containers on AWS.
+
+2
+00:00:05.140 --> 00:00:11.880
+Anytime that AWS gives us a nice way of doing less configuration, getting up and running quickly and reliably, we grab the opportunity.
+
+3
+00:00:12.160 --> 00:00:18.620
+Of course, there's always a trade-off when you cede control to a cloud provider, and Fargate is not without its limitations.
+
+4
+00:00:19.180 --> 00:00:25.020
+You don't get to use GPUs, you can't control network bandwidth, and you don't have a large number of storage options.
+
+5
+00:00:25.020 --> 00:00:34.200
+And that means you sometimes need to jump back to ECS on EC2, and then you have to take on the extra work in configuring and securing and keeping those instances running.
+
+6
+00:00:34.640 --> 00:00:46.620
+We now have the brand new ECSMI managed instances support, and this could be the best of both worlds, promising control over storage, networking, and GPU support with the low management you get with Fargate.
+
+7
+00:00:46.620 --> 00:00:56.500
+We've spent a good bit of time evaluating ECSMI, and we wanted to share with you what we think, and we'll cover GPU support, cost factors, scaling, performance.
+
+8
+00:00:57.080 --> 00:01:02.540
+You'll also hear from us what kind of use cases and workloads are best suited to ECSMI.
+
+9
+00:01:02.820 --> 00:01:08.240
+So let's dive in. I'm Eoin. I'm back with Luciano for the latest episode of AWS Bites.
+
+10
+00:01:08.240 --> 00:01:21.140
+AWS Bites is brought to you by 4Theorem, and we'll find out more about 4Theorem at the end of the show.
+
+11
+00:01:21.400 --> 00:01:26.800
+So choosing something to run your containers is always a trade-off between simplicity and cost and control.
+
+12
+00:01:27.080 --> 00:01:32.560
+We've talked about it a lot before, and we've mentioned the simplicity of AppRunner and Fargate, which we both like.
+
+13
+00:01:32.560 --> 00:01:39.860
+And with both of those options, you don't ever really need to think about the underlying EC2 instances that AWS completely hides from you.
+
+14
+00:01:40.120 --> 00:01:49.680
+ECS on EC2 lets you run tasks on a huge range of instances, but you need to pick the AMI, configure the EC2 correctly, ensure it has the ECS agent, all that stuff,
+
+15
+00:01:49.840 --> 00:01:53.340
+and ensure that the instances are scaling in tandem with ECS tasks.
+
+16
+00:01:53.740 --> 00:01:58.160
+So Luciano, what is this ECSMI, and where does it fit?
+
+17
+00:01:58.160 --> 00:02:09.100
+So yeah, basically, when you say I need to run a container, there is always a hidden requirement baked in, which is you need somewhere a machine that runs that container.
+
+18
+00:02:09.480 --> 00:02:16.440
+And that means thinking about CPU, memory, networking, storage, sometimes even GPUs, as we'll see in the next few minutes.
+
+19
+00:02:16.820 --> 00:02:20.620
+So the real question is how much of that stuff do you want to care about?
+
+20
+00:02:20.700 --> 00:02:24.420
+How much work do you want to put into managing all of that infrastructure?
+
+21
+00:02:24.420 --> 00:02:29.820
+And when it comes to ECS, typically it's a spectrum, and you have two contrasting options.
+
+22
+00:02:30.260 --> 00:02:37.840
+On one side, you have Fargate, and Eoin, as you put it really well in the introduction, Fargate is almost like the serverless option of containers,
+
+23
+00:02:38.040 --> 00:02:42.500
+if you want to call it like that, where basically you only worry about your application code.
+
+24
+00:02:42.880 --> 00:02:48.540
+You define the task as a container that runs your application, and then whatever is the underlying infrastructure,
+
+25
+00:02:48.740 --> 00:02:52.360
+AWS manages all of that and actually hides all of that complexity.
+
+26
+00:02:52.360 --> 00:02:59.920
+This is great when you need to move fast and when you don't have really advanced requirements in terms of the underlying infrastructure,
+
+27
+00:03:00.200 --> 00:03:02.300
+which is probably most of the use cases.
+
+28
+00:03:02.660 --> 00:03:06.600
+So I think for most people using Fargate, it's probably a good win.
+
+29
+00:03:06.840 --> 00:03:08.980
+A caveat, maybe if you need something like a GPU.
+
+30
+00:03:09.460 --> 00:03:12.820
+And in that case, we need to look into the other end of the spectrum,
+
+31
+00:03:12.820 --> 00:03:18.660
+which when looking at ECS is basically you use ECS with EC2 instances,
+
+32
+00:03:18.660 --> 00:03:22.680
+which means when you create a cluster, you need to provision your own EC2 instances,
+
+33
+00:03:23.180 --> 00:03:25.800
+which suddenly means you need to pick the right instances.
+
+34
+00:03:26.380 --> 00:03:29.140
+You need to decide which operative system are you going to use.
+
+35
+00:03:29.440 --> 00:03:32.780
+You need to make sure you provision all the right software and libraries.
+
+36
+00:03:33.160 --> 00:03:36.000
+You keep the operative system up to date and so on.
+
+37
+00:03:36.000 --> 00:03:41.380
+So you are on to AMIs, launch templates, autoscaling groups, patching, maintenance,
+
+38
+00:03:41.640 --> 00:03:44.800
+all that kind of stuff, which for some people can be very joyful,
+
+39
+00:03:45.220 --> 00:03:48.900
+but I think for other people could be very daunting and time-consuming.
+
+40
+00:03:49.320 --> 00:03:55.880
+So in a sense, we could say the ECS managed instances in this spectrum is something that stands in the middle
+
+41
+00:03:55.880 --> 00:03:58.820
+and it tries to give you the best of both worlds.
+
+42
+00:03:58.820 --> 00:04:04.840
+And so with this third option, basically you keep the flexibility of EC2,
+
+43
+00:04:05.220 --> 00:04:07.420
+but without that management burden.
+
+44
+00:04:07.860 --> 00:04:17.220
+So in practice, what this means is that you still need to define somehow what kind of compute power you need,
+
+45
+00:04:17.400 --> 00:04:23.220
+but rather than actually picking the instances and the operative system and creating AMIs and so on,
+
+46
+00:04:23.540 --> 00:04:26.880
+you just define a list of requirements and give it to AWS.
+
+47
+00:04:26.880 --> 00:04:32.420
+And then AWS is going to try to select the best machine that fits that list of requirements
+
+48
+00:04:32.420 --> 00:04:33.680
+and just spin it up for you.
+
+49
+00:04:34.180 --> 00:04:36.960
+You don't even know which operative system is running.
+
+50
+00:04:37.580 --> 00:04:40.780
+Technically, you know, we can tell you it's Amazon Bottlerocket,
+
+51
+00:04:41.220 --> 00:04:44.740
+but in practice, it doesn't matter because you're not managing that
+
+52
+00:04:44.740 --> 00:04:47.340
+and you cannot even log in into the machine.
+
+53
+00:04:47.640 --> 00:04:52.060
+So you kind of get a Fargate-like experience where you know there is a machine that is running your container.
+
+54
+00:04:52.300 --> 00:04:54.240
+You don't get to see much of that machine.
+
+55
+00:04:54.240 --> 00:04:59.120
+The advantage compared to Fargate is that you have much more control in expressing the requirements
+
+56
+00:04:59.120 --> 00:05:00.860
+for the underlying infrastructure.
+
+57
+00:05:01.180 --> 00:05:05.240
+So today we are going to be spending a little bit more time giving you the details of what we learned
+
+58
+00:05:05.240 --> 00:05:08.560
+by exploring this new option that you have in ECS.
+
+59
+00:05:08.820 --> 00:05:13.320
+But I think we should start by talking about costs,
+
+60
+00:05:13.400 --> 00:05:17.560
+because I think there are some important nuances there that we need to clarify up front.
+
+61
+00:05:17.560 --> 00:05:19.700
+Yeah, I think so.
+
+62
+00:05:19.780 --> 00:05:24.380
+We normally talk about cost at the end, but since it's such a big aspect of the pitch
+
+63
+00:05:24.380 --> 00:05:27.860
+around ECS managed instances, let's give the lowdown now.
+
+64
+00:05:28.640 --> 00:05:31.220
+The pricing model itself is reasonably straightforward.
+
+65
+00:05:31.800 --> 00:05:34.100
+You're paying for the underlying EC2, right?
+
+66
+00:05:34.140 --> 00:05:37.880
+So you pay the normal EC2 per second pricing for the instances.
+
+67
+00:05:37.880 --> 00:05:44.380
+And that includes the normal benefits you would get with compute savings plans or reserved instances, etc.,
+
+68
+00:05:44.380 --> 00:05:45.460
+if you have those enabled.
+
+69
+00:05:46.240 --> 00:05:52.380
+And this is a big part of the cost calculation with ECS MI, that you can use reserved instances.
+
+70
+00:05:52.780 --> 00:05:54.080
+It's not an option you have with Fargate.
+
+71
+00:05:54.760 --> 00:05:59.880
+Now, the important other point is that there is a management fee on top of that EC2 pricing.
+
+72
+00:05:59.880 --> 00:06:07.960
+So AWS provides a separate ECS managed instances price list of the fees per instance type on the pricing page.
+
+73
+00:06:08.220 --> 00:06:10.020
+So you have to look at each instance type.
+
+74
+00:06:10.200 --> 00:06:14.860
+But we just did a calculation of like analysis of all the data against the EC2 instance pricing.
+
+75
+00:06:15.160 --> 00:06:18.740
+And it seems like it's 12% is the management fee overhead.
+
+76
+00:06:18.940 --> 00:06:21.260
+And that's based on the on-demand instance price.
+
+77
+00:06:21.500 --> 00:06:23.440
+So in some cases, that might be fine.
+
+78
+00:06:24.000 --> 00:06:28.420
+You can accept, I think, as much as we all hate giving money to AWS,
+
+79
+00:06:28.420 --> 00:06:34.900
+if they're doing a little bit more work and investing in infrastructure to lower your total cost of ownership
+
+80
+00:06:34.900 --> 00:06:39.160
+and reduce the maintenance effort, the management fee might seem fair.
+
+81
+00:06:39.920 --> 00:06:45.240
+But on the other hand, it does kind of challenge the claim that ECS MI is a more cost-effective approach.
+
+82
+00:06:45.580 --> 00:06:48.800
+If you're benefiting from compute savings plans or reserved instances,
+
+83
+00:06:49.100 --> 00:06:53.640
+you're still going to pay 12% of the on-demand cost for the managed instances.
+
+84
+00:06:54.640 --> 00:06:58.380
+So you would need to do that calculation and figure out what works out for you.
+
+85
+00:06:58.420 --> 00:07:03.140
+But do bear in mind the total cost of ownership and the time you'll save because that's not trivial.
+
+86
+00:07:03.940 --> 00:07:05.820
+There is one more bit of bad news.
+
+87
+00:07:06.260 --> 00:07:10.660
+At least as of today, ECS MI does not support spot instances.
+
+88
+00:07:11.040 --> 00:07:15.560
+Now with ECS on EC2 and ECS on Fargate, you have a spot option.
+
+89
+00:07:15.860 --> 00:07:17.800
+With ECS MI, right now, you don't.
+
+90
+00:07:18.140 --> 00:07:24.440
+So that's a pity, especially since we thought we'd be able to use this to get really, really cheap infrastructure.
+
+91
+00:07:24.440 --> 00:07:27.380
+But that's not really the case.
+
+92
+00:07:27.460 --> 00:07:28.460
+That's the key caveat, right?
+
+93
+00:07:28.500 --> 00:07:31.020
+It's not automatically true that ECS MI will save you money.
+
+94
+00:07:31.260 --> 00:07:33.840
+Depending on your workload, how much you benefit from spot today,
+
+95
+00:07:34.340 --> 00:07:36.820
+how mature your existing ECS on EC2 setup is,
+
+96
+00:07:37.200 --> 00:07:41.000
+you may already still come out ahead running your own EC2 capacity,
+
+97
+00:07:41.380 --> 00:07:44.560
+especially if you've invested time in rightsizing, scaling policies,
+
+98
+00:07:45.220 --> 00:07:47.800
+AMI pipelines, operational playbooks, all of that.
+
+99
+00:07:47.800 --> 00:07:52.260
+And you've got your compute savings plans, reserved instances, all of that already sorted.
+
+100
+00:07:53.000 --> 00:07:59.540
+ECS MI is essentially trading some control and a margin on top of on-demand pricing for reduced operational work.
+
+101
+00:07:59.820 --> 00:08:04.220
+And whether that trade is worth it really depends on your story and your constraints.
+
+102
+00:08:04.480 --> 00:08:09.640
+The only honest answer here is to benchmark it against your workload and your current costs.
+
+103
+00:08:09.860 --> 00:08:11.260
+I'm afraid we can't do that for you.
+
+104
+00:08:11.360 --> 00:08:12.620
+But we did do some work.
+
+105
+00:08:12.980 --> 00:08:16.520
+So do we want to talk about our story and how we evaluated ECS MI?
+
+106
+00:08:16.520 --> 00:08:20.440
+Hey, Luciano, do you want to talk about how we got started and how people will get started?
+
+107
+00:08:21.060 --> 00:08:22.140
+Yeah, I think it's a good idea.
+
+108
+00:08:22.260 --> 00:08:24.340
+But maybe before we actually get into that,
+
+109
+00:08:24.380 --> 00:08:29.620
+I think it's useful to give some plain English definitions for the necessary terminology
+
+110
+00:08:29.620 --> 00:08:34.540
+that you are going to encounter when dealing with ECS and especially managed instances.
+
+111
+00:08:34.800 --> 00:08:37.060
+Because, yeah, if you haven't used ECS in a while,
+
+112
+00:08:37.240 --> 00:08:40.380
+I think there is a lot of terminology that is not necessarily obvious.
+
+113
+00:08:40.600 --> 00:08:42.280
+So I always get confused myself.
+
+114
+00:08:42.460 --> 00:08:44.240
+So I think it's just a good refresher.
+
+115
+00:08:44.240 --> 00:08:45.680
+So let's start with cluster.
+
+116
+00:08:45.680 --> 00:08:51.720
+So with cluster, you can say it's basically like a logical home for your ECS workloads.
+
+117
+00:08:51.960 --> 00:08:54.760
+It's basically where you define tasks that can run.
+
+118
+00:08:55.660 --> 00:09:01.780
+And effectively, underneath a cluster, you have basically servers that are powering all of that machinery.
+
+119
+00:09:02.180 --> 00:09:03.380
+Then we have task definition.
+
+120
+00:09:03.680 --> 00:09:08.040
+So a task definition, you can think of it like a blueprint for container workloads,
+
+121
+00:09:08.040 --> 00:09:15.560
+which doesn't just contain a container image, but it also contains the specifications such as how much CPU do you need,
+
+122
+00:09:15.760 --> 00:09:19.240
+memory, maybe environment variables, networking configuration, and so on.
+
+123
+00:09:19.400 --> 00:09:22.180
+Then you have a task as opposed to task definition.
+
+124
+00:09:22.360 --> 00:09:27.860
+So task definition is the blueprint, while a task is actually a running copy of that task definition.
+
+125
+00:09:27.860 --> 00:09:32.080
+So it's almost like you have an instance that is running for that specific task definition.
+
+126
+00:09:32.640 --> 00:09:39.840
+And as you might have one task definition, you might have multiple tasks that use the same definition to distribute that workload.
+
+127
+00:09:40.000 --> 00:09:47.700
+Then you have the concept of service, which is also a bit confusing because sometimes I find it feels almost the same as a task definition,
+
+128
+00:09:47.700 --> 00:09:54.340
+but actually it's a bit more in the sense that it's almost like what keeps the tasks running.
+
+129
+00:09:54.980 --> 00:09:57.100
+So the task definition gives you the blueprint.
+
+130
+00:09:57.440 --> 00:09:59.140
+The task is the actual instance running.
+
+131
+00:09:59.580 --> 00:10:06.640
+But a service is basically where you specify how many tasks do you want and what are the conditions for which these tasks should run.
+
+132
+00:10:06.960 --> 00:10:08.700
+So that includes, for instance, deployments.
+
+133
+00:10:09.500 --> 00:10:15.240
+Like, for instance, if you're going from version 1 to version 2, how you do roll out those version changes.
+
+134
+00:10:15.240 --> 00:10:24.140
+Or maybe auto scaling, like if you have specific requirements where, I don't know, maybe depending on traffic or maybe depending on work available in a queue,
+
+135
+00:10:24.420 --> 00:10:26.520
+you might want to scale things up and down.
+
+136
+00:10:26.680 --> 00:10:29.260
+You define all of that stuff in the service definition.
+
+137
+00:10:29.940 --> 00:10:31.480
+Then we have capacity provider.
+
+138
+00:10:32.000 --> 00:10:38.640
+And basically, capacity provider bridges the gap between ECS and where compute comes from.
+
+139
+00:10:38.880 --> 00:10:44.460
+So that can be, for instance, ECS is more like a service that manages container, if you want.
+
+140
+00:10:44.460 --> 00:10:48.460
+And you can think of it as it's abstracting the underlying infrastructure.
+
+141
+00:10:49.480 --> 00:10:53.820
+So when you work with capacity providers, you actually say, okay, what kind of abstraction do you want to use?
+
+142
+00:10:54.340 --> 00:10:57.560
+And that can be Fargate in the case of a more serverless option.
+
+143
+00:10:58.080 --> 00:11:03.580
+It can be EC2 with auto scaling groups or EC2 with managed instances.
+
+144
+00:11:04.060 --> 00:11:12.180
+For managed instances, the capacity provider is basically where you have to describe what kind of instances are acceptable using something called attributes.
+
+145
+00:11:12.180 --> 00:11:15.020
+And there are generally two options.
+
+146
+00:11:15.240 --> 00:11:19.420
+One is the default capacity provider, which is pretty much automatic.
+
+147
+00:11:19.420 --> 00:11:25.540
+So it tries to select the most cost-optimized general purpose instances for your workload requirements.
+
+148
+00:11:25.740 --> 00:11:31.520
+Or you can also use custom capacity providers where you have more control in specifying those attributes,
+
+149
+00:11:31.820 --> 00:11:36.880
+which are things like the vCPU count, memory, CPU manufacturers.
+
+150
+00:11:36.880 --> 00:11:47.500
+If you need any accelerator, which is not just GPUs, you can even use, I think, like TPUs and FPGAs as well.
+
+151
+00:11:48.080 --> 00:11:51.820
+So, yeah, basically, this covers also what an attribute is.
+
+152
+00:11:51.980 --> 00:11:57.060
+It's basically a list of desirable features of your underlying infrastructure.
+
+153
+00:11:57.060 --> 00:12:02.400
+And you can even get more specific, like technically you don't want to hardcode the instance types,
+
+154
+00:12:02.680 --> 00:12:09.000
+but you can even define a subset of instance types that are acceptable if you want,
+
+155
+00:12:09.140 --> 00:12:16.360
+or as we say, the kind of CPU that they need, or maybe if you want burstable performance or bare metal instances.
+
+156
+00:12:16.360 --> 00:12:24.940
+So it can get pretty granular and you can imagine like a big filtering query across all the possible available instances in AWS,
+
+157
+00:12:25.620 --> 00:12:30.420
+just trying to select the best one in terms of cost effectively is the best one,
+
+158
+00:12:30.520 --> 00:12:33.200
+but also matching all the requirements that you are providing.
+
+159
+00:12:33.480 --> 00:12:39.680
+So hopefully that's a good introduction before we start to talk about what are the things that you need to do step by step
+
+160
+00:12:39.680 --> 00:12:44.480
+to get to a running deployment using ECS managed instances.
+
+161
+00:12:44.480 --> 00:12:49.420
+Okay, we'll try and go through the list of steps then as comprehensively as we can.
+
+162
+00:12:49.880 --> 00:12:53.440
+I mean, it starts with an ECS cluster like you might have used before.
+
+163
+00:12:53.600 --> 00:12:55.240
+You may already have one that you can use.
+
+164
+00:12:55.640 --> 00:12:59.740
+So you'll need your VPC, you need to create your cluster or use one if you've got one already.
+
+165
+00:13:00.200 --> 00:13:03.140
+And then managed instances needs two IAM roles.
+
+166
+00:13:03.480 --> 00:13:08.480
+One is going to be the instance profile role, which is the same as you always have with EC2.
+
+167
+00:13:08.480 --> 00:13:13.740
+And then you've got an infrastructure role, which is the one that ECS MI would use to launch your instances
+
+168
+00:13:13.740 --> 00:13:17.140
+and pass that other role to the instance itself.
+
+169
+00:13:17.520 --> 00:13:19.700
+You need a security group, of course.
+
+170
+00:13:19.980 --> 00:13:26.380
+And then you get into the real MI specific stuff, like the capacity provider Luciano was already explaining very well.
+
+171
+00:13:26.380 --> 00:13:31.640
+You can start with a default capacity provider and ECS will just pick the capacity for you.
+
+172
+00:13:32.000 --> 00:13:40.840
+Or if you want to specify those instance attributes, like VPCPU and memory, CPU manufacturer, accelerators, storage, networking.
+
+173
+00:13:41.480 --> 00:13:44.040
+It's basically like, it's a bit like SQL, right?
+
+174
+00:13:44.080 --> 00:13:49.800
+You're just providing a list of filters for all of the instance types that are supported by ECS MI.
+
+175
+00:13:49.800 --> 00:13:56.720
+Then you attach your capacity provider to the cluster and you're ready to start thinking about tasks and containers.
+
+176
+00:13:57.260 --> 00:14:02.240
+So you publish your container image to ECR and define a task definition.
+
+177
+00:14:03.100 --> 00:14:09.000
+One thing is that in your task definition, you should specify managed instances compatibility.
+
+178
+00:14:09.360 --> 00:14:10.480
+There's a new value for that.
+
+179
+00:14:10.820 --> 00:14:14.420
+And then you can add your containers, your environment variables, logging, etc.
+
+180
+00:14:14.420 --> 00:14:24.060
+And if you need GPUs in your container, that's also something you need to specify with the GPU count attribute, resource attribute in your container as well.
+
+181
+00:14:24.340 --> 00:14:29.520
+Then you will set up your task role as normal to give the actual task its permissions.
+
+182
+00:14:30.300 --> 00:14:32.360
+And you can create an ECS service.
+
+183
+00:14:32.480 --> 00:14:34.640
+You don't absolutely have to create an ECS service.
+
+184
+00:14:34.780 --> 00:14:36.840
+You can always just run tasks directly in the cluster.
+
+185
+00:14:37.320 --> 00:14:44.260
+ECS services are what I think 95% of workloads are using because they will scale for you.
+
+186
+00:14:44.420 --> 00:14:45.420
+And have other features.
+
+187
+00:14:45.420 --> 00:14:54.500
+So you will set the capacity provider strategies on your service to the managed instances capacity provider name.
+
+188
+00:14:54.700 --> 00:14:59.520
+And then you may want to set a desired count or let the service scale that for you.
+
+189
+00:15:00.180 --> 00:15:10.360
+Another interesting point when we're talking about CDK is that if you're using managed instances, you're still using the Fargate service level two construct, which is a bit confusing.
+
+190
+00:15:10.360 --> 00:15:12.860
+But that's the way it is right now.
+
+191
+00:15:12.940 --> 00:15:15.520
+There's official examples from AWS using that.
+
+192
+00:15:15.900 --> 00:15:18.360
+And our own example we'll share later does the same.
+
+193
+00:15:18.500 --> 00:15:19.760
+We'll talk about that in a bit.
+
+194
+00:15:20.200 --> 00:15:25.400
+If you want auto scaling, you can also add your deployment auto scaling in the ECS service too.
+
+195
+00:15:25.400 --> 00:15:30.820
+And then you will deploy the stack, trigger your workload.
+
+196
+00:15:31.620 --> 00:15:44.380
+And based on your scaling configuration, you should see tasks starting in ECS, managed EC2 instances starting, and they'll appear in your ECS console under infrastructure, but also in the EC2 console.
+
+197
+00:15:44.380 --> 00:15:50.240
+So that's roughly the list of steps you need to get going.
+
+198
+00:15:51.640 --> 00:15:54.640
+Luciano, do you want to talk a bit more about that CDK support?
+
+199
+00:15:54.880 --> 00:15:59.400
+Because, and maybe we'll talk about the code example we have as well, because there's not a lot out there.
+
+200
+00:15:59.540 --> 00:16:04.380
+And we thought we'd try and add some examples that people might use as a basis for their own.
+
+201
+00:16:04.380 --> 00:16:16.080
+Yes, so we are going to make available this template or example, if you want to call it like that, which uses CDK to provision an application running on ECS, managed instances.
+
+202
+00:16:16.580 --> 00:16:20.320
+And yeah, this is just our honest attempt at providing an example.
+
+203
+00:16:20.560 --> 00:16:25.120
+It might not be the best one going forward because, yeah, we just tried to build it from scratch.
+
+204
+00:16:25.240 --> 00:16:28.740
+We didn't really find a huge amount of reference or examples out there.
+
+205
+00:16:28.740 --> 00:16:37.800
+So hopefully this is our first good attempt, but we're definitely going to rely on the rest of the community to improve it or provide other examples as well.
+
+206
+00:16:38.180 --> 00:16:39.460
+So what do we do in this template?
+
+207
+00:16:39.620 --> 00:16:46.160
+So we make a little bit of an assumption, which is not necessarily what you might want to do, but it's one use case.
+
+208
+00:16:46.360 --> 00:16:54.740
+And the use case is basically you have a workload that needs GPU, and this workload runs based on tasks that are available on a queue.
+
+209
+00:16:54.740 --> 00:16:59.720
+So it automatically scales to zero. If there is nothing in the queue, you have nothing running.
+
+210
+00:16:59.960 --> 00:17:09.620
+If you drop messages in the queue, it will spin up all the necessary infrastructure until it processes everything from the queue and then shuts down all the infrastructure again.
+
+211
+00:17:09.900 --> 00:17:14.040
+And we actually provide two examples.
+
+212
+00:17:14.340 --> 00:17:19.700
+So there is almost like a vanilla container that the only code you will find, it's Python code, by the way,
+
+213
+00:17:19.700 --> 00:17:25.620
+is just pulling from the queue and then just telling you this is the message, do whatever you want with it.
+
+214
+00:17:25.840 --> 00:17:28.640
+And then we have a little bit of a more realistic example.
+
+215
+00:17:28.840 --> 00:17:30.200
+So the first one is almost like a template.
+
+216
+00:17:30.400 --> 00:17:34.480
+You can put whatever business logic you need inside of the container and deploy it.
+
+217
+00:17:34.640 --> 00:17:42.240
+While the second one, it's a realistic example where we use OpenAI Whisper to transcribe a podcast audio that is coming from S3.
+
+218
+00:17:42.240 --> 00:17:50.700
+You might remember we have talked about our current solution to transcribe this very podcast that is using SageMakers today.
+
+219
+00:17:50.880 --> 00:17:58.500
+So maybe eventually this is going to become a replacement if we see that there is an improvement in terms of pricing and or performance.
+
+220
+00:17:58.840 --> 00:18:03.460
+We haven't done all the maths yet to decide whether this is the solution we want to go.
+
+221
+00:18:03.800 --> 00:18:06.680
+But technically, we could prove that this solution works.
+
+222
+00:18:06.800 --> 00:18:08.160
+So it might be an alternative.
+
+223
+00:18:08.160 --> 00:18:14.980
+So I think it's important to mention what did we learn while writing all this CDK code.
+
+224
+00:18:15.060 --> 00:18:16.320
+It's not huge.
+
+225
+00:18:16.440 --> 00:18:20.040
+I think it's a file with just a couple of hundreds of lines of code.
+
+226
+00:18:20.420 --> 00:18:26.560
+And yeah, already Eoin mentioned the limitation that you have to use this Fargate service, which is a little bit counterintuitive.
+
+227
+00:18:26.960 --> 00:18:33.400
+Looks like you're doing something wrong because we know we already mentioned today that Fargate is a different way of using ECS.
+
+228
+00:18:33.400 --> 00:18:41.060
+I think it's just that the team hasn't created a more specific construct just to be able to work with managed instances.
+
+229
+00:18:41.380 --> 00:18:45.000
+So Fargate is probably the best approximation you get so far.
+
+230
+00:18:45.160 --> 00:18:47.860
+But it doesn't just get confusing because of the name.
+
+231
+00:18:48.120 --> 00:18:53.460
+It gets confusing also because you will have attributes that are available to you.
+
+232
+00:18:53.460 --> 00:18:56.960
+But then those attributes don't really do anything useful.
+
+233
+00:18:57.180 --> 00:19:09.600
+And this is something that misled us into thinking that you could use spot instances, for example, because there is a very long attribute that is called something like max spot price as percentage of optimal on-demand price.
+
+234
+00:19:09.600 --> 00:19:17.420
+Something like that, that basically makes you think, OK, this is a way for me to be able to select spot instances.
+
+235
+00:19:18.120 --> 00:19:27.100
+And we spend hours just trying to figure out what was the right configuration to get a spot instance, only to eventually find out that this attribute is ignored.
+
+236
+00:19:27.520 --> 00:19:31.440
+And there is no way, at least today, that you can get a spot instance.
+
+237
+00:19:31.440 --> 00:19:37.780
+So this is another side effect of having this Fargate service construct, which is, again, just an approximation.
+
+238
+00:19:38.240 --> 00:19:41.140
+But you get probably more than what you actually need.
+
+239
+00:19:41.180 --> 00:19:42.080
+And it's just confusing.
+
+240
+00:19:42.900 --> 00:19:47.460
+And then, again, we already mentioned there is a little bit of a lack of documentation and proper examples.
+
+241
+00:19:47.860 --> 00:19:50.920
+But we are confident this is just something that is going to improve.
+
+242
+00:19:51.040 --> 00:19:51.900
+It's a new service.
+
+243
+00:19:52.020 --> 00:19:55.540
+And it's probably normal that there isn't a lot out there yet.
+
+244
+00:19:55.540 --> 00:19:58.480
+So hopefully we can help a little with this one example.
+
+245
+00:19:58.680 --> 00:20:03.000
+But, yeah, we look forward to seeing more examples from the rest of the community.
+
+246
+00:20:03.340 --> 00:20:05.840
+So what do you think is that of the GPU support?
+
+247
+00:20:05.960 --> 00:20:09.680
+Because this was, I think, a big component in our tests.
+
+248
+00:20:10.020 --> 00:20:16.020
+Yeah, I think you've asked publicly on the podcast many times for AWS to add GPU support to Fargate.
+
+249
+00:20:16.120 --> 00:20:17.020
+It was on your wish list.
+
+250
+00:20:17.120 --> 00:20:17.680
+And Lambda.
+
+251
+00:20:18.020 --> 00:20:18.340
+Well done.
+
+252
+00:20:19.060 --> 00:20:19.380
+Oh, yeah.
+
+253
+00:20:19.720 --> 00:20:20.860
+OK, good luck with that.
+
+254
+00:20:23.280 --> 00:20:24.980
+But look, it did work with GPUs.
+
+255
+00:20:24.980 --> 00:20:26.960
+We were able to use it for the podcast case.
+
+256
+00:20:26.960 --> 00:20:28.540
+I mean, it is.
+
+257
+00:20:28.740 --> 00:20:33.580
+I think we did share our frustrations with SageMaker, batch transforms in the past, which we use for the podcast.
+
+258
+00:20:33.860 --> 00:20:34.600
+It works.
+
+259
+00:20:34.800 --> 00:20:38.620
+And it has worked very reliably since we started using it with the whisper to do the transcription.
+
+260
+00:20:39.080 --> 00:20:41.500
+But the overall process takes about 30 minutes.
+
+261
+00:20:41.680 --> 00:20:48.000
+And the majority of that is just overhead while we wait for SageMaker to get a container up and running.
+
+262
+00:20:48.100 --> 00:20:49.460
+So we were looking for other options.
+
+263
+00:20:49.700 --> 00:20:51.920
+And this worked reasonably well, I think I can say.
+
+264
+00:20:52.440 --> 00:20:54.840
+You can select a number of GPU accelerators.
+
+265
+00:20:54.840 --> 00:20:56.460
+Which is good.
+
+266
+00:20:56.960 --> 00:20:59.720
+I'm sure these days people will have lots of use cases in mind.
+
+267
+00:21:00.460 --> 00:21:03.440
+But also bear in mind that you may need to request a quota increase.
+
+268
+00:21:03.600 --> 00:21:06.980
+Because GPUs don't just become available automatically on your account.
+
+269
+00:21:07.360 --> 00:21:14.160
+They want to protect you from bill shock by making you ask explicitly for the really expensive instance types.
+
+270
+00:21:14.880 --> 00:21:17.020
+GPUs typically belong to that category.
+
+271
+00:21:17.020 --> 00:21:24.340
+So make sure you get the service quotas in quickly if you want to launch ECS-MI production next week.
+
+272
+00:21:24.760 --> 00:21:26.660
+Now, that's GPU support.
+
+273
+00:21:27.200 --> 00:21:31.220
+Should we talk about where ECS-MI fits for use cases, Luciano?
+
+274
+00:21:31.220 --> 00:21:31.820
+Yes.
+
+275
+00:21:31.820 --> 00:21:46.460
+So if you have reserved instances or capacity reservation and you want to combine the benefits of using those things with the ease of management of ECS, I think using managed instances, it's a good idea.
+
+276
+00:21:46.460 --> 00:21:54.280
+And basically you get something that is close to target in terms of experience, but with a lot more control on the underlying hardware.
+
+277
+00:21:54.280 --> 00:21:58.860
+So, for instance, you can enable GPUs this way, which was our main use case.
+
+278
+00:21:59.400 --> 00:22:05.400
+Other thing that might be really useful is, for instance, when you need fine-grained control over storage and networking.
+
+279
+00:22:05.740 --> 00:22:13.500
+Maybe because you are doing something that requires very specific performance or very specific characteristics in either the storage or the networking layer.
+
+280
+00:22:13.500 --> 00:22:23.800
+But if we want to provide some more practical examples, what we did was basically a low-volume AI workload that required GPU.
+
+281
+00:22:24.200 --> 00:22:39.120
+In our case, it was audio transcriptions, but you can imagine something like, I don't know, you have a bucket, a three bucket full of pictures, and you want to come up with, I don't know, automatically labeling all these pictures or maybe creating captions, that kind of stuff.
+
+282
+00:22:39.120 --> 00:22:46.660
+That could be another very similar use case, and I think you can very easily change our container example to build something like that.
+
+283
+00:22:46.960 --> 00:22:56.320
+So, I think this is a very good use case, and you can just summarize it as when there is work to do, and you need very specific infrastructure for that work to happen.
+
+284
+00:22:56.980 --> 00:23:05.580
+You just define all of it, put the work as a message in a queue, and you know that it's going to scale up when needed and scale to zero when all the work has been completed.
+
+285
+00:23:05.580 --> 00:23:18.360
+So, I think that's an excellent use case, and I can see ourselves as an AWS consulting company using this kind of approach often enough because we see the kind of problem happening in many different ways very often.
+
+286
+00:23:19.220 --> 00:23:25.620
+Another thing we see a lot, especially with financial services customers, is HPC, high-performance computing.
+
+287
+00:23:25.620 --> 00:23:36.880
+And this is the case where basically you need to have lots of compute, but also lots of performance in terms of networking and disk access.
+
+288
+00:23:37.680 --> 00:23:42.880
+So, using something like ECSMI can be a very good option.
+
+289
+00:23:43.140 --> 00:23:49.640
+And we haven't done a lot of experimentation yet, but I think it's a very interesting fit, at least on the paper.
+
+290
+00:23:49.760 --> 00:23:54.780
+So, we want to test it more and see if it's really something we can run in production for this use case.
+
+291
+00:23:54.780 --> 00:24:02.880
+And in general, in our experience, we could say that starting a single task took three to four minutes for the use case we just described.
+
+292
+00:24:03.160 --> 00:24:06.960
+So, we didn't do a huge amount of testing with many containers.
+
+293
+00:24:07.220 --> 00:24:10.160
+Like, generally, we were trying to run one instance and one container.
+
+294
+00:24:10.640 --> 00:24:14.120
+But I think it would be really interesting to see how much this scales and how fast.
+
+295
+00:24:14.320 --> 00:24:16.040
+Can you run thousands of containers?
+
+296
+00:24:16.040 --> 00:24:24.660
+And if it's possible and there is very little overhead, then there are a lot of other scenarios that are interesting and possibly even competing with Lambda.
+
+297
+00:24:24.960 --> 00:24:26.080
+So, I don't know.
+
+298
+00:24:26.180 --> 00:24:31.540
+I think we'll need to see what is the timing there and the volumes that you can get to.
+
+299
+00:24:31.760 --> 00:24:36.480
+But definitely something worth experimenting more because it might unlock a lot of other use cases.
+
+300
+00:24:36.480 --> 00:24:40.400
+But I think that that only tells you what you can do with it.
+
+301
+00:24:40.500 --> 00:24:47.300
+I think that it's also interesting to see what are some use cases that you should definitely not use ECSMI for.
+
+302
+00:24:47.500 --> 00:24:49.280
+I don't think there are that many, to be fair.
+
+303
+00:24:49.480 --> 00:24:53.000
+But one thing that's pointed out of the documentation is around strong isolation.
+
+304
+00:24:53.340 --> 00:25:01.100
+Because Fargate, you may know that it uses these really cool firecracker VMs that offer very strong guarantees around isolation.
+
+305
+00:25:01.100 --> 00:25:04.020
+With ECSMI, you're still using EC2.
+
+306
+00:25:04.560 --> 00:25:10.240
+Tasks can be running on the same instance, which means you don't have the same level of guaranteed isolation and security.
+
+307
+00:25:10.580 --> 00:25:14.440
+You can configure ECSMI to run tasks on separate instances.
+
+308
+00:25:14.900 --> 00:25:20.460
+But then you're kind of losing the benefit of being able to pack multiple containers on a shared instance for cost and efficiency.
+
+309
+00:25:21.000 --> 00:25:23.800
+So, security-conscious workloads.
+
+310
+00:25:24.320 --> 00:25:25.280
+Take note of that.
+
+311
+00:25:25.560 --> 00:25:29.980
+If you need a custom AMI for whatever reason, you have special monitoring security agents.
+
+312
+00:25:29.980 --> 00:25:30.720
+You can't, right?
+
+313
+00:25:30.760 --> 00:25:32.860
+You can't use managed instances with a custom AMI.
+
+314
+00:25:32.960 --> 00:25:33.620
+That's the whole point.
+
+315
+00:25:33.760 --> 00:25:34.420
+It's managed.
+
+316
+00:25:35.760 --> 00:25:40.860
+And I think, lastly, if you want to shell into the instance itself, you can't do that again.
+
+317
+00:25:40.940 --> 00:25:43.300
+Just like Fargate, you can shell into the underlying instance.
+
+318
+00:25:43.460 --> 00:25:46.960
+You can ECS exec into the container itself, but not into the host.
+
+319
+00:25:47.240 --> 00:25:47.820
+And that's it, really.
+
+320
+00:25:47.940 --> 00:25:54.600
+I think there isn't that long list of use cases I wouldn't explore ECSMI for.
+
+321
+00:25:54.720 --> 00:25:56.780
+I think it's quite broad in its applications.
+
+322
+00:25:56.780 --> 00:25:59.720
+It's probably time to wrap this up.
+
+323
+00:26:00.080 --> 00:26:04.380
+I think, overall, we think this is a good addition to ECS suite.
+
+324
+00:26:04.720 --> 00:26:08.060
+Pricing might be a bit of a downer, but that completely depends, as always.
+
+325
+00:26:08.360 --> 00:26:09.620
+So, worth evaluating carefully.
+
+326
+00:26:10.340 --> 00:26:12.940
+The lack of support for spot instances, I think, was the biggest disappointment.
+
+327
+00:26:13.460 --> 00:26:15.120
+But we hope it's going to be there eventually.
+
+328
+00:26:15.700 --> 00:26:18.780
+The documentation and CDK support could be better.
+
+329
+00:26:19.100 --> 00:26:19.900
+Lots more examples.
+
+330
+00:26:20.180 --> 00:26:23.380
+Again, something that we hope will improve with time and more adoption.
+
+331
+00:26:23.380 --> 00:26:26.160
+We can see ourselves using ECSMI in production.
+
+332
+00:26:26.620 --> 00:26:29.140
+So, I think, overall, we're pretty positive on it.
+
+333
+00:26:29.540 --> 00:26:34.360
+But if you've got any more thoughts on ECSMI, reach out to us and let us know in the comments
+
+334
+00:26:34.360 --> 00:26:36.000
+below or on social media.
+
+335
+00:26:36.380 --> 00:26:38.000
+All our links will be in the description.
+
+336
+00:26:38.560 --> 00:26:41.900
+Finally, I just want to thank 4Theorem again for powering this episode.
+
+337
+00:26:42.160 --> 00:26:48.500
+If you want help designing an AWS architecture that's simple, scalable, and cost-sane, head to
+
+338
+00:26:48.500 --> 00:26:49.600
+4Theorem.com.
+
+339
+00:26:50.020 --> 00:26:50.420
+Thank you.
+
+340
+00:26:50.420 --> 00:26:51.440
+We'll see you in the next one.

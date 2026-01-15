@@ -1,0 +1,2306 @@
+{
+  "speakers": {
+    "spk_0": "Luciano",
+    "spk_1": "Eoin"
+  },
+  "segments": [
+    {
+      "speakerLabel": "spk_0",
+      "start": 0,
+      "end": 6.72,
+      "text": " Hello and happy 2026. In our latest episode of AWS Bites, we covered ECS managed instances,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 7.04,
+      "end": 12.16,
+      "text": " which is a new way to power your ECS cluster with managed EC2 capacity. This basically means"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 12.16,
+      "end": 18.22,
+      "text": " that you still use EC2 instances under the hood, but in this case, AWS takes care of all the usual"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 18.22,
+      "end": 24.52,
+      "text": " instance chores like picking the base image, operating system lifecycle, security patching,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 24.88,
+      "end": 29.240000000000002,
+      "text": " ongoing maintenance, and you basically focus on describing what you need, for example,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 29.24,
+      "end": 34.239999999999995,
+      "text": " if you want a GPU, or maybe if you want specific storage profiles, or maybe particular networking"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 34.239999999999995,
+      "end": 39.379999999999995,
+      "text": " characteristics. And then at that point, AWS provisions the right instance for your cluster"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 39.379999999999995,
+      "end": 44.96,
+      "text": " in exchange for a management fee. Now, coming straight out of reInvent in Las Vegas, which is"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 44.96,
+      "end": 50.66,
+      "text": " AWS's biggest conference of the year, AWS has taken this very idea, managed instances, and applied it"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 50.66,
+      "end": 58.26,
+      "text": " to, drumroll, Lambda. So the name of the announcement is Lambda managed instances, and it has been a"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 58.26,
+      "end": 63.14,
+      "text": " little bit controversial. It has sparked a lot of curiosity, plus a fair amount of confusion, because"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 63.14,
+      "end": 69.9,
+      "text": " let's be honest, why in the world would you want to bring EC2 instances, aka servers, into one of the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 69.9,
+      "end": 75.32,
+      "text": " most serverless compute services out there? So you might be wondering, what does it really change for"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 75.32,
+      "end": 80.82,
+      "text": " Lambda? Do you gain something that you could not do before? Honestly, we were as well curious as much"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 80.82,
+      "end": 86.34,
+      "text": " excited by this announcement. So we took Lambda MI for a proper test drive during the holidays, and in this"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 86.34,
+      "end": 91.14,
+      "text": " episode, we're going to share our take on it. So we want to share what Lambda managed instances enables"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 91.14,
+      "end": 96.34,
+      "text": " that default Lambda could not do before. And there are a few spoilers I want to give you here, just to"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 96.34,
+      "end": 102.10000000000001,
+      "text": " capture your attention. There are no more cold starts, kinda, we'll talk more about that. And a single"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 102.10000000000001,
+      "end": 106.74000000000001,
+      "text": " Lambda environment can now handle multiple requests concurrently, which is also very interesting, and we'll"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 106.74000000000001,
+      "end": 112.10000000000001,
+      "text": " cover that in detail. We'll also talk about how to set it up and make the most out of it. What are the"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 112.1,
+      "end": 117.14,
+      "text": " different ways to scale the underlying EC2 capacity, limitations and pitfalls we noticed, and there are"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 117.14,
+      "end": 122.02,
+      "text": " quite a few of them to be aware of. The use cases, when we think this is actually a good fit and a good"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 122.02,
+      "end": 127.06,
+      "text": " idea to use this new technology. And of course, we'll talk about pricing and whether it's worth the cost"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 127.06,
+      "end": 132.01999999999998,
+      "text": " and the effort. Now, since we built a realistic application for this exercise, we'll also talk about"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 132.01999999999998,
+      "end": 138.34,
+      "text": " our use case and our example application as well. My name is Luciano and I'm joined by Eoin, and this is AWS Bites."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 142.1,
+      "end": 150.9,
+      "text": " AWS Bites is brought to you by fourTheorem. Stay tuned to hear more about fourTheorem at the end of the show."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 150.9,
+      "end": 156.42,
+      "text": " So, Eoin, maybe we should start by clarifying again, what is the difference between default, I guess we"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 156.42,
+      "end": 162.34,
+      "text": " should call them, Lambdas, and Lambda on EC2?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 162.34,
+      "end": 168.42,
+      "text": " Yeah, let's call the old model the default, that's what AWS calls it in the documentation. So let's roll with that. Your default Lambda is the fully managed, just run my"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 168.42,
+      "end": 172.26,
+      "text": " code service that we know and love and most people refer to when they say Lambda functions."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 172.82,
+      "end": 177.7,
+      "text": " And a function is invoked in response to an event, right? An object gets uploaded to S3,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 177.7,
+      "end": 182.89999999999998,
+      "text": " that can be an event that triggers a Lambda that resizes an image, extracts metadata. That's a canonical"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 182.89999999999998,
+      "end": 188.89999999999998,
+      "text": " example. So when an event arrives, AWS is running your code in this isolated execution environment."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 188.89999999999998,
+      "end": 193.54,
+      "text": " Where does this environment exist in terms of compute? It doesn't matter. Of course, it will be in a"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 193.54,
+      "end": 197.78,
+      "text": " server somewhere, but we don't get to see that. We don't care. That's what we like. The important"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 197.78,
+      "end": 203.22,
+      "text": " detail is that each environment processes only one event or one invocation at a time. If more events"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 203.22,
+      "end": 208.57999999999998,
+      "text": " come in, Lambda scales out by creating more environments to handle concurrency. And then if"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 208.57999999999998,
+      "end": 215.7,
+      "text": " traffic scales back, Lambda will manage scaling back the execution environments, often effectively to zero."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 215.7,
+      "end": 222.01999999999998,
+      "text": " The main trade-off is cold starts then, because all of that scaling that Lambda is doing behind the scenes,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 222.02,
+      "end": 227.22,
+      "text": " you don't pay for that. You don't think about it. But it means that sometimes there isn't a warm"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 227.22,
+      "end": 231.46,
+      "text": " environment ready to serve your event. And Lambda will need to create a brand new environment, which"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 231.46,
+      "end": 236.42000000000002,
+      "text": " takes time. Sometimes it can be a few seconds. Sometimes it's as low as 100 milliseconds or even"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 236.42000000000002,
+      "end": 242.9,
+      "text": " less if you're using Rust, for example. But often it can be significant. We've talked about that in"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 242.9,
+      "end": 248.82000000000002,
+      "text": " previous episodes when we dealt with Python and large data science packages. Now, let's talk about the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 248.82,
+      "end": 255.54,
+      "text": " new way of doing things. The new option, at least. Lambda managed instances. This one is about the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 255.54,
+      "end": 261.62,
+      "text": " Lambda service keeping the same programming model and integrations, but it changes the how and where"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 261.62,
+      "end": 267.86,
+      "text": " your code runs element. Now your function executes in containers on EC2 instances in your account."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 269.3,
+      "end": 274.98,
+      "text": " These EC2 instances are chosen via something called a capacity provider. And we'll talk about more about"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 274.98,
+      "end": 279.94,
+      "text": " that in a second. So the AWS is still managing provisioning, patching, routing, load balancing,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 279.94,
+      "end": 284.42,
+      "text": " the scaling mechanics, and the lifecycle. That's important. So it's not about necessarily taking on"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 284.42,
+      "end": 291.94,
+      "text": " all the burden of managing EC2 instances. It is about just changing the scaling and provisioning capacity"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 291.94,
+      "end": 294.90000000000003,
+      "text": " and also the cost model for Lambda, which we'll also talk about."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 294.9,
+      "end": 300.5,
+      "text": " So it's not just Lambda, but on different hardware. There are a few big behavioral changes that will"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 300.5,
+      "end": 306.34,
+      "text": " materially affect how your functions perform, how they scale, and how you need to write and operate"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 306.34,
+      "end": 311.46,
+      "text": " them. So it's definitely something you need to go into with your mind fully informed on how all these"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 311.46,
+      "end": 317.29999999999995,
+      "text": " things work. So what changes in practice is, well, for one, the concurrency model. One execution environment"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 317.29999999999995,
+      "end": 323.38,
+      "text": " can now handle multiple concurrent invocations, unlike default Lambda's single invocation per environment"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 323.38,
+      "end": 329.14,
+      "text": " model. This is a big change in how Lambda operates and something that people might have been asking"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 329.14,
+      "end": 334.1,
+      "text": " about for a long time. And it reminds us a little bit of Vercel's fluid compute. It also makes Lambda"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 334.1,
+      "end": 340.82,
+      "text": " suitable as a back end for high throughput APIs. We've seen people who are familiar with, say, the Node.js"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 340.82,
+      "end": 347.54,
+      "text": " ecosystem and how it can handle high concurrency, asynchronous I/O in one process. This is one of the great"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 347.54,
+      "end": 351.86,
+      "text": " benefits of Node.js when it came out originally. And then when you move to Lambda, you're wondering,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 351.86,
+      "end": 357.22,
+      "text": " well, I'm losing all of that power now because I can only do one event in a process. But now you"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 357.22,
+      "end": 362.1,
+      "text": " can do multiple events per process so you get a little bit more of that benefit back. Other things"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 362.1,
+      "end": 366.42,
+      "text": " that have changed with managed instances, now we now have always on environments. So environments can"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 366.42,
+      "end": 373.06,
+      "text": " stay continuously active, no freezing between invocations, and this helps to mitigate most of the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 373.06,
+      "end": 380.1,
+      "text": " traditional cold starts. Scaling behavior now is asynchronous and driven by things like CPU utilization."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 380.1,
+      "end": 385.46000000000004,
+      "text": " It doesn't scale to zero because it maintains a configured minimum capacity. And fast traffic"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 385.46000000000004,
+      "end": 388.74,
+      "text": " ramps can outpace scaling briefly. So you'll need to think about that."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 390.26000000000005,
+      "end": 394.90000000000003,
+      "text": " And then when you publish a function to run on managed instances, Lambda by default is going to"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 394.90000000000003,
+      "end": 400.74,
+      "text": " launch three instances, three EC2 instances in your account by default for resiliency. It's good practice."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 400.74,
+      "end": 406.26,
+      "text": " And it'll bring those environments up before making the version active. Now, there are ways,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 406.26,
+      "end": 411.94,
+      "text": " which we might touch on a little bit later on how to avoid there being three instances all the time,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 411.94,
+      "end": 418.74,
+      "text": " but that's just generally a good practice. When we talk about lifecycle as well, the instance"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 418.74,
+      "end": 423.06,
+      "text": " lifecycle, these instances will stay up for a maximum of 14 days. That's what Lambda is saying,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 423.06,
+      "end": 427.86,
+      "text": " but then they're going to rotate them. So that's something you should plan for if it's important."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 427.86,
+      "end": 433.86,
+      "text": " And now with this model, you can pick instance characteristics. So you can think about the"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 433.86,
+      "end": 440.02000000000004,
+      "text": " latest CPUs you want, like Graviton 4, you can get here now. Configurable memory to CPU ratios,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 440.02000000000004,
+      "end": 443.22,
+      "text": " if you want high bandwidth networking, which is something you didn't have that much control over"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 443.22,
+      "end": 448.26,
+      "text": " before, now you have that option. So these are all new considerations. What stays the same,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 448.26,
+      "end": 452.42,
+      "text": " it's still Lambda in how you build and integrate it. You should treat your code more like a concurrent"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 452.42,
+      "end": 457.3,
+      "text": " long lived service process because the execution environment can handle parallel invocations and sticks"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 457.3,
+      "end": 462.74,
+      "text": " around. So if you used to, functions that didn't hang around, sandboxes that didn't hang around,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 463.3,
+      "end": 467.3,
+      "text": " these short lived execution environments, you may not have noticed your memory leaks before."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 467.3,
+      "end": 470.98,
+      "text": " Now with these 14 day instances, it might be something you'll have to think about."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 470.98,
+      "end": 475.86,
+      "text": " Should we talk now about how scaling works? I think a little bit more in detail. What do you think?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 475.86,
+      "end": 481.3,
+      "text": " Okay, I'll try to cover up for that. So I guess the first mental model shift is that Lambda"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 481.3,
+      "end": 486.82,
+      "text": " managed instances scales proactively, as you explained, and not on demand, which is the case for"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 486.82,
+      "end": 492.66,
+      "text": " the default Lambda. And with default Lambda, let's repeat that just for clarity. When an invocation arrives,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 492.66,
+      "end": 498.42,
+      "text": " Lambda looks for a free execution environment. And if there is not available, it creates a new one on demand."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 498.42,
+      "end": 505.3,
+      "text": " And this is where you can see that famous or infamous cold start. With managed instances, Lambda does not scale"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 505.3,
+      "end": 514.1800000000001,
+      "text": " because an invocation arrived. It scales asynchronously, basically up front, watching things like CPU utilization and multi-concurrency saturation."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 514.1800000000001,
+      "end": 521.94,
+      "text": " And it's basically trying to determine how busy is the environment and do I need to effectively provide more room for executing Lambdas."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 522.34,
+      "end": 530.34,
+      "text": " And we'll talk about what that actually means in practice in a bit more detail in a few minutes. But just think about these two differences."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 530.34,
+      "end": 535.62,
+      "text": " In the case of default Lambda, you basically don't have to think about anything. You just know that when event arrives,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 535.62,
+      "end": 542.6600000000001,
+      "text": " if there are no environments, they will be created on demand. With Lambda MI, basically those environments are created"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 542.6600000000001,
+      "end": 549.46,
+      "text": " basically in the background up front before your code is executed. And one analogy that I think can somewhat"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 549.46,
+      "end": 554.34,
+      "text": " explain this idea a little bit better is we can think about managing a restaurant. And you can imagine that"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 554.34,
+      "end": 561.62,
+      "text": " if you have, of course, you need to have tables in a restaurant and you can imagine that those are your EC2 instances."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 561.62,
+      "end": 568.02,
+      "text": " Then you need to have execution environments and we can compare those to your staff working and serving those tables."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 568.02,
+      "end": 574.02,
+      "text": " And then max concurrency is basically the idea of how many guests can a single server handle at once."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 574.02,
+      "end": 580.58,
+      "text": " And if we use this analogy, which is a little bit of a stretch, but I think it's still useful to get the mental model right,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 580.58,
+      "end": 585.14,
+      "text": " So we can think about scaling in these terms. So when demand goes up,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 585.14,
+      "end": 592.58,
+      "text": " what Lambda MI can do is basically scale two different layers. It can either add more execution environments on existing instances."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 592.58,
+      "end": 598.0200000000001,
+      "text": " So this is like if you are hiring more staff in the same exact restaurant, the same space available,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 598.0200000000001,
+      "end": 605.7,
+      "text": " you just have more staff available to do more things. And then if your instances are running out, you can add more managed instances."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 605.7,
+      "end": 613.22,
+      "text": " So basically you are adding more EC2 capacity under the hood with your capacity provider. And this is basically like adding more tables to the restaurant,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 613.22,
+      "end": 618.4200000000001,
+      "text": " which of course it doesn't, you have to think that as not necessarily cramming more tables in the same space,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 618.4200000000001,
+      "end": 624.26,
+      "text": " but probably more taking more space. Maybe you're putting the tables outside, or maybe you are expanding the restaurant somehow,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 624.26,
+      "end": 632.58,
+      "text": " right? Maybe taking the next building or something like that. So that these are kind of the two dimensions that are used for increasing your capacity for running more Lambda code."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 632.58,
+      "end": 638.26,
+      "text": " And this is where why scaling can feel a little bit different with this new way of running Lambda code."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 638.82,
+      "end": 647.94,
+      "text": " And also because this scaling is asynchronous, it's basically trying to scale upfront. But sometimes if you have lots of demand happening very quickly,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 647.94,
+      "end": 654.0200000000001,
+      "text": " what happens is that you might not have that capacity available when you need it. So you might actually see throttles."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 654.0200000000001,
+      "end": 660.26,
+      "text": " So you try to execute Lambda code, there is no capacity available, your Lambda execution might effectively be throttled."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 660.26,
+      "end": 673.38,
+      "text": " So there are some default mechanisms that AWS put in place where basically, if your capacity doesn't double within five minutes, you should be okay. But I think if you go over that, so if your traffic doubles very quickly,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 673.9399999999999,
+      "end": 681.38,
+      "text": " then maybe it's where you start to see throttles. You need to play around with that to see exactly how it works. But this is what we can infer from the documentation."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 681.38,
+      "end": 689.06,
+      "text": " So again, just to remark, the main change is that instead of thinking about the first request is going to be slower, which is the case of a cold start,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 689.06,
+      "end": 694.82,
+      "text": " the failure mode is more like maybe you have a sudden spike and you might see throttles. But in general,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 694.82,
+      "end": 705.38,
+      "text": " if you have predictable traffic and your capacity is enough, you are not going to see cold starts or throttles. So that gives you a little bit of a more predictable and always available environment to run on,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 705.38,
+      "end": 718.5,
+      "text": " which is nice, especially if you're using languages that tend to have a quite long cold start like Java, Python, or Node.js sometimes, or maybe if you have lots of dependencies that might take a long time to just keep the environment up for the first time."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 718.5,
+      "end": 722.98,
+      "text": " This can be actually a nice use case where you effectively can eliminate that problem."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 723.62,
+      "end": 729.06,
+      "text": " Now, if we want to deep dive even a little bit more, I think there are a few moving pieces that we also need to mention."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 729.38,
+      "end": 736.66,
+      "text": " And these are the router and scaler and a Lambda agent. This is more to explain how AWS implemented all these things under the hood."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 736.66,
+      "end": 744.58,
+      "text": " So in practice, when you publish a new version with a capacity provider, Lambda launches and manage instances in your account or multiple instances."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 744.58,
+      "end": 748.5,
+      "text": " Of course, if we consider that they will be available in different availability zones."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 749.3000000000001,
+      "end": 755.3000000000001,
+      "text": " And as we say, by default, there are three instances for resiliency in different AZs."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 755.3000000000001,
+      "end": 762.74,
+      "text": " And this version will eventually become active. So effectively, you publish a new Lambda, the instances are created in different availability zones."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 762.74,
+      "end": 764.58,
+      "text": " That Lambda is now considered active."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 764.58,
+      "end": 768.82,
+      "text": " When an invocation comes in, your environment is going to start to consume CPU and memory."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 768.82,
+      "end": 777.5400000000001,
+      "text": " And that's where you have a Lambda agent, which is running within the EC2 instances and reporting this consumption to what AWS calls the scaler."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 777.5400000000001,
+      "end": 782.6600000000001,
+      "text": " And the scaler is effectively the component that decides, do we need to add more environments or more instances?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 782.6600000000001,
+      "end": 788.58,
+      "text": " So it's this continuous conversation between all these different moving parts to try to determine, are we using enough capacity?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 788.58,
+      "end": 792.58,
+      "text": " Do we need more? Is there still space to run more Lambda functions?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 792.58,
+      "end": 804.26,
+      "text": " So that's another dimension to consider."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 805.3000000000001,
+      "end": 810.1800000000001,
+      "text": " Again, when the traffic goes down, that's another thing we need to consider."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 810.1800000000001,
+      "end": 816.4200000000001,
+      "text": " The agent report that too, the whole system can decide to scale down environments and instances accordingly."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 816.42,
+      "end": 821.42,
+      "text": " So I think that gives you the general idea of how things work more at an abstract level."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 821.42,
+      "end": 827.42,
+      "text": " When we talked about the restaurant analogy, we also spoke a little bit more in the actual implementation details with the different components."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 827.42,
+      "end": 834.42,
+      "text": " But what probably matters the most is what can you control as a developer building your applications with this new model in mind?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 834.42,
+      "end": 839.42,
+      "text": " What kind of tweaks and toggles can you touch?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 839.42,
+      "end": 844.42,
+      "text": " Well, at the function level, you can pick how big your execution environment is."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 844.42,
+      "end": 847.42,
+      "text": " That's in terms of vCPUs and memory."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 847.42,
+      "end": 852.42,
+      "text": " The smallest supported size is 2 gigabytes and 1 vCPU."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 852.42,
+      "end": 859.42,
+      "text": " The key is to choose a size that supports your intended multi-concurrency because each environment is meant to handle multiple invocations."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 859.42,
+      "end": 865.42,
+      "text": " The other big thing here is that previously you had a 10 gigabyte memory limit for default Lambda mode."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 865.42,
+      "end": 871.42,
+      "text": " Now you can have 32 gigabytes available to a Lambda invocation, which is a big change."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 871.42,
+      "end": 881.42,
+      "text": " The rule of thumb, I think, if you're doing CPU heavy work with not that much IO, you typically want more vCPUs rather than just cranking concurrency."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 881.42,
+      "end": 885.42,
+      "text": " And then you can specify the maximum concurrency per environment."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 885.42,
+      "end": 888.42,
+      "text": " So with default in Lambda, that would be a one-to-one ratio."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 888.42,
+      "end": 894.42,
+      "text": " But here you can have up to 64 concurrent invocations per vCPU."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 894.42,
+      "end": 898.42,
+      "text": " So you can increase it if each invocation is light on CPU and maybe more IO bound."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 898.42,
+      "end": 902.42,
+      "text": " Then you get more throughput per environment and you'll get more cost benefit as well."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 903.42,
+      "end": 905.42,
+      "text": " And you can decrease it if you're memory heavy and CPU light."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 905.42,
+      "end": 908.42,
+      "text": " Then that's at the function level."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 908.42,
+      "end": 913.42,
+      "text": " And then at the capacity provider level, you can specify your target resource utilization."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 913.42,
+      "end": 916.42,
+      "text": " So how much headroom do you want really?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 916.42,
+      "end": 922.42,
+      "text": " So a higher target would be higher utilization, potentially lower cost, but less headroom."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 922.42,
+      "end": 929.42,
+      "text": " And then a lower target you could use if you want more spare capacity for bursts, but you'll pay for more idle compute."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 929.42,
+      "end": 934.42,
+      "text": " And then you can specify your instance types so you can constrain instance types."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 934.42,
+      "end": 939.42,
+      "text": " But AWS recommends letting Lambda choose for best availability."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 939.42,
+      "end": 943.42,
+      "text": " So don't be too restrictive and specific on what instance types you support."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 943.42,
+      "end": 948.42,
+      "text": " So when it comes to the two scaling modes, manual versus automatic scaling,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 948.42,
+      "end": 951.42,
+      "text": " at the capacity provider level, you can specify which one you want."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 951.42,
+      "end": 952.42,
+      "text": " Auto is the default."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 952.42,
+      "end": 956.42,
+      "text": " Manual exists when you want precise control over the scaling threshold."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 956.42,
+      "end": 964.42,
+      "text": " Now from what we've seen, that's basically just a CPU scaling threshold, CPU utilization scaling threshold."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 964.42,
+      "end": 974.42,
+      "text": " I haven't seen any ways yet, haven't really tried it either, but of using other maybe custom metrics or other metrics to scale like you could with an auto scaling group."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 974.42,
+      "end": 979.42,
+      "text": " Then separately at the function level, you can specify the minimum and maximum execution environments."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 979.42,
+      "end": 987.42,
+      "text": " So this is a particularly important one, because you need to, if you want your function to be invokable, you have to specify a non-zero minimum."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 987.42,
+      "end": 991.42,
+      "text": " Then AWS might add more as it sees fit."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 991.42,
+      "end": 997.42,
+      "text": " But if you set it to zero, as we'll discuss later, that's basically turning off your function, making it not invokable."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 997.42,
+      "end": 1004.42,
+      "text": " But you can change the scaling characteristics with a put function scaling config API."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1004.42,
+      "end": 1012.42,
+      "text": " And that allows, that'll allow you to have like more brute force or manual control over scaling before a batch of background processing."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1012.42,
+      "end": 1016.42,
+      "text": " If you wanted to do some large scale processing during the night, for example."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1016.42,
+      "end": 1020.42,
+      "text": " So given that, I hope that made some sense. Luciano, do you want to talk through what we built?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1020.42,
+      "end": 1023.42,
+      "text": " Yes, we like to do practical test drives."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1023.42,
+      "end": 1033.42,
+      "text": " And so we needed to find an excuse and think, what can we actually build that maybe makes a little bit of sense when it comes into the context of Lambda MI and its particular characteristics."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1033.42,
+      "end": 1043.42,
+      "text": " So what we thought is, again, video processing, which seems to come up a lot in our examples, maybe because we think about this podcast and how to optimize the production of the podcast itself."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1043.42,
+      "end": 1056.42,
+      "text": " And to be fair, this is not like a full implementation. We didn't really implement like, I don't know, wiring FFmpeg or ML vision models or I don't know, subtitles type of things."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1056.42,
+      "end": 1060.42,
+      "text": " It's more the idea that the processing is simulated, but we built everything around it."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1060.42,
+      "end": 1065.42,
+      "text": " So in the computation bit, you could plug in whatever logic you like."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1065.42,
+      "end": 1077.42,
+      "text": " So if you want to use this, what we built, for instance, to, I don't know, extract the audio from a video or convert the video or whatever else you want to do that you can do with FFmpeg or something else, you can definitely do it."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1077.42,
+      "end": 1081.42,
+      "text": " So the idea is that we built a service with three main components."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1081.42,
+      "end": 1090.42,
+      "text": " So there is a REST API that allows you to manage videos. So effectively it's like a CRUD API where you can create a video entry, you can list them, you can get the details."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1090.42,
+      "end": 1095.42,
+      "text": " And most importantly, you can trigger processing and we'll see how that works in a second."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1095.42,
+      "end": 1100.42,
+      "text": " So one detail that might be important to know is that we built a little bit of a lambdalith."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1100.42,
+      "end": 1107.42,
+      "text": " So effectively it's one Lambda that can respond to all the routes and it's behind an HTTP API gateway."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1107.42,
+      "end": 1119.42,
+      "text": " So then we have a simulated video processor. So whenever you call the process Lambda, sorry, the process API endpoint that we mentioned before, effectively you want to trigger the processing of a video."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1119.42,
+      "end": 1126.42,
+      "text": " So that happens in this other component, which is a simulated video processor that effectively is where you will put all the heavy lifting."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1126.42,
+      "end": 1136.42,
+      "text": " Like, as we say, different use cases might come to mind, thumbnail generation, transcoding, content analysis, subtitle generation, I don't know, chapter generation, whatever you think it makes sense."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1136.42,
+      "end": 1140.42,
+      "text": " So in a real system, this is generally something that will be CPU intensive work."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1140.42,
+      "end": 1148.42,
+      "text": " So particularly sensible for this use case where you might spin up a lot of EC2 capacity just to be able to do that at scale."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1148.42,
+      "end": 1155.42,
+      "text": " And then you still have the convenience of Lambda to package your code in a way that gives you a nice developer experience."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1155.42,
+      "end": 1160.42,
+      "text": " And then finally, we have a step function, which may be a little bit unexpected. We'll explain why we did that."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1160.42,
+      "end": 1164.42,
+      "text": " But the idea is that with this step function, we can orchestrate everything."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1164.42,
+      "end": 1178.42,
+      "text": " And the idea is that we don't want to have, so we actually want to have capacity always available for the rest API, but for the processor component, we only want to have capacity on demand while still having the convenience of Lambda MI."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1178.42,
+      "end": 1183.42,
+      "text": " So the idea is that we, I don't know if this is actually a little bit of a hack, it feels a little bit like that."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1183.42,
+      "end": 1193.42,
+      "text": " But the idea is that we keep the capacity for the processor to zero, which means that by default, effectively, that Lambda is deactivated."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1193.42,
+      "end": 1201.42,
+      "text": " But then anytime somebody is calling the process endpoint, we actually use the step function to spin up more capacity."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1201.42,
+      "end": 1211.42,
+      "text": " So we basically change at runtime the capacity definition to actually go from zero to a different range that, of course, you can configure to whatever makes sense to you."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1211.42,
+      "end": 1213.42,
+      "text": " But of course, one to whatever you like."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1213.42,
+      "end": 1224.42,
+      "text": " So at that point, we can start to see the instances appearing and the step function monitors to the point that there is enough capacity to start doing the processing and effectively run our code."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1224.42,
+      "end": 1233.42,
+      "text": " So it is a little bit of a hack to effectively get that scale to zero, which of course only makes sense if you control the event that triggers, in this case, the processing."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1233.42,
+      "end": 1236.42,
+      "text": " It wouldn't make too much sense, for example, in a REST API."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1236.42,
+      "end": 1247.42,
+      "text": " So this is how we tested the two different scenarios, one where we have some kind of manual control of the capacity and the other one where we are just letting the service manage all of that."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1247.42,
+      "end": 1258.42,
+      "text": " And the way that we do that scaling up mechanism or effectively changing, controlling the details of the scaling configuration of the processor function is that there is an API called put function scaling config."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1258.42,
+      "end": 1261.42,
+      "text": " And that's where you can define the minimum and the maximum capacity."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1261.42,
+      "end": 1266.42,
+      "text": " If you set the minimum to zero, you are basically saying this environment is disabled."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1266.42,
+      "end": 1273.42,
+      "text": " And when you set it to more like one or whatever you like, then effectively you are creating the EC2 instances."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1273.42,
+      "end": 1275.42,
+      "text": " You are letting the capacity provider create the EC2 instances."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1275.42,
+      "end": 1280.42,
+      "text": " And then that's where your Lambda function becomes active and you can invoke it."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1280.42,
+      "end": 1282.42,
+      "text": " Other small details that might be relevant."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1282.42,
+      "end": 1284.42,
+      "text": " We use CDK with TypeScript."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1284.42,
+      "end": 1288.42,
+      "text": " And if you use the latest versions, everything we just mentioned is supported out of the box."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1288.42,
+      "end": 1291.42,
+      "text": " So there are no weird hacks that we could see."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1291.42,
+      "end": 1296.42,
+      "text": " We use Node.js and Node.js 24 on ARM64."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1296.42,
+      "end": 1298.42,
+      "text": " We store metadata in DynamoDB."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1298.42,
+      "end": 1300.42,
+      "text": " So all pretty standard, I would say."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1300.42,
+      "end": 1302.42,
+      "text": " All this code is available on GitHub."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1302.42,
+      "end": 1303.42,
+      "text": " So publicly available."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1303.42,
+      "end": 1305.42,
+      "text": " You'll find the link in the show notes."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1305.42,
+      "end": 1315.42,
+      "text": " So feel free to check it out and let us know if you like it, or even feel free to submit a PR if there is something else that you find doesn't work or maybe you want to change and improve."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1315.42,
+      "end": 1321.42,
+      "text": " So based on all of that, Eoin, what are our impressions or maybe limitations or pitfalls that we discovered?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1327.42,
+      "end": 1336.42,
+      "text": " Well, given that we just did the ECS managed instances review in our last episode, selecting instances here with Lambda MI is a bit more limited because in ECS MI you have more of a query system where you specify characteristics of your instance requirements."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1336.42,
+      "end": 1342.42,
+      "text": " And AWS will pick the right instance type for that, which kind of abstracts you from having to think about specific instance types."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1342.42,
+      "end": 1348.42,
+      "text": " And if new instance types become available, they'll automatically get included in the potential query results."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1348.42,
+      "end": 1360.42,
+      "text": " But with Lambda MI, you can only specify a very limited set of parameters, initially maximum vCPU count, and the instance type filter, which is basically allowed instance types or excluded instance types."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1360.42,
+      "end": 1366.42,
+      "text": " So an inclusion list and an exclusion list, and you still have to think about actual instance types."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1366.42,
+      "end": 1368.42,
+      "text": " So it's strange they didn't follow the same model."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1368.42,
+      "end": 1370.42,
+      "text": " Region availability is limited for now."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1370.42,
+      "end": 1375.42,
+      "text": " If your workload is multi-region or you want to use specific regions, right now we've got what?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1375.42,
+      "end": 1380.42,
+      "text": " US East 1, US East 2, US West 2, AP Northeast 1, and EU West 1."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1380.42,
+      "end": 1382.42,
+      "text": " So just five regions."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1382.42,
+      "end": 1386.42,
+      "text": " In terms of runtime, the support is for the latest version only."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1386.42,
+      "end": 1392.42,
+      "text": " Some people, especially enterprises, rely on the ability to pin specific versions of managed runtimes."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1392.42,
+      "end": 1397.42,
+      "text": " So if you're migrating existing functions, anything on older runtimes will not qualify."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1397.42,
+      "end": 1400.42,
+      "text": " You have to use the latest supported one."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1400.42,
+      "end": 1405.42,
+      "text": " Anything that's on the deprecated list or previous list is not possible."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1405.42,
+      "end": 1408.42,
+      "text": " VPC networking is now mandatory."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1408.42,
+      "end": 1411.42,
+      "text": " Of course it is because you know you have to run EC2 instances."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1411.42,
+      "end": 1413.42,
+      "text": " EC2 instances, there's no exceptions."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1413.42,
+      "end": 1415.42,
+      "text": " They always need a VPC."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1415.42,
+      "end": 1419.42,
+      "text": " So if you put them in a private subnet with no egress, you're going to have an issue."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1419.42,
+      "end": 1426.42,
+      "text": " You'd have to have, make sure your VPC has reachability through VPC endpoints to AWS services your Lambda function might need."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1426.42,
+      "end": 1429.42,
+      "text": " Think about S3, DynamoDB, SSM."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1429.42,
+      "end": 1434.42,
+      "text": " So you'll need either a NAT gateway, internet gateway, or a VPC endpoint."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1434.42,
+      "end": 1440.42,
+      "text": " This is exactly the same concern when you have a normal Lambda function in a VPC."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1440.42,
+      "end": 1445.42,
+      "text": " But you just don't have an option to avoid VPCs now."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1445.42,
+      "end": 1449.42,
+      "text": " Deployments with Lambda MI can be noticeably slower."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1449.42,
+      "end": 1456.42,
+      "text": " The first published on a new capacity provider has to launch managed instances and bring up execution environments before the version becomes active."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1456.42,
+      "end": 1464.42,
+      "text": " AWS explicitly says this can take several minutes and we've encountered examples of around eight minutes for end-to-end deployment."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1464.42,
+      "end": 1468.42,
+      "text": " And then there's a minimum size jump."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1468.42,
+      "end": 1473.42,
+      "text": " You don't have the option of small utility Lambda functions with 128 megabytes of RAM anymore."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1473.42,
+      "end": 1477.42,
+      "text": " With managed instances, the smallest one is two gigabytes with one vCPU."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1477.42,
+      "end": 1483.42,
+      "text": " So it could be a surprise if you're just trying it out and trying to keep things minimal in terms of resources and costs."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1483.42,
+      "end": 1492.42,
+      "text": " Also important to know that creating a capacity provider with manual scaling still spins up baseline capacity."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1492.42,
+      "end": 1503.42,
+      "text": " We saw in our cases when we were doing testing, even when we created a capacity provider without attaching any functions to it, AWS was starting two instances."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1503.42,
+      "end": 1507.42,
+      "text": " It's worth knowing if you expect it to be zero until you're attached to a function."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1507.42,
+      "end": 1514.42,
+      "text": " We also had cases where after scaling down instances remained active for arbitrary lengths of time."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1514.42,
+      "end": 1516.42,
+      "text": " It's definitely something to keep an eye on."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1516.42,
+      "end": 1517.42,
+      "text": " Anything else to add to that, Luciano?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1517.42,
+      "end": 1523.42,
+      "text": " Yeah, I think it's worth remarking that scale to zero is possible, but it is complex, so to speak."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1523.42,
+      "end": 1532.42,
+      "text": " Like we have an example in our repo and people can check out the way we achieve it, but I don't think it's like a general purpose way that you can use it for any use case."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1532.42,
+      "end": 1540.42,
+      "text": " In our use case, it makes sense just because we have a very clear execution path that determines when we need that compute capacity available."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1540.42,
+      "end": 1551.42,
+      "text": " And we effectively get it almost like a cold start in our example, just on demand, if you want to call it like that, using this instance under the hood and by changing the min max execution environment on the fly."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1551.42,
+      "end": 1556.42,
+      "text": " But I don't think, yeah, as we were saying that that's something you can use, for instance, for an API that wouldn't work, right?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1556.42,
+      "end": 1563.42,
+      "text": " So you just need to be aware that while it is possible, it is complex and it's not something you can use as a general purpose mechanism."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1563.42,
+      "end": 1569.42,
+      "text": " And the main reason is because when you set the min execution environment to zero, effectively your Lambda function becomes deactivated."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1569.42,
+      "end": 1578.42,
+      "text": " And there is a very clear indication when you go in the web UI on that particular Lambda function, you will see a blue banner saying this version is deactivated."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1578.42,
+      "end": 1582.42,
+      "text": " To activate it, you need to set the scaling to a value that is non-zero."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1582.42,
+      "end": 1584.42,
+      "text": " So just be aware of that."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1584.42,
+      "end": 1588.42,
+      "text": " If you were expecting automatic scale to zero, that's not necessarily the case."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1588.42,
+      "end": 1595.42,
+      "text": " The other thing is that because now you get concurrent execution, that comes with a few more headaches from a developer perspective,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1595.42,
+      "end": 1598.42,
+      "text": " which I don't think is necessarily a bad thing."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1598.42,
+      "end": 1605.42,
+      "text": " It's probably useful, but it's just something you need to be aware and consider in your code because otherwise you might have unexpected bugs or side effects."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1605.42,
+      "end": 1611.42,
+      "text": " And this is the same thing that you need to worry about anytime you are building an environment."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1611.42,
+      "end": 1615.42,
+      "text": " It can even be a container, it can be effectively anything where you're running code concurrently,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1615.42,
+      "end": 1620.42,
+      "text": " where you might end up with race conditions or issues of that kind."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1620.42,
+      "end": 1625.42,
+      "text": " In the case, for instance, of Node.js, which is what we used, what can happen is, for instance,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1625.42,
+      "end": 1630.42,
+      "text": " when you have global state that is shared across execution environments."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1630.42,
+      "end": 1637.42,
+      "text": " So imagine you have a global variable that you put outside your handler, and then you reference that variable inside your handler."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1637.42,
+      "end": 1643.42,
+      "text": " Because you might have multiple instances of that handler running at the same time concurrently,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1643.42,
+      "end": 1652.42,
+      "text": " if they are both changing that value, then you might end up with inconsistent state where one handler suddenly is seeing the data that was changed from the previous handler."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1652.42,
+      "end": 1657.42,
+      "text": " Imagine this is like, I don't know, a user session. You might have two users that are effectively overriding each other."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1657.42,
+      "end": 1661.42,
+      "text": " And this is something that might lead to very serious bugs. So just be aware of that."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1661.42,
+      "end": 1664.42,
+      "text": " Of course, there are other ways to avoid this problem."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1664.42,
+      "end": 1668.42,
+      "text": " We're not going to go into detail here on how you can solve this particular problem, but just be aware the problem exists."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1668.42,
+      "end": 1675.42,
+      "text": " And there are tons of best practices that you can find online for your specific language so that you don't run into kind of threading or concurrency issues,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1675.42,
+      "end": 1679.42,
+      "text": " which you now might have depending on your language of choice, just because you have concurrency."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1679.42,
+      "end": 1686.42,
+      "text": " And another similar issue is that if you're using the TMP folder, that's also a shared thing between concurrent executions."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1686.42,
+      "end": 1690.42,
+      "text": " So again, the same issue might happen in the sense that if you are creating a file from an instance,"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1690.42,
+      "end": 1695.42,
+      "text": " and then another instance is also trying to create that file, they might end up overriding each other."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1695.42,
+      "end": 1701.42,
+      "text": " So just be aware and make sure you select file names that don't conflict, maybe using UUIDs or something like that."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1701.42,
+      "end": 1706.42,
+      "text": " Logs can also be problematic in that sense because they will interleave."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1706.42,
+      "end": 1713.42,
+      "text": " And I suppose this is the reason why structured JSON logs are enabled by default and you don't get to change that."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1713.42,
+      "end": 1718.42,
+      "text": " And AWS says they will include a request ID by default in every JSON line."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1718.42,
+      "end": 1723.42,
+      "text": " So that should make it a little bit easier to avoid confusion between logs when you're just looking at the logs."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1723.42,
+      "end": 1729.42,
+      "text": " But you can still see interleaved lines, so it's up to you to filter by request ID."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1729.42,
+      "end": 1739.42,
+      "text": " There are lots more potential pitfalls and it's nice that AWS has put a documentation page that goes pretty much in detail also, not just with the problems, but with detailed solutions."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1739.42,
+      "end": 1742.42,
+      "text": " So we'll just give you a link that you can find in the show notes if you're curious."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1742.42,
+      "end": 1744.42,
+      "text": " And they are also organized by programming language."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1744.42,
+      "end": 1748.42,
+      "text": " So probably that removes a lot of the noise depending on your language of choice."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1748.42,
+      "end": 1751.42,
+      "text": " You'll be focused on what really matters for that particular language."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1751.42,
+      "end": 1756.42,
+      "text": " Now, I suppose the last topic and probably one of the most interesting for most people is how much is this going to cost me?"
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1756.42,
+      "end": 1770.42,
+      "text": " Yeah, a big change here really because one of the biggest mindset shifts with Lambda managed instances is that the billing is no longer your memory times duration default Lambda computer model."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1770.42,
+      "end": 1774.42,
+      "text": " So you're not paying for that dimension at all anymore."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1774.42,
+      "end": 1782.42,
+      "text": " But of course, you're paying for the underlying EC2 instances which are running in your account for a duration that you don't necessarily control to a fine level."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1782.42,
+      "end": 1788.42,
+      "text": " So with managed instances for Lambda, the official pricing model has three dimensions running in parallel."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1788.42,
+      "end": 1791.42,
+      "text": " So you still have request charges just like with default Lambda."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1791.42,
+      "end": 1794.42,
+      "text": " You pay 20 cents per million requests."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1794.42,
+      "end": 1795.42,
+      "text": " That's simple, familiar."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1795.42,
+      "end": 1798.42,
+      "text": " It's independent from how long each request runs."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1798.42,
+      "end": 1804.42,
+      "text": " And generally in any bills I've seen, that's a tiny negligible component compared to the other dimensions."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1804.42,
+      "end": 1806.42,
+      "text": " Then you have your EC2 instance charge."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1806.42,
+      "end": 1813.42,
+      "text": " And now you're paying the EC2 instance that backs your capacity providers using standard on-demand EC2 pricing."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1813.42,
+      "end": 1823.42,
+      "text": " The key benefit is that now you can apply EC2 instance savings plans and reserved instances and any other EC2 discount mechanisms that might be applicable."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1823.42,
+      "end": 1831.42,
+      "text": " The new thing is just like with ECS MI, now you've got kind of a management fee, managed instance tax, if you like."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1831.42,
+      "end": 1832.42,
+      "text": " With ECS, that was 12%."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1832.42,
+      "end": 1833.42,
+      "text": " We worked it out."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1833.42,
+      "end": 1840.42,
+      "text": " With Lambda, it's a 15% premium calculated on the EC2 on-demand price of the instance."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1840.42,
+      "end": 1847.42,
+      "text": " So the important nuance to this is EC2 discounts applied to the compute portion, not to the management fee."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1847.42,
+      "end": 1853.42,
+      "text": " You're always paying 15% of the on-demand list price for the management fee."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1853.42,
+      "end": 1860.42,
+      "text": " And also critically, spot instances are not yet supported, just like ECS, managed instances."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1860.42,
+      "end": 1868.42,
+      "text": " What this all means is that if you've got steady state high volume workloads, you might have massive cost savings with Lambda MI,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1868.42,
+      "end": 1870.42,
+      "text": " but you'll have to measure and have a look."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1870.42,
+      "end": 1875.42,
+      "text": " Like you really need a consistent load or to be doing something like we did with the video processing example,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1875.42,
+      "end": 1881.42,
+      "text": " where you're scaling it up for a certain amount of time, doing a large volume of batch processing and then scaling it down."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1881.42,
+      "end": 1887.42,
+      "text": " But you can also, things like multi-concurrency and like you said Luciano, with the high volume API,"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1887.42,
+      "end": 1890.42,
+      "text": " you've also potential for cost savings too."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1890.42,
+      "end": 1899.42,
+      "text": " So your mileage will vary, but high volume requests, longer running Lambdas really can benefit here."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1899.42,
+      "end": 1906.42,
+      "text": " And of course, remember that you can leverage existing savings plans with EC2 and reserved instances to save even more."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 1906.42,
+      "end": 1909.42,
+      "text": " Yeah, I guess let's jump to the conclusions."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1909.42,
+      "end": 1914.42,
+      "text": " I think what's important to mention here is that Lambda MI, it isn't like a new version of Lambda."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1914.42,
+      "end": 1918.42,
+      "text": " It isn't Lambda replacing Lambda or Lambda V2 or whatever you want to call it."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1918.42,
+      "end": 1920.42,
+      "text": " It's just a different execution model."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1920.42,
+      "end": 1923.42,
+      "text": " So it's like a new option for executing Lambda code."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1923.42,
+      "end": 1926.42,
+      "text": " So it's still the same Lambda developer experience and integrations."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1926.42,
+      "end": 1930.42,
+      "text": " It's just the compute, the underlying compute is something that you get to control."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1930.42,
+      "end": 1933.42,
+      "text": " Before it was just happening magically behind the scenes."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1933.42,
+      "end": 1935.42,
+      "text": " That's why we love to call it serverless."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1935.42,
+      "end": 1943.42,
+      "text": " Now it's a little bit less serverless, but it's an option and there are benefits and cases where you might want to use this particular option."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1943.42,
+      "end": 1945.42,
+      "text": " But I personally, I don't know if I like it or not."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1945.42,
+      "end": 1957.42,
+      "text": " I think it's a bit sad that makes my mental model or decision making process or decision tree, if you want to call it like that, a lot more complicated because now there are more options and more dimensions to think about."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1957.42,
+      "end": 1962.42,
+      "text": " But at the same time, it's also a good thing because there are definitely cases where something like this is useful."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1962.42,
+      "end": 1971.42,
+      "text": " So now you have that option without having to leave the comfort of Lambda or without having to do a massive refactor if you already have a solution that runs on Lambda."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1971.42,
+      "end": 1974.42,
+      "text": " So again, good and bad things."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1974.42,
+      "end": 1975.42,
+      "text": " You have more options to decide on."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1975.42,
+      "end": 1979.42,
+      "text": " But at the same time, those options can be very useful in certain particular cases."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1979.42,
+      "end": 1982.42,
+      "text": " I still expect those cases are maybe limited."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1982.42,
+      "end": 1993.42,
+      "text": " Maybe it's more enterprises with big workloads or maybe cases where you're doing cost optimizations or maybe cases where you need a significant amount of concurrency."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1993.42,
+      "end": 1997.42,
+      "text": " But those cases exist. So now be aware that this option exists."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 1997.42,
+      "end": 2006.42,
+      "text": " So as we said, it shines where you have steady state, predictable loads, high throughput APIs, CPU heavy or long running work, batch workflows and so on."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2006.42,
+      "end": 2018.42,
+      "text": " I think it might not be the best use case if you are worried about fast spikes, for example, and those spikes can cause throttling."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2018.42,
+      "end": 2023.42,
+      "text": " So depending on your use case, the more traditional Lambda approach might be better suited for that."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2023.42,
+      "end": 2029.42,
+      "text": " You have more knobs to tune. So for instance, you have to think about max concurrency, utilization targets, instance shape."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2029.42,
+      "end": 2033.42,
+      "text": " So definitely something else that's worth considering and adds complexity."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2033.42,
+      "end": 2041.42,
+      "text": " And then the minimum function size is also something you need to be aware of because if you have, I really like, for instance, to do single purpose Lambda functions."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2041.42,
+      "end": 2044.42,
+      "text": " So I sometimes end up with even hundreds of small Lambda functions."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2044.42,
+      "end": 2050.42,
+      "text": " I think this approach pushes you a little bit more into the lambdalith land as we did in our particular example."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2050.42,
+      "end": 2053.42,
+      "text": " So just be aware that there is nothing necessarily wrong with it."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2053.42,
+      "end": 2055.42,
+      "text": " It's just something you need to consider."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2055.42,
+      "end": 2070.42,
+      "text": " And I'd really like if there was an option here where if it was scaling slowly and maybe you're getting some throttling because it's trying to provision a new EC2 managed instance for you."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2070.42,
+      "end": 2074.42,
+      "text": " If then you could say, well, in the meantime, just use default Lambda for that function, right?"
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2074.42,
+      "end": 2081.42,
+      "text": " And handle the scale by using the normal execution mode, but you can't mix the two with Lambda-MI."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2081.42,
+      "end": 2084.42,
+      "text": " You're either using one or the other, which is a bit of a shame."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2084.42,
+      "end": 2087.42,
+      "text": " It would be nice to be able to have a blend."
+    },
+    {
+      "speakerLabel": "spk_1",
+      "start": 2087.42,
+      "end": 2092.42,
+      "text": " Yeah, maybe we can consider this a feature request if anyone from AWS is listening, but I definitely agree with you."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2092.42,
+      "end": 2099.42,
+      "text": " So just to close things off, the bottom line is that this is a new tool and it might be a very good tool for the right workloads."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2099.42,
+      "end": 2109.42,
+      "text": " It's not necessarily something we should consider as an upgrade to Lambda, but then yet again, it's definitely a useful tool and it's worth to know when to use it and how you can use it."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2109.42,
+      "end": 2112.42,
+      "text": " I remind you that we have a repository with an example."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2112.42,
+      "end": 2113.42,
+      "text": " You can find it in the show notes."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2113.42,
+      "end": 2115.42,
+      "text": " So if you have tried it, let us know."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2115.42,
+      "end": 2117.42,
+      "text": " If you like it, let us know why."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2117.42,
+      "end": 2119.42,
+      "text": " If you don't like it, also let us know why."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2119.42,
+      "end": 2125.42,
+      "text": " We are always open to talk to you and hear your opinion and see if maybe you found other use cases that we didn't think about."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2125.42,
+      "end": 2126.42,
+      "text": " One last thing."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2126.42,
+      "end": 2130.42,
+      "text": " Thanks to fourTheorem for sponsoring yet another episode of AWS Bites."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2130.42,
+      "end": 2132.42,
+      "text": " fourTheorem is an AWS partner."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2132.42,
+      "end": 2133.42,
+      "text": " It's a consulting company."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2133.42,
+      "end": 2136.42,
+      "text": " We can help you with your AWS architecture."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2136.42,
+      "end": 2140.42,
+      "text": " We can make sure that your implementation are simple, scalable, cost-sane."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2140.42,
+      "end": 2147.42,
+      "text": " So if you're curious, check out fourTheorem.com and find our case studies and get in touch if you want to know more."
+    },
+    {
+      "speakerLabel": "spk_0",
+      "start": 2147.42,
+      "end": 2150.42,
+      "text": " So thank you very much and we'll see you in the next episode."
+    }
+  ]
+}

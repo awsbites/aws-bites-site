@@ -1,0 +1,5241 @@
+WEBVTT
+
+1
+00:00:00.436 --> 00:00:02.137
+If you've been listening to AWS Bites for a
+
+2
+00:00:02.157 --> 00:00:04.199
+while, you've probably noticed a pattern.
+
+3
+00:00:04.519 --> 00:00:07.221
+We keep coming back to Lambda, and that's not a
+
+4
+00:00:07.481 --> 00:00:07.961
+coincidence.
+
+5
+00:00:07.981 --> 00:00:08.742
+We're big fans.
+
+6
+00:00:09.162 --> 00:00:11.284
+It's one of those services we like because it's
+
+7
+00:00:11.584 --> 00:00:12.284
+very convenient.
+
+8
+00:00:12.524 --> 00:00:14.246
+You can write tiny little functions in the
+
+9
+00:00:14.286 --> 00:00:15.487
+programming language you like.
+
+10
+00:00:15.687 --> 00:00:17.748
+They run on demand when specific events happen.
+
+11
+00:00:18.048 --> 00:00:19.950
+They scale like crazy when you need them to,
+
+12
+00:00:20.230 --> 00:00:22.111
+and scale to zero when nothing happens,
+
+13
+00:00:22.391 --> 00:00:22.792
+even better.
+
+14
+00:00:23.692 --> 00:00:25.033
+and you only pay for what you use.
+
+15
+00:00:25.313 --> 00:00:27.133
+Of course, Lambda is not always the best
+
+16
+00:00:27.153 --> 00:00:29.574
+solution for everything, as lots of listeners
+
+17
+00:00:29.854 --> 00:00:31.655
+like to remind us, which is completely fair.
+
+18
+00:00:32.295 --> 00:00:33.875
+The moment you try to do anything that looks
+
+19
+00:00:33.895 --> 00:00:36.016
+like a workflow, for example, Lambda can start
+
+20
+00:00:36.036 --> 00:00:37.937
+to feel like it's fighting against you.
+
+21
+00:00:38.517 --> 00:00:41.098
+You've got 15 minutes max execution time.
+
+22
+00:00:41.678 --> 00:00:43.178
+It's stateless by default.
+
+23
+00:00:44.039 --> 00:00:45.739
+And if you need some orchestration,
+
+24
+00:00:46.339 --> 00:00:48.360
+retries, back off, all that kind of stuff,
+
+25
+00:00:48.780 --> 00:00:50.382
+you end up bolting on something like step
+
+26
+00:00:50.402 --> 00:00:53.284
+functions, queues, schedules, and a bunch of
+
+27
+00:00:53.344 --> 00:00:54.946
+extra stuff you didn't really want in the
+
+28
+00:00:54.966 --> 00:00:55.286
+beginning.
+
+29
+00:00:55.566 --> 00:00:57.248
+And it's not always easy to get that stuff
+
+30
+00:00:57.468 --> 00:00:58.309
+working reliably.
+
+31
+00:00:58.509 --> 00:01:00.571
+Now what if you could keep the lambda model we
+
+32
+00:01:00.611 --> 00:01:02.833
+all know and love, but add a few extra
+
+33
+00:01:02.853 --> 00:01:05.255
+superpowers that might help us to overcome some
+
+34
+00:01:05.275 --> 00:01:06.056
+of those challenges?
+
+35
+00:01:06.796 --> 00:01:09.679
+Well, last December we got a few new superpowers
+
+36
+00:01:10.239 --> 00:01:12.000
+at reInvent 2024,
+
+37
+00:01:12.501 --> 00:01:15.142
+AWS Lambda Durable Functions were announced.
+
+38
+00:01:15.502 --> 00:01:17.403
+And to be honest, we're pretty excited about
+
+39
+00:01:17.423 --> 00:01:17.723
+this one.
+
+40
+00:01:18.583 --> 00:01:20.624
+Now, it's still Lambda, it still has the same
+
+41
+00:01:20.664 --> 00:01:23.064
+runtime and the same scaling, but with a
+
+42
+00:01:23.124 --> 00:01:26.125
+framework that can now checkpoint progress,
+
+43
+00:01:26.446 --> 00:01:28.586
+suspend execution when you need to wait,
+
+44
+00:01:28.886 --> 00:01:30.567
+can resume later from a safe point,
+
+45
+00:01:31.107 --> 00:01:32.688
+skipping the work you already completed.
+
+46
+00:01:33.148 --> 00:01:35.488
+And this is what we're going to talk about in
+
+47
+00:01:35.588 --> 00:01:36.249
+detail today.
+
+48
+00:01:36.289 --> 00:01:37.089
+We're going to break down
+
+49
+00:01:37.622 --> 00:01:40.447
+What durable actually means in practice and how
+
+50
+00:01:40.507 --> 00:01:42.891
+this whole resume mechanism works under the
+
+51
+00:01:42.931 --> 00:01:43.092
+hood.
+
+52
+00:01:43.873 --> 00:01:45.876
+We'll talk about when this approach is a huge
+
+53
+00:01:45.916 --> 00:01:47.679
+win compared to the usual patterns.
+
+54
+00:01:48.617 --> 00:01:50.358
+And of course, the gotchas that can surprise
+
+55
+00:01:50.398 --> 00:01:52.779
+you, especially around determinism,
+
+56
+00:01:53.440 --> 00:01:57.062
+item potency, and debugging resumed executions.
+
+57
+00:01:57.722 --> 00:01:59.723
+Finally, we'll also talk about one of our own
+
+58
+00:02:00.003 --> 00:02:02.905
+open source applications that we rebuilt from
+
+59
+00:02:02.965 --> 00:02:05.326
+scratch to have an excuse to use durable Lambda
+
+60
+00:02:05.346 --> 00:02:08.028
+functions and see what it feels like to use them
+
+61
+00:02:08.088 --> 00:02:08.948
+in a real project.
+
+62
+00:02:09.629 --> 00:02:11.370
+My name is Eoin, I'm joined by Luciano,
+
+63
+00:02:11.630 --> 00:02:13.051
+and this is AWS Bites.
+
+64
+00:02:21.709 --> 00:02:23.990
+Okay, Luciano, would you like to start off by
+
+65
+00:02:24.010 --> 00:02:26.551
+telling us what is a durable function and what
+
+66
+00:02:26.571 --> 00:02:27.732
+are the basic ideas around it?
+
+67
+00:02:28.272 --> 00:02:28.972
+Of course, yeah.
+
+68
+00:02:29.032 --> 00:02:30.333
+So as you said in the intro,
+
+69
+00:02:30.413 --> 00:02:31.814
+it's still lambda, right?
+
+70
+00:02:31.834 --> 00:02:33.814
+It's the same service, it's the same model,
+
+71
+00:02:33.854 --> 00:02:34.695
+the same scaling.
+
+72
+00:02:35.075 --> 00:02:35.975
+That doesn't change.
+
+73
+00:02:36.476 --> 00:02:38.857
+So that also means that you still write a lambda
+
+74
+00:02:38.977 --> 00:02:42.038
+and lambda the usual way with the same run times
+
+75
+00:02:42.098 --> 00:02:43.739
+that you know and love, the same type of
+
+76
+00:02:43.779 --> 00:02:45.980
+resources, the same scaling mechanics.
+
+77
+00:02:46.360 --> 00:02:46.640
+Now the
+
+78
+00:02:46.660 --> 00:02:48.741
+difference is that now there is a new flag that
+
+79
+00:02:48.781 --> 00:02:51.582
+you can turn on to basically turn a regular
+
+80
+00:02:51.682 --> 00:02:54.483
+Lambda function into a durable Lambda function.
+
+81
+00:02:54.863 --> 00:02:57.604
+And that basically opts in the function into
+
+82
+00:02:57.944 --> 00:03:00.625
+what is called the durable execution engine that
+
+83
+00:03:00.645 --> 00:03:03.146
+you can now use through a dedicated SDK.
+
+84
+00:03:03.426 --> 00:03:05.406
+So there are these new capabilities that we
+
+85
+00:03:05.466 --> 00:03:08.007
+described and they become available by using a
+
+86
+00:03:08.027 --> 00:03:09.928
+special SDK that you need to install.
+
+87
+00:03:10.268 --> 00:03:11.650
+What is the core difference?
+
+88
+00:03:11.730 --> 00:03:14.793
+So there is, I guess, a mental shift that we
+
+89
+00:03:14.813 --> 00:03:17.556
+need to start embracing when we switch a regular
+
+90
+00:03:17.617 --> 00:03:19.298
+lambda function into a durable function,
+
+91
+00:03:19.819 --> 00:03:21.861
+which basically is that you have to stop
+
+92
+00:03:21.941 --> 00:03:25.045
+thinking about one lambda invocation and start
+
+93
+00:03:25.065 --> 00:03:28.889
+thinking about a workflow made of atomic steps.
+
+94
+00:03:29.590 --> 00:03:32.052
+So this dedicated SDK basically allows you to
+
+95
+00:03:32.112 --> 00:03:35.275
+write inside the code, inside your handler,
+
+96
+00:03:35.915 --> 00:03:39.218
+your business logic as a sequence of explicitly
+
+97
+00:03:39.338 --> 00:03:40.119
+named steps.
+
+98
+00:03:40.899 --> 00:03:43.401
+And you can think of every step as an atomic
+
+99
+00:03:43.702 --> 00:03:44.402
+unit of work.
+
+100
+00:03:44.662 --> 00:03:46.624
+So you can think about, OK, do this,
+
+101
+00:03:46.764 --> 00:03:47.465
+then do that.
+
+102
+00:03:48.145 --> 00:03:50.727
+And of course, each step has clear boundaries
+
+103
+00:03:50.827 --> 00:03:51.428
+and outcomes.
+
+104
+00:03:51.828 --> 00:03:54.671
+And this step model is basically what makes the
+
+105
+00:03:54.971 --> 00:03:56.613
+idea of checkpointing possible.
+
+106
+00:03:57.254 --> 00:03:59.656
+And this idea basically means that after a step
+
+107
+00:03:59.897 --> 00:04:02.540
+is completed, the framework can create a
+
+108
+00:04:02.580 --> 00:04:05.222
+checkpoint, which is basically a way of saying
+
+109
+00:04:05.282 --> 00:04:06.984
+that all the state that was
+
+110
+00:04:08.145 --> 00:04:10.227
+in the lambda function at that point is
+
+111
+00:04:10.287 --> 00:04:12.288
+persisted in this workflow.
+
+112
+00:04:12.408 --> 00:04:14.149
+So it's like, okay, we are doing progress,
+
+113
+00:04:14.189 --> 00:04:16.231
+we completed this step, the result of this step
+
+114
+00:04:16.351 --> 00:04:19.173
+was an object, for example, that object is
+
+115
+00:04:19.253 --> 00:04:22.295
+persisted inside the runtime execution state.
+
+116
+00:04:23.576 --> 00:04:27.677
+And other than that, we also have to talk about,
+
+117
+00:04:27.937 --> 00:04:30.058
+because we mentioned suspension, so what does
+
+118
+00:04:30.078 --> 00:04:30.478
+that mean?
+
+119
+00:04:30.798 --> 00:04:33.758
+When this lambda function execution can stop.
+
+120
+00:04:34.299 --> 00:04:35.939
+And it can stop for a few different reasons.
+
+121
+00:04:35.999 --> 00:04:38.219
+For instance, there could be unexpected stops,
+
+122
+00:04:38.620 --> 00:04:41.000
+if there is an error, or some kind of crash,
+
+123
+00:04:41.160 --> 00:04:43.321
+a timeout, or something like that.
+
+124
+00:04:43.561 --> 00:04:45.561
+In that case, there will be a retry mechanism
+
+125
+00:04:45.621 --> 00:04:48.082
+that kicks in and will start to re-execute the
+
+126
+00:04:48.122 --> 00:04:48.442
+function.
+
+127
+00:04:49.372 --> 00:04:51.835
+Or maybe there are planned stops as well.
+
+128
+00:04:51.996 --> 00:04:54.900
+And this is also a new concept because basically
+
+129
+00:04:54.980 --> 00:04:57.243
+sometimes in your business logic, you just have
+
+130
+00:04:57.283 --> 00:04:59.486
+to wait for something externally to happen.
+
+131
+00:04:59.686 --> 00:05:01.569
+We'll talk about some examples in a second.
+
+132
+00:05:02.250 --> 00:05:04.412
+And the idea is that when you want to wait,
+
+133
+00:05:05.033 --> 00:05:07.234
+you don't need to keep the Lambda running
+
+134
+00:05:07.374 --> 00:05:09.936
+because that consumes resources and it's going
+
+135
+00:05:09.956 --> 00:05:12.397
+to cost you money because you have CPU and
+
+136
+00:05:12.457 --> 00:05:14.658
+memory that gets occupied doing nothing
+
+137
+00:05:14.718 --> 00:05:15.179
+effectively.
+
+138
+00:05:15.539 --> 00:05:17.360
+So what happens is that with durable function,
+
+139
+00:05:17.400 --> 00:05:19.481
+the Lambda can now be suspended, which means
+
+140
+00:05:19.501 --> 00:05:21.582
+that it's literally, the instance is literally
+
+141
+00:05:21.622 --> 00:05:21.942
+stopped.
+
+142
+00:05:22.302 --> 00:05:23.783
+So nothing is running, you're not going to be
+
+143
+00:05:23.823 --> 00:05:26.785
+paying for that until something happens that
+
+144
+00:05:26.805 --> 00:05:29.526
+basically wakes up the execution and basically
+
+145
+00:05:29.566 --> 00:05:31.127
+starts a new fresh execution.
+
+146
+00:05:31.227 --> 00:05:32.468
+But with all this state,
+
+147
+00:05:33.048 --> 00:05:34.769
+that we discussed before with the checkpoint
+
+148
+00:05:34.809 --> 00:05:37.171
+mechanism being preserved and restored.
+
+149
+00:05:37.432 --> 00:05:37.692
+Now, you
+
+150
+00:05:37.712 --> 00:05:39.834
+might be wondering what are some good examples
+
+151
+00:05:39.894 --> 00:05:40.734
+of wait steps.
+
+152
+00:05:41.795 --> 00:05:43.336
+They might be timer-based.
+
+153
+00:05:43.417 --> 00:05:44.658
+For example, you can just say, OK,
+
+154
+00:05:45.418 --> 00:05:47.480
+I know that the external action is going to take
+
+155
+00:05:47.880 --> 00:05:49.061
+three seconds, for example.
+
+156
+00:05:49.461 --> 00:05:51.243
+So I'm just going to drop in a wait of
+
+157
+00:05:51.483 --> 00:05:53.505
+maybe four seconds if you just want to play it
+
+158
+00:05:53.525 --> 00:05:53.725
+short.
+
+159
+00:05:53.765 --> 00:05:55.667
+But you can predict more or less how much time
+
+160
+00:05:55.687 --> 00:05:56.247
+you're going to need.
+
+161
+00:05:56.567 --> 00:05:58.329
+And you can just leap for that amount of time.
+
+162
+00:05:59.194 --> 00:06:01.275
+Another thing could be wait for another compute
+
+163
+00:06:01.295 --> 00:06:01.575
+step.
+
+164
+00:06:01.655 --> 00:06:03.736
+For example, you might be invoking another
+
+165
+00:06:03.796 --> 00:06:04.176
+lambda.
+
+166
+00:06:05.096 --> 00:06:06.256
+And we know that this is generally an
+
+167
+00:06:06.296 --> 00:06:06.937
+anti-pattern.
+
+168
+00:06:06.957 --> 00:06:09.297
+But in this case, it might be starting to become
+
+169
+00:06:09.338 --> 00:06:09.898
+acceptable.
+
+170
+00:06:10.578 --> 00:06:12.058
+But if you are calling another lambda,
+
+171
+00:06:12.078 --> 00:06:14.119
+you can wait for that other lambda to finish.
+
+172
+00:06:14.219 --> 00:06:16.980
+And while you are waiting, your execution gets
+
+173
+00:06:17.000 --> 00:06:19.381
+suspended and then resumed only when the other
+
+174
+00:06:19.441 --> 00:06:21.742
+lambda completes and returns some kind of
+
+175
+00:06:21.782 --> 00:06:22.182
+response.
+
+176
+00:06:22.562 --> 00:06:22.642
+Or
+
+177
+00:06:22.702 --> 00:06:24.844
+maybe you can wait until a generic condition is
+
+178
+00:06:24.864 --> 00:06:27.506
+satisfied, which is basically a little bit of a
+
+179
+00:06:27.647 --> 00:06:31.090
+wrapper around the weight model, the one we
+
+180
+00:06:31.150 --> 00:06:33.272
+described before, the timer-based weight model.
+
+181
+00:06:34.012 --> 00:06:35.634
+And the idea is that you can say,
+
+182
+00:06:35.694 --> 00:06:37.615
+OK, I'm going to wake up this function every few
+
+183
+00:06:37.655 --> 00:06:38.036
+seconds.
+
+184
+00:06:38.556 --> 00:06:41.057
+and then I'm going to check on a condition and
+
+185
+00:06:41.177 --> 00:06:43.358
+if that condition is satisfied I'm going to stop
+
+186
+00:06:43.418 --> 00:06:45.219
+sleeping and progress to the next step.
+
+187
+00:06:45.599 --> 00:06:47.360
+Otherwise I'm going to go to sleep again and
+
+188
+00:06:47.440 --> 00:06:51.741
+wait for the next timer interval to resume and
+
+189
+00:06:51.781 --> 00:06:52.702
+check the condition again.
+
+190
+00:06:53.433 --> 00:06:55.734
+And then another one that you might be familiar
+
+191
+00:06:55.774 --> 00:06:58.435
+with if you use step functions is the waiting
+
+192
+00:06:58.455 --> 00:06:59.595
+for an external callback.
+
+193
+00:06:59.615 --> 00:07:02.216
+So you could create this concept of a callback.
+
+194
+00:07:02.237 --> 00:07:05.258
+So it's almost like a unique ID that another
+
+195
+00:07:05.338 --> 00:07:08.759
+service can then use to programmatically wake up
+
+196
+00:07:08.959 --> 00:07:10.560
+that lambda function execution.
+
+197
+00:07:11.280 --> 00:07:13.102
+So this is generally useful, for instance,
+
+198
+00:07:13.122 --> 00:07:15.165
+when you have a human in the loop.
+
+199
+00:07:15.265 --> 00:07:18.108
+So you might have some kind of UI that gets
+
+200
+00:07:18.228 --> 00:07:19.730
+triggered with that callback ID.
+
+201
+00:07:20.131 --> 00:07:22.373
+Then the user will see some kind of interface
+
+202
+00:07:22.453 --> 00:07:25.116
+and be able to decide, OK, maybe do some action
+
+203
+00:07:25.156 --> 00:07:27.039
+and then decide whether that execution should
+
+204
+00:07:27.079 --> 00:07:28.801
+progress or maybe be interrupted.
+
+205
+00:07:29.121 --> 00:07:31.922
+And in that case, that UI you implemented is
+
+206
+00:07:31.962 --> 00:07:34.023
+going to trigger the callback mechanism to
+
+207
+00:07:34.083 --> 00:07:35.483
+resume the lambda invocation.
+
+208
+00:07:35.723 --> 00:07:36.183
+Now, there are
+
+209
+00:07:36.203 --> 00:07:38.324
+some other interesting implications.
+
+210
+00:07:38.344 --> 00:07:41.285
+For instance, one of the main ones is that a
+
+211
+00:07:41.505 --> 00:07:43.826
+durable execution can last up to one year.
+
+212
+00:07:43.966 --> 00:07:45.927
+And this is, again, similar to stack functions.
+
+213
+00:07:46.627 --> 00:07:48.348
+And by the way, this doesn't have to be confused
+
+214
+00:07:48.408 --> 00:07:50.510
+with the individual lambda invocation,
+
+215
+00:07:50.550 --> 00:07:52.051
+which is still 15 minutes.
+
+216
+00:07:52.551 --> 00:07:55.293
+This basically means that every time you suspend
+
+217
+00:07:55.313 --> 00:07:58.375
+the execution and then resume it, the overall
+
+218
+00:07:58.635 --> 00:08:00.977
+execution period from the first time that that
+
+219
+00:08:01.077 --> 00:08:04.079
+lambda invocation started to when it ends can
+
+220
+00:08:04.139 --> 00:08:05.180
+last one year.
+
+221
+00:08:05.500 --> 00:08:08.102
+But of course, each execution cannot last longer
+
+222
+00:08:08.262 --> 00:08:08.702
+than 15 minutes.
+
+223
+00:08:10.118 --> 00:08:15.680
+And let's actually say that this is convenient,
+
+224
+00:08:15.700 --> 00:08:17.080
+for instance, if you are waiting for human
+
+225
+00:08:17.100 --> 00:08:18.701
+approval, that gives you time.
+
+226
+00:08:18.841 --> 00:08:20.461
+Maybe you are doing something that could take
+
+227
+00:08:20.621 --> 00:08:23.762
+days for a human to be available and do the
+
+228
+00:08:23.802 --> 00:08:25.743
+approval, or even months.
+
+229
+00:08:25.963 --> 00:08:27.884
+And that's still a good programming model for
+
+230
+00:08:27.944 --> 00:08:29.144
+Lambda durable functions.
+
+231
+00:08:30.443 --> 00:08:33.265
+Finally, I think it's worth mentioning that when
+
+232
+00:08:33.305 --> 00:08:36.907
+it stops, either because of a failure in the
+
+233
+00:08:36.967 --> 00:08:38.668
+execution or because you're waiting for
+
+234
+00:08:38.708 --> 00:08:41.310
+something, the workflow can later resume from
+
+235
+00:08:41.330 --> 00:08:42.150
+the last checkpoint.
+
+236
+00:08:42.631 --> 00:08:44.272
+We'll talk more about the details because I
+
+237
+00:08:44.292 --> 00:08:45.693
+think there are some important nuances.
+
+238
+00:08:46.113 --> 00:08:48.134
+Basically, the conceptual idea is that it
+
+239
+00:08:48.194 --> 00:08:49.975
+doesn't start from the beginning, but it kind of
+
+240
+00:08:50.255 --> 00:08:53.297
+restarts from whatever was completed is going to
+
+241
+00:08:53.317 --> 00:08:54.158
+start from the next step.
+
+242
+00:08:54.890 --> 00:08:55.950
+This is a simplification.
+
+243
+00:08:55.990 --> 00:08:58.251
+We'll talk more about how exactly that model
+
+244
+00:08:58.291 --> 00:08:58.611
+works.
+
+245
+00:08:58.971 --> 00:09:01.352
+But this is how you can build a mental model
+
+246
+00:09:01.412 --> 00:09:04.153
+for what happens behind the scenes.
+
+247
+00:09:04.173 --> 00:09:06.654
+So I suppose, yeah, I think that should cover
+
+248
+00:09:07.934 --> 00:09:09.275
+more or less the main ideas.
+
+249
+00:09:09.315 --> 00:09:09.795
+What do you think?
+
+250
+00:09:10.210 --> 00:09:13.014
+Yeah, well, we maybe just talk about what
+
+251
+00:09:13.094 --> 00:09:15.757
+durable functions can do that, like a standard
+
+252
+00:09:15.957 --> 00:09:17.219
+Lambda function cannot.
+
+253
+00:09:17.539 --> 00:09:20.463
+One thing is you can run multi-step workflows
+
+254
+00:09:20.503 --> 00:09:23.246
+just in code without having to roll your own
+
+255
+00:09:23.727 --> 00:09:25.509
+Lambda queue state.
+
+256
+00:09:26.230 --> 00:09:29.652
+The next Lambda orchestration, it's probably a
+
+257
+00:09:29.672 --> 00:09:31.794
+lot more easy for people to reason about.
+
+258
+00:09:31.814 --> 00:09:33.855
+It can be very difficult sometimes when you've
+
+259
+00:09:33.895 --> 00:09:36.997
+got your contacts split across multiple
+
+260
+00:09:37.037 --> 00:09:38.278
+different AWS services.
+
+261
+00:09:38.919 --> 00:09:41.020
+And then you can suspend and resume cleanly.
+
+262
+00:09:41.480 --> 00:09:43.021
+So for things like timers, callbacks,
+
+263
+00:09:43.161 --> 00:09:44.823
+as you mentioned, and human approvals,
+
+264
+00:09:44.863 --> 00:09:47.364
+of course, without burning compute and paying
+
+265
+00:09:47.404 --> 00:09:48.245
+for it while you're waiting.
+
+266
+00:09:49.248 --> 00:09:51.490
+You can also keep reliable progress
+
+267
+00:09:51.570 --> 00:09:53.471
+automatically by using the checkpointing
+
+268
+00:09:53.531 --> 00:09:56.634
+feature, so completed steps aren't redone when
+
+269
+00:09:56.694 --> 00:09:58.355
+the execution does resume.
+
+270
+00:09:59.136 --> 00:10:02.098
+And also you can then apply resilience controls
+
+271
+00:10:02.258 --> 00:10:03.759
+at the step level, so you can
+
+272
+00:10:04.640 --> 00:10:07.883
+add retries back off and jitter without
+
+273
+00:10:07.963 --> 00:10:10.285
+returning your business logic into a whole load
+
+274
+00:10:10.305 --> 00:10:11.866
+of retry state plumbing.
+
+275
+00:10:12.347 --> 00:10:14.949
+So it's a little bit of the benefit of that
+
+276
+00:10:15.209 --> 00:10:17.471
+that you get from step functions, but it's in
+
+277
+00:10:17.632 --> 00:10:19.693
+the language that you prefer to use.
+
+278
+00:10:21.655 --> 00:10:22.836
+For when it comes to
+
+279
+00:10:24.017 --> 00:10:26.880
+Workflow hygiene, I suppose you could say that's
+
+280
+00:10:27.120 --> 00:10:29.543
+can be often painful to build yourself like
+
+281
+00:10:29.703 --> 00:10:32.286
+deduplication, cancellation and compensation.
+
+282
+00:10:32.806 --> 00:10:35.389
+Like we're thinking about saga style rollbacks,
+
+283
+00:10:35.469 --> 00:10:38.272
+maybe to get that distributed transaction kind
+
+284
+00:10:38.312 --> 00:10:38.892
+of effect.
+
+285
+00:10:39.853 --> 00:10:41.373
+And that's something you can do with durable
+
+286
+00:10:41.433 --> 00:10:41.874
+functions.
+
+287
+00:10:42.174 --> 00:10:45.834
+And overall, the development and operations
+
+288
+00:10:45.894 --> 00:10:48.675
+experience is improved, I would say,
+
+289
+00:10:48.735 --> 00:10:52.376
+with a better testability story and just clearer
+
+290
+00:10:52.436 --> 00:10:55.097
+observability around a single durable execution
+
+291
+00:10:55.437 --> 00:10:56.537
+and its steps.
+
+292
+00:10:57.177 --> 00:10:59.638
+OK, so that's how it compares to regular Lambda
+
+293
+00:10:59.698 --> 00:11:00.238
+as we see it.
+
+294
+00:11:00.258 --> 00:11:03.299
+It might be useful then to share what kind of
+
+295
+00:11:03.559 --> 00:11:05.679
+good use cases do we have that where you might
+
+296
+00:11:05.699 --> 00:11:07.600
+think, OK, this is a good fit for durable
+
+297
+00:11:07.660 --> 00:11:08.040
+functions.
+
+298
+00:11:08.120 --> 00:11:09.340
+Let's give it a try.
+
+299
+00:11:10.177 --> 00:11:12.740
+Yeah, I actually read recently on Yan Cui's
+
+300
+00:11:12.800 --> 00:11:16.685
+newsletter one example that I found very good in
+
+301
+00:11:16.705 --> 00:11:18.307
+terms of explaining the capabilities.
+
+302
+00:11:18.327 --> 00:11:19.469
+So I'm just going to steal that.
+
+303
+00:11:19.649 --> 00:11:21.131
+Sorry, Yan, if you're listening.
+
+304
+00:11:21.852 --> 00:11:24.015
+So the idea is basically you can build an order
+
+305
+00:11:24.035 --> 00:11:26.418
+processing workflow for a food delivery service.
+
+306
+00:11:26.778 --> 00:11:28.359
+So the idea could be, okay, there is some kind
+
+307
+00:11:28.379 --> 00:11:30.240
+of trigger and a new order comes in.
+
+308
+00:11:30.280 --> 00:11:31.861
+You might imagine, I don't know, there is a
+
+309
+00:11:31.921 --> 00:11:34.303
+website or a mobile application where a user can
+
+310
+00:11:34.343 --> 00:11:36.664
+place an order and that's basically the starting
+
+311
+00:11:36.704 --> 00:11:36.984
+point.
+
+312
+00:11:37.084 --> 00:11:39.506
+There is an event once the order is being placed
+
+313
+00:11:40.026 --> 00:11:42.708
+and that event triggers a durable lambda
+
+314
+00:11:42.728 --> 00:11:45.270
+function which implements the following workflow
+
+315
+00:11:45.650 --> 00:11:46.190
+in steps.
+
+316
+00:11:46.610 --> 00:11:49.052
+So the first step is basically save the order
+
+317
+00:11:49.492 --> 00:11:50.553
+details in a database.
+
+318
+00:11:51.234 --> 00:11:54.315
+Then, of course, we are going to broadcast this
+
+319
+00:11:54.756 --> 00:11:56.877
+order placed event into EventBridge.
+
+320
+00:11:57.457 --> 00:11:58.497
+And this is basically where the
+
+321
+00:11:58.517 --> 00:11:59.938
+human-in-the-loop might come in.
+
+322
+00:12:00.158 --> 00:12:02.999
+So we might want to implement some kind of
+
+323
+00:12:03.320 --> 00:12:06.061
+restaurant confirmation so that EventBridge
+
+324
+00:12:06.961 --> 00:12:09.142
+triggers, effectively, somehow triggers a
+
+325
+00:12:09.162 --> 00:12:10.903
+notification to the restaurant, maybe through
+
+326
+00:12:11.063 --> 00:12:14.545
+another web application or mobile application
+
+327
+00:12:14.565 --> 00:12:16.106
+that is available to the restaurant,
+
+328
+00:12:16.626 --> 00:12:18.267
+where they will see, okay, there is this new
+
+329
+00:12:18.367 --> 00:12:20.648
+order coming in, do you want to accept it or
+
+330
+00:12:20.688 --> 00:12:21.128
+reject it?
+
+331
+00:12:21.428 --> 00:12:23.009
+And you can imagine that, I don't know,
+
+332
+00:12:23.049 --> 00:12:24.630
+maybe the restaurant is about to close,
+
+333
+00:12:24.690 --> 00:12:26.130
+maybe they run out of ingredients,
+
+334
+00:12:26.170 --> 00:12:27.191
+maybe they are overbooked,
+
+335
+00:12:27.571 --> 00:12:27.831
+So there
+
+336
+00:12:27.851 --> 00:12:28.011
+might
+
+337
+00:12:28.051 --> 00:12:30.992
+be several reasons why the restaurant might not
+
+338
+00:12:31.052 --> 00:12:32.812
+be in a position to accept that order.
+
+339
+00:12:33.132 --> 00:12:34.833
+So the human-in-the-loop, in this case,
+
+340
+00:12:34.873 --> 00:12:37.033
+is an important element of this business flow.
+
+341
+00:12:37.893 --> 00:12:39.494
+And of course, you might also want to apply a
+
+342
+00:12:39.534 --> 00:12:43.395
+timeout because maybe it makes sense for a
+
+343
+00:12:43.455 --> 00:12:45.895
+customer not to wait forever if, for whatever
+
+344
+00:12:45.935 --> 00:12:48.536
+reason, the restaurant cannot even receive that
+
+345
+00:12:48.596 --> 00:12:49.256
+notification.
+
+346
+00:12:49.356 --> 00:12:51.476
+Maybe they receive it and nobody is available to
+
+347
+00:12:51.556 --> 00:12:53.857
+actually respond to it in a timely manner.
+
+348
+00:12:54.566 --> 00:12:56.008
+So imagine this mechanism.
+
+349
+00:12:56.068 --> 00:12:57.910
+So your lambda, a durable function,
+
+350
+00:12:57.950 --> 00:12:58.611
+is suspended.
+
+351
+00:12:59.031 --> 00:13:00.613
+This event is going to get to the restaurant
+
+352
+00:13:00.633 --> 00:13:02.475
+somehow, and the restaurant is going to have
+
+353
+00:13:02.495 --> 00:13:04.217
+some kind of application that can use the
+
+354
+00:13:04.237 --> 00:13:08.041
+callback to resume or reject that execution,
+
+355
+00:13:08.081 --> 00:13:10.364
+which is effectively confirming or rejecting
+
+356
+00:13:10.424 --> 00:13:11.385
+that particular order.
+
+357
+00:13:12.283 --> 00:13:16.144
+And I guess this is the example that Yan
+
+358
+00:13:16.524 --> 00:13:18.685
+provided, but you could imagine that you could
+
+359
+00:13:18.745 --> 00:13:21.005
+extend this example even further if you want to
+
+360
+00:13:21.025 --> 00:13:23.346
+think about a slightly more complex workflow.
+
+361
+00:13:23.606 --> 00:13:25.926
+You can imagine, OK, once the order is accepted,
+
+362
+00:13:26.347 --> 00:13:28.407
+then you can also start to track the progress of
+
+363
+00:13:28.467 --> 00:13:29.047
+that order.
+
+364
+00:13:29.527 --> 00:13:31.748
+Maybe the food preparation, or I don't know,
+
+365
+00:13:31.808 --> 00:13:33.748
+maybe it's even before that it's waiting in a
+
+366
+00:13:33.788 --> 00:13:35.389
+queue, then it's getting prepared,
+
+367
+00:13:35.929 --> 00:13:39.350
+then picked up by the delivery driver,
+
+368
+00:13:39.370 --> 00:13:39.450
+then
+
+369
+00:13:40.430 --> 00:13:42.333
+is delivered and then maybe you can even have a
+
+370
+00:13:42.393 --> 00:13:44.255
+final step which is waiting for customer
+
+371
+00:13:44.295 --> 00:13:44.676
+feedback.
+
+372
+00:13:45.687 --> 00:13:48.549
+So each of these steps can be implemented as
+
+373
+00:13:48.569 --> 00:13:51.411
+steps inside the Durable Function Lambda code.
+
+374
+00:13:52.131 --> 00:13:54.413
+And if you want to think about other examples
+
+375
+00:13:54.473 --> 00:13:57.214
+just to, I don't know, provide more use cases,
+
+376
+00:13:57.294 --> 00:13:59.976
+more food for thought, one other good use case
+
+377
+00:13:59.996 --> 00:14:01.797
+that I've seen is tenant onboarding.
+
+378
+00:14:02.158 --> 00:14:04.059
+So imagine you have a multi-tenant system.
+
+379
+00:14:04.359 --> 00:14:06.981
+Generally, the onboarding of a new tenant has
+
+380
+00:14:07.041 --> 00:14:07.801
+lots of steps.
+
+381
+00:14:07.861 --> 00:14:09.662
+You might want to provision infrastructure.
+
+382
+00:14:10.002 --> 00:14:12.084
+You might want to configure identity providers.
+
+383
+00:14:12.504 --> 00:14:14.085
+You might want to think about billing and
+
+384
+00:14:14.125 --> 00:14:15.066
+setting up payments.
+
+385
+00:14:15.626 --> 00:14:17.787
+you might model all of that with a durable
+
+386
+00:14:17.827 --> 00:14:19.428
+lambda function at each step.
+
+387
+00:14:19.988 --> 00:14:21.029
+You might even have, I don't know,
+
+388
+00:14:21.049 --> 00:14:22.709
+a human in the loop, you might have review
+
+389
+00:14:22.749 --> 00:14:25.371
+steps, and if something fails, you know that all
+
+390
+00:14:25.411 --> 00:14:27.632
+the previous steps can be easily reverted,
+
+391
+00:14:28.192 --> 00:14:30.473
+or maybe you can just resume and then try to
+
+392
+00:14:30.513 --> 00:14:31.914
+complete the missing ones.
+
+393
+00:14:32.434 --> 00:14:35.315
+Payment retries is another good use case because
+
+394
+00:14:36.096 --> 00:14:38.597
+sometimes, for example, if you have a system
+
+395
+00:14:38.677 --> 00:14:40.758
+that expects to have recurring payments,
+
+396
+00:14:41.498 --> 00:14:43.939
+It's very common that if you are charging,
+
+397
+00:14:43.959 --> 00:14:46.099
+for example, a credit card, it might happen that
+
+398
+00:14:46.139 --> 00:14:48.460
+that credit card doesn't have enough credit at
+
+399
+00:14:48.500 --> 00:14:49.300
+the time of charge.
+
+400
+00:14:49.680 --> 00:14:51.760
+But then if you retry maybe two days later,
+
+401
+00:14:52.000 --> 00:14:52.600
+it's going to work.
+
+402
+00:14:52.640 --> 00:14:54.901
+So you could model, for example, that kind of
+
+403
+00:14:54.941 --> 00:14:56.821
+behavior in a durable lambda function.
+
+404
+00:14:57.001 --> 00:14:59.002
+And another one, which is a little bit of a
+
+405
+00:14:59.062 --> 00:15:00.742
+spoiler, because that's actually what we
+
+406
+00:15:00.802 --> 00:15:03.023
+implemented for our use case, is media
+
+407
+00:15:03.043 --> 00:15:03.523
+processing.
+
+408
+00:15:04.063 --> 00:15:06.105
+Media processing generally involves lots of
+
+409
+00:15:06.165 --> 00:15:08.887
+steps like conversion, creating thumbnails,
+
+410
+00:15:09.888 --> 00:15:11.710
+transcriptions, and all kinds of things.
+
+411
+00:15:12.150 --> 00:15:14.853
+So you can imagine that that complicated
+
+412
+00:15:14.913 --> 00:15:17.535
+workflow can be modeled as a durable function.
+
+413
+00:15:17.675 --> 00:15:20.838
+If something fails at any point, you can resume
+
+414
+00:15:21.338 --> 00:15:23.420
+from the last functional bit and you don't have
+
+415
+00:15:23.460 --> 00:15:25.962
+to redo a bunch of steps that might actually be
+
+416
+00:15:26.002 --> 00:15:28.765
+very expensive from a computational perspective.
+
+417
+00:15:29.325 --> 00:15:32.389
+So I think that gives you probably a good few
+
+418
+00:15:32.429 --> 00:15:34.932
+ideas on where you can use this pattern and this
+
+419
+00:15:35.192 --> 00:15:36.914
+new capability of lambda function.
+
+420
+00:15:37.755 --> 00:15:41.239
+So now I would like to talk about what does
+
+421
+00:15:41.259 --> 00:15:45.244
+the experience of writing AWS durable function
+
+422
+00:15:45.384 --> 00:15:45.844
+looks like.
+
+423
+00:15:47.697 --> 00:15:49.859
+But good news, I guess, as we said,
+
+424
+00:15:49.879 --> 00:15:52.841
+it's a regular lambda function with a few extra
+
+425
+00:15:52.861 --> 00:15:54.762
+capabilities, powerful capabilities.
+
+426
+00:15:55.422 --> 00:15:57.844
+And the way those capabilities are provided is
+
+427
+00:15:58.144 --> 00:16:01.207
+through a special SDK called the Durable
+
+428
+00:16:01.267 --> 00:16:02.127
+Functions SDK.
+
+429
+00:16:03.308 --> 00:16:05.610
+you'll need to install it for the programming
+
+430
+00:16:05.650 --> 00:16:06.831
+language you want to use.
+
+431
+00:16:07.632 --> 00:16:11.355
+And right now, what's supported is JavaScript or
+
+432
+00:16:11.395 --> 00:16:12.876
+TypeScript and Python.
+
+433
+00:16:13.136 --> 00:16:15.018
+We believe that Java is in the works,
+
+434
+00:16:15.338 --> 00:16:17.560
+and we even saw a discussion in the Rust SDK
+
+435
+00:16:17.600 --> 00:16:20.002
+repository, so that might arrive pretty soon.
+
+436
+00:16:21.612 --> 00:16:26.016
+Now, we were using the JavaScript TypeScript
+
+437
+00:16:26.096 --> 00:16:28.778
+Durable Functions SDK for our work.
+
+438
+00:16:29.159 --> 00:16:31.281
+So that's the one we're going to talk about.
+
+439
+00:16:31.301 --> 00:16:33.343
+Other languages might use a different syntax,
+
+440
+00:16:33.423 --> 00:16:35.585
+but the capabilities and concepts should be the
+
+441
+00:16:35.625 --> 00:16:35.825
+same.
+
+442
+00:16:36.726 --> 00:16:38.807
+So the first thing you'll notice is that the
+
+443
+00:16:38.848 --> 00:16:41.370
+handler isn't just a normal lambda handler.
+
+444
+00:16:42.084 --> 00:16:44.225
+You wrap it with a helper called
+
+445
+00:16:44.285 --> 00:16:47.086
+withDurableExecution that effectively turns on
+
+446
+00:16:47.166 --> 00:16:50.347
+durable mode and injects a durable context into
+
+447
+00:16:50.387 --> 00:16:51.827
+your function as a parameter.
+
+448
+00:16:52.467 --> 00:16:54.248
+Then inside the handler, you don't just write
+
+449
+00:16:54.468 --> 00:16:56.789
+one big blob of code like you normally do,
+
+450
+00:16:57.109 --> 00:16:59.429
+you define named atomic steps, right?
+
+451
+00:16:59.469 --> 00:17:01.190
+So instead of doing work directly,
+
+452
+00:17:01.630 --> 00:17:05.191
+the function runs work inside explicit named
+
+453
+00:17:05.251 --> 00:17:07.212
+steps like step one, step two, step three.
+
+454
+00:17:08.248 --> 00:17:10.749
+And those step boundaries are really meaningful.
+
+455
+00:17:11.289 --> 00:17:13.330
+They're the points where the platform can track
+
+456
+00:17:13.390 --> 00:17:16.172
+progress and treat each unit as done when it
+
+457
+00:17:16.212 --> 00:17:17.272
+comes to things like resuming.
+
+458
+00:17:18.173 --> 00:17:20.834
+Now, the code at sidesteps is sometimes referred
+
+459
+00:17:20.874 --> 00:17:22.935
+to as the orchestrator path.
+
+460
+00:17:24.313 --> 00:17:26.476
+So what this looks like in terms of the SDK
+
+461
+00:17:26.717 --> 00:17:28.780
+is you'll define a step by calling something
+
+462
+00:17:28.840 --> 00:17:30.402
+like context.step.
+
+463
+00:17:30.903 --> 00:17:33.006
+Then you give it a step name and a callback.
+
+464
+00:17:33.907 --> 00:17:36.331
+And that context you're providing is the special
+
+465
+00:17:36.371 --> 00:17:38.434
+durable context we mentioned a minute ago.
+
+466
+00:17:38.774 --> 00:17:40.357
+JavaScript terms, that step.
+
+467
+00:17:40.837 --> 00:17:41.978
+call returns a promise.
+
+468
+00:17:42.279 --> 00:17:45.622
+So you typically do const result equals await
+
+469
+00:17:45.842 --> 00:17:47.063
+context dot step.
+
+470
+00:17:47.724 --> 00:17:50.306
+And that await, it reads just like normal async
+
+471
+00:17:50.386 --> 00:17:52.308
+code, but it's also the boundary where the
+
+472
+00:17:52.328 --> 00:17:54.550
+DurableEngine can track completion and then
+
+473
+00:17:54.650 --> 00:17:56.152
+persist progress when it's done.
+
+474
+00:17:57.153 --> 00:18:00.216
+So step results then, the actual result of each
+
+475
+00:18:00.276 --> 00:18:02.378
+of these steps that you define are treated like
+
+476
+00:18:02.458 --> 00:18:03.159
+DurableState.
+
+477
+00:18:03.799 --> 00:18:05.800
+So the function captures results, whatever you
+
+478
+00:18:05.840 --> 00:18:08.141
+return from each step, in a way that can be
+
+479
+00:18:08.241 --> 00:18:10.643
+reused when the workflow resumes rather than
+
+480
+00:18:10.743 --> 00:18:11.643
+re-computing everything.
+
+481
+00:18:11.863 --> 00:18:14.845
+And then you have the concept of waits.
+
+482
+00:18:15.105 --> 00:18:17.466
+And a wait is a first class operation.
+
+483
+00:18:17.987 --> 00:18:19.187
+It's not just a hack.
+
+484
+00:18:19.687 --> 00:18:22.749
+There's an explicit wait for n minutes construct
+
+485
+00:18:22.829 --> 00:18:25.130
+that you can use to create a step that simply
+
+486
+00:18:25.210 --> 00:18:26.591
+suspends your function for a while.
+
+487
+00:18:26.851 --> 00:18:28.672
+So if you're waiting for something else to
+
+488
+00:18:28.712 --> 00:18:28.912
+settle.
+
+489
+00:18:30.273 --> 00:18:32.155
+In a regular lambda, waiting usually means
+
+490
+00:18:32.195 --> 00:18:33.837
+sleeping and burning up 15 minutes,
+
+491
+00:18:34.037 --> 00:18:36.039
+and you're paying for it, or you build an
+
+492
+00:18:36.099 --> 00:18:37.321
+external timer mechanism.
+
+493
+00:18:37.541 --> 00:18:39.283
+But here, the wait actually suspends the
+
+494
+00:18:39.343 --> 00:18:41.826
+execution, and the workflow resumes later.
+
+495
+00:18:41.966 --> 00:18:43.648
+So the function is no longer running,
+
+496
+00:18:43.768 --> 00:18:44.909
+and you don't pay while you wait.
+
+497
+00:18:46.801 --> 00:18:48.882
+So with the durable executions mode,
+
+498
+00:18:49.062 --> 00:18:50.543
+the thing you'll get used to is the fact that
+
+499
+00:18:50.583 --> 00:18:53.525
+a function execution, it spans multiple
+
+500
+00:18:53.825 --> 00:18:56.307
+invocations, but it still feels like one flow,
+
+501
+00:18:56.647 --> 00:18:58.888
+even though it seems like a single sequential
+
+502
+00:18:58.948 --> 00:19:01.169
+thing under the hood, it'll be starting and
+
+503
+00:19:01.209 --> 00:19:03.151
+stopping and resuming across separate
+
+504
+00:19:03.171 --> 00:19:05.212
+invocations continuing from the next step.
+
+505
+00:19:05.952 --> 00:19:08.513
+And the code is then workflow code.
+
+506
+00:19:08.693 --> 00:19:10.834
+It's not just request response code with a
+
+507
+00:19:10.854 --> 00:19:11.815
+little bit of business logic.
+
+508
+00:19:12.175 --> 00:19:14.196
+The return value is the final outcome of the
+
+509
+00:19:14.216 --> 00:19:16.517
+durable execution from multiple steps,
+
+510
+00:19:16.677 --> 00:19:19.679
+not merely the result of one atomic invocation.
+
+511
+00:19:20.059 --> 00:19:21.880
+So this sounds pretty good.
+
+512
+00:19:21.920 --> 00:19:23.720
+Should we dive a little bit deeper?
+
+513
+00:19:23.901 --> 00:19:25.321
+How do they actually work?
+
+514
+00:19:25.561 --> 00:19:26.682
+What's the magic behind them?
+
+515
+00:19:27.082 --> 00:19:29.044
+Yeah, I think this is probably one of the most
+
+516
+00:19:29.204 --> 00:19:31.987
+interesting and perhaps also confusing bits that
+
+517
+00:19:32.047 --> 00:19:34.730
+you need to understand about lambda durable
+
+518
+00:19:34.770 --> 00:19:36.632
+functions if you want to use them correctly.
+
+519
+00:19:37.273 --> 00:19:39.415
+So let's try to deep dive and try to describe
+
+520
+00:19:39.555 --> 00:19:42.338
+what really happens when, for example,
+
+521
+00:19:42.358 --> 00:19:42.699
+a step
+
+522
+00:19:43.239 --> 00:19:46.220
+is completed and the state is persisted,
+
+523
+00:19:46.260 --> 00:19:48.461
+so a checkpoint, so to speak, is created.
+
+524
+00:19:48.801 --> 00:19:50.962
+And then what happens when there is a resume,
+
+525
+00:19:51.342 --> 00:19:54.643
+how things are actually restored and the
+
+526
+00:19:54.883 --> 00:19:58.084
+execution actually continues from the next logic
+
+527
+00:19:58.144 --> 00:19:58.424
+step.
+
+528
+00:19:58.924 --> 00:20:01.785
+So as we said, the core idea is that you
+
+529
+00:20:01.825 --> 00:20:03.706
+have this concept of execution history.
+
+530
+00:20:03.726 --> 00:20:06.647
+So whenever an execution starts, you can imagine
+
+531
+00:20:06.687 --> 00:20:09.728
+that the Lambda service is somewhere capable of
+
+532
+00:20:09.828 --> 00:20:10.608
+storing state.
+
+533
+00:20:11.517 --> 00:20:13.899
+And then for each step, which is treated as an
+
+534
+00:20:13.939 --> 00:20:16.280
+atomic unit, as we said, basically,
+
+535
+00:20:16.340 --> 00:20:18.742
+when that step completes, you can imagine that
+
+536
+00:20:18.782 --> 00:20:21.844
+that step inside your code of that step,
+
+537
+00:20:22.224 --> 00:20:23.805
+you can return data.
+
+538
+00:20:24.125 --> 00:20:25.866
+And basically, a return from that callback
+
+539
+00:20:25.946 --> 00:20:28.568
+basically means, well, I was able to calculate
+
+540
+00:20:28.648 --> 00:20:31.189
+something that I want to retain for the next
+
+541
+00:20:32.130 --> 00:20:34.692
+resume, or maybe the state of this step,
+
+542
+00:20:34.732 --> 00:20:35.772
+if you want to think it like that.
+
+543
+00:20:36.453 --> 00:20:36.993
+This is it.
+
+544
+00:20:37.093 --> 00:20:38.214
+This is what I am returning.
+
+545
+00:20:38.254 --> 00:20:39.675
+So make sure it's persisted.
+
+546
+00:20:40.704 --> 00:20:45.327
+So basically what the SDK does is basically
+
+547
+00:20:45.367 --> 00:20:48.550
+every time it executes a step, once that step is
+
+548
+00:20:48.590 --> 00:20:50.511
+successfully completed, if there is a return
+
+549
+00:20:50.571 --> 00:20:52.973
+value, that return value is sent to the Lambda
+
+550
+00:20:53.013 --> 00:20:54.855
+service so that it can be persisted.
+
+551
+00:20:55.435 --> 00:20:57.657
+And this is how the checkpoint mechanism works.
+
+552
+00:20:58.493 --> 00:21:00.675
+But we also say that there might be cases when
+
+553
+00:21:01.075 --> 00:21:04.379
+the execution gets suspended or interrupted for
+
+554
+00:21:04.839 --> 00:21:06.461
+errors, timeouts, or other reasons.
+
+555
+00:21:07.161 --> 00:21:09.643
+And that in those cases, the execution can be
+
+556
+00:21:09.704 --> 00:21:10.624
+resumed later.
+
+557
+00:21:10.905 --> 00:21:12.266
+So what happens on a resume?
+
+558
+00:21:12.746 --> 00:21:15.049
+And this is, I think, the key thing that we
+
+559
+00:21:15.149 --> 00:21:16.170
+want you to understand.
+
+560
+00:21:16.350 --> 00:21:18.572
+If there is one thing you should take away from
+
+561
+00:21:18.652 --> 00:21:20.333
+this episode, hopefully, it's this one.
+
+562
+00:21:20.974 --> 00:21:23.355
+Basically, the idea that might be confusing is
+
+563
+00:21:23.395 --> 00:21:27.517
+that when the lambda resumes from an execution,
+
+564
+00:21:28.017 --> 00:21:30.979
+it always starts to execute your code from the
+
+565
+00:21:31.039 --> 00:21:31.499
+beginning.
+
+566
+00:21:31.519 --> 00:21:33.400
+So imagine you have your handler code,
+
+567
+00:21:34.220 --> 00:21:36.461
+and there are, I don't know, 100 lines of code.
+
+568
+00:21:36.981 --> 00:21:39.642
+Even if you executed five steps and you reach
+
+569
+00:21:39.723 --> 00:21:42.084
+line 50, the next time you resume,
+
+570
+00:21:42.104 --> 00:21:44.145
+you're still going to restart executing code
+
+571
+00:21:44.225 --> 00:21:45.045
+from the first line.
+
+572
+00:21:45.365 --> 00:21:48.469
+So how is that checkpointing mechanism possible?
+
+573
+00:21:48.990 --> 00:21:52.795
+The idea is that every time a step is
+
+574
+00:21:52.916 --> 00:21:56.380
+encountered again in the execution from the
+
+575
+00:21:56.400 --> 00:22:01.027
+first line, basically the Lambda SDK is going to
+
+576
+00:22:01.067 --> 00:22:01.287
+check
+
+577
+00:22:02.169 --> 00:22:04.191
+Okay, did I already complete this step before?
+
+578
+00:22:04.871 --> 00:22:07.153
+And if it did, then it's not going to re-execute
+
+579
+00:22:07.214 --> 00:22:09.836
+the handler, well, the callback, basically,
+
+580
+00:22:09.896 --> 00:22:12.278
+of that step, but it's just going to take the
+
+581
+00:22:12.318 --> 00:22:14.180
+value from the persistent state.
+
+582
+00:22:14.340 --> 00:22:17.683
+So effectively, you can imagine the execution
+
+583
+00:22:17.723 --> 00:22:19.264
+flow to be like, okay, I'm going to start from
+
+584
+00:22:19.304 --> 00:22:20.585
+the beginning and then quickly check.
+
+585
+00:22:20.946 --> 00:22:21.886
+Did I do step one?
+
+586
+00:22:21.967 --> 00:22:22.187
+Yes.
+
+587
+00:22:22.527 --> 00:22:23.308
+Did I do step two?
+
+588
+00:22:23.448 --> 00:22:23.668
+Yes.
+
+589
+00:22:23.748 --> 00:22:24.569
+Did I do step three?
+
+590
+00:22:24.909 --> 00:22:26.731
+And so on until it gets to a point where,
+
+591
+00:22:26.851 --> 00:22:27.872
+okay, this is a new step.
+
+592
+00:22:28.312 --> 00:22:29.533
+which I haven't executed yet.
+
+593
+00:22:29.933 --> 00:22:32.195
+So this is exactly the point where I am,
+
+594
+00:22:32.816 --> 00:22:34.497
+in a way, resuming the execution.
+
+595
+00:22:35.018 --> 00:22:37.280
+But practically speaking, everything gets
+
+596
+00:22:37.380 --> 00:22:39.982
+executed from the first line every time there is
+
+597
+00:22:40.102 --> 00:22:40.523
+a resume.
+
+598
+00:22:41.303 --> 00:22:42.865
+And this is really important because,
+
+599
+00:22:43.105 --> 00:22:46.528
+effectively, I think it could be a common
+
+600
+00:22:46.568 --> 00:22:48.609
+misconception to think of suspension like,
+
+601
+00:22:48.709 --> 00:22:51.432
+OK, you are posing the CPU at a specific line
+
+602
+00:22:51.492 --> 00:22:53.073
+in the code, like, for instance, when you are
+
+603
+00:22:53.133 --> 00:22:54.534
+posing a trend or something like that.
+
+604
+00:22:55.629 --> 00:22:57.952
+And then you just resume from that line of code.
+
+605
+00:22:58.253 --> 00:23:00.996
+That concept doesn't exist in Durable Function.
+
+606
+00:23:01.217 --> 00:23:03.139
+It's just you restart from scratch,
+
+607
+00:23:03.199 --> 00:23:05.743
+but then there is this mechanism that allows the
+
+608
+00:23:05.803 --> 00:23:08.867
+execution to know, I already completed this
+
+609
+00:23:08.887 --> 00:23:10.870
+step, so I'm just going to read the result.
+
+610
+00:23:11.811 --> 00:23:14.454
+and continue from the point where something
+
+611
+00:23:14.674 --> 00:23:15.895
+still needs to be computed.
+
+612
+00:23:16.356 --> 00:23:18.177
+In a way you can think about this checkpointing
+
+613
+00:23:18.237 --> 00:23:21.401
+mechanism like a cache, where basically if you
+
+614
+00:23:21.421 --> 00:23:23.503
+already have that result computed for this
+
+615
+00:23:23.563 --> 00:23:25.945
+execution, there is no point in executing it
+
+616
+00:23:26.005 --> 00:23:28.227
+again, you can just read it from a persistent
+
+617
+00:23:28.688 --> 00:23:29.028
+state.
+
+618
+00:23:30.029 --> 00:23:31.550
+And the reason why you need to understand this
+
+619
+00:23:31.611 --> 00:23:33.713
+is because sometimes it might be
+
+620
+00:23:34.685 --> 00:23:36.646
+tempting or it might be making sense,
+
+621
+00:23:36.706 --> 00:23:38.307
+depending on what you're trying to implement,
+
+622
+00:23:38.727 --> 00:23:41.649
+to use non-deterministic code outside steps,
+
+623
+00:23:42.229 --> 00:23:44.390
+what we call the orchestrator path before.
+
+624
+00:23:44.570 --> 00:23:47.272
+Because you can have a sequence of steps,
+
+625
+00:23:47.392 --> 00:23:49.153
+but of course nothing is stopping you from
+
+626
+00:23:49.213 --> 00:23:50.974
+having business logic outside steps.
+
+627
+00:23:51.674 --> 00:23:53.475
+and that's not getting checkpointed.
+
+628
+00:23:53.575 --> 00:23:56.156
+So if in that code, this orchestrator path code,
+
+629
+00:23:56.216 --> 00:23:58.337
+you use stuff that is non-deterministic,
+
+630
+00:23:58.718 --> 00:24:00.739
+for instance, you might use a matrandom or a
+
+631
+00:24:00.879 --> 00:24:03.740
+UUID, or you might be using time-based logic,
+
+632
+00:24:03.800 --> 00:24:06.341
+like in JavaScript you might have a date.now,
+
+633
+00:24:06.402 --> 00:24:08.423
+for example, and then have an if statement that
+
+634
+00:24:08.463 --> 00:24:08.723
+checks
+
+635
+00:24:09.423 --> 00:24:11.145
+I don't know, are we after 5 p.m.
+
+636
+00:24:11.265 --> 00:24:12.386
+and then going to do something?
+
+637
+00:24:12.446 --> 00:24:13.707
+Otherwise, you're going to do something else.
+
+638
+00:24:14.047 --> 00:24:15.469
+You need to understand that this is not going to
+
+639
+00:24:15.509 --> 00:24:17.691
+give you a predictable execution.
+
+640
+00:24:18.271 --> 00:24:20.293
+Effectively, you are making your execution
+
+641
+00:24:20.313 --> 00:24:22.115
+non-deterministic because the next time you
+
+642
+00:24:22.155 --> 00:24:24.617
+resume, you might get different values and
+
+643
+00:24:24.637 --> 00:24:26.779
+therefore your code is going to take a different
+
+644
+00:24:26.819 --> 00:24:29.822
+path and you end up with subtle bugs or
+
+645
+00:24:29.902 --> 00:24:31.223
+behaviors that you didn't expect.
+
+646
+00:24:31.583 --> 00:24:33.104
+So this is why it's really important to
+
+647
+00:24:33.144 --> 00:24:35.404
+understand how the model is built and the
+
+648
+00:24:35.444 --> 00:24:37.625
+checkpointing works, because then you can avoid
+
+649
+00:24:37.905 --> 00:24:38.645
+these kind of issues.
+
+650
+00:24:39.246 --> 00:24:41.406
+So hopefully that clarifies, I think,
+
+651
+00:24:41.606 --> 00:24:44.567
+one of the main misconceptions of durable lambda
+
+652
+00:24:44.607 --> 00:24:45.028
+functions.
+
+653
+00:24:45.348 --> 00:24:47.288
+But you might be wondering, because this is a
+
+654
+00:24:47.328 --> 00:24:50.209
+very new feature, what is the current state in
+
+655
+00:24:50.229 --> 00:24:50.930
+the ecosystem?
+
+656
+00:24:51.010 --> 00:24:53.530
+Should I wait before using this new feature,
+
+657
+00:24:53.730 --> 00:24:55.791
+or maybe it's already in a good state where I
+
+658
+00:24:55.831 --> 00:24:58.152
+can start leveraging it for my applications?
+
+659
+00:24:58.473 --> 00:25:00.914
+Okay, let's talk about the whole ecosystem then
+
+660
+00:25:00.994 --> 00:25:02.454
+and what it's like as a developer,
+
+661
+00:25:02.494 --> 00:25:05.375
+what the developer experience is, et cetera.
+
+662
+00:25:06.176 --> 00:25:08.817
+So the SDK for TypeScript, I think we found is
+
+663
+00:25:08.837 --> 00:25:09.457
+pretty good, right?
+
+664
+00:25:09.497 --> 00:25:11.998
+It even supports testing as mocking and local
+
+665
+00:25:12.058 --> 00:25:14.118
+execution, which is really good for DX.
+
+666
+00:25:14.859 --> 00:25:17.880
+There's some good articles by Eric Johnson.
+
+667
+00:25:18.100 --> 00:25:19.700
+If you want to see some concrete examples,
+
+668
+00:25:19.800 --> 00:25:21.801
+we'll have the links in the description.
+
+669
+00:25:22.781 --> 00:25:24.202
+MIDDY, which seems to be,
+
+670
+00:25:24.962 --> 00:25:26.784
+keeping really at pace with all the new
+
+671
+00:25:26.804 --> 00:25:29.967
+developments already supports durable functions.
+
+672
+00:25:30.147 --> 00:25:31.729
+So again, if you haven't tried MIDI,
+
+673
+00:25:31.749 --> 00:25:33.311
+there'll be a link to that in the description
+
+674
+00:25:33.351 --> 00:25:33.511
+too.
+
+675
+00:25:33.831 --> 00:25:35.553
+The Lambda Power Tools team has worked very
+
+676
+00:25:35.593 --> 00:25:37.174
+close with the Lambda team to make sure
+
+677
+00:25:37.234 --> 00:25:38.996
+everything works as expected if you're using
+
+678
+00:25:39.036 --> 00:25:39.557
+Power Tools.
+
+679
+00:25:40.077 --> 00:25:40.258
+Still.
+
+680
+00:25:40.798 --> 00:25:42.640
+Durable functions are still very new,
+
+681
+00:25:42.840 --> 00:25:44.802
+and there's definitely some room for improvement
+
+682
+00:25:44.842 --> 00:25:46.063
+in the whole area of DX.
+
+683
+00:25:46.563 --> 00:25:48.385
+We found some missing features or
+
+684
+00:25:48.425 --> 00:25:50.987
+inconsistencies in the SDK and some small
+
+685
+00:25:51.007 --> 00:25:53.049
+glitches in the web console as well.
+
+686
+00:25:53.609 --> 00:25:56.291
+But it's pretty minor stuff, and we're sure it's
+
+687
+00:25:56.772 --> 00:25:57.392
+going to be fixed soon.
+
+688
+00:25:58.533 --> 00:26:00.416
+And I guess we look forward to seeing more
+
+689
+00:26:00.456 --> 00:26:01.277
+languages supported.
+
+690
+00:26:01.297 --> 00:26:06.744
+I'm sure Java .NET fans, Golang, will all like
+
+691
+00:26:06.784 --> 00:26:07.164
+to see it.
+
+692
+00:26:07.184 --> 00:26:09.287
+The interesting thing on this run is that the
+
+693
+00:26:09.327 --> 00:26:10.849
+run times don't actually have to change.
+
+694
+00:26:11.189 --> 00:26:13.852
+It seems to be just an SDK thing that's
+
+695
+00:26:13.913 --> 00:26:14.353
+required.
+
+696
+00:26:14.533 --> 00:26:16.215
+So it should just be a matter of time.
+
+697
+00:26:17.156 --> 00:26:20.217
+And we can guess that the reason why broader
+
+698
+00:26:20.237 --> 00:26:22.917
+support doesn't exist yet is because AWS is
+
+699
+00:26:22.957 --> 00:26:25.238
+trying to build these SDK in a way that feels
+
+700
+00:26:25.738 --> 00:26:28.219
+idiomatic to a specific language.
+
+701
+00:26:28.379 --> 00:26:30.919
+JavaScript, as we mentioned, relies heavily on
+
+702
+00:26:30.979 --> 00:26:33.680
+promises, while the Python one uses decorators.
+
+703
+00:26:34.760 --> 00:26:38.421
+Now, all of the theory and the deep diving is
+
+704
+00:26:38.481 --> 00:26:38.741
+done.
+
+705
+00:26:39.321 --> 00:26:40.682
+Shall we talk about the fun part?
+
+706
+00:26:41.022 --> 00:26:41.742
+What did we build?
+
+707
+00:26:42.285 --> 00:26:46.368
+Yes, you might remember our podcast
+
+708
+00:26:46.408 --> 00:26:48.590
+transcription service that we described back in
+
+709
+00:26:48.630 --> 00:26:49.000
+episode 63.
+
+710
+00:26:49.911 --> 00:26:52.352
+Or maybe not, because that was three years ago,
+
+711
+00:26:52.633 --> 00:26:54.074
+pretty much exactly three years.
+
+712
+00:26:54.134 --> 00:26:57.036
+I think it was somewhat January or February
+
+713
+00:26:57.096 --> 00:26:57.276
+three
+
+714
+00:26:57.296 --> 00:26:57.516
+years
+
+715
+00:26:57.596 --> 00:26:57.776
+ago.
+
+716
+00:26:58.277 --> 00:26:59.838
+So yeah, if you don't remember, don't worry,
+
+717
+00:26:59.858 --> 00:27:01.019
+you are officially excused.
+
+718
+00:27:01.499 --> 00:27:03.821
+But you can always go and check out that old
+
+719
+00:27:03.941 --> 00:27:04.962
+episode if you're curious.
+
+720
+00:27:05.322 --> 00:27:07.024
+But I'll give you, or at least I'll try to
+
+721
+00:27:07.064 --> 00:27:09.227
+give you a quick refresher on what this project
+
+722
+00:27:09.367 --> 00:27:09.487
+is.
+
+723
+00:27:09.768 --> 00:27:12.671
+It's called PodWhisperer, and it's basically our
+
+724
+00:27:12.831 --> 00:27:15.655
+own solution, fully open source, that allows us
+
+725
+00:27:15.715 --> 00:27:18.919
+to create transcriptions for this very podcast.
+
+726
+00:27:19.620 --> 00:27:22.283
+It originally was based on OpenAI Whisper and
+
+727
+00:27:22.303 --> 00:27:23.204
+Amazon Transcribe.
+
+728
+00:27:23.945 --> 00:27:25.967
+And you might be wondering, why are you using
+
+729
+00:27:25.987 --> 00:27:27.909
+two different transcription services and not
+
+730
+00:27:27.949 --> 00:27:28.429
+just one?
+
+731
+00:27:28.989 --> 00:27:31.291
+But actually, yes, you can listen to the entire
+
+732
+00:27:31.331 --> 00:27:32.793
+episode to know the entire story.
+
+733
+00:27:32.853 --> 00:27:36.276
+But in short, we use OpenAI Whisper because it's
+
+734
+00:27:36.336 --> 00:27:38.418
+really, really good in terms of quality of
+
+735
+00:27:38.478 --> 00:27:39.138
+transcriptions.
+
+736
+00:27:39.418 --> 00:27:42.341
+It does recognize most of the words without
+
+737
+00:27:42.481 --> 00:27:42.941
+mistakes.
+
+738
+00:27:43.702 --> 00:27:45.563
+But one problem is that it doesn't recognize
+
+739
+00:27:45.703 --> 00:27:46.163
+speakers.
+
+740
+00:27:46.624 --> 00:27:50.106
+So what Transcribe does is kind of the opposite.
+
+741
+00:27:50.266 --> 00:27:52.707
+It isn't always very accurate, as we found,
+
+742
+00:27:52.787 --> 00:27:54.949
+at least it didn't used to be three years ago.
+
+743
+00:27:54.969 --> 00:27:56.429
+I don't know if now it has improved,
+
+744
+00:27:56.509 --> 00:27:57.030
+to be honest.
+
+745
+00:27:58.081 --> 00:28:00.443
+but it did do three years ago a very good
+
+746
+00:28:00.483 --> 00:28:02.265
+job at recognizing different speakers.
+
+747
+00:28:02.285 --> 00:28:03.766
+So giving you like speaker labels,
+
+748
+00:28:03.786 --> 00:28:05.627
+speaker one, speaker two, trying to figure out
+
+749
+00:28:05.667 --> 00:28:07.249
+how many people are actually engaging in the
+
+750
+00:28:07.289 --> 00:28:07.909
+conversation.
+
+751
+00:28:08.490 --> 00:28:08.630
+So
+
+752
+00:28:08.690 --> 00:28:08.990
+basically
+
+753
+00:28:09.030 --> 00:28:10.892
+what we did is, okay, we tried to get the
+
+754
+00:28:10.932 --> 00:28:12.853
+best of both worlds by doing the transcription
+
+755
+00:28:12.913 --> 00:28:14.975
+twice, one with one service and one with the
+
+756
+00:28:15.035 --> 00:28:15.275
+other.
+
+757
+00:28:15.676 --> 00:28:18.879
+And then we have a slightly convoluted workflow
+
+758
+00:28:18.899 --> 00:28:20.860
+that tries to join the two results and
+
+759
+00:28:21.080 --> 00:28:22.762
+extrapolate the information that we need.
+
+760
+00:28:23.122 --> 00:28:23.603
+from both.
+
+761
+00:28:23.903 --> 00:28:27.730
+So the actual words from Whisper and the speaker
+
+762
+00:28:27.770 --> 00:28:29.353
+labels from Transcribe.
+
+763
+00:28:30.054 --> 00:28:32.778
+And basically PodWhispers was born as a way to
+
+764
+00:28:32.859 --> 00:28:34.441
+orchestrate this entire workflow.
+
+765
+00:28:35.063 --> 00:28:36.885
+What we recently discovered is that there is
+
+766
+00:28:36.925 --> 00:28:39.167
+actually a new project that is based on Whisper
+
+767
+00:28:39.207 --> 00:28:40.188
+that is called WhisperX.
+
+768
+00:28:40.448 --> 00:28:42.010
+We'll have the link in the show notes.
+
+769
+00:28:42.830 --> 00:28:45.112
+And it's actually pretty cool because it's still
+
+770
+00:28:45.213 --> 00:28:47.435
+using Whisper under the hood, but adds a few
+
+771
+00:28:47.495 --> 00:28:49.797
+extra steps using additional models.
+
+772
+00:28:50.538 --> 00:28:52.920
+And those steps are, one, it's adding
+
+773
+00:28:53.000 --> 00:28:55.002
+world-level timestamp synchronization,
+
+774
+00:28:55.262 --> 00:28:57.064
+which can be really useful for a bunch of
+
+775
+00:28:57.104 --> 00:28:58.705
+different use cases that we'll mention in a
+
+776
+00:28:58.765 --> 00:28:59.046
+second.
+
+777
+00:28:59.646 --> 00:29:01.747
+And the other step is what's generally called
+
+778
+00:29:01.807 --> 00:29:04.168
+dialyzation, which is effectively recognizing
+
+779
+00:29:04.389 --> 00:29:05.069
+different speakers.
+
+780
+00:29:05.109 --> 00:29:07.370
+So you can imagine internally when you use
+
+781
+00:29:07.410 --> 00:29:10.212
+WhisperAX, there are three different AI models
+
+782
+00:29:10.252 --> 00:29:12.733
+that get executed in a pipeline.
+
+783
+00:29:12.773 --> 00:29:14.934
+The first one just gets the raw words,
+
+784
+00:29:15.174 --> 00:29:16.415
+the transcription, and then
+
+785
+00:29:17.155 --> 00:29:19.476
+in segments where a segment starts and finishes.
+
+786
+00:29:20.176 --> 00:29:22.777
+The next step is a word level timestamp.
+
+787
+00:29:22.797 --> 00:29:24.638
+So the second model is basically taking the
+
+788
+00:29:24.698 --> 00:29:26.859
+input of the previous model, the audio file
+
+789
+00:29:26.879 --> 00:29:28.580
+again, and trying to figure out where each
+
+790
+00:29:28.720 --> 00:29:30.481
+single word starts and finishes.
+
+791
+00:29:31.081 --> 00:29:32.561
+And then the third step in the pipeline is
+
+792
+00:29:32.581 --> 00:29:35.383
+trying to figure out, OK, for each sentence or
+
+793
+00:29:35.423 --> 00:29:38.524
+segment and word, who is the speaker that is
+
+794
+00:29:38.564 --> 00:29:39.104
+talking now?
+
+795
+00:29:39.224 --> 00:29:41.065
+Of course, who is the speaker in the sense of
+
+796
+00:29:41.085 --> 00:29:41.845
+a speaker label?
+
+797
+00:29:41.925 --> 00:29:43.506
+It doesn't try to get the name or
+
+798
+00:29:43.866 --> 00:29:45.807
+just figures out, OK, this is a different person
+
+799
+00:29:45.968 --> 00:29:46.548
+talking now.
+
+800
+00:29:46.708 --> 00:29:48.790
+Or maybe it's the same person as before and
+
+801
+00:29:48.830 --> 00:29:51.271
+calling it speaker 1, 2, 3, and so on.
+
+802
+00:29:51.832 --> 00:29:54.053
+And the cool thing is that also runs on GPU.
+
+803
+00:29:54.374 --> 00:29:56.995
+And we noticed that it is much faster at
+
+804
+00:29:57.055 --> 00:30:00.038
+transcribing when you have a GPU available.
+
+805
+00:30:00.498 --> 00:30:03.400
+We noticed, for example, on a G5 XLarge that it
+
+806
+00:30:03.440 --> 00:30:06.022
+takes about five minutes or less to transcribe
+
+807
+00:30:06.522 --> 00:30:07.143
+30 minutes of audio.
+
+808
+00:30:08.051 --> 00:30:11.573
+So basically what we thought, because we have
+
+809
+00:30:11.593 --> 00:30:14.134
+been meaning to switch to a model like this for
+
+810
+00:30:14.174 --> 00:30:16.795
+a while, we thought okay this is a really good
+
+811
+00:30:16.895 --> 00:30:18.996
+option that we should try and maybe this can
+
+812
+00:30:19.036 --> 00:30:21.918
+replace our complex workflow where we try to run
+
+813
+00:30:21.958 --> 00:30:23.659
+two different transcriptions in parallel and
+
+814
+00:30:23.719 --> 00:30:24.639
+then join the results.
+
+815
+00:30:25.240 --> 00:30:27.221
+Maybe just using WhisperX is going to be good
+
+816
+00:30:27.261 --> 00:30:27.841
+enough for us.
+
+817
+00:30:28.528 --> 00:30:30.328
+And at the same time, there were a few other
+
+818
+00:30:30.368 --> 00:30:32.429
+features that we wanted to implement for a while
+
+819
+00:30:32.549 --> 00:30:34.129
+that we took the opportunity to say,
+
+820
+00:30:34.169 --> 00:30:36.750
+OK, now that we are rewriting this transcription
+
+821
+00:30:36.790 --> 00:30:39.091
+workflow, maybe we can also add the extra
+
+822
+00:30:39.131 --> 00:30:39.491
+features.
+
+823
+00:30:40.111 --> 00:30:41.491
+One of these features, for example,
+
+824
+00:30:41.791 --> 00:30:44.812
+is every time we get the transcription file,
+
+825
+00:30:45.572 --> 00:30:47.833
+in the last few episodes, we started to manually
+
+826
+00:30:48.073 --> 00:30:50.974
+feed an LLM with this transcription file and
+
+827
+00:30:50.994 --> 00:30:53.014
+just giving it enough context to understand,
+
+828
+00:30:53.154 --> 00:30:55.195
+OK, we are talking about something related to
+
+829
+00:30:55.355 --> 00:30:55.755
+AWS.
+
+830
+00:30:56.455 --> 00:30:58.117
+And can you make sure that everything makes
+
+831
+00:30:58.197 --> 00:30:58.497
+sense?
+
+832
+00:30:58.657 --> 00:31:01.019
+Most likely there might be, I don't know,
+
+833
+00:31:01.479 --> 00:31:03.441
+things that are misspelled or slightly out of
+
+834
+00:31:03.501 --> 00:31:05.823
+context or name of services that are not
+
+835
+00:31:05.923 --> 00:31:10.267
+properly named or casing that is not respected.
+
+836
+00:31:10.667 --> 00:31:13.210
+The name of the people talking is not always
+
+837
+00:31:13.290 --> 00:31:13.730
+correct.
+
+838
+00:31:13.810 --> 00:31:17.333
+For instance, Eoin is always spelled as O-W-E-N.
+
+839
+00:31:18.354 --> 00:31:20.557
+which we know is not the correct one for you
+
+840
+00:31:20.637 --> 00:31:20.798
+Eoin.
+
+841
+00:31:21.579 --> 00:31:23.942
+So all these kind of things actually LLMs are
+
+842
+00:31:24.002 --> 00:31:25.223
+really really good at fixing.
+
+843
+00:31:25.303 --> 00:31:27.266
+We used to fix them manually but there's a lot
+
+844
+00:31:27.326 --> 00:31:29.048
+of work and now you can just drop all of
+
+845
+00:31:29.109 --> 00:31:31.011
+that text with a little bit of context to an
+
+846
+00:31:31.111 --> 00:31:32.773
+LLM and you get a pretty good result.
+
+847
+00:31:33.432 --> 00:31:35.154
+So this is kind of a refinement step.
+
+848
+00:31:35.695 --> 00:31:37.076
+So we started to realize, actually,
+
+849
+00:31:37.136 --> 00:31:38.918
+we could do a few more refinement steps.
+
+850
+00:31:39.499 --> 00:31:41.641
+Another one is we generally get Speaker 1 and
+
+851
+00:31:41.681 --> 00:31:43.923
+Speaker 2 in our prescriptions, and then we have
+
+852
+00:31:43.963 --> 00:31:45.805
+to manually check, OK, who is the first one
+
+853
+00:31:45.845 --> 00:31:46.286
+talking?
+
+854
+00:31:46.306 --> 00:31:48.809
+OK, this is Speaker 1, and we change the label
+
+855
+00:31:48.849 --> 00:31:49.249
+manually.
+
+856
+00:31:49.830 --> 00:31:50.631
+Who is the second one?
+
+857
+00:31:50.671 --> 00:31:51.832
+We change the label manually.
+
+858
+00:31:52.398 --> 00:31:55.459
+LLMs are also really good at detecting that,
+
+859
+00:31:55.519 --> 00:31:57.259
+because generally we say something like,
+
+860
+00:31:57.659 --> 00:32:00.339
+my name is Luciano and I'm joined by Eoin,
+
+861
+00:32:00.639 --> 00:32:02.640
+and that's a good signal to the LLM that the
+
+862
+00:32:02.680 --> 00:32:04.720
+person speaking now is Luciano and the other one
+
+863
+00:32:04.760 --> 00:32:05.100
+is Eoin.
+
+864
+00:32:05.520 --> 00:32:07.581
+So we also included in this refinement step,
+
+865
+00:32:08.981 --> 00:32:11.221
+we tell the LLM, can you try to detect the
+
+866
+00:32:11.321 --> 00:32:13.122
+names of the speaker and replace the labels?
+
+867
+00:32:13.702 --> 00:32:16.962
+And the next step is because we have water level
+
+868
+00:32:17.002 --> 00:32:20.183
+timestamps that are now provided by WhisperX,
+
+869
+00:32:21.183 --> 00:32:22.744
+One of the problems that you might have noticed
+
+870
+00:32:22.824 --> 00:32:25.566
+if you used to watch these episodes on YouTube
+
+871
+00:32:25.626 --> 00:32:28.468
+is that sometimes Whisper gives you pretty big
+
+872
+00:32:28.588 --> 00:32:30.590
+segments, multiple lines of text.
+
+873
+00:32:31.010 --> 00:32:33.372
+Sometimes you might see an overlay in our videos
+
+874
+00:32:33.432 --> 00:32:35.313
+if you use captions that is like three lines of
+
+875
+00:32:35.393 --> 00:32:37.695
+text, which is pretty unreadable, to be honest.
+
+876
+00:32:37.735 --> 00:32:39.757
+So this is something that has annoyed me a lot.
+
+877
+00:32:40.497 --> 00:32:43.539
+And once we started to see world-level
+
+878
+00:32:43.599 --> 00:32:45.861
+timestamps, then you can start to split the
+
+879
+00:32:45.901 --> 00:32:48.243
+segments in whatever arbitrary way you want
+
+880
+00:32:48.383 --> 00:32:49.584
+because, of course, you can decide,
+
+881
+00:32:49.644 --> 00:32:49.884
+okay,
+
+882
+00:32:50.364 --> 00:32:52.286
+I want to have always no more than one line
+
+883
+00:32:52.326 --> 00:32:54.528
+of text and no more than, I don't know,
+
+884
+00:32:55.000 --> 00:32:56.609
+40 characters or maybe 10 words.
+
+885
+00:32:57.470 --> 00:33:00.192
+And, of course, we included this logic in our
+
+886
+00:33:00.232 --> 00:33:00.653
+workflow.
+
+887
+00:33:00.673 --> 00:33:03.255
+So try to break down the segments into something
+
+888
+00:33:03.275 --> 00:33:04.556
+that is going to be more readable.
+
+889
+00:33:05.286 --> 00:33:07.607
+So basically, out of all of these ideas and
+
+890
+00:33:07.647 --> 00:33:09.888
+features we wanted to implement, this is what we
+
+891
+00:33:09.928 --> 00:33:11.589
+did for PodWhisperer v2.
+
+892
+00:33:11.749 --> 00:33:12.590
+And it's all open source.
+
+893
+00:33:12.610 --> 00:33:13.670
+You can check out the repo.
+
+894
+00:33:13.690 --> 00:33:14.651
+It will be in the show notes.
+
+895
+00:33:15.171 --> 00:33:18.733
+And just to recap, what's happening here is we
+
+896
+00:33:18.793 --> 00:33:20.734
+are also using a few other things that are
+
+897
+00:33:20.794 --> 00:33:21.815
+pretty cool, in my opinion.
+
+898
+00:33:22.255 --> 00:33:24.076
+So let me just tell you very quickly what
+
+899
+00:33:24.096 --> 00:33:26.897
+happens in each step at the end when you use
+
+900
+00:33:26.937 --> 00:33:27.538
+PodWhisperer.
+
+901
+00:33:28.158 --> 00:33:31.126
+So the first thing that happens is that we drop
+
+902
+00:33:31.186 --> 00:33:33.111
+a file into a street, so an audio file,
+
+903
+00:33:33.593 --> 00:33:36.160
+and that creates an event bridge event.
+
+904
+00:33:37.115 --> 00:33:40.978
+which effectively is going to start the durable
+
+905
+00:33:41.018 --> 00:33:42.019
+function execution.
+
+906
+00:33:42.339 --> 00:33:42.599
+The first
+
+907
+00:33:42.639 --> 00:33:44.841
+thing that the durable function execution does
+
+908
+00:33:44.941 --> 00:33:48.224
+is just going to send an event into SQS saying,
+
+909
+00:33:48.784 --> 00:33:50.806
+this file is available for transcription.
+
+910
+00:33:51.446 --> 00:33:53.528
+And what happens behind the scenes is that that
+
+911
+00:33:53.748 --> 00:33:56.670
+SQS is being monitored by an ECS managed
+
+912
+00:33:56.690 --> 00:33:57.611
+instances cluster.
+
+913
+00:33:58.211 --> 00:34:00.053
+And if you don't know what that is,
+
+914
+00:34:00.113 --> 00:34:01.874
+we recently spoke about it at length.
+
+915
+00:34:02.374 --> 00:34:04.000
+It's episode 150.
+
+916
+00:34:04.016 --> 00:34:05.197
+Check it out in the show notes.
+
+917
+00:34:05.797 --> 00:34:07.899
+But the main idea is that we want to have
+
+918
+00:34:07.919 --> 00:34:11.021
+an easy way to bootstrap a machine that has a
+
+919
+00:34:11.061 --> 00:34:13.463
+GPU only when there is work to do and then
+
+920
+00:34:13.503 --> 00:34:15.405
+shut it down when there is no work left.
+
+921
+00:34:16.326 --> 00:34:18.488
+So that mechanism allows us to do that.
+
+922
+00:34:18.768 --> 00:34:21.050
+We drop a message into SQS, ECS manages
+
+923
+00:34:21.130 --> 00:34:24.493
+instances, it's configured to monitor that queue
+
+924
+00:34:24.693 --> 00:34:26.374
+and spin up an instance when there is work to
+
+925
+00:34:26.434 --> 00:34:27.095
+do in the queue.
+
+926
+00:34:27.868 --> 00:34:31.832
+And at that point, the instance, sorry,
+
+927
+00:34:31.872 --> 00:34:35.055
+the cluster will start as a service configure
+
+928
+00:34:35.095 --> 00:34:37.397
+that is basically an image with WhisperX already
+
+929
+00:34:37.437 --> 00:34:39.459
+pre-configured with all the necessary model
+
+930
+00:34:39.559 --> 00:34:40.540
+preloaded into it.
+
+931
+00:34:41.221 --> 00:34:42.822
+And it's going to do all the transcriptions,
+
+932
+00:34:43.203 --> 00:34:44.644
+and then it's going to call a callback.
+
+933
+00:34:44.684 --> 00:34:46.225
+So this is another detail that maybe I didn't
+
+934
+00:34:46.266 --> 00:34:47.307
+explain very well.
+
+935
+00:34:47.667 --> 00:34:49.328
+After we drop something into the queue,
+
+936
+00:34:50.029 --> 00:34:52.390
+the execution pauses waiting for a callback.
+
+937
+00:34:52.430 --> 00:34:54.551
+So effectively, the message that we sent into
+
+938
+00:34:54.591 --> 00:34:56.732
+the queue is, this is the file that needs
+
+939
+00:34:57.132 --> 00:34:59.493
+transcribing, and this is the callback ID that
+
+940
+00:34:59.513 --> 00:35:00.914
+you need to call when you're done.
+
+941
+00:35:01.474 --> 00:35:03.275
+And of course, there is also a timeout that
+
+942
+00:35:03.595 --> 00:35:05.956
+should be reasonable depending on the length of
+
+943
+00:35:05.996 --> 00:35:07.056
+your episodes.
+
+944
+00:35:07.576 --> 00:35:08.577
+If you want to use this tool,
+
+945
+00:35:08.617 --> 00:35:09.817
+you can configure the length.
+
+946
+00:35:10.097 --> 00:35:11.938
+In our case, I think it's about 60 minutes,
+
+947
+00:35:12.018 --> 00:35:13.559
+which should be more than reasonable.
+
+948
+00:35:14.254 --> 00:35:14.574
+Then we
+
+949
+00:35:14.614 --> 00:35:15.655
+have all the other steps.
+
+950
+00:35:15.756 --> 00:35:17.197
+I'm just going to go through them very quickly
+
+951
+00:35:17.217 --> 00:35:18.918
+because probably they're less interesting.
+
+952
+00:35:19.479 --> 00:35:21.261
+The second step is basically what we call
+
+953
+00:35:21.301 --> 00:35:22.101
+replacement rules.
+
+954
+00:35:22.262 --> 00:35:25.364
+We have a bunch of either strict matches,
+
+955
+00:35:25.845 --> 00:35:28.587
+like, I don't know, very often we see that,
+
+956
+00:35:28.768 --> 00:35:30.669
+as I said, Eoin gets misspelled.
+
+957
+00:35:30.790 --> 00:35:34.033
+So we have all the common misspellings listed
+
+958
+00:35:34.173 --> 00:35:34.293
+out
+
+959
+00:35:34.753 --> 00:35:36.075
+and we have replacement rules.
+
+960
+00:35:36.435 --> 00:35:38.277
+We can also do that using regexes.
+
+961
+00:35:38.417 --> 00:35:41.541
+For example, in other use cases, AWS bytes often
+
+962
+00:35:41.561 --> 00:35:43.763
+is spelled with a Y rather than an I,
+
+963
+00:35:44.163 --> 00:35:47.507
+so we have regexes that capture that and can fix
+
+964
+00:35:47.567 --> 00:35:48.288
+it on the fly.
+
+965
+00:35:48.929 --> 00:35:51.051
+Then we have that LLM refinement step,
+
+966
+00:35:51.091 --> 00:35:52.613
+so it's effectively using Bedrock
+
+967
+00:35:53.073 --> 00:35:55.355
+and creating a prompt for Bedrock to say,
+
+968
+00:35:55.815 --> 00:35:58.757
+can you check if there are potential common
+
+969
+00:35:58.797 --> 00:35:59.918
+issues there and fix them?
+
+970
+00:35:59.978 --> 00:36:01.759
+And can you also try to identify speakers?
+
+971
+00:36:02.220 --> 00:36:04.561
+And then give us back a structured JSON that we
+
+972
+00:36:04.621 --> 00:36:07.884
+can use to reconcile your proposed changes with
+
+973
+00:36:08.104 --> 00:36:09.385
+our existing transcript.
+
+974
+00:36:10.179 --> 00:36:12.401
+Then we have the segment normalization step.
+
+975
+00:36:12.481 --> 00:36:15.443
+So effectively, we break down each segment into
+
+976
+00:36:15.543 --> 00:36:17.585
+smaller chunks so that they are more readable.
+
+977
+00:36:18.406 --> 00:36:20.627
+And finally, we have another step that generates
+
+978
+00:36:20.688 --> 00:36:22.969
+captions in the common formats, for instance,
+
+979
+00:36:23.270 --> 00:36:26.072
+SRT or VDT, which is what we use on YouTube.
+
+980
+00:36:26.592 --> 00:36:28.914
+And we also have our own custom JSON format
+
+981
+00:36:29.014 --> 00:36:32.356
+that's what we use to build our website.
+
+982
+00:36:32.776 --> 00:36:35.097
+If you notice on our website, you can go to
+
+983
+00:36:35.137 --> 00:36:38.379
+the transcript tab and you will see the entire
+
+984
+00:36:38.460 --> 00:36:40.601
+text and you can even click around and that will
+
+985
+00:36:40.661 --> 00:36:42.502
+move the video to that specific point.
+
+986
+00:36:42.902 --> 00:36:45.924
+So this is the JSON we use to build that
+
+987
+00:36:46.004 --> 00:36:46.825
+feature in the UI.
+
+988
+00:36:47.505 --> 00:36:49.406
+And finally, when everything is done,
+
+989
+00:36:49.786 --> 00:36:52.687
+we trigger an event-on-event bridge saying
+
+990
+00:36:52.807 --> 00:36:55.408
+PodWhisperer has finished to do a transcription.
+
+991
+00:36:56.048 --> 00:36:57.929
+And this is something you can use for any
+
+992
+00:36:57.989 --> 00:37:00.230
+arbitrary extension mechanism if you want to use
+
+993
+00:37:00.270 --> 00:37:00.890
+PodWhisperer.
+
+994
+00:37:01.070 --> 00:37:02.751
+In our case, we have another tool,
+
+995
+00:37:02.951 --> 00:37:04.571
+also open source, called Episoder,
+
+996
+00:37:04.891 --> 00:37:06.292
+which you'll find the link in the show notes.
+
+997
+00:37:06.912 --> 00:37:09.293
+which does another step, which is basically
+
+998
+00:37:09.333 --> 00:37:10.994
+trying to update the website for us.
+
+999
+00:37:11.034 --> 00:37:13.936
+So it creates a PR to our website repo with
+
+1000
+00:37:14.296 --> 00:37:16.337
+the new episode description, trying to figure
+
+1001
+00:37:16.397 --> 00:37:18.878
+out what are the chapters, suggesting a
+
+1002
+00:37:19.018 --> 00:37:21.179
+description, suggesting tags for YouTube,
+
+1003
+00:37:21.419 --> 00:37:22.120
+all that kind of stuff.
+
+1004
+00:37:22.775 --> 00:37:24.976
+So again, everything is open source on GitHub.
+
+1005
+00:37:25.136 --> 00:37:26.377
+If you're curious, check it out.
+
+1006
+00:37:26.577 --> 00:37:28.478
+And if you have ideas on how to improve it,
+
+1007
+00:37:28.979 --> 00:37:31.300
+again, open source, feel free to submit issues
+
+1008
+00:37:31.480 --> 00:37:31.981
+or PRs.
+
+1009
+00:37:32.381 --> 00:37:36.403
+Now, probably before we move into final topics,
+
+1010
+00:37:36.863 --> 00:37:38.725
+like comparison with other tools and pricing,
+
+1011
+00:37:38.865 --> 00:37:41.346
+does it make sense to quickly recap some of the
+
+1012
+00:37:41.386 --> 00:37:43.467
+best practices or things that can bite you?
+
+1013
+00:37:44.528 --> 00:37:46.249
+Yeah, because it's kind of a new programming
+
+1014
+00:37:46.289 --> 00:37:47.790
+model, that's a good thing to talk about.
+
+1015
+00:37:48.625 --> 00:37:50.587
+There is an AWS document with some best
+
+1016
+00:37:50.627 --> 00:37:52.028
+practices we'll link in.
+
+1017
+00:37:52.408 --> 00:37:55.912
+But our summary, I guess, is based on what we
+
+1018
+00:37:55.972 --> 00:37:58.554
+discussed so far, any kind of non-deterministic
+
+1019
+00:37:58.594 --> 00:38:01.457
+code, side effects with steps should be wrapped,
+
+1020
+00:38:02.438 --> 00:38:05.901
+like things like random UUID, designed for
+
+1021
+00:38:05.981 --> 00:38:06.962
+idempotency as well.
+
+1022
+00:38:07.302 --> 00:38:09.664
+That's always a good practice with things that
+
+1023
+00:38:10.065 --> 00:38:13.067
+are at least once invocable.
+
+1024
+00:38:14.348 --> 00:38:18.210
+Adopt the replay aware logger from the context.
+
+1025
+00:38:18.790 --> 00:38:21.972
+We also noticed that LLMs don't understand these
+
+1026
+00:38:22.032 --> 00:38:24.473
+rules, so be careful with LLMs in general,
+
+1027
+00:38:24.533 --> 00:38:26.354
+but specifically with new things like durable
+
+1028
+00:38:26.374 --> 00:38:26.754
+functions.
+
+1029
+00:38:27.882 --> 00:38:29.665
+One example there is we got a case where we
+
+1030
+00:38:29.685 --> 00:38:31.787
+wanted to keep track of the total time of
+
+1031
+00:38:31.847 --> 00:38:33.409
+execution of a durable step function.
+
+1032
+00:38:34.251 --> 00:38:36.714
+And of course, the LLM generated code outside a
+
+1033
+00:38:36.754 --> 00:38:39.097
+step, initializing a new data object called
+
+1034
+00:38:39.137 --> 00:38:39.637
+start time.
+
+1035
+00:38:40.458 --> 00:38:42.721
+And for reasons already stated, we know that's
+
+1036
+00:38:42.761 --> 00:38:43.302
+not going to work.
+
+1037
+00:38:44.243 --> 00:38:46.304
+So this is basically breaking one of our rules.
+
+1038
+00:38:47.544 --> 00:38:49.584
+Resume would generate an entirely new date
+
+1039
+00:38:49.644 --> 00:38:51.945
+object, and we wouldn't be able to track the
+
+1040
+00:38:52.105 --> 00:38:54.706
+total time of executions across invocations.
+
+1041
+00:38:55.286 --> 00:38:56.986
+The solution there was just to calculate this
+
+1042
+00:38:57.026 --> 00:38:58.006
+date within a step.
+
+1043
+00:38:58.426 --> 00:39:00.527
+So it's properly persisted as part of the
+
+1044
+00:39:01.287 --> 00:39:04.208
+durable state, and then you can just reload on
+
+1045
+00:39:04.268 --> 00:39:04.608
+resume.
+
+1046
+00:39:04.928 --> 00:39:05.708
+That's your solution.
+
+1047
+00:39:06.468 --> 00:39:09.029
+You have to tell LLMs these rules very
+
+1048
+00:39:09.109 --> 00:39:12.370
+explicitly, and of course, always review the
+
+1049
+00:39:12.410 --> 00:39:13.110
+generated code.
+
+1050
+00:39:13.869 --> 00:39:16.542
+Important topic, Luciano, how much does it cost?
+
+1051
+00:39:17.272 --> 00:39:17.472
+Yes.
+
+1052
+00:39:17.772 --> 00:39:20.853
+So basically, very quickly, doesn't change too
+
+1053
+00:39:20.893 --> 00:39:23.073
+much, meaning that it's the same Lambda pricing
+
+1054
+00:39:23.273 --> 00:39:23.853
+as a base.
+
+1055
+00:39:24.374 --> 00:39:26.454
+But of course, because the Lambda function is
+
+1056
+00:39:26.514 --> 00:39:30.195
+now doing more stuff, you are expected to pay
+
+1057
+00:39:30.715 --> 00:39:32.055
+for those extra features.
+
+1058
+00:39:32.515 --> 00:39:35.656
+So there is an additional cost for durable
+
+1059
+00:39:35.696 --> 00:39:36.216
+operations.
+
+1060
+00:39:36.236 --> 00:39:39.377
+So these are checkpoints related, steps,
+
+1061
+00:39:39.557 --> 00:39:40.897
+weights, callback, et cetera.
+
+1062
+00:39:40.957 --> 00:39:44.458
+Basically, you pay $8 per million operations.
+
+1063
+00:39:45.038 --> 00:39:47.899
+And then also because there is data being
+
+1064
+00:39:47.939 --> 00:39:49.740
+persisted, you have to pay for that.
+
+1065
+00:39:49.880 --> 00:39:52.161
+And it's $0.25 per gigabyte.
+
+1066
+00:39:52.941 --> 00:39:56.602
+And then data retentions is $0.15 per gigabyte
+
+1067
+00:39:56.642 --> 00:39:57.102
+per month.
+
+1068
+00:39:57.182 --> 00:39:58.563
+And this is something you can configure.
+
+1069
+00:39:58.623 --> 00:40:00.704
+I think sometimes it might make sense.
+
+1070
+00:40:00.804 --> 00:40:02.124
+For instance, I don't know, when it comes to
+
+1071
+00:40:02.164 --> 00:40:03.865
+payment, maybe you want to have a longer
+
+1072
+00:40:03.885 --> 00:40:06.065
+retention for whatever reason.
+
+1073
+00:40:06.145 --> 00:40:08.506
+But if it's something that, once it's completed,
+
+1074
+00:40:08.526 --> 00:40:10.567
+you don't really care about, you can have a much
+
+1075
+00:40:10.667 --> 00:40:12.948
+shorter retention and don't have to pay too much
+
+1076
+00:40:13.008 --> 00:40:13.328
+for that.
+
+1077
+00:40:14.265 --> 00:40:15.745
+Now, one thing that I think is really
+
+1078
+00:40:15.785 --> 00:40:17.306
+interesting that I was spending a little bit of
+
+1079
+00:40:17.346 --> 00:40:20.366
+time on is comparing durable function with other
+
+1080
+00:40:20.986 --> 00:40:23.187
+industry tools that are somewhat similar.
+
+1081
+00:40:23.647 --> 00:40:25.727
+I've seen lots of people in the past talking
+
+1082
+00:40:25.767 --> 00:40:26.708
+about DBOS.
+
+1083
+00:40:27.328 --> 00:40:29.648
+So I don't know if something new to the
+
+1084
+00:40:29.668 --> 00:40:31.849
+listeners here, but I always find it very
+
+1085
+00:40:31.909 --> 00:40:32.369
+interesting.
+
+1086
+00:40:33.109 --> 00:40:36.870
+And other options are Temporal or Temporal.
+
+1087
+00:40:36.890 --> 00:40:38.570
+I'm not sure what's the right pronunciation.
+
+1088
+00:40:39.010 --> 00:40:39.931
+and trigger.dev.
+
+1089
+00:40:40.371 --> 00:40:42.912
+And basically you can think of the same story
+
+1090
+00:40:42.952 --> 00:40:45.034
+that we just described for Lambda durable
+
+1091
+00:40:45.054 --> 00:40:49.316
+function as in a more generic service that is
+
+1092
+00:40:49.356 --> 00:40:50.837
+not necessarily tied to Lambda.
+
+1093
+00:40:51.318 --> 00:40:53.399
+For instance, DBOS is effectively,
+
+1094
+00:40:53.699 --> 00:40:55.720
+if you want to do durable execution,
+
+1095
+00:40:56.000 --> 00:40:57.782
+totally open source, you can just pick
+
+1096
+00:40:58.602 --> 00:41:00.322
+whatever machines to run your code or
+
+1097
+00:41:00.382 --> 00:41:02.383
+containers, that's basically it.
+
+1098
+00:41:02.723 --> 00:41:05.443
+It's implemented using Postgres as a mechanism
+
+1099
+00:41:05.543 --> 00:41:08.784
+to persist the state, and then it gives you an
+
+1100
+00:41:08.904 --> 00:41:11.925
+SDK that allows you to write your durable code
+
+1101
+00:41:12.085 --> 00:41:13.905
+in TypeScript, Python, Go, and Java.
+
+1102
+00:41:14.525 --> 00:41:16.086
+And of course, they also have their own cloud
+
+1103
+00:41:16.146 --> 00:41:17.746
+service if you don't want to self-host it,
+
+1104
+00:41:17.806 --> 00:41:19.506
+but I think this is a great option if you
+
+1105
+00:41:19.546 --> 00:41:22.047
+want to self-host this concept of durable
+
+1106
+00:41:22.167 --> 00:41:22.707
+execution.
+
+1107
+00:41:23.587 --> 00:41:25.208
+I think I've seen somewhere, I don't have the
+
+1108
+00:41:25.228 --> 00:41:25.888
+link right now.
+
+1109
+00:41:26.628 --> 00:41:28.009
+If I find it, I'll put it in the show
+
+1110
+00:41:28.029 --> 00:41:30.450
+notes, somebody trying to run DBOS on Lambda,
+
+1111
+00:41:30.570 --> 00:41:32.851
+which I think was a pretty cool idea before
+
+1112
+00:41:32.931 --> 00:41:36.192
+durable function was effectively created by the
+
+1113
+00:41:36.232 --> 00:41:36.772
+Lambda team.
+
+1114
+00:41:37.452 --> 00:41:39.313
+The problem, of course, is that you wouldn't be
+
+1115
+00:41:39.393 --> 00:41:42.034
+able to easily replicate that stop and resume
+
+1116
+00:41:42.094 --> 00:41:42.454
+model.
+
+1117
+00:41:42.975 --> 00:41:45.455
+So you will probably be limited to 15 minutes
+
+1118
+00:41:45.515 --> 00:41:47.896
+execution, or you'll need to do some kind of
+
+1119
+00:41:47.976 --> 00:41:49.977
+crazy orchestration to recreate all the
+
+1120
+00:41:49.997 --> 00:41:51.718
+checkpointing and resuming yourself.
+
+1121
+00:41:52.418 --> 00:41:55.020
+So, I'll try to find that video and if I
+
+1122
+00:41:55.060 --> 00:41:55.901
+find it, I'll link it.
+
+1123
+00:41:56.601 --> 00:41:58.302
+I haven't fully watched it myself,
+
+1124
+00:41:58.823 --> 00:42:01.505
+but that seems really where the benefit of
+
+1125
+00:42:01.565 --> 00:42:04.287
+having a specific service built into Lambda
+
+1126
+00:42:04.887 --> 00:42:07.029
+comes in, because if you have to do it yourself,
+
+1127
+00:42:07.069 --> 00:42:09.851
+it's not easy to do, or it would be much
+
+1128
+00:42:09.931 --> 00:42:11.912
+more limited than you can actually achieve with
+
+1129
+00:42:11.952 --> 00:42:12.873
+a native service.
+
+1130
+00:42:13.493 --> 00:42:16.056
+Then Temporal and Trigger.dev are basically
+
+1131
+00:42:16.216 --> 00:42:17.337
+pretty much the same ideas.
+
+1132
+00:42:17.598 --> 00:42:20.481
+I'm not sure if they both have or not an
+
+1133
+00:42:20.541 --> 00:42:23.824
+open source version, but they are more sold as
+
+1134
+00:42:23.864 --> 00:42:25.066
+kind of hosted services.
+
+1135
+00:42:26.087 --> 00:42:28.830
+I've seen Trigger.dev briefly and it seems like
+
+1136
+00:42:28.910 --> 00:42:31.713
+it has pretty cool UIs and it seems very easy
+
+1137
+00:42:31.733 --> 00:42:32.093
+to use.
+
+1138
+00:42:32.153 --> 00:42:34.616
+So probably another alternative to look for in
+
+1139
+00:42:34.656 --> 00:42:35.116
+case you
+
+1140
+00:42:36.237 --> 00:42:37.678
+you are not really tied to Lambda.
+
+1141
+00:42:37.818 --> 00:42:40.659
+But again, I guess I want to say with this
+
+1142
+00:42:40.699 --> 00:42:44.000
+section of the episode is that this idea is not
+
+1143
+00:42:44.080 --> 00:42:44.301
+new.
+
+1144
+00:42:44.901 --> 00:42:46.601
+It's just the Lambda team figured out,
+
+1145
+00:42:46.682 --> 00:42:48.382
+OK, this is a capability that many people are
+
+1146
+00:42:48.442 --> 00:42:49.103
+actually using.
+
+1147
+00:42:49.543 --> 00:42:50.903
+It is nice to have it in Lambda.
+
+1148
+00:42:51.223 --> 00:42:53.504
+But if for whatever reason you cannot use Lambda
+
+1149
+00:42:53.684 --> 00:42:53.764
+in
+
+1150
+00:42:53.805 --> 00:42:56.125
+another service and you enjoy using durable
+
+1151
+00:42:56.185 --> 00:42:58.146
+function, you can achieve something very similar
+
+1152
+00:42:58.246 --> 00:42:59.507
+using one of these tools.
+
+1153
+00:43:00.027 --> 00:43:02.568
+So that's why we wanted to give a mention to
+
+1154
+00:43:02.608 --> 00:43:03.869
+these other tools.
+
+1155
+00:43:04.729 --> 00:43:06.850
+I think there is another common question that I
+
+1156
+00:43:07.030 --> 00:43:09.852
+heard a lot, even in the presentation talk at
+
+1157
+00:43:09.892 --> 00:43:10.412
+reInvent.
+
+1158
+00:43:11.653 --> 00:43:13.474
+This question came up, and it's basically,
+
+1159
+00:43:13.634 --> 00:43:15.695
+this seems very similar to step functions.
+
+1160
+00:43:15.755 --> 00:43:18.017
+So when should they use durable functions
+
+1161
+00:43:18.137 --> 00:43:20.018
+compared to Step Functions?
+
+1162
+00:43:20.303 --> 00:43:22.665
+Well, you might think that durable functions are
+
+1163
+00:43:22.685 --> 00:43:25.128
+just Step Functions without the ASL,
+
+1164
+00:43:25.268 --> 00:43:28.451
+Amazon States Language, but I don't think that's
+
+1165
+00:43:28.471 --> 00:43:29.292
+necessarily true.
+
+1166
+00:43:29.592 --> 00:43:31.474
+It's obviously going to be down to preference.
+
+1167
+00:43:31.695 --> 00:43:34.037
+If you're very proficient with Step Functions
+
+1168
+00:43:34.457 --> 00:43:38.061
+and the nature of your workflows are not too
+
+1169
+00:43:38.101 --> 00:43:39.863
+complex, that might be fine.
+
+1170
+00:43:39.883 --> 00:43:42.506
+But I've definitely been in the situation where
+
+1171
+00:43:42.546 --> 00:43:43.487
+you end up with
+
+1172
+00:43:43.927 --> 00:43:45.567
+lots of Step Functions with lots of Lambda
+
+1173
+00:43:45.607 --> 00:43:47.808
+functions interspersed where you're doing
+
+1174
+00:43:47.868 --> 00:43:49.928
+business logic, and the switching back and forth
+
+1175
+00:43:49.988 --> 00:43:52.909
+can be a little frustrating.
+
+1176
+00:43:53.049 --> 00:43:55.449
+Durable functions, they're just Lambda
+
+1177
+00:43:55.469 --> 00:43:56.009
+functions, right?
+
+1178
+00:43:56.069 --> 00:43:58.369
+So one of the advantages is that you can use
+
+1179
+00:43:58.429 --> 00:44:00.170
+any event source that works with Lambda to
+
+1180
+00:44:00.190 --> 00:44:00.590
+trigger them.
+
+1181
+00:44:00.910 --> 00:44:04.991
+With Step Functions, I think you could still
+
+1182
+00:44:05.011 --> 00:44:07.131
+trigger them from events, but you don't have the
+
+1183
+00:44:07.191 --> 00:44:09.631
+same set of supported integrations there.
+
+1184
+00:44:10.392 --> 00:44:12.592
+Now, testing and running locally,
+
+1185
+00:44:13.272 --> 00:44:15.534
+The durable functions, as we mentioned already,
+
+1186
+00:44:15.835 --> 00:44:17.136
+seems to be pretty well designed.
+
+1187
+00:44:18.597 --> 00:44:21.320
+I've had a good few attempts with testing and
+
+1188
+00:44:21.340 --> 00:44:22.561
+running Step Functions locally.
+
+1189
+00:44:22.941 --> 00:44:24.243
+And while it's better than it used to be,
+
+1190
+00:44:24.363 --> 00:44:26.965
+it's still pretty hard and not a like for like
+
+1191
+00:44:27.986 --> 00:44:28.507
+experience.
+
+1192
+00:44:28.547 --> 00:44:30.809
+Whereas if you're testing in the language that
+
+1193
+00:44:30.829 --> 00:44:33.131
+you're very familiar with, it's a much more
+
+1194
+00:44:33.211 --> 00:44:34.092
+pleasant experience.
+
+1195
+00:44:35.493 --> 00:44:37.115
+When you're comparing the two as well,
+
+1196
+00:44:37.175 --> 00:44:40.358
+I'd say beware of massive parallelism.
+
+1197
+00:44:41.919 --> 00:44:45.683
+I've been able to do lots of highly scalable
+
+1198
+00:44:46.183 --> 00:44:48.986
+distributed map step functions, and that allows
+
+1199
+00:44:49.026 --> 00:44:50.808
+you to run tens of thousands of jobs in
+
+1200
+00:44:50.868 --> 00:44:51.328
+parallel.
+
+1201
+00:44:51.508 --> 00:44:54.471
+Now, while Durable Functions does support map
+
+1202
+00:44:54.491 --> 00:44:57.934
+steps, it doesn't seem to be designed for that
+
+1203
+00:44:57.974 --> 00:44:58.595
+kind of scale.
+
+1204
+00:44:58.815 --> 00:45:00.437
+We haven't actually tried them yet.
+
+1205
+00:45:00.997 --> 00:45:03.858
+but it does seem like it's more geared towards
+
+1206
+00:45:03.878 --> 00:45:05.259
+smaller volumes of data.
+
+1207
+00:45:05.639 --> 00:45:06.740
+Yeah, I have a few more.
+
+1208
+00:45:06.880 --> 00:45:10.621
+For instance, I think there is a light we have
+
+1209
+00:45:10.641 --> 00:45:14.123
+to shine on the workflow builder of Step
+
+1210
+00:45:14.163 --> 00:45:14.643
+Functions.
+
+1211
+00:45:14.963 --> 00:45:17.224
+Like if you like that visual way of building
+
+1212
+00:45:17.264 --> 00:45:19.325
+different steps, or even, for example,
+
+1213
+00:45:19.365 --> 00:45:20.726
+if you have cases where you're trying to
+
+1214
+00:45:20.786 --> 00:45:23.067
+integrate a bunch of different AWS services,
+
+1215
+00:45:23.827 --> 00:45:25.608
+in Lambda, I think that will be much more
+
+1216
+00:45:25.648 --> 00:45:27.269
+complicated because you have to write code,
+
+1217
+00:45:27.309 --> 00:45:29.030
+make sure to install the correct SDKs.
+
+1218
+00:45:29.730 --> 00:45:32.131
+With Step Functions, you can just drag and drop
+
+1219
+00:45:32.211 --> 00:45:33.372
+and connect different things.
+
+1220
+00:45:33.832 --> 00:45:36.693
+And that gives you also a pretty nice visual
+
+1221
+00:45:36.753 --> 00:45:39.034
+story of, okay, this is what happens and that's
+
+1222
+00:45:39.054 --> 00:45:40.535
+what happens, especially when you start to have
+
+1223
+00:45:40.575 --> 00:45:41.435
+lots of branches.
+
+1224
+00:45:42.056 --> 00:45:42.136
+It
+
+1225
+00:45:42.196 --> 00:45:42.556
+might be
+
+1226
+00:45:42.636 --> 00:45:45.777
+much more complex to represent the same logic
+
+1227
+00:45:45.837 --> 00:45:47.378
+within a durable function.
+
+1228
+00:45:47.798 --> 00:45:49.759
+And for certain, you don't get a visualization
+
+1229
+00:45:50.199 --> 00:45:50.699
+built in.
+
+1230
+00:45:50.739 --> 00:45:52.200
+So that's something that you're going to be
+
+1231
+00:45:52.240 --> 00:45:52.560
+lacking.
+
+1232
+00:45:52.960 --> 00:45:55.741
+I found myself that sometimes when I'm working
+
+1233
+00:45:55.801 --> 00:45:58.102
+on complex step functions, just screenshotting
+
+1234
+00:45:59.663 --> 00:46:02.224
+the flow visualizer is already pretty good
+
+1235
+00:46:02.244 --> 00:46:02.944
+documentation.
+
+1236
+00:46:03.424 --> 00:46:07.306
+While, for example, in a durable function,
+
+1237
+00:46:07.486 --> 00:46:08.806
+that's something you need to do yourself.
+
+1238
+00:46:08.826 --> 00:46:10.587
+You need to create some kind of diagram that
+
+1239
+00:46:10.607 --> 00:46:12.288
+represents all the different states and then
+
+1240
+00:46:12.328 --> 00:46:13.168
+keep it up to date.
+
+1241
+00:46:13.588 --> 00:46:13.848
+So that
+
+1242
+00:46:13.888 --> 00:46:14.229
+might be a
+
+1243
+00:46:14.289 --> 00:46:16.651
+reason, like if you find yourself preferring
+
+1244
+00:46:16.731 --> 00:46:18.573
+more this visual model, I guess that might be a
+
+1245
+00:46:18.613 --> 00:46:20.775
+reason to pick step function in favor of,
+
+1246
+00:46:20.895 --> 00:46:23.017
+I guess, durable functions.
+
+1247
+00:46:23.578 --> 00:46:25.520
+And another thing that is probably worth
+
+1248
+00:46:25.660 --> 00:46:27.282
+mentioning is that when you're doing distributed
+
+1249
+00:46:27.302 --> 00:46:29.183
+transactions, stateful application logic,
+
+1250
+00:46:29.244 --> 00:46:31.786
+or even AI workflow, I'm hearing lots of people
+
+1251
+00:46:31.866 --> 00:46:34.709
+building AI agent workflow with durable
+
+1252
+00:46:34.749 --> 00:46:35.109
+function.
+
+1253
+00:46:36.173 --> 00:46:38.014
+seems like kind of a better candidate because
+
+1254
+00:46:38.054 --> 00:46:40.254
+probably it's mostly code that you're writing,
+
+1255
+00:46:40.314 --> 00:46:42.235
+so it's probably easier to just drop that
+
+1256
+00:46:42.395 --> 00:46:44.676
+business logic and split it into steps within
+
+1257
+00:46:44.736 --> 00:46:45.616
+your lambda handler.
+
+1258
+00:46:46.316 --> 00:46:48.577
+So that's maybe a case where I would prefer to
+
+1259
+00:46:48.617 --> 00:46:51.118
+pick durable functions over Step Functions.
+
+1260
+00:46:51.798 --> 00:46:53.519
+So that's probably everything we had to share.
+
+1261
+00:46:53.539 --> 00:46:55.260
+I know this was a long episode,
+
+1262
+00:46:55.300 --> 00:46:56.740
+so maybe Eoin, I don't know if you want to
+
+1263
+00:46:56.760 --> 00:46:59.161
+try to give a quick recap and then we'll wrap
+
+1264
+00:46:59.201 --> 00:46:59.381
+it up.
+
+1265
+00:47:00.612 --> 00:47:00.932
+Sure thing.
+
+1266
+00:47:02.273 --> 00:47:03.854
+So what do we have to say about durable
+
+1267
+00:47:03.874 --> 00:47:04.294
+functions?
+
+1268
+00:47:04.454 --> 00:47:06.775
+You know, still Lambda, same scaling,
+
+1269
+00:47:07.395 --> 00:47:09.877
+but you can write multi-step workflows in code
+
+1270
+00:47:09.917 --> 00:47:12.658
+now with checkpoints, weights, and a nice resume
+
+1271
+00:47:12.718 --> 00:47:12.998
+model.
+
+1272
+00:47:13.398 --> 00:47:15.339
+Big mental shift here is you're thinking in
+
+1273
+00:47:15.399 --> 00:47:18.081
+atomic steps and the system persists progress so
+
+1274
+00:47:18.101 --> 00:47:20.382
+you don't have to hand roll orchestration queue.
+
+1275
+00:47:21.122 --> 00:47:23.223
+And we did talk about the resume model because
+
+1276
+00:47:23.303 --> 00:47:24.324
+that's where the power is.
+
+1277
+00:47:24.404 --> 00:47:26.785
+And it's also where a lot of the surprises live.
+
+1278
+00:47:27.859 --> 00:47:29.801
+So what makes us excited about this?
+
+1279
+00:47:29.961 --> 00:47:32.704
+Well, I think it feels like a really interesting
+
+1280
+00:47:32.804 --> 00:47:35.206
+middle ground between raw lambda plus lots of
+
+1281
+00:47:35.226 --> 00:47:37.668
+glue and full-blown orchestration.
+
+1282
+00:47:38.749 --> 00:47:41.592
+I think we're really excited for the long waits
+
+1283
+00:47:41.652 --> 00:47:43.414
+and human approvals, the fact that you could do
+
+1284
+00:47:43.454 --> 00:47:45.876
+this now without paying for them, and the fact
+
+1285
+00:47:45.916 --> 00:47:48.219
+that a durable execution can hang around for up
+
+1286
+00:47:48.259 --> 00:47:48.799
+to a year.
+
+1287
+00:47:49.860 --> 00:47:50.741
+That's pretty impressive.
+
+1288
+00:47:51.942 --> 00:47:55.024
+So has anybody out there tried durable functions
+
+1289
+00:47:55.044 --> 00:47:55.244
+yet?
+
+1290
+00:47:55.605 --> 00:47:57.546
+We'd love to hear from any listeners or viewers.
+
+1291
+00:47:57.646 --> 00:47:58.347
+What did you build?
+
+1292
+00:47:58.607 --> 00:47:59.728
+What tripped you up first?
+
+1293
+00:48:00.428 --> 00:48:01.329
+What were your successes?
+
+1294
+00:48:01.849 --> 00:48:02.950
+And if you haven't tried them yet,
+
+1295
+00:48:03.130 --> 00:48:05.071
+where do you think they'd fit better than step
+
+1296
+00:48:05.112 --> 00:48:06.412
+functions into your world?
+
+1297
+00:48:07.493 --> 00:48:09.795
+So let us know in the comments or reach out
+
+1298
+00:48:09.935 --> 00:48:10.395
+on socials.
+
+1299
+00:48:10.435 --> 00:48:13.097
+We really want to hear real world experiences,
+
+1300
+00:48:13.237 --> 00:48:13.838
+good and bad.
+
+1301
+00:48:14.338 --> 00:48:17.520
+And if you've got a weird edge case or gotcha
+
+1302
+00:48:17.540 --> 00:48:20.221
+story, even better, send it our way and we might
+
+1303
+00:48:20.281 --> 00:48:22.222
+cover it up in a follow-up episode.
+
+1304
+00:48:22.482 --> 00:48:25.664
+Lastly, thanks again to 4theorem for backing us
+
+1305
+00:48:26.004 --> 00:48:27.285
+and powering this episode.
+
+1306
+00:48:27.465 --> 00:48:29.326
+If you want help designing and implementing an
+
+1307
+00:48:29.446 --> 00:48:31.787
+AWS architecture that's simple, scalable,
+
+1308
+00:48:32.128 --> 00:48:36.570
+and not too hard on cost, head to 4theorem.com.
+
+1309
+00:48:36.690 --> 00:48:38.031
+Thanks so much for joining us again,
+
+1310
+00:48:38.151 --> 00:48:40.172
+and we'll catch you on the next episode.

@@ -2,7 +2,7 @@
 episode: 152
 title: "Exploring Lambda Durable Functions"
 youtube_id: "jFUfcvYvnEQ"
-spotify_link: "https://creators.spotify.com/pod/profile/aws-bites/episodes/152--Exploring-Lambda-Durable-Functions-6tW2hK3xmpRzcucsG525Ac"
+spotify_link: "https://creators.spotify.com/pod/profile/aws-bites/episodes/152--Exploring-Lambda-Durable-Functions-e3emln8"
 publish_date: 2026-02-06
 ---
 

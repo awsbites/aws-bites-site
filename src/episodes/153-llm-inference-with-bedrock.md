@@ -2,7 +2,7 @@
 episode: 153
 title: "LLM Inference with Bedrock"
 youtube_id: "pr_5HSvdvD8"
-spotify_link: "https://creators.spotify.com/pod/profile/aws-bites/episodes/153--LLM-Inference-with-Bedrock-3kcU27Oz3ooT6ZAYCaaZNE"
+spotify_link: "https://creators.spotify.com/pod/profile/aws-bites/episodes/153--LLM-Inference-with-Bedrock-e3fvsf9"
 publish_date: 2026-03-06
 ---
 

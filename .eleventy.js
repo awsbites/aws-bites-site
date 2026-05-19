@@ -64,6 +64,13 @@ module.exports = function (eleventyConfig) {
       .sort((a, b) => a.data.publish_date - b.data.publish_date)
   })
 
+  eleventyConfig.on('eleventy.after', async () => {
+    const { createIndex } = await import('pagefind')
+    const { index } = await createIndex({ verbose: false })
+    await index.addDirectory({ path: 'dist' })
+    await index.writeFiles({ outputPath: 'dist/pagefind' })
+  })
+
   // minify html pages
   eleventyConfig.addTransform('htmlmin', function (content, outputPath) {
     if (

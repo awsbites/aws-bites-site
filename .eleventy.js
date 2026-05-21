@@ -3,12 +3,11 @@
 const path = require('path')
 const fs = require('fs/promises')
 const { pipeline } = require('stream/promises')
-const { createWriteStream, createReadStream, existsSync } = require('fs')
-const htmlmin = require('html-minifier')
+const { createWriteStream, existsSync } = require('fs')
+const { minify } = require('html-minifier-terser')
 const Image = require('@11ty/eleventy-img')
 const embedYouTube = require('eleventy-plugin-youtube-embed')
 const axios = require('axios')
-const sharp = require('sharp')
 const striptags = require('striptags')
 const { DateTime } = require('luxon')
 
@@ -50,7 +49,7 @@ async function downloadEpisodeThumbnail (episode, youtubeId) {
     await fs.rename(tempDest, dest)
     console.log(`Fetched YouTube thumbnail ${dest}`)
     return dest
-  } catch (err) {
+  } catch {
     await fs.rm(tempDest, { force: true }).catch(() => {})
     console.warn(`Could not fetch YouTube thumbnail ${youtubePreviewUrl(youtubeId)}; using fallback image.`)
     return null
@@ -164,12 +163,12 @@ module.exports = function (eleventyConfig) {
   })
 
   // minify html pages
-  eleventyConfig.addTransform('htmlmin', function (content, outputPath) {
+  eleventyConfig.addTransform('htmlmin', async function (content, outputPath) {
     if (
       process.env.ELEVENTY_PRODUCTION &&
       outputPath?.endsWith('.html')
     ) {
-      const minified = htmlmin.minify(content, {
+      const minified = await minify(content, {
         useShortDoctype: true,
         removeComments: true,
         collapseWhitespace: true
@@ -201,17 +200,13 @@ module.exports = function (eleventyConfig) {
         }
 
         const localThumbnail = await ensureEpisodeThumbnail(episode, id)
-        let imageStream
-
-        if (localThumbnail) {
-          imageStream = createReadStream(localThumbnail)
-        } else {
-          imageStream = createReadStream(fallbackEpisodeImage)
-        }
-
-        const transform = sharp().resize({ width: 1200, height: 630, fit: sharp.fit.cover })
-        const destFile = createWriteStream(dest)
-        await pipeline(imageStream, transform, destFile)
+        await Image(localThumbnail || fallbackEpisodeImage, {
+          widths: [1200],
+          formats: ['jpeg'],
+          outputDir: folderDest,
+          filenameFormat: () => 'og_image.jpg',
+          transform: (image) => image.resize({ width: 1200, height: 630, fit: 'cover' })
+        })
         console.log(`Created ${dest}`)
       }
       return `https://awsbites.com${path.join(episodeUrl, 'og_image.jpg')}`

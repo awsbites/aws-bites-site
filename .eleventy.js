@@ -3,7 +3,7 @@
 const path = require('path')
 const fs = require('fs/promises')
 const { pipeline } = require('stream/promises')
-const { createWriteStream, createReadStream } = require('fs')
+const { createWriteStream, createReadStream, existsSync } = require('fs')
 const htmlmin = require('html-minifier')
 const Image = require('@11ty/eleventy-img')
 const embedYouTube = require('eleventy-plugin-youtube-embed')
@@ -13,6 +13,77 @@ const striptags = require('striptags')
 const { DateTime } = require('luxon')
 
 const now = String(Date.now())
+const includeFutureEpisodes = ['1', 'true', 'yes'].includes(
+  String(process.env.INCLUDE_FUTURE_EPISODES || '').toLowerCase()
+)
+const currentPublishDate = DateTime.now().startOf('day')
+const fallbackEpisodeImage = path.join(__dirname, 'src', '_includes', 'static', 'awsbites-og.png')
+const episodeThumbnailsDir = path.join(__dirname, 'src', '_includes', 'images', 'episodes')
+const youtubeThumbnailPattern = /^https:\/\/i\.ytimg\.com\/vi\/[^/]+\/maxresdefault\.jpg$/
+const episodeThumbnailFetches = new Map()
+
+function youtubePreviewUrl (id) {
+  return `https://i.ytimg.com/vi/${id}/maxresdefault.jpg`
+}
+
+function episodeThumbnailPath (episode) {
+  const candidates = [
+    path.join(episodeThumbnailsDir, `${episode}.jpg`),
+    path.join(__dirname, 'src', '_includes', 'images', `${episode}.jpg`)
+  ]
+
+  return candidates.find((candidate) => existsSync(candidate))
+}
+
+function preferredEpisodeThumbnailPath (episode) {
+  return path.join(episodeThumbnailsDir, `${episode}.jpg`)
+}
+
+async function downloadEpisodeThumbnail (episode, youtubeId) {
+  const dest = preferredEpisodeThumbnailPath(episode)
+  const tempDest = `${dest}.${process.pid}.${Date.now()}.tmp`
+
+  try {
+    await fs.mkdir(episodeThumbnailsDir, { recursive: true })
+    const response = await axios.get(youtubePreviewUrl(youtubeId), { responseType: 'stream' })
+    await pipeline(response.data, createWriteStream(tempDest))
+    await fs.rename(tempDest, dest)
+    console.log(`Fetched YouTube thumbnail ${dest}`)
+    return dest
+  } catch (err) {
+    await fs.rm(tempDest, { force: true }).catch(() => {})
+    console.warn(`Could not fetch YouTube thumbnail ${youtubePreviewUrl(youtubeId)}; using fallback image.`)
+    return null
+  }
+}
+
+function ensureEpisodeThumbnail (episode, youtubeId) {
+  const existingThumbnail = episodeThumbnailPath(episode)
+
+  if (existingThumbnail) {
+    return Promise.resolve(existingThumbnail)
+  }
+
+  const key = `${episode}:${youtubeId}`
+
+  if (!episodeThumbnailFetches.has(key)) {
+    episodeThumbnailFetches.set(key, downloadEpisodeThumbnail(episode, youtubeId))
+  }
+
+  return episodeThumbnailFetches.get(key)
+}
+
+function isPublishedEpisode (item) {
+  if (includeFutureEpisodes) {
+    return true
+  }
+
+  const publishDate = DateTime
+    .fromJSDate(item.data.publish_date)
+    .startOf('day')
+
+  return publishDate <= currentPublishDate
+}
 
 function extractExcerpt (content) {
   let excerpt = null
@@ -29,11 +100,26 @@ async function imageShortcode (src, alt, sizes, _widths, _attrs) {
   const widths = _widths || [300, 600]
   const attrs = _attrs || {}
 
-  const metadata = await Image(src, {
-    widths,
-    formats: ['avif', 'jpeg'],
-    outputDir: './dist/img/'
-  })
+  let metadata
+
+  try {
+    metadata = await Image(src, {
+      widths,
+      formats: ['avif', 'jpeg'],
+      outputDir: './dist/img/'
+    })
+  } catch (err) {
+    if (!youtubeThumbnailPattern.test(src)) {
+      throw err
+    }
+
+    console.warn(`Could not fetch YouTube thumbnail ${src}; using fallback image.`)
+    metadata = await Image(fallbackEpisodeImage, {
+      widths,
+      formats: ['avif', 'jpeg'],
+      outputDir: './dist/img/'
+    })
+  }
 
   const imageAttributes = {
     alt,
@@ -48,11 +134,17 @@ async function imageShortcode (src, alt, sizes, _widths, _attrs) {
   })
 }
 
+async function episodeImageShortcode (episode, youtubeId, alt, sizes, widths, attrs) {
+  const thumbnail = await ensureEpisodeThumbnail(episode, youtubeId)
+  return imageShortcode(thumbnail || fallbackEpisodeImage, alt, sizes, widths, attrs)
+}
+
 module.exports = function (eleventyConfig) {
   eleventyConfig.addWatchTarget('./src/_includes/styles/tailwind.css')
   eleventyConfig.addPassthroughCopy({ './src/_includes/static/**': './' })
 
   eleventyConfig.addNunjucksAsyncShortcode('image', imageShortcode)
+  eleventyConfig.addNunjucksAsyncShortcode('episodeImage', episodeImageShortcode)
 
   eleventyConfig.addPlugin(embedYouTube)
   eleventyConfig.addShortcode('excerpt', (article) => extractExcerpt(article))
@@ -60,7 +152,7 @@ module.exports = function (eleventyConfig) {
   eleventyConfig.addCollection('publishedEpisodes', function (collectionApi) {
     // get episodes, sorted by publish date, descending
     return collectionApi.getFilteredByTag('episode')
-      .filter((item) => item.data.publish_date <= item.data.settings.now)
+      .filter(isPublishedEpisode)
       .sort((a, b) => a.data.publish_date - b.data.publish_date)
   })
 
@@ -93,11 +185,9 @@ module.exports = function (eleventyConfig) {
     return now
   })
 
-  eleventyConfig.addNunjucksFilter('youtubePreviewUrl', function (id) {
-    return `https://i.ytimg.com/vi/${id}/maxresdefault.jpg`
-  })
+  eleventyConfig.addNunjucksFilter('youtubePreviewUrl', youtubePreviewUrl)
 
-  eleventyConfig.addNunjucksAsyncFilter('youtubePreview', function (id, episodeUrl, cb) {
+  eleventyConfig.addNunjucksAsyncFilter('youtubePreview', function (id, episodeUrl, episode, cb) {
     (async () => {
       const folderDest = path.join('dist', episodeUrl)
       const dest = path.join('dist', episodeUrl, 'og_image.jpg')
@@ -110,14 +200,14 @@ module.exports = function (eleventyConfig) {
           await fs.mkdir(folderDest)
         }
 
-        // trying to download this image from YouTube before the video is actually published will give us
-        // a 404. If that's the case, we don't want to break the build, so we will use a default placeholder image
-        let imageStream = createReadStream(path.join(__dirname, 'src', '_includes', 'static', 'awsbites-og.png'))
-        try {
-          const url = `https://i.ytimg.com/vi/${id}/maxresdefault.jpg`
-          const response = await axios.get(url, { responseType: 'stream' })
-          imageStream = response.data
-        } catch (_) { }
+        const localThumbnail = await ensureEpisodeThumbnail(episode, id)
+        let imageStream
+
+        if (localThumbnail) {
+          imageStream = createReadStream(localThumbnail)
+        } else {
+          imageStream = createReadStream(fallbackEpisodeImage)
+        }
 
         const transform = sharp().resize({ width: 1200, height: 630, fit: sharp.fit.cover })
         const destFile = createWriteStream(dest)

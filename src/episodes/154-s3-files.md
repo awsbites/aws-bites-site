@@ -1,6 +1,6 @@
 ---
 episode: 154
-title: "LLM Inference with Bedrock"
+title: "S3 Files"
 youtube_id: "lqw92QYqM88"
 spotify_link: "https://creators.spotify.com/pod/profile/aws-bites/episodes/154--S3-Files-e3jjauo"
 publish_date: 2026-05-22

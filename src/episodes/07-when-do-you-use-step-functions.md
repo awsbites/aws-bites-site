@@ -4,6 +4,8 @@ title: When do you use Step Functions?
 youtube_id: nNskWnmozaE
 spotify_link: https://anchor.fm/aws-bites/episodes/07--When-do-you-use-Step-Functions-e18qtqg
 publish_date: 2021-10-22
+tags:
+  - Step Functions
 ---
 
 In this episode Eoin and Luciano try to reply to a question suggested by <a href="https://twitter.com/em__shea">Emily Shea</a>: When do you use Step Functions?

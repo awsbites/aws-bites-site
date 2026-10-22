@@ -4,7 +4,28 @@
   const segments = [...document.querySelectorAll('.transcript-segment')]
   const episodePage = document.getElementById('main-content')
   const playerSentinel = document.getElementById('episode-player-sentinel')
+  const titleRegion = document.getElementById('episode-title-region')
+  const playerRegion = document.getElementById('episode-player-region')
   let playerAboveViewport = false
+
+  // Size a shared backdrop without wrapping the sticky player in a short container.
+  if (episodePage && titleRegion && playerRegion) {
+    const sizeBackdrop = () => {
+      const height =
+        titleRegion.getBoundingClientRect().height +
+        playerRegion.getBoundingClientRect().height
+      episodePage.style.setProperty('--episode-stage-height', `${height}px`)
+      episodePage.setAttribute('data-stage-ready', 'true')
+    }
+    sizeBackdrop()
+    if (window.ResizeObserver) {
+      const observer = new window.ResizeObserver(sizeBackdrop)
+      observer.observe(titleRegion)
+      observer.observe(playerRegion)
+    } else {
+      window.addEventListener('resize', sizeBackdrop)
+    }
+  }
 
   function updateCinemaMode() {
     episodePage?.setAttribute(

@@ -23,6 +23,9 @@ function fixture({
   let activeElement
   let sentinelBottom = playerBottom
   let intersectionListener
+  let resizeListener
+  let titleHeight = 180
+  let playerHeight = 250
   const frames = []
   function element(id, panel) {
     const attrs = new Map()
@@ -72,7 +75,22 @@ function fixture({
     elements.set(id, node)
     return node
   }
-  element('main-content')
+  const main = element('main-content')
+  const properties = new Map()
+  main.style = {
+    setProperty(name, value) {
+      properties.set(name, value)
+    },
+    getPropertyValue(name) {
+      return properties.get(name)
+    },
+  }
+  element('episode-title-region').getBoundingClientRect = () => ({
+    height: titleHeight,
+  })
+  element('episode-player-region').getBoundingClientRect = () => ({
+    height: playerHeight,
+  })
   element('episode-player-sentinel').getBoundingClientRect = () => ({
     bottom: sentinelBottom,
   })
@@ -102,6 +120,14 @@ function fixture({
     }
   }
   const window = {
+    ResizeObserver: observerSupported
+      ? class {
+          constructor(callback) {
+            resizeListener = callback
+          }
+          observe() {}
+        }
+      : undefined,
     IntersectionObserver: observerSupported
       ? class {
           constructor(callback) {
@@ -156,6 +182,12 @@ function fixture({
     scripts,
     historyWrites,
     active: () => activeElement,
+    resizeStage(title, player) {
+      titleHeight = title
+      playerHeight = player
+      if (resizeListener) resizeListener()
+      else listeners.get('resize')?.()
+    },
     scrollPlayer(bottom) {
       sentinelBottom = bottom
       if (intersectionListener)
@@ -185,6 +217,28 @@ test('episodes without transcripts initialize without tabs or the player API', (
   assert.equal(page.panels[0].hidden, false)
   assert.equal(page.scripts.length, 0)
   assert.deepEqual(page.historyWrites, [])
+})
+
+test('the shared backdrop spans the title and player and follows responsive size changes', () => {
+  const page = fixture()
+  const main = page.elements.get('main-content')
+  assert.equal(main.style.getPropertyValue('--episode-stage-height'), '430px')
+  assert.equal(main.getAttribute('data-stage-ready'), 'true')
+  page.resizeStage(220, 180)
+  assert.equal(main.style.getPropertyValue('--episode-stage-height'), '400px')
+  page.tabs[1].click()
+  assert.equal(main.style.getPropertyValue('--episode-stage-height'), '400px')
+})
+
+test('backdrop sizing works without ResizeObserver and without transcript tabs', () => {
+  const page = fixture({ transcript: false, observerSupported: false })
+  page.resizeStage(300, 150)
+  assert.equal(
+    page.elements
+      .get('main-content')
+      .style.getPropertyValue('--episode-stage-height'),
+    '450px',
+  )
 })
 
 test('tabs expose selected state, panel relationships and one tab stop', () => {

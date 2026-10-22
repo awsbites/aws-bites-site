@@ -21,13 +21,14 @@
 {% block twitter_image_url %}{{- youtube_id | youtubePreview(page.url, episode) -}}{% endblock twitter_image_url %}
 
 {% block body_content %}
+  <main id="main-content" tabindex="-1">
   <div class="bg-slate-300 dark:bg-slate-900">
     <div class="max-w-6xl mx-auto p-6">
       <div class="text-center">
         <h1 class="text-gray-900 dark:text-gray-100 text-3xl lg:text-4xl font-bold leading-normal pb-6">{{ episode }}. {{title}}</h1>
         <p class="text-gray-600 dark:text-gray-300 text lg:text-lg pb-4">
           Published {{ publish_date | formatDate }} -
-          <a href="{{ spotify_link }}" class="text-primary-100 dark:text-secondary-100 hover:underline">Listen on your favourite podcast player</a>
+          <a href="{{ spotify_link }}" class="text-primary-700 dark:text-secondary-100 underline underline-offset-4">Listen on your favourite podcast player</a>
         </p>
         <div class="lg:mx-32 md:mx-20">
           <iframe id="youtubePlayer" width="100%" height="100%" class="aspect-[16/9]" rel="0"
@@ -37,20 +38,20 @@
       </div>
     </div>
   </div>
-  <main>
     {% if transcripts[episode] %}
-      <div id="tabs" class="my-8 px-4 md:text-[1.25rem] md:leading-[1.8] sm:text-[0.875rem] sm:leading-[1.7142857] max-w-[65ch] mx-auto text-center text-gray-500 border-b border-gray-200 dark:text-gray-400 dark:border-gray-700">
-        <ul class="flex flex-wrap -mb-px">
+      <div id="tabs" class="my-8 px-4 md:text-[1.25rem] md:leading-[1.8] sm:text-[0.875rem] sm:leading-[1.7142857] max-w-[65ch] mx-auto text-center text-gray-600 border-b border-gray-200 dark:text-gray-300 dark:border-gray-700">
+        <ul id="episode-tabs" aria-label="Episode content" class="flex flex-wrap -mb-px">
           <li class="mr-2">
-            <a class="tab-button inline-block p-4 rounded-t-lg border-b-2 border-transparent hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300" href="#description">Description</a>
+            <a class="tab-button inline-block p-4 rounded-t-lg border-b-2 border-transparent hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300" id="description-tab" href="#description">Description</a>
           </li>
           <li class="mr-2">
-            <a class="tab-button inline-block p-4 rounded-t-lg border-b-2 border-transparent hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300" href="#transcript">Transcript</a>
+            <a class="tab-button inline-block p-4 rounded-t-lg border-b-2 border-transparent hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300" id="transcript-tab" href="#transcript">Transcript</a>
           </li>
         </ul>
       </div>
     {% endif %}
     <div id="description-content" data-pagefind-body class="tab-content my-8 px-4 prose prose-sm md:prose-lg lg:prose-xl dark:prose-dark mx-auto">
+      <span id="description"></span>
       <meta data-pagefind-meta="title" content="{{ episode }}. {{ title }}">
       <meta data-pagefind-meta="date" content="{{ publish_date | formatDateISO }}">
       <meta data-pagefind-meta="image" content="{{ youtube_id | youtubePreview(page.url, episode) }}">
@@ -58,36 +59,37 @@
 
       <div data-pagefind-ignore class="py-12">
         <h3>Let's talk!</h3>
-        <p>Do you agree with our opinions? Do you have interesting AWS questions you'd like us to chat about? Leave a comment on <a href="{{ youtube_id | youtubeLink }}">YouTube</a> or connect with us on:
+        <p>Do you agree with our opinions? Do you have interesting AWS questions you'd like us to chat about? Leave a comment on <a href="{{ youtube_id | youtubeLink }}">YouTube</a> or connect with us on:</p>
           <ul>
             <li> BlueSky: <a href="https://bsky.app/profile/eoin.sh">@eoins.sh</a> + <a href="https://bsky.app/profile/loige.co">@loige.co</a>,
             <li> LinkedIn: <a href="https://www.linkedin.com/in/eoins/">eoins</a> + <a href="https://www.linkedin.com/in/lucianomammino/">lucianomammino</a>,
             <li> Twitter: <a href="https://twitter.com/loige">@loige</a>
           </ul>
-        </p>
       </div>
     </div>
-  </main>
-</div>
 
 {% if transcripts[episode] %}
   <div id="transcript-content" data-pagefind-body class="tab-content my-8 px-4 prose prose-sm md:prose-lg lg:prose-xl dark:prose-dark mx-auto font-serif">
-    <div data-pagefind-ignore class="font-sans text-sm text-center p-4 bg-slate-300 dark:bg-slate-900">Help us to make this transcription better! If you find an error, please <a href="https://github.com/awsbites/aws-bites-site/edit/main/src/_transcripts/{{ episode }}.json">submit a PR</a> with your corrections.</div>
+    <span id="transcript"></span>
 
     {% set currentSpeakerLabel = '' %}
 
     {% for paragraph in transcripts[episode].paragraphs %}
-      <p>
+      <div class="my-4">
         {% for segment in paragraph %}
           {% if segment.speakerLabel != currentSpeakerLabel %}
             {% set currentSpeakerLabel = segment.speakerLabel %}
-            <p data-start-time="{{ segment.start }}">
+            {% if not loop.first %}<br>{% endif %}
               <span class="speaker-label font-bold text-primary-300 dark:text-secondary-200">{{ transcripts[episode].speakers[currentSpeakerLabel] }}</span>: 
           {% endif %}
-            <span class="transcript-segment" data-start-time="{{ segment.start }}" title="⏭️ skip to {{ segment.formattedTime }}">{{ segment.text }}</span>
+            <a class="transcript-segment" data-start-time="{{ segment.start }}" href="https://www.youtube.com/watch?v={{ youtube_id }}&amp;t={{ segment.start | int }}s" aria-label="Seek to {{ segment.formattedTime | escape }}: {{ segment.text | trim | escape }}">{{ segment.text | escape }}</a>
           {% endfor %}
-        </p>
+        </div>
       {% endfor %}
+      <div data-pagefind-ignore class="not-prose mt-8 pt-4 border-t border-gray-300 dark:border-gray-600 font-sans text-sm leading-relaxed text-gray-600 dark:text-gray-300 space-y-2">
+        <p id="transcript-keyboard-help" hidden>Use the arrow keys to move between transcript segments, Home or End to jump to the first or last segment, and Enter to seek in the video.</p>
+        <p>Help us to make this transcription better! If you find an error, please <a class="text-primary-700 dark:text-secondary-400 underline underline-offset-4" href="https://github.com/awsbites/aws-bites-site/edit/main/src/_transcripts/{{ episode }}.json">submit a PR</a> with your corrections.</p>
+      </div>
     </div>
   {% endif %}
 
@@ -96,12 +98,12 @@
 
   <div class="row">
     <div class="max-w-7xl mx-auto">
-      <div class="sm:grid grid-cols-4 gap-5 mx-auto px-16">
+      <div class="sm:grid grid-cols-4 gap-5 mx-auto px-4 sm:px-8 lg:px-16">
         {% if previousEpisode %}
           <div class="col-start-1 col-end-3 my-2">
             <a href="{{ previousEpisode.url }}">
               <div
-						class="h-full p-6 dark:bg-gray-700 bg-white text-primary-200 dark:text-secondary-100 hover:shadow-xl rounded border-b-4 border-accent-100 dark:border-accent-100 shadow-md">
+						class="h-full p-4 sm:p-6 dark:bg-gray-700 bg-white text-primary-200 dark:text-secondary-100 hover:shadow-xl rounded border-b-4 border-accent-100 dark:border-accent-100 shadow-md">
                 <h3 class="text-2xl mb-3 font-semibold inline-flex">
                   <svg class="mr-2" width="24" height="30" viewBox="0 0 24 24" fill="none"
 								xmlns="http://www.w3.org/2000/svg">
@@ -120,7 +122,7 @@
           <div class="col-end-5 col-span-2 my-2">
             <a href="{{ nextEpisode.url }}">
               <div
-						class="h-full p-6 dark:bg-gray-700 bg-white text-primary-200 dark:text-secondary-100 hover:shadow-xl rounded border-b-4 border-accent-100 dark:border-accent-100 shadow-md text-right">
+						class="h-full p-4 sm:p-6 dark:bg-gray-700 bg-white text-primary-200 dark:text-secondary-100 hover:shadow-xl rounded border-b-4 border-accent-100 dark:border-accent-100 shadow-md text-right">
                 <h3 class="text-2xl mb-3 font-semibold inline-flex ">
 							Next
 							<svg class="ml-2" width="24" height="30" viewBox="0 0 24 24" fill="none"
@@ -136,84 +138,13 @@
         {% endif %}
       </div>
     </div>
+      </div>
+  </main>
   {% endblock body_content %}
 
   {% block scripts %}
     {{ super() }}
     <script>
-      let player
-      function onYouTubeIframeAPIReady() {
-        player = new YT.Player('youtubePlayer', {
-          events: {
-            'onReady': onPlayerReady
-          }
-        });
-      }
-
-      function onPlayerReady(event) {
-        const transcriptSegments = document.querySelectorAll('span[data-start-time]');
-        transcriptSegments.forEach(segment => {
-          segment.addEventListener('click', function () {
-            const startTime = parseFloat(this.getAttribute('data-start-time'));
-            player.seekTo(startTime);
-          });
-        });
-      }
-
-      document.addEventListener('DOMContentLoaded', function () {
-        const tabClasses = 'inline-block p-4 rounded-t-lg border-b-2 border-transparent hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300'
-        const activeTabClasses = 'inline-block p-4 text-blue-600 rounded-t-lg border-b-2 border-blue-600 active dark:text-blue-500 dark:border-blue-500'
-        const tabBtns = document.querySelectorAll('.tab-button')
-
-        function showTab(tabId) {
-          const anchorHash = `#${tabId}`
-          let activeTabButton = [...tabBtns].find(item => item.getAttribute('href') === anchorHash) || tabBtns[0]
-          const resolvedTabId = activeTabButton
-            .getAttribute('href')
-            .substring(1)
-          activeTabButton.setAttribute('class', activeTabClasses);
-          ([...tabBtns]).forEach(item => {
-            if (item !== activeTabButton) {
-              item.setAttribute('class', tabClasses)
-            }
-          })
-
-          document
-            .querySelectorAll('.tab-content')
-            .forEach(item => {
-              item.style.display = item.id === `${resolvedTabId}-content`
-                ? 'block'
-                : 'none'
-            })
-
-          // Update the URL hash to reflect the current tab
-          history.replaceState(null, '', `${window.location.pathname}#${resolvedTabId}`);
-        }
-
-        // Show the tab corresponding to the URL hash
-        showTab(window.location.hash.substring(1))
-
-        tabBtns.forEach((item) => item.addEventListener('click', evt => {
-          evt.preventDefault()
-          const tabId = evt
-            .currentTarget
-            .getAttribute('href')
-            .substring(1)
-          showTab(tabId)
-        }))
-
-        // Handle hash changes without a page reload
-        window.addEventListener('hashchange', function () {
-          showTab(window.location.hash.substring(1))
-        }, false);
-
-        // Load the YouTube IFrame Player API asynchronously
-        const tag = document.createElement('script');
-        tag.src = "https://www.youtube.com/iframe_api";
-        const firstScriptTag = document.getElementsByTagName('script')[0];
-        firstScriptTag
-          .parentNode
-          .insertBefore(tag, firstScriptTag);
-      })
+      {% include 'episode-interactions.js' %}
     </script>
   {% endblock %}

@@ -1,33 +1,123 @@
 @import "tailwindcss" source("../../");
 @config "../../../tailwind.config.js";
 
-@layer utilities {
-  .change {
-    color: transparent;
-  }
-}
-
 html body {
   min-height: 100vh;
 }
 
-.episode {
-  border: 1px solid red;
+#toggle-theme {
+  transition: background-color 160ms ease-out, transform 120ms ease-out;
 }
 
-.videoWrapper {
-  position:relative;
-  width: 100%;
-  height: 100%;
+#toggle-theme:active {
+  transform: scale(0.94);
+}
+
+#toggle-theme svg {
+  grid-area: 1 / 1;
+  pointer-events: none;
+  transform-origin: center;
+  transition: opacity 180ms ease-out,
+    transform 240ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+#toggle-dark-icon {
+  opacity: 1;
+  transform: rotate(0) scale(1);
+}
+
+#toggle-light-icon {
+  opacity: 0;
+  transform: rotate(-60deg) scale(0.7);
+}
+
+#toggle-theme[aria-pressed="true"] #toggle-dark-icon {
+  opacity: 0;
+  transform: rotate(40deg) scale(0.7);
+}
+
+#toggle-theme[aria-pressed="true"] #toggle-light-icon {
+  opacity: 1;
+  transform: rotate(0) scale(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #toggle-theme {
+    transition: background-color 100ms ease-out;
+  }
+
+  #toggle-theme:active {
+    transform: none;
+  }
+
+  #toggle-theme svg {
+    transition: opacity 90ms ease-out;
+  }
+
+  #toggle-theme #toggle-dark-icon,
+  #toggle-theme #toggle-light-icon {
+    transform: none;
+  }
+}
+
+:where(a, button, input):focus-visible {
+  outline: 2px solid var(--pagefind-ui-primary);
+  outline-offset: 4px;
+}
+
+.skip-link {
+  position: absolute;
+  inset-inline-start: 1rem;
+  top: 1rem;
+  z-index: 100;
+  padding: 0.75rem 1rem;
+  color: var(--pagefind-ui-text);
+  background: var(--pagefind-ui-background);
+  transform: translateY(calc(-100% - 2rem));
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+}
+
+.tab-button[aria-selected="true"] {
+  color: var(--pagefind-ui-primary);
+  border-bottom-color: currentColor;
+}
+
+.tab-content {
+  overflow-wrap: anywhere;
+}
+
+.tab-content pre {
+  overflow-wrap: normal;
+  overflow-x: auto;
 }
 
 .transcript-segment {
   position: relative;
   cursor: pointer;
+  color: inherit !important;
+  font-weight: inherit !important;
+  text-decoration: none;
 }
 
-.transcript-segment:hover {
-  text-decoration: underline dashed orange 2px;
+.transcript-segment:hover,
+.transcript-segment:focus-visible {
+  text-decoration: underline dashed currentColor 2px;
+  text-underline-offset: 0.2em;
+}
+
+.transcript-segment:focus-visible,
+.tab-button:focus-visible,
+[role="tabpanel"]:focus-visible {
+  outline: 2px solid var(--pagefind-ui-primary);
+  outline-offset: 3px;
+}
+
+.tab-content[hidden],
+#transcript-keyboard-help[hidden] {
+  display: none !important;
 }
 
 :root {

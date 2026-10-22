@@ -16,6 +16,8 @@ AWS Bites is a podcast hosted by Eoin Shanaghy and Luciano Mammino about AWS and
 
 The primary website priority, confirmed by the owner, is attracting new listeners and subscriptions. Episode discovery and consumption support that priority. Numeric targets and the definition of a measured subscription conversion remain open.
 
+There is no committed episode release cadence. Public-facing copy must not promise a specific weekday or publishing interval.
+
 ## Positioning
 
 The show shares the hosts' practical AWS experience, real-world case studies, and candid opinions. This description is supported by the current homepage and site settings; no exclusive market position or comparative claim has been established.

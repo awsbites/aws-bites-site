@@ -13,12 +13,17 @@ function fixture({
   transcript = true,
   hash = '',
   historyBlocked = false,
+  playerBottom = 100,
+  observerSupported = true,
 } = {}) {
   const elements = new Map()
   const listeners = new Map()
   const historyWrites = []
   const scripts = []
   let activeElement
+  let sentinelBottom = playerBottom
+  let intersectionListener
+  const frames = []
   function element(id, panel) {
     const attrs = new Map()
     const handlers = new Map()
@@ -67,6 +72,10 @@ function fixture({
     elements.set(id, node)
     return node
   }
+  element('main-content')
+  element('episode-player-sentinel').getBoundingClientRect = () => ({
+    bottom: sentinelBottom,
+  })
   const description = element('description-content')
   const panels = [description]
   const tabs = []
@@ -93,6 +102,17 @@ function fixture({
     }
   }
   const window = {
+    IntersectionObserver: observerSupported
+      ? class {
+          constructor(callback) {
+            intersectionListener = callback
+          }
+          observe() {}
+        }
+      : undefined,
+    requestAnimationFrame(callback) {
+      frames.push(callback)
+    },
     location: { hash },
     history: {
       replaceState(_a, _b, value) {
@@ -136,6 +156,15 @@ function fixture({
     scripts,
     historyWrites,
     active: () => activeElement,
+    scrollPlayer(bottom) {
+      sentinelBottom = bottom
+      if (intersectionListener)
+        intersectionListener([{ boundingClientRect: { bottom } }])
+      else {
+        listeners.get('scroll')?.()
+        for (const callback of frames.splice(0)) callback()
+      }
+    },
     navigate(value) {
       window.location.hash = value
       listeners.get('hashchange')?.()
@@ -175,6 +204,57 @@ test('tabs expose selected state, panel relationships and one tab stop', () => {
     [-1, 0],
   )
   assert.deepEqual(page.historyWrites, ['#transcript'])
+})
+
+test('transcript mode enables the sticky player and description restores the regular layout', () => {
+  const page = fixture()
+  const main = page.elements.get('main-content')
+  assert.equal(main.getAttribute('data-transcript-active'), 'false')
+  page.tabs[1].click()
+  assert.equal(main.getAttribute('data-transcript-active'), 'true')
+  page.tabs[0].click()
+  assert.equal(main.getAttribute('data-transcript-active'), 'false')
+})
+
+test('transcript deep links enable sticky mode and clearing the fragment restores description mode', () => {
+  const page = fixture({ hash: '#transcript' })
+  const main = page.elements.get('main-content')
+  assert.equal(main.getAttribute('data-transcript-active'), 'true')
+  page.navigate('')
+  assert.equal(main.getAttribute('data-transcript-active'), 'false')
+})
+
+test('cinema surround activates only when the transcript player reaches the viewport top', () => {
+  const page = fixture()
+  const main = page.elements.get('main-content')
+  assert.equal(main.getAttribute('data-player-stuck'), 'false')
+  page.scrollPlayer(-1)
+  assert.equal(main.getAttribute('data-player-stuck'), 'false')
+  page.tabs[1].click()
+  assert.equal(main.getAttribute('data-player-stuck'), 'true')
+  page.scrollPlayer(20)
+  assert.equal(main.getAttribute('data-player-stuck'), 'false')
+  page.scrollPlayer(0)
+  assert.equal(main.getAttribute('data-player-stuck'), 'true')
+  page.tabs[0].click()
+  assert.equal(main.getAttribute('data-player-stuck'), 'false')
+})
+
+test('a restored transcript deep link already past the player enters cinema mode', () => {
+  const page = fixture({ hash: '#transcript', playerBottom: -10 })
+  assert.equal(
+    page.elements.get('main-content').getAttribute('data-player-stuck'),
+    'true',
+  )
+})
+
+test('scroll fallback keeps cinema state synchronized without IntersectionObserver', () => {
+  const page = fixture({ hash: '#transcript', observerSupported: false })
+  const main = page.elements.get('main-content')
+  page.scrollPlayer(-5)
+  assert.equal(main.getAttribute('data-player-stuck'), 'true')
+  page.scrollPlayer(10)
+  assert.equal(main.getAttribute('data-player-stuck'), 'false')
 })
 
 test('arrow, Home and End keys move focus and select tabs', () => {

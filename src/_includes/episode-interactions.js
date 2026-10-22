@@ -2,8 +2,55 @@
   const tabs = [...document.querySelectorAll('.tab-button')]
   const panels = [...document.querySelectorAll('.tab-content')]
   const segments = [...document.querySelectorAll('.transcript-segment')]
+  const episodePage = document.getElementById('main-content')
+  const playerSentinel = document.getElementById('episode-player-sentinel')
+  let playerAboveViewport = false
+
+  function updateCinemaMode() {
+    episodePage?.setAttribute(
+      'data-player-stuck',
+      String(
+        playerAboveViewport &&
+          episodePage.getAttribute('data-transcript-active') === 'true',
+      ),
+    )
+  }
+
+  if (playerSentinel && tabs.length) {
+    const measurePlayer = () => {
+      playerAboveViewport = playerSentinel.getBoundingClientRect().bottom <= 0
+      updateCinemaMode()
+    }
+    measurePlayer()
+    if (window.IntersectionObserver) {
+      const observer = new window.IntersectionObserver((entries) => {
+        playerAboveViewport = entries[0].boundingClientRect.bottom <= 0
+        updateCinemaMode()
+      })
+      observer.observe(playerSentinel)
+    } else {
+      let scheduled = false
+      window.addEventListener(
+        'scroll',
+        () => {
+          if (scheduled) return
+          scheduled = true
+          window.requestAnimationFrame(() => {
+            scheduled = false
+            measurePlayer()
+          })
+        },
+        { passive: true },
+      )
+    }
+  }
 
   function selectTab(tab) {
+    episodePage?.setAttribute(
+      'data-transcript-active',
+      String(tab.id === 'transcript-tab'),
+    )
+    updateCinemaMode()
     tabs.forEach((item) => {
       const selected = item === tab
       item.setAttribute('aria-selected', String(selected))

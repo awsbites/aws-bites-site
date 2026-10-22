@@ -2,6 +2,10 @@
   const tabs = [...document.querySelectorAll('.tab-button')]
   const panels = [...document.querySelectorAll('.tab-content')]
   const segments = [...document.querySelectorAll('.transcript-segment')]
+  const seekLinks = [
+    ...segments,
+    ...document.querySelectorAll('.transcript-timestamp'),
+  ]
   const episodePage = document.getElementById('main-content')
   const playerSentinel = document.getElementById('episode-player-sentinel')
   const titleRegion = document.getElementById('episode-title-region')
@@ -206,7 +210,7 @@
       new window.YT.Player('youtubePlayer', {
         events: {
           onReady(event) {
-            segments.forEach((segment) => {
+            seekLinks.forEach((segment) => {
               segment.addEventListener('click', (click) => {
                 if (
                   click.ctrlKey ||

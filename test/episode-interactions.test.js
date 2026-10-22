@@ -98,6 +98,7 @@ function fixture({
   const panels = [description]
   const tabs = []
   const segments = []
+  const timestamps = []
   element('description', description)
   const heading = element('heading with spaces', description)
   element('episode-tabs')
@@ -118,6 +119,9 @@ function fixture({
       segment.dataset.startTime = String(index * 10.5)
       segments.push(segment)
     }
+    const timestamp = element('timestamp-0', transcriptPanel)
+    timestamp.dataset.startTime = '12.345'
+    timestamps.push(timestamp)
   }
   const window = {
     ResizeObserver: observerSupported
@@ -156,7 +160,9 @@ function fixture({
         ? tabs
         : selector === '.tab-content'
           ? panels
-          : segments
+          : selector === '.transcript-timestamp'
+            ? timestamps
+            : segments
     },
     getElementById(id) {
       return elements.get(id) || null
@@ -178,6 +184,7 @@ function fixture({
     panels,
     tabs,
     segments,
+    timestamps,
     help,
     scripts,
     historyWrites,
@@ -403,6 +410,30 @@ test('links remain native before player readiness and seek once ready', () => {
     page.segments[1].emit('click', { metaKey: true }).defaultPrevented,
     false,
   )
+})
+
+test('timestamps use the same seek behavior with exact fractional-second positions', () => {
+  const page = fixture()
+  const timestamp = page.timestamps[0]
+  assert.equal(timestamp.click().defaultPrevented, false)
+  let sought
+  page.ready((time, allowSeekAhead) => {
+    sought = [time, allowSeekAhead]
+  })
+  assert.equal(timestamp.click().defaultPrevented, true)
+  assert.deepEqual(sought, [12.345, true])
+  assert.equal(
+    timestamp.emit('click', { ctrlKey: true }).defaultPrevented,
+    false,
+  )
+})
+
+test('timestamps retain their link fallback when the player seek fails', () => {
+  const page = fixture()
+  page.ready(() => {
+    throw new Error('Player unavailable')
+  })
+  assert.equal(page.timestamps[0].click().defaultPrevented, false)
 })
 
 test('player failure and invalid timestamps preserve native link fallback', () => {

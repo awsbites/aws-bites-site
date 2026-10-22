@@ -11,7 +11,7 @@ class EpisodesRedirects {
   async render ({ collections }) {
     const redirects = []
 
-    for (const item of collections.publishedEpisodes.reverse()) {
+    for (const item of collections.publishedEpisodes.slice().reverse()) {
       redirects.push(`/${item.data.episode} ${new URL(item.url, settings.website).toString()}`)
     }
 

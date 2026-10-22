@@ -1,33 +1,531 @@
 @import "tailwindcss" source("../../");
 @config "../../../tailwind.config.js";
 
-@layer utilities {
-  .change {
-    color: transparent;
-  }
-}
-
 html body {
   min-height: 100vh;
 }
 
-.episode {
-  border: 1px solid red;
+.hero-heading {
+  font-size: clamp(2.5rem, 1.5rem + 4vw, 3.75rem);
+  line-height: 1.12;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
 }
 
-.videoWrapper {
-  position:relative;
+.hero-introduction {
+  max-width: 45ch;
+  text-wrap: pretty;
+}
+
+.not-found-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+.not-found-page > header {
+  width: 100%;
+}
+
+.not-found-page > main {
+  flex: 1;
+}
+
+.not-found-heading {
+  font-size: clamp(1.5rem, 1.25rem + 1vw, 2rem);
+  line-height: 1.2;
+  font-weight: 400;
+}
+
+.not-found-code {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: clamp(4.5rem, 3rem + 6vw, 6rem);
+  line-height: 1;
+  letter-spacing: -0.035em;
+  font-weight: 700;
+}
+
+.not-found-message,
+.not-found-recovery {
+  max-width: 38ch;
+  text-wrap: pretty;
+}
+
+.not-found-recovery,
+.not-found-credit {
+  color: var(--color-gray-600);
+}
+
+.dark .not-found-recovery,
+.dark .not-found-credit {
+  color: var(--color-gray-300);
+}
+
+.not-found-latest-link {
+  max-width: 48ch;
+  text-wrap: balance;
+}
+
+.episode-heading {
+  max-width: 44ch;
+  margin-inline: auto;
+  font-size: clamp(1.875rem, 1.375rem + 1.75vw, 2.75rem);
+  line-height: 1.12;
+  letter-spacing: -0.025em;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+.episode-number {
+  font-size: inherit;
+  font-weight: 400;
+  color: color-mix(in srgb, currentColor 75%, transparent);
+  white-space: nowrap;
+}
+
+.episode-heading-details {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.episode-publish-date {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: color-mix(in srgb, currentColor 75%, transparent);
+  white-space: nowrap;
+}
+
+.episode-listen-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.5;
+  text-wrap: balance;
+  text-decoration-thickness: 0.075em;
+}
+
+.episode-listen-link:hover {
+  text-decoration-thickness: 0.125em;
+}
+
+.episode-page {
+  position: relative;
+  isolation: isolate;
+  background-color: inherit;
+  --transcript-video-height: min(42vh, 23.625rem, calc((100vw - 2rem) * 9 / 16));
+}
+
+.episode-stage-background {
+  position: absolute;
+  inset: 0 0 auto;
+  height: var(--episode-stage-height, 0px);
+  z-index: -1;
+  isolation: isolate;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.episode-page[data-stage-ready="true"] #episode-title-region {
+  background-color: transparent;
+}
+
+.episode-player-region {
+  background-color: transparent;
+  padding: 0.5rem 1rem;
+  box-shadow: 0 10px 24px -8px rgb(0 0 0 / 0);
+  transition: background-color 650ms ease-in-out,
+    box-shadow 650ms ease-in-out;
+}
+
+#episode-player-sentinel {
+  height: 1px;
+  margin-bottom: -1px;
+  pointer-events: none;
+}
+
+.episode-player {
+  width: calc(var(--transcript-video-height) * 16 / 9);
+  max-width: 100%;
+  aspect-ratio: 16 / 9;
+  margin-inline: auto;
+}
+
+.episode-video {
+  display: block;
   width: 100%;
   height: 100%;
+  border: 0;
+}
+
+.episode-page[data-transcript-active="true"] .episode-player-region {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+}
+
+.episode-page[data-player-stuck="true"] .episode-player-region {
+  background-color: #000;
+  box-shadow: 0 10px 24px -8px rgb(0 0 0 / 0.45);
+}
+
+.episode-page #tabs {
+  margin-block: 0.5rem 1rem;
+}
+
+.episode-page .tab-content {
+  margin-top: 1rem;
+}
+
+.episode-page[data-transcript-active="true"] :is(#tabs, #transcript-content, #transcript-content [id], .transcript-segment) {
+  scroll-margin-top: calc(var(--transcript-video-height) + 2rem);
+}
+
+@supports (height: 1svh) {
+  .episode-page {
+    --transcript-video-height: min(42svh, 23.625rem, calc((100vw - 2rem) * 9 / 16));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .episode-player-region {
+    transition: background-color 90ms ease-out, box-shadow 90ms ease-out;
+  }
+}
+
+.tab-content {
+  max-width: 68ch;
+  line-height: 1.75;
+}
+
+.episode-reading {
+  padding-block: 1.5rem 2rem;
+  background-color: inherit;
+}
+
+.episode-reading #description-content > p:first-of-type {
+  font-size: 1.125rem;
+  line-height: 1.7;
+}
+
+.episode-reading .tab-content a:not(.transcript-segment) {
+  text-underline-offset: 0.2em;
+  text-decoration-thickness: 0.075em;
+}
+
+.episode-reading blockquote {
+  border-inline-start: 0;
+  border-block-start: 1px solid var(--color-gray-300);
+  padding: 1.25rem 0 0;
+  margin-block: 2rem;
+  font-size: 1rem;
+  font-style: normal;
+}
+
+.dark .episode-reading blockquote {
+  border-block-start-color: var(--color-gray-600);
+}
+
+.transcript-paragraph {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: 1rem;
+  row-gap: 0.5rem;
+  margin-block: 1.75rem;
+}
+
+.transcript-paragraph-text {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+
+.transcript-timestamp {
+  display: inline-flex;
+  align-items: flex-start;
+  align-self: start;
+  justify-content: flex-end;
+  justify-self: end;
+  min-height: 2.75rem;
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.5;
+  color: var(--color-gray-600);
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.transcript-timestamp:hover {
+  text-decoration: underline;
+  text-decoration-thickness: 0.125em;
+}
+
+.dark .transcript-timestamp {
+  color: var(--color-gray-400);
+}
+
+.transcript-paragraph--continuation .transcript-timestamp {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.transcript-paragraph--continuation .transcript-paragraph-text {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.transcript-speaker {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  min-width: 0;
+  min-height: 2.75rem;
+  font-family: var(--font-sans);
+}
+
+.transcript-avatar {
+  font-size: 0.75rem;
+  line-height: 1;
+  font-weight: 700;
+}
+
+.transcript-avatar picture,
+.transcript-avatar-photo {
+  display: block;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  object-fit: cover;
+}
+
+.transcript-paragraph .speaker-label {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  font-weight: 700;
+}
+
+@media (min-width: 48rem) {
+  .episode-reading #description-content > p:first-of-type {
+    font-size: 1.25rem;
+  }
+
+  .episode-reading #transcript-content {
+    max-width: calc(68ch + 6rem);
+  }
+
+  .transcript-paragraph {
+    grid-template-columns: 5rem minmax(0, 1fr);
+  }
+
+  .transcript-speaker {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .transcript-timestamp {
+    grid-column: 1;
+    grid-row: 1;
+    padding-block-start: 0.25rem;
+  }
+
+  .transcript-paragraph--continuation .transcript-timestamp {
+    grid-column: 1;
+  }
+
+  .transcript-paragraph-text {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .transcript-paragraph--continuation .transcript-paragraph-text {
+    grid-column: 2;
+    grid-row: 1;
+  }
+}
+
+.tab-content :where(p, li),
+.home-hero p {
+  text-wrap: pretty;
+}
+
+.tab-content :where(h2, h3, h4) {
+  text-wrap: balance;
+  scroll-margin-top: 1.5rem;
+}
+
+.home-hero,
+.footer {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.home-hero__background {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.footer .home-hero__background {
+  transform: scaleX(-1);
+}
+
+.footer .home-hero__waves {
+  animation: none;
+  stroke-width: 3;
+}
+
+.footer .home-hero__waves > g:last-child {
+  opacity: 0.24;
+}
+
+.home-hero__waves {
+  animation: hero-waves-arrive 900ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes hero-waves-arrive {
+  from {
+    opacity: 0.5;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-hero__waves {
+    animation: none;
+  }
+}
+
+#toggle-theme {
+  transition: background-color 160ms ease-out, transform 120ms ease-out;
+}
+
+#toggle-theme:active {
+  transform: scale(0.94);
+}
+
+#toggle-theme svg {
+  grid-area: 1 / 1;
+  pointer-events: none;
+  transform-origin: center;
+  transition: opacity 180ms ease-out,
+    transform 240ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+#toggle-dark-icon {
+  opacity: 1;
+  transform: rotate(0) scale(1);
+}
+
+#toggle-light-icon {
+  opacity: 0;
+  transform: rotate(-60deg) scale(0.7);
+}
+
+#toggle-theme[aria-pressed="true"] #toggle-dark-icon {
+  opacity: 0;
+  transform: rotate(40deg) scale(0.7);
+}
+
+#toggle-theme[aria-pressed="true"] #toggle-light-icon {
+  opacity: 1;
+  transform: rotate(0) scale(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #toggle-theme {
+    transition: background-color 100ms ease-out;
+  }
+
+  #toggle-theme:active {
+    transform: none;
+  }
+
+  #toggle-theme svg {
+    transition: opacity 90ms ease-out;
+  }
+
+  #toggle-theme #toggle-dark-icon,
+  #toggle-theme #toggle-light-icon {
+    transform: none;
+  }
+}
+
+:where(a, button, input):focus-visible {
+  outline: 2px solid var(--pagefind-ui-primary);
+  outline-offset: 4px;
+}
+
+.skip-link {
+  position: absolute;
+  inset-inline-start: 1rem;
+  top: 1rem;
+  z-index: 100;
+  padding: 0.75rem 1rem;
+  color: var(--pagefind-ui-text);
+  background: var(--pagefind-ui-background);
+  transform: translateY(calc(-100% - 2rem));
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+}
+
+.tab-button[aria-selected="true"] {
+  color: var(--pagefind-ui-primary);
+  border-bottom-color: currentColor;
+}
+
+.tab-content {
+  overflow-wrap: anywhere;
+}
+
+.tab-content pre {
+  overflow-wrap: normal;
+  overflow-x: auto;
 }
 
 .transcript-segment {
   position: relative;
   cursor: pointer;
+  color: inherit !important;
+  font-weight: inherit !important;
+  text-decoration: none;
 }
 
-.transcript-segment:hover {
-  text-decoration: underline dashed orange 2px;
+.transcript-segment:hover,
+.transcript-segment:focus-visible {
+  text-decoration: underline dashed currentColor 2px;
+  text-underline-offset: 0.2em;
+}
+
+.transcript-segment:focus-visible,
+.tab-button:focus-visible,
+[role="tabpanel"]:focus-visible {
+  outline: 2px solid var(--pagefind-ui-primary);
+  outline-offset: 3px;
+}
+
+.tab-content[hidden],
+#transcript-keyboard-help[hidden] {
+  display: none !important;
 }
 
 :root {

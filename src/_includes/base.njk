@@ -46,6 +46,7 @@
 
     <link rel="alternate" type="application/rss+xml" title="RSS Feed for AWS Bites" href="{{ settings.rss_link }}"/>
 
+    <script>{% include 'theme.js' %}</script>
     <link rel="stylesheet" href="/pagefind/pagefind-ui.css">
     <link rel="stylesheet" href="/style.css">
 
@@ -63,11 +64,12 @@
 
   </head>
 
-  <body class="bg-gray-200 dark:bg-gray-800">
+  <body class="bg-gray-200 dark:bg-gray-800 {% block body_class_extra %}{% endblock %}">
+    <a class="skip-link" href="#main-content">Skip to content</a>
     {% block body %}
       {% block body_header %}
-        <div data-pagefind-ignore class="max-w-6xl mx-auto px-6 py-4">
-          <div class="flex justify-between items-center">
+        <header data-pagefind-ignore class="max-w-6xl mx-auto px-4 sm:px-6 py-4">
+          <div class="flex flex-wrap justify-between items-center gap-3">
             {% if is_generic %}
               <h1 class="sr-only">
               {% else %}
@@ -79,150 +81,72 @@
               {% else %}
               </h2>
             {% endif %}
-            <a href="/" aria-label="Home">
+            <a href="/" aria-label="Home" class="shrink-0">
               {% include 'images/logo.svg' %}
             </a>
 
-            <div id="search" class="w-full max-w-md px-2"></div>
+            <div id="search" class="order-last w-full min-w-0 sm:order-none sm:flex-1 sm:max-w-md"></div>
 
-            <button id="toggle-theme" aria-label="Toggle Dark Mode" type="button" class="hidden w-10 h-10 p-3 rounded bg-gray-300 dark:bg-primary-700">
-              <svg id="toggle-dark-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" class="w-4 h-4 text-primary-500 dark:text-secondary-500">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                  <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
-                </svg>
+            <button id="toggle-theme" aria-label="Dark mode" aria-pressed="false" type="button" class="hidden grid place-items-center w-11 h-11 shrink-0 p-0 cursor-pointer rounded bg-gray-300 hover:bg-gray-200 dark:bg-primary-700 dark:hover:bg-primary-600">
+              <svg id="toggle-dark-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" focusable="false" class="w-5 h-5 text-primary-500 dark:text-secondary-500">
+                <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
               </svg>
-              <svg id="toggle-light-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" class="w-4 h-4 text-primary-500 dark:text-secondary-500">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                  <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"></path>
-                </svg>
+              <svg id="toggle-light-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" focusable="false" class="w-5 h-5 text-primary-500 dark:text-secondary-500">
+                <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"></path>
               </svg>
             </button>
           </div>
-        </div>
+        </header>
+        <script>document.dispatchEvent(new Event('awsbites:theme-ready'));</script>
       {% endblock body_header %}
       {% block body_content %}
-        {{ content | safe }}
+        <main id="main-content" tabindex="-1">{{ content | safe }}</main>
       {% endblock body_content %}
       {% block body_footer %}
-        <footer data-pagefind-ignore class="footer bg-slate-300 dark:bg-slate-900 py-12 relative mt-24">
-          <div class="container mx-auto px-6">
-
-            <div class="sm:flex sm:mt-8">
-              <div class="mt-8 sm:mt-0 sm:w-full sm:px-8 flex flex-col md:flex-row justify-between">
-                <div class="flex flex-col">
-                  <p>
-                    <a href="/" aria-label="Home">
-                      {% include 'images/logo.svg' %}
-                    </a>
-                  </p>
-                  <p class="text-gray-900 dark:text-gray-100 py-4 text-sm p-6">© {{ settings.now.getFullYear() }} AWS Bites. All rights reserved.</p>
-                </div>
-                <div class="flex flex-col">
-                  <span class="font-bold text-gray-700 dark:text-gray-300 mt-4 md:mt-0 mb-2">Subscribe Podcast</span>
-                  <span class="my-2">
-                    <a href="{{ settings.rss_link }}" class="text-primary-400 dark:text-secondary-400 text-md hover:underline align-middle">
-                      RSS Feed
-                    </a>
-                  </span>
-                  {% for link in settings.links %}
-                    <span class="my-2">
-                      <a href="{{ link.href }}" class="text-primary-400 dark:text-secondary-400 text-md hover:underline align-middle">
-                        {{ link.name }}
-                      </a>
-                    </span>
-                  {% endfor %}
-                </div>
-                <div class="flex flex-col">
-                  <span class="font-bold text-gray-700 dark:text-gray-300 mt-4 md:mt-0 mb-2">Connect with us</span>
-                  <span class="my-2">
-                    <a href="https://bsky.app/profile/eoin.sh" class="text-primary-400 dark:text-secondary-400 text-md hover:underline">
-                      <strong>Eoin</strong> on BlueSky
-                    </a>
-                  </span>
-                  <span class="my-2">
-                    <a href="https://twitter.com/loige" class="text-primary-400 dark:text-secondary-400 text-md hover:underline">
-                      <strong>Luciano</strong> on Twitter
-                    </a>
-                  </span>
-                  <span class="my-2">
-                    <a href="https://fourtheorem.com" class="text-primary-400 dark:text-secondary-400 text-md hover:underline">
-                      <strong>fourTheorem</strong>
-                    </a>
-                  </span>
-                </div>
+        <footer data-pagefind-ignore class="footer bg-slate-900 text-gray-100 mt-24 [&_a:focus-visible]:outline-secondary-100">
+          {% block footer_background %}
+          {% include 'images/hero-background.svg' %}
+          {% endblock %}
+          <div class="max-w-6xl mx-auto px-6 pt-12 sm:pt-16 pb-8">
+            <div class="grid gap-10 sm:grid-cols-2 lg:grid-cols-12 lg:gap-12">
+              <div class="sm:col-span-2 lg:col-span-4">
+                <a href="/" aria-label="Home" class="inline-block max-w-full [&_svg]:h-16 [&_.text-gray-900]:text-gray-100">
+                  {% include 'images/logo.svg' %}
+                </a>
+                <p class="mt-4 text-xs leading-relaxed text-gray-300">© {{ settings.now.getFullYear() }} AWS Bites. All rights reserved.</p>
               </div>
+              <nav aria-labelledby="footer-subscribe" class="min-w-0 lg:col-span-5">
+                <h2 id="footer-subscribe" class="text-xl font-bold leading-tight mb-5">Subscribe Podcast</h2>
+                <ul class="grid grid-cols-2 gap-x-6">
+                  <li>
+                    <a href="{{ settings.rss_link }}" class="inline-flex items-center min-h-11 text-secondary-100 font-medium hover:text-white hover:underline underline-offset-4">RSS Feed</a>
+                  </li>
+                  {% for link in settings.links %}
+                    <li>
+                      <a href="{{ link.href }}" class="inline-flex items-center min-h-11 text-secondary-100 font-medium hover:text-white hover:underline underline-offset-4">{{ link.name }}</a>
+                    </li>
+                  {% endfor %}
+                </ul>
+              </nav>
+              <nav aria-labelledby="footer-connect" class="min-w-0 lg:col-span-3">
+                <h2 id="footer-connect" class="text-xl font-bold leading-tight mb-5">Connect with us</h2>
+                <ul>
+                  <li>
+                    <a href="https://bsky.app/profile/eoin.sh" class="inline-flex items-center gap-1 min-h-11 text-secondary-100 hover:text-white hover:underline underline-offset-4"><strong>Eoin</strong> on BlueSky</a>
+                  </li>
+                  <li>
+                    <a href="https://twitter.com/loige" class="inline-flex items-center gap-1 min-h-11 text-secondary-100 hover:text-white hover:underline underline-offset-4"><strong>Luciano</strong> on Twitter</a>
+                  </li>
+                  <li>
+                    <a href="https://fourtheorem.com" class="inline-flex items-center min-h-11 text-secondary-100 hover:text-white hover:underline underline-offset-4"><strong>fourTheorem</strong></a>
+                  </li>
+                </ul>
+              </nav>
             </div>
           </div>
         </footer>
       {% endblock body_footer %}
       {% block scripts %}
-        <script>
-          const toggleThemeBtn = document.getElementById('toggle-theme')
-          const toggleThemeLightIcon = document.getElementById('toggle-light-icon')
-          const toggleThemeDarkIcon = document.getElementById('toggle-dark-icon')
-
-          function setTheme(theme) {
-            if (toggleThemeBtn) {
-              toggleThemeBtn
-                .classList
-                .remove('hidden')
-            }
-
-            if (theme === 'dark') {
-              document
-                .documentElement
-                .classList
-                .add('dark')
-              toggleThemeLightIcon
-                .classList
-                .remove('hidden')
-              toggleThemeDarkIcon
-                .classList
-                .add('hidden')
-
-              localStorage.theme = 'dark'
-            } else {
-              document
-                .documentElement
-                .classList
-                .remove('dark')
-              toggleThemeLightIcon
-                .classList
-                .add('hidden')
-              toggleThemeDarkIcon
-                .classList
-                .remove('hidden')
-
-              localStorage.theme = 'light'
-            }
-          }
-
-          function toggleTheme() {
-            if (localStorage && localStorage.theme === 'light') {
-              setTheme('dark')
-            } else {
-              setTheme('light')
-            }
-          }
-
-          if (toggleThemeBtn) {
-            toggleThemeBtn.addEventListener('click', (event) => {
-              event.preventDefault()
-              toggleTheme()
-            })
-          }
-
-          document
-            .documentElement
-            .classList
-            .remove('no-js');
-
-          if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            setTheme('dark')
-          } else {
-            setTheme('light')
-          }
-        </script>
         <script src="/pagefind/pagefind-ui.js"></script>
         <script>
           window.addEventListener('DOMContentLoaded', () => {

@@ -39,7 +39,7 @@ class EpisodesFeed {
   async render ({ collections }) {
     const episodes = []
 
-    for (const item of collections.publishedEpisodes.reverse()) {
+    for (const item of collections.publishedEpisodes.slice().reverse()) {
       episodes.push({
         title: `${item.data.episode}. ${item.data.title}`,
         url: `${item.data.settings.website}${item.url}`,

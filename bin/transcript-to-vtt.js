@@ -4,7 +4,7 @@ const { readFileSync, writeFileSync } = require('node:fs')
 const vtt = require('node-webvtt')
 const yargs = require('yargs')
 
-const argv = yargs
+const argv = yargs(process.argv.slice(2))
   .usage('Usage: $0 <transcriptFilePath>')
   .command('$0 <transcriptFilePath>', 'path to the transcript JSON file')
   .demandCommand(1, 'You need to provide a filename argument.')

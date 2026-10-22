@@ -1,0 +1,3973 @@
+WEBVTT
+
+1
+00:00:00.311 --> 00:00:01.252
+We are back.
+
+2
+00:00:01.732 --> 00:00:03.653
+If you have been wondering where AWS Bites
+
+3
+00:00:03.713 --> 00:00:06.415
+disappeared to, we took a shortish summer break.
+
+4
+00:00:06.635 --> 00:00:08.777
+Well, it was supposed to be a short summer break
+
+5
+00:00:08.857 --> 00:00:11.078
+and yet winter is coming now at this point.
+
+6
+00:00:11.843 --> 00:00:13.164
+But you know how it goes, holidays,
+
+7
+00:00:13.204 --> 00:00:14.585
+work, family, random projects.
+
+8
+00:00:14.806 --> 00:00:17.408
+Sometimes life just gets in the way of your
+
+9
+00:00:17.468 --> 00:00:19.710
+perfectly optimized AWS podcast release
+
+10
+00:00:19.850 --> 00:00:20.551
+schedule, right?
+
+11
+00:00:20.751 --> 00:00:21.992
+That happens to everyone, I'm sure.
+
+12
+00:00:22.332 --> 00:00:24.895
+So yes, we might've been a little bit slow at
+
+13
+00:00:24.935 --> 00:00:27.197
+launching a new podcast episode, but that
+
+14
+00:00:27.237 --> 00:00:29.038
+doesn't mean that your containers have to be
+
+15
+00:00:29.058 --> 00:00:30.820
+slow at launching as well, right?
+
+16
+00:00:31.617 --> 00:00:33.258
+So that's exactly what we are going to talk
+
+17
+00:00:33.298 --> 00:00:35.879
+about today, how to make containers start fast
+
+18
+00:00:36.119 --> 00:00:36.679
+on AWS.
+
+19
+00:00:37.359 --> 00:00:39.360
+And this is important because if you work with
+
+20
+00:00:39.420 --> 00:00:41.560
+large containers, they can take significant
+
+21
+00:00:41.601 --> 00:00:43.441
+amount of time to download, unpack,
+
+22
+00:00:43.641 --> 00:00:44.442
+and eventually start.
+
+23
+00:00:44.822 --> 00:00:46.982
+So we'll explore some of the common techniques
+
+24
+00:00:47.122 --> 00:00:49.783
+to speed things up from when you have to deal
+
+25
+00:00:49.823 --> 00:00:52.164
+with smaller images, but also when you have
+
+26
+00:00:52.304 --> 00:00:53.004
+bigger images.
+
+27
+00:00:53.045 --> 00:00:54.225
+We'll talk about compressions.
+
+28
+00:00:54.505 --> 00:00:56.406
+And most importantly, we'll talk about Soci,
+
+29
+00:00:56.446 --> 00:00:58.446
+which is an optimization that many teams still
+
+30
+00:00:58.486 --> 00:00:59.787
+don't know about or even use.
+
+31
+00:01:00.287 --> 00:01:02.430
+So we'll explain what Soci is, how it works,
+
+32
+00:01:02.750 --> 00:01:03.992
+where you can use it in AWS,
+
+33
+00:01:04.412 --> 00:01:06.075
+and a few things that we have discovered by
+
+34
+00:01:06.115 --> 00:01:07.997
+running our very own benchmarks.
+
+35
+00:01:08.638 --> 00:01:10.200
+My name is Luciano, and today I'm joined by
+
+36
+00:01:10.300 --> 00:01:11.822
+Eoin, and this is AWS Bites.
+
+37
+00:01:20.213 --> 00:01:22.894
+OK, so just before we get into the meat of
+
+38
+00:01:22.954 --> 00:01:25.856
+the topic of today, I just want to recap quickly
+
+39
+00:01:26.056 --> 00:01:29.318
+how important it is that your containers start
+
+40
+00:01:29.418 --> 00:01:29.718
+fast.
+
+41
+00:01:30.318 --> 00:01:32.339
+And there are a few reasons, but the main one
+
+42
+00:01:32.359 --> 00:01:35.101
+to me is that if you are dealing with solutions
+
+43
+00:01:35.261 --> 00:01:37.882
+that can have traffic spikes, and you built it
+
+44
+00:01:37.922 --> 00:01:40.383
+in such a way that new infrastructure can come
+
+45
+00:01:40.464 --> 00:01:42.304
+up to deal with the spike, and this
+
+46
+00:01:42.324 --> 00:01:43.705
+infrastructure is using containers,
+
+47
+00:01:43.845 --> 00:01:44.245
+guess what?
+
+48
+00:01:44.426 --> 00:01:46.707
+If your containers are very slow at starting,
+
+49
+00:01:47.327 --> 00:01:49.029
+then you're not going to be so efficient at
+
+50
+00:01:49.069 --> 00:01:50.611
+dealing with the spike because it's going to
+
+51
+00:01:50.631 --> 00:01:52.573
+take some time before those new containers are
+
+52
+00:01:52.613 --> 00:01:55.417
+actually going to start to handle requests.
+
+53
+00:01:55.717 --> 00:01:59.161
+So you want your containers to start fast to be
+
+54
+00:01:59.201 --> 00:02:00.302
+able to deal with spikes.
+
+55
+00:02:00.823 --> 00:02:04.167
+And similarly, if you're doing quick or you're
+
+56
+00:02:04.187 --> 00:02:05.428
+doing frequent deployments,
+
+57
+00:02:06.289 --> 00:02:08.591
+and maybe you have an outage and you figure out
+
+58
+00:02:08.611 --> 00:02:09.992
+there is a bug and you have a fix and
+
+59
+00:02:10.012 --> 00:02:11.714
+you want to ship it as quick as possible.
+
+60
+00:02:12.054 --> 00:02:13.695
+If you are doing all of that through containers,
+
+61
+00:02:13.755 --> 00:02:15.837
+of course you want your new containers,
+
+62
+00:02:15.877 --> 00:02:17.559
+the one that fixes the issue, to come up as
+
+63
+00:02:17.599 --> 00:02:19.580
+quick as possible because that means restoring
+
+64
+00:02:19.881 --> 00:02:21.022
+your environment quickly.
+
+65
+00:02:21.782 --> 00:02:23.864
+And similarly, if you run short-lived jobs,
+
+66
+00:02:24.764 --> 00:02:26.185
+of course, you don't want to spend most of the
+
+67
+00:02:26.225 --> 00:02:28.167
+time just bootstrapping a container that then
+
+68
+00:02:28.227 --> 00:02:29.027
+finishes very quickly.
+
+69
+00:02:29.067 --> 00:02:30.729
+So it's important to balance it out.
+
+70
+00:02:31.129 --> 00:02:32.410
+This is very common when you have,
+
+71
+00:02:32.490 --> 00:02:34.411
+I don't know, MapReduce jobs, when you are
+
+72
+00:02:34.491 --> 00:02:37.053
+distributing lots of computation to many
+
+73
+00:02:37.073 --> 00:02:38.915
+containers, and they may be not running for a
+
+74
+00:02:38.955 --> 00:02:41.136
+long time, just giving you that scale of
+
+75
+00:02:41.196 --> 00:02:42.297
+parallelizing the workload.
+
+76
+00:02:42.677 --> 00:02:45.099
+You want, of course, each container to come up
+
+77
+00:02:45.299 --> 00:02:46.940
+quickly and start to do the job as quick as
+
+78
+00:02:47.000 --> 00:02:47.321
+possible.
+
+79
+00:02:48.202 --> 00:02:50.343
+then when you have, in general, user-facing
+
+80
+00:02:50.383 --> 00:02:52.885
+latency, of course, the startup container time
+
+81
+00:02:53.085 --> 00:02:54.125
+is in the critical path.
+
+82
+00:02:54.586 --> 00:02:57.387
+So we want to minimize the time between needing
+
+83
+00:02:57.447 --> 00:03:00.309
+to compute and when the compute actually starts
+
+84
+00:03:00.729 --> 00:03:01.970
+and does useful work.
+
+85
+00:03:02.330 --> 00:03:04.031
+So with all of that being said,
+
+86
+00:03:04.311 --> 00:03:06.372
+and I hope that gives us a good context,
+
+87
+00:03:06.753 --> 00:03:09.434
+what are some of the more common advices that we
+
+88
+00:03:09.454 --> 00:03:10.315
+can leverage to
+
+89
+00:03:11.530 --> 00:03:13.271
+make our kind of dummy container.
+
+90
+00:03:13.531 --> 00:03:15.392
+We didn't think too much about it and optimize
+
+91
+00:03:15.432 --> 00:03:16.092
+it a little bit.
+
+92
+00:03:16.132 --> 00:03:17.313
+So it starts faster.
+
+93
+00:03:17.513 --> 00:03:20.374
+Well, the simple stuff is don't put things in
+
+94
+00:03:20.394 --> 00:03:22.415
+your images you don't need because smaller
+
+95
+00:03:22.475 --> 00:03:24.516
+images means you have less data to download and
+
+96
+00:03:24.536 --> 00:03:27.198
+decompress, less IO and generally faster
+
+97
+00:03:27.218 --> 00:03:27.638
+deployments.
+
+98
+00:03:28.258 --> 00:03:31.620
+So that means using .dockerignore files to
+
+99
+00:03:31.680 --> 00:03:34.341
+exclude files from your build context,
+
+100
+00:03:34.581 --> 00:03:36.702
+which would then be picked up by copy commands
+
+101
+00:03:36.742 --> 00:03:37.663
+within your Docker file.
+
+102
+00:03:38.541 --> 00:03:40.543
+Also removing package manager caches and
+
+103
+00:03:40.583 --> 00:03:41.304
+temporary files.
+
+104
+00:03:42.144 --> 00:03:44.607
+Deleting files in a later Docker layer with a
+
+105
+00:03:44.867 --> 00:03:46.809
+separate command won't make an earlier layer
+
+106
+00:03:46.829 --> 00:03:48.911
+smaller, so you need to do it all in the
+
+107
+00:03:48.971 --> 00:03:49.712
+one run instruction.
+
+108
+00:03:50.552 --> 00:03:53.755
+And Luciano actually was inspired to write a
+
+109
+00:03:53.796 --> 00:03:55.497
+deep dive into Docker layers, which I really
+
+110
+00:03:55.737 --> 00:03:57.379
+recommend reading.
+
+111
+00:03:57.957 --> 00:04:00.117
+It emerged from all the work you did on
+
+112
+00:04:00.338 --> 00:04:01.538
+researching this episode.
+
+113
+00:04:01.558 --> 00:04:02.818
+So a link to that will be in the show
+
+114
+00:04:02.878 --> 00:04:03.018
+notes.
+
+115
+00:04:03.758 --> 00:04:06.219
+Another piece of advice is using multi-stage
+
+116
+00:04:06.259 --> 00:04:06.519
+builds.
+
+117
+00:04:06.539 --> 00:04:07.319
+That's quite common now.
+
+118
+00:04:07.359 --> 00:04:08.079
+You see it quite a lot.
+
+119
+00:04:08.359 --> 00:04:10.060
+So you can compile your application with all the
+
+120
+00:04:10.100 --> 00:04:12.460
+necessary tools, then have a slimmer base image
+
+121
+00:04:12.840 --> 00:04:15.101
+and copy all of the runtime artifacts into
+
+122
+00:04:15.181 --> 00:04:16.701
+something clean and lean.
+
+123
+00:04:18.201 --> 00:04:20.522
+Then using leaner base images with like Slim or
+
+124
+00:04:20.582 --> 00:04:22.642
+Distroless or even Scratch where appropriate.
+
+125
+00:04:23.002 --> 00:04:25.683
+Just remember you can make debugging harder if
+
+126
+00:04:25.703 --> 00:04:26.883
+you need to shell into a container.
+
+127
+00:04:27.414 --> 00:04:30.215
+and open up Vim or even run things like PS.
+
+128
+00:04:32.235 --> 00:04:33.616
+Structure layers for caching as well.
+
+129
+00:04:33.656 --> 00:04:35.576
+So you can put infrequently changing
+
+130
+00:04:35.596 --> 00:04:37.877
+dependencies first before your application code.
+
+131
+00:04:38.457 --> 00:04:39.857
+And you can also use things like compiled
+
+132
+00:04:39.897 --> 00:04:42.798
+languages, you know, Go, C, C++, Rust,
+
+133
+00:04:42.858 --> 00:04:43.118
+Zig.
+
+134
+00:04:43.438 --> 00:04:46.119
+They can help you produce very small runtime
+
+135
+00:04:46.199 --> 00:04:46.499
+images.
+
+136
+00:04:47.319 --> 00:04:49.400
+Sometimes it could just be a little single
+
+137
+00:04:49.420 --> 00:04:49.700
+binary.
+
+138
+00:04:50.678 --> 00:04:52.779
+We won't spend the whole episode talking about
+
+139
+00:04:52.819 --> 00:04:53.780
+Dockerfile optimization.
+
+140
+00:04:53.800 --> 00:04:56.702
+That's a little bit standard, I guess.
+
+141
+00:04:56.722 --> 00:04:58.443
+There's loads of resources out there for that.
+
+142
+00:04:58.983 --> 00:05:01.044
+But by the way, there are other things you could
+
+143
+00:05:01.064 --> 00:05:03.386
+do depending on which technology you're using to
+
+144
+00:05:03.406 --> 00:05:04.006
+run your services.
+
+145
+00:05:04.366 --> 00:05:05.527
+Like if you're using ECS on EC2,
+
+146
+00:05:06.369 --> 00:05:07.890
+you can use bridge networking mode,
+
+147
+00:05:08.150 --> 00:05:10.933
+and that cuts out the time to provision the ENI
+
+148
+00:05:10.993 --> 00:05:11.593
+for each task.
+
+149
+00:05:12.013 --> 00:05:13.555
+And that's something that could really add a lot
+
+150
+00:05:13.715 --> 00:05:14.916
+of time to your launch.
+
+151
+00:05:15.616 --> 00:05:17.277
+The trade-off is that you would lose the ability
+
+152
+00:05:17.297 --> 00:05:19.519
+to have dedicated security groups for your
+
+153
+00:05:19.539 --> 00:05:19.859
+tasks.
+
+154
+00:05:19.959 --> 00:05:21.781
+You have to use the EC2's security group.
+
+155
+00:05:22.461 --> 00:05:24.723
+But that's an aside, that depends where you're
+
+156
+00:05:24.743 --> 00:05:25.204
+deploying to.
+
+157
+00:05:26.605 --> 00:05:28.626
+Let's get into, I suppose, some more of the
+
+158
+00:05:28.666 --> 00:05:31.989
+deployment and startup time optimizations,
+
+159
+00:05:32.569 --> 00:05:33.410
+starting with compression.
+
+160
+00:05:33.730 --> 00:05:35.933
+Yes, compression, it's an interesting topic
+
+161
+00:05:36.013 --> 00:05:37.535
+because, again, it's one of those things that I
+
+162
+00:05:37.575 --> 00:05:39.297
+don't feel like many people are actually
+
+163
+00:05:39.457 --> 00:05:41.039
+exploring or leveraging enough.
+
+164
+00:05:41.439 --> 00:05:43.502
+So let's talk about it and let's see what's
+
+165
+00:05:43.542 --> 00:05:43.962
+possible.
+
+166
+00:05:44.703 --> 00:05:46.385
+And first of all, I think it's important to
+
+167
+00:05:46.405 --> 00:05:49.228
+understand that a container image is effectively
+
+168
+00:05:50.990 --> 00:05:53.213
+It's made up of layers and layers are typically
+
+169
+00:05:53.253 --> 00:05:56.577
+stored as compressed archives in a registry and
+
+170
+00:05:56.717 --> 00:05:59.400
+most often it's using something like gzip for
+
+171
+00:05:59.461 --> 00:05:59.961
+compression.
+
+172
+00:06:00.442 --> 00:06:01.883
+And when we talk about compression we always
+
+173
+00:06:01.924 --> 00:06:03.606
+need to remember what are the trade-offs there.
+
+174
+00:06:03.966 --> 00:06:05.648
+We are effectively trying to reduce the number
+
+175
+00:06:05.668 --> 00:06:07.490
+of bytes that we need to download because
+
+176
+00:06:07.570 --> 00:06:08.672
+compression effectively
+
+177
+00:06:09.152 --> 00:06:11.054
+minimizes the amount of bytes that that's what's
+
+178
+00:06:11.154 --> 00:06:11.554
+built for.
+
+179
+00:06:11.955 --> 00:06:13.376
+But at the same time, to be able to use
+
+180
+00:06:13.416 --> 00:06:15.898
+the information, so in this case, the files
+
+181
+00:06:15.978 --> 00:06:18.440
+within a Docker image, you need to decompress it
+
+182
+00:06:18.480 --> 00:06:18.741
+first.
+
+183
+00:06:18.841 --> 00:06:21.603
+So effectively, we are saving time at download
+
+184
+00:06:21.743 --> 00:06:24.306
+because we are downloading less, but then we
+
+185
+00:06:24.346 --> 00:06:26.668
+might be spending more time to actually make
+
+186
+00:06:26.768 --> 00:06:28.729
+that download useful because we'll need to
+
+187
+00:06:28.790 --> 00:06:30.171
+decompress and that's all CPU
+
+188
+00:06:30.511 --> 00:06:31.451
+time that it spent.
+
+189
+00:06:31.832 --> 00:06:33.552
+So it's important to figure out what is the
+
+190
+00:06:33.692 --> 00:06:35.293
+right balance, and different compression
+
+191
+00:06:35.353 --> 00:06:36.954
+algorithms can also be tuned.
+
+192
+00:06:36.974 --> 00:06:38.454
+They have different compression levels,
+
+193
+00:06:38.494 --> 00:06:40.835
+for example, where you can say, OK,
+
+194
+00:06:40.875 --> 00:06:42.856
+compress more, but that generally means that
+
+195
+00:06:42.876 --> 00:06:45.677
+then you will need more CPU work to decompress,
+
+196
+00:06:46.157 --> 00:06:48.378
+or compress less, which means you save less
+
+197
+00:06:48.418 --> 00:06:50.039
+bytes, but then it's much faster at
+
+198
+00:06:50.059 --> 00:06:50.579
+decompressing.
+
+199
+00:06:50.939 --> 00:06:52.701
+And again, depending on the algorithm,
+
+200
+00:06:52.901 --> 00:06:54.522
+there are lots of nuances there.
+
+201
+00:06:54.663 --> 00:06:56.664
+So it's not an obvious choice, like which
+
+202
+00:06:56.724 --> 00:06:58.706
+algorithm will be the best for your specific use
+
+203
+00:06:58.746 --> 00:07:00.708
+case, or which compression level will be the
+
+204
+00:07:00.768 --> 00:07:00.988
+best.
+
+205
+00:07:01.609 --> 00:07:03.671
+But when it comes to containers, we have two
+
+206
+00:07:03.751 --> 00:07:04.071
+options.
+
+207
+00:07:04.211 --> 00:07:05.873
+There is gzip, which we already mentioned,
+
+208
+00:07:05.893 --> 00:07:09.716
+but there is also zstd, also called zstandard.
+
+209
+00:07:10.761 --> 00:07:13.382
+which is supported by the OCI standard.
+
+210
+00:07:13.942 --> 00:07:17.303
+So when you compare ZSTD with gzip,
+
+211
+00:07:18.143 --> 00:07:21.144
+generally ZSTD has very good compression rates,
+
+212
+00:07:21.284 --> 00:07:23.665
+but also significantly faster decompression.
+
+213
+00:07:23.725 --> 00:07:26.025
+I think that was one of the design goals of
+
+214
+00:07:26.126 --> 00:07:27.466
+ZSTD when it was created.
+
+215
+00:07:27.866 --> 00:07:30.027
+How can we achieve competitive levels of
+
+216
+00:07:30.087 --> 00:07:32.187
+compression without burdening too much on the
+
+217
+00:07:32.227 --> 00:07:33.408
+CPU for decompression?
+
+218
+00:07:33.988 --> 00:07:35.828
+And AWS has done their own research,
+
+219
+00:07:36.068 --> 00:07:37.909
+and you can probably find this somewhere in the
+
+220
+00:07:37.989 --> 00:07:39.829
+AWS documentation.
+
+221
+00:07:39.869 --> 00:07:41.170
+I don't remember exactly where we found it,
+
+222
+00:07:41.270 --> 00:07:44.471
+but we found that they claim that if you use
+
+223
+00:07:44.691 --> 00:07:48.152
+ZSTD, you get up to 27% faster Fargate startup
+
+224
+00:07:48.192 --> 00:07:50.693
+times just by switching from gzip to ZSTD.
+
+225
+00:07:52.593 --> 00:07:54.135
+And of course, as I was saying,
+
+226
+00:07:54.195 --> 00:07:55.917
+there is a tuning there.
+
+227
+00:07:56.237 --> 00:07:58.839
+So you might use different levels of
+
+228
+00:07:58.879 --> 00:07:59.420
+compression.
+
+229
+00:07:59.580 --> 00:08:01.903
+And AWS suggests that, based on the research,
+
+230
+00:08:02.123 --> 00:08:05.046
+level 3 is probably a good average that works
+
+231
+00:08:05.246 --> 00:08:06.327
+well enough in most cases.
+
+232
+00:08:06.367 --> 00:08:07.588
+So if you don't know where to start,
+
+233
+00:08:07.929 --> 00:08:09.810
+probably that's a good number to start with.
+
+234
+00:08:10.721 --> 00:08:12.663
+Now, we're going to be talking more about Soci
+
+235
+00:08:13.304 --> 00:08:14.686
+and what all of that is.
+
+236
+00:08:14.866 --> 00:08:16.127
+And I'm just going to mention up front that
+
+237
+00:08:16.167 --> 00:08:17.349
+there is a little bit of a caveat.
+
+238
+00:08:17.449 --> 00:08:21.373
+So Soci doesn't support ZSTD, but only gzip.
+
+239
+00:08:21.573 --> 00:08:24.216
+So I suppose that that's one of the things we'll
+
+240
+00:08:24.236 --> 00:08:26.299
+need to keep in mind when we decide exactly
+
+241
+00:08:27.160 --> 00:08:29.062
+which kind of optimizations we can use to make
+
+242
+00:08:29.122 --> 00:08:30.623
+our container start fast.
+
+243
+00:08:31.534 --> 00:08:33.476
+So I'm just going to give you a little bit
+
+244
+00:08:33.496 --> 00:08:35.058
+of a spoiler on Soci, and then I'm going to
+
+245
+00:08:35.098 --> 00:08:37.160
+let Eoin introduce all of that.
+
+246
+00:08:37.360 --> 00:08:40.723
+But the main idea is that we are used to
+
+247
+00:08:40.743 --> 00:08:43.346
+thinking about containers as it's a package that
+
+248
+00:08:43.386 --> 00:08:44.527
+gives you everything you need to run an
+
+249
+00:08:44.567 --> 00:08:45.108
+application.
+
+250
+00:08:45.388 --> 00:08:46.869
+So in order to start that application,
+
+251
+00:08:46.889 --> 00:08:49.412
+you need to download everything, somehow create
+
+252
+00:08:49.452 --> 00:08:51.234
+kind of a file system that has all these files
+
+253
+00:08:51.274 --> 00:08:53.136
+available, and then you can start up an isolated
+
+254
+00:08:53.196 --> 00:08:54.937
+process with all of this information.
+
+255
+00:08:55.618 --> 00:08:57.880
+The idea of Soci is a little bit different in
+
+256
+00:08:57.900 --> 00:09:01.664
+the sense that it is trying to effectively start
+
+257
+00:09:01.684 --> 00:09:02.986
+the container as quick as possible.
+
+258
+00:09:03.006 --> 00:09:05.228
+So the idea is like, can we start it even
+
+259
+00:09:05.288 --> 00:09:07.390
+before we have made all the files available?
+
+260
+00:09:07.891 --> 00:09:10.393
+Then the files can be loaded lazily as needed,
+
+261
+00:09:10.974 --> 00:09:13.156
+but the startup of that process can be much
+
+262
+00:09:13.196 --> 00:09:13.536
+faster.
+
+263
+00:09:13.556 --> 00:09:14.938
+So that's kind of the general idea.
+
+264
+00:09:15.258 --> 00:09:17.060
+What else can we share about Soci?
+
+265
+00:09:17.360 --> 00:09:20.841
+So Soci is all about becoming faster by having
+
+266
+00:09:20.881 --> 00:09:22.642
+this seekable OCI image.
+
+267
+00:09:23.002 --> 00:09:24.783
+AWS developed it and open sourced it,
+
+268
+00:09:24.983 --> 00:09:26.383
+and it's built around Containerd.
+
+269
+00:09:26.783 --> 00:09:28.464
+It's been around for quite a few years,
+
+270
+00:09:28.824 --> 00:09:31.545
+but it seems like it's still relatively unknown
+
+271
+00:09:31.645 --> 00:09:32.685
+and underutilized.
+
+272
+00:09:33.586 --> 00:09:34.746
+That's why we wanted to talk about it.
+
+273
+00:09:35.026 --> 00:09:38.507
+So normal container startup works by having your
+
+274
+00:09:38.727 --> 00:09:40.028
+images with multiple layers.
+
+275
+00:09:40.588 --> 00:09:43.189
+Each of them has set of file system changes in
+
+276
+00:09:43.209 --> 00:09:43.249
+it.
+
+277
+00:09:43.840 --> 00:09:46.302
+And they're stored in compressed archives in a
+
+278
+00:09:46.342 --> 00:09:47.422
+registry like ECR.
+
+279
+00:09:47.462 --> 00:09:48.783
+That's normally how it's done.
+
+280
+00:09:49.323 --> 00:09:52.205
+When you start a container, a runtime like
+
+281
+00:09:52.245 --> 00:09:56.147
+Fargate or the ECS agent on EC2 will have to
+
+282
+00:09:56.187 --> 00:09:58.169
+download the required image layers from the
+
+283
+00:09:58.209 --> 00:09:58.669
+repository.
+
+284
+00:09:59.109 --> 00:10:01.150
+That could be ECR, which is backed by S3.
+
+285
+00:10:02.475 --> 00:10:04.717
+Then it would decompress and unpack them locally
+
+286
+00:10:05.098 --> 00:10:07.220
+and assemble a file system, typically using an
+
+287
+00:10:07.340 --> 00:10:08.041
+overlay FS.
+
+288
+00:10:08.742 --> 00:10:10.263
+After that, it can go about the process of
+
+289
+00:10:10.303 --> 00:10:11.064
+starting the container.
+
+290
+00:10:11.425 --> 00:10:13.487
+And once the container starts, the application
+
+291
+00:10:13.527 --> 00:10:15.229
+can access the files in the image normally.
+
+292
+00:10:15.869 --> 00:10:17.191
+The problem is that all the downloading and
+
+293
+00:10:17.251 --> 00:10:19.113
+unpacking happens up front, even if the
+
+294
+00:10:19.133 --> 00:10:21.496
+application only needs a small percentage of
+
+295
+00:10:21.516 --> 00:10:22.777
+those files immediately or at all.
+
+296
+00:10:23.329 --> 00:10:24.970
+So if you imagine a five gigabyte container
+
+297
+00:10:25.010 --> 00:10:26.770
+image with a large application and hundreds of
+
+298
+00:10:26.810 --> 00:10:29.371
+dependencies and maybe assets to go along with
+
+299
+00:10:29.411 --> 00:10:31.928
+it, the application might only need 100 or 200
+
+300
+00:10:31.972 --> 00:10:33.452
+megabytes of those files during startup,
+
+301
+00:10:33.692 --> 00:10:35.213
+but we're still downloading and unpacking
+
+302
+00:10:35.313 --> 00:10:36.113
+everything upfront.
+
+303
+00:10:36.613 --> 00:10:38.674
+And this is the opportunity for optimization.
+
+304
+00:10:38.814 --> 00:10:40.055
+So what changes with Soci?
+
+305
+00:10:40.595 --> 00:10:42.435
+Yeah, Soci introduces a different kind of
+
+306
+00:10:42.495 --> 00:10:44.916
+snapshotter, which is the component responsible
+
+307
+00:10:44.956 --> 00:10:46.777
+for preparing the container file system.
+
+308
+00:10:47.257 --> 00:10:48.757
+So as you said, instead of downloading
+
+309
+00:10:49.038 --> 00:10:49.838
+everything upfront,
+
+310
+00:10:50.358 --> 00:10:52.201
+the SOCI snapshot works a little bit
+
+311
+00:10:52.241 --> 00:10:52.721
+differently.
+
+312
+00:10:53.202 --> 00:10:55.165
+It just downloads a small index.
+
+313
+00:10:55.285 --> 00:10:56.847
+So effectively, there is this new piece of
+
+314
+00:10:56.907 --> 00:10:57.348
+information.
+
+315
+00:10:57.368 --> 00:10:59.631
+It's an index that describes which files exist
+
+316
+00:10:59.791 --> 00:11:01.894
+and where they are located within the set of
+
+317
+00:11:01.954 --> 00:11:04.537
+layers that the container image has available.
+
+318
+00:11:05.379 --> 00:11:06.680
+Then it creates a file system.
+
+319
+00:11:07.461 --> 00:11:09.784
+that is effectively like a virtual file system
+
+320
+00:11:09.864 --> 00:11:12.588
+using FUSE, the file system in user space.
+
+321
+00:11:13.309 --> 00:11:16.012
+And it doesn't need to download all the layers
+
+322
+00:11:16.213 --> 00:11:17.634
+to be able to do that because it can use
+
+323
+00:11:17.654 --> 00:11:20.158
+the index to understand which files are going to
+
+324
+00:11:20.178 --> 00:11:21.900
+be available and what is the structure of these
+
+325
+00:11:21.940 --> 00:11:22.220
+files.
+
+326
+00:11:23.021 --> 00:11:24.701
+At that point, it can start the container with
+
+327
+00:11:24.721 --> 00:11:26.402
+the expected file system available.
+
+328
+00:11:27.242 --> 00:11:29.182
+And it fetches only the relevant portion of the
+
+329
+00:11:29.242 --> 00:11:31.323
+image as the application starts to access the
+
+330
+00:11:31.343 --> 00:11:31.603
+file.
+
+331
+00:11:31.663 --> 00:11:33.924
+So it makes this virtual file system available
+
+332
+00:11:33.944 --> 00:11:34.624
+to the application.
+
+333
+00:11:34.744 --> 00:11:37.024
+And the application will ask for the specific
+
+334
+00:11:37.064 --> 00:11:37.344
+files.
+
+335
+00:11:37.464 --> 00:11:39.905
+And those files can be downloaded lazily.
+
+336
+00:11:40.285 --> 00:11:42.746
+And there is, of course, a cache.
+
+337
+00:11:42.846 --> 00:11:44.886
+So every time a file has been fetched,
+
+338
+00:11:45.086 --> 00:11:46.707
+of course, it remains available in the cache.
+
+339
+00:11:46.727 --> 00:11:48.887
+So it doesn't need to be redownloaded from
+
+340
+00:11:48.927 --> 00:11:51.248
+scratch or re-unpacked from the container image
+
+341
+00:11:51.268 --> 00:11:52.468
+if we want to frame it like that.
+
+342
+00:11:53.248 --> 00:11:55.328
+Now, let's make a little bit of a more concrete
+
+343
+00:11:55.449 --> 00:11:55.929
+example.
+
+344
+00:11:55.949 --> 00:11:57.549
+So imagine you have an application,
+
+345
+00:11:57.969 --> 00:12:00.189
+I don't know, web server written for Node.js.
+
+346
+00:12:00.650 --> 00:12:03.470
+You might have like an app.js that is kind of
+
+347
+00:12:03.490 --> 00:12:05.991
+your entry point, so what starts the process,
+
+348
+00:12:06.031 --> 00:12:07.811
+what brings up the web server and starts to
+
+349
+00:12:07.851 --> 00:12:08.631
+listen for requests.
+
+350
+00:12:09.171 --> 00:12:12.892
+So Soci will use the index to figure out where
+
+351
+00:12:12.952 --> 00:12:15.613
+is this app.js and just make it available so it
+
+352
+00:12:15.633 --> 00:12:17.313
+can be launched and the process starts.
+
+353
+00:12:17.993 --> 00:12:19.474
+Then, of course, you can imagine, I don't know,
+
+354
+00:12:19.514 --> 00:12:22.455
+maybe this web application has some assets like
+
+355
+00:12:22.495 --> 00:12:24.096
+CSS or images or whatever.
+
+356
+00:12:24.397 --> 00:12:26.097
+As the users will start to send requests,
+
+357
+00:12:26.678 --> 00:12:28.959
+the first time that it's needing specific files,
+
+358
+00:12:29.379 --> 00:12:31.700
+those files will be loaded lazily and then
+
+359
+00:12:31.800 --> 00:12:32.141
+cached.
+
+360
+00:12:32.501 --> 00:12:34.702
+And the next time, they are going to be readily
+
+361
+00:12:34.802 --> 00:12:35.202
+available.
+
+362
+00:12:35.963 --> 00:12:39.044
+So the idea is that you are starting much faster
+
+363
+00:12:39.164 --> 00:12:39.485
+and then
+
+364
+00:12:40.478 --> 00:12:42.219
+getting the files might be a little bit slower
+
+365
+00:12:42.239 --> 00:12:43.899
+because they are not immediately available and
+
+366
+00:12:43.919 --> 00:12:45.280
+they need to be fetched on demand.
+
+367
+00:12:45.380 --> 00:12:47.861
+So we can call this idea effectively lazy
+
+368
+00:12:47.881 --> 00:12:48.961
+loading for containers.
+
+369
+00:12:49.762 --> 00:12:51.242
+Now, why it is particularly clever?
+
+370
+00:12:51.442 --> 00:12:53.783
+I think the design is really interesting because
+
+371
+00:12:54.224 --> 00:12:57.565
+it tries not to change what a Docker container
+
+372
+00:12:57.605 --> 00:12:58.405
+image looks like.
+
+373
+00:12:58.665 --> 00:13:00.846
+It just adds additional metadata on top.
+
+374
+00:13:01.407 --> 00:13:03.848
+So you can just take an existing Docker image
+
+375
+00:13:03.888 --> 00:13:04.688
+that you have already
+
+376
+00:13:05.068 --> 00:13:06.529
+And you don't need to change anything on it.
+
+377
+00:13:06.549 --> 00:13:08.790
+You just need to follow a process that allows
+
+378
+00:13:08.810 --> 00:13:10.651
+you to build the SOCI index.
+
+379
+00:13:10.731 --> 00:13:13.912
+So that allows you to incrementally adopt this
+
+380
+00:13:13.972 --> 00:13:14.932
+idea, this technology.
+
+381
+00:13:15.633 --> 00:13:17.373
+And all of that is transparent to the
+
+382
+00:13:17.413 --> 00:13:17.874
+application.
+
+383
+00:13:17.994 --> 00:13:19.995
+You don't need to do any application change in
+
+384
+00:13:20.035 --> 00:13:22.976
+order to support this particular approach of
+
+385
+00:13:23.116 --> 00:13:25.117
+loading and starting container images.
+
+386
+00:13:25.497 --> 00:13:27.217
+Also, interesting enough, there is native
+
+387
+00:13:27.478 --> 00:13:28.418
+Fargate integration.
+
+388
+00:13:28.438 --> 00:13:31.208
+So if you're running containers on Fargate,
+
+389
+00:13:31.208 --> 00:13:32.799
+Soci automatically works.
+
+390
+00:13:32.879 --> 00:13:35.559
+Of course, you need to publish your images in a
+
+391
+00:13:35.639 --> 00:13:37.440
+way that you are also building and publishing
+
+392
+00:13:37.480 --> 00:13:38.440
+this SOCI index.
+
+393
+00:13:38.940 --> 00:13:41.141
+But otherwise, you don't have to enable anything
+
+394
+00:13:41.181 --> 00:13:43.661
+particular or install anything in particular at
+
+395
+00:13:43.741 --> 00:13:45.762
+the Fargate level or at the application level.
+
+396
+00:13:46.432 --> 00:13:47.933
+And it's important to mention that there are
+
+397
+00:13:47.973 --> 00:13:48.393
+trade-offs.
+
+398
+00:13:48.773 --> 00:13:51.034
+It's not solving all the problems and making
+
+399
+00:13:51.114 --> 00:13:52.355
+everything magically faster.
+
+400
+00:13:52.615 --> 00:13:54.155
+So it's important to understand what is the
+
+401
+00:13:54.175 --> 00:13:54.516
+trade-off.
+
+402
+00:13:54.576 --> 00:13:56.957
+The trade-off is starting that process as quick
+
+403
+00:13:56.977 --> 00:13:57.517
+as possible.
+
+404
+00:13:57.997 --> 00:13:59.578
+So, for example, you can start to send requests,
+
+405
+00:14:00.098 --> 00:14:01.719
+but then, of course, you might be a little bit
+
+406
+00:14:01.739 --> 00:14:04.200
+slower in serving the initial first request
+
+407
+00:14:04.300 --> 00:14:06.441
+because the lazy loading is going to take some
+
+408
+00:14:06.481 --> 00:14:06.761
+time.
+
+409
+00:14:06.881 --> 00:14:08.922
+It's going to be decompressing on the fly,
+
+410
+00:14:09.202 --> 00:14:11.223
+for example, the first time it's loading a new
+
+411
+00:14:11.243 --> 00:14:11.443
+file.
+
+412
+00:14:12.023 --> 00:14:14.126
+So I suppose the trade-off is that,
+
+413
+00:14:14.566 --> 00:14:16.488
+yes, you're starting faster, but your initial
+
+414
+00:14:16.508 --> 00:14:17.850
+request might be a little bit slower.
+
+415
+00:14:18.250 --> 00:14:20.313
+It's difficult to tell exactly what is the
+
+416
+00:14:20.373 --> 00:14:22.055
+impact of that because it's very application
+
+417
+00:14:22.075 --> 00:14:22.555
+specific.
+
+418
+00:14:23.016 --> 00:14:25.338
+If you have very few files, large files,
+
+419
+00:14:25.599 --> 00:14:28.122
+lots of files, small files, different kinds of
+
+420
+00:14:28.162 --> 00:14:30.184
+files that compress differently, you might have
+
+421
+00:14:30.244 --> 00:14:32.426
+very different performance characteristics.
+
+422
+00:14:33.167 --> 00:14:38.146
+AWS gives us a rough idea that around 250
+
+423
+00:14:38.232 --> 00:14:42.296
+megabytes of compressed image, that's where you
+
+424
+00:14:42.316 --> 00:14:44.659
+start to see more benefits than downsides.
+
+425
+00:14:44.999 --> 00:14:47.121
+So that's probably a good threshold to start to
+
+426
+00:14:47.181 --> 00:14:48.543
+explore when you might want to.
+
+427
+00:14:48.883 --> 00:14:50.965
+experiment with such and see if it's beneficial
+
+428
+00:14:51.005 --> 00:14:51.645
+to you or not.
+
+429
+00:14:52.206 --> 00:14:53.827
+If you have smaller images, probably it's not
+
+430
+00:14:53.927 --> 00:14:56.850
+worth it, because I think that the extra cost of
+
+431
+00:14:56.910 --> 00:15:01.314
+all this machinery is not justified for a
+
+432
+00:15:01.334 --> 00:15:02.035
+smaller image.
+
+433
+00:15:02.095 --> 00:15:03.676
+You're probably not going to see benefits,
+
+434
+00:15:03.736 --> 00:15:04.897
+and you're probably just going to see more of
+
+435
+00:15:04.917 --> 00:15:06.639
+the downsides rather than the benefits.
+
+436
+00:15:07.219 --> 00:15:09.420
+So again, the key takeaway is that it's not
+
+437
+00:15:09.720 --> 00:15:11.441
+something you should just enable all the time by
+
+438
+00:15:11.461 --> 00:15:11.842
+default.
+
+439
+00:15:12.022 --> 00:15:13.603
+It's not always going to make things faster.
+
+440
+00:15:14.163 --> 00:15:15.484
+So try to understand the trade-offs,
+
+441
+00:15:15.824 --> 00:15:17.865
+do your own tests, and see where those
+
+442
+00:15:17.885 --> 00:15:19.566
+trade-offs are beneficial to you or not.
+
+443
+00:15:20.186 --> 00:15:22.188
+Now, I already mentioned we can use Soci on
+
+444
+00:15:22.228 --> 00:15:22.708
+Fargate.
+
+445
+00:15:22.888 --> 00:15:25.329
+What else can we do, Eoin, on AWS?
+
+446
+00:15:25.569 --> 00:15:28.731
+Yeah, we mentioned Fargate, and we're going to
+
+447
+00:15:28.871 --> 00:15:29.912
+talk about how you
+
+448
+00:15:30.465 --> 00:15:31.105
+it all up and running.
+
+449
+00:15:31.225 --> 00:15:33.387
+But basically, once you have the metadata there,
+
+450
+00:15:33.447 --> 00:15:34.387
+it'll work on Fargate.
+
+451
+00:15:34.527 --> 00:15:35.248
+So we'll go through that.
+
+452
+00:15:35.288 --> 00:15:36.688
+And we'll also go through our benchmarking
+
+453
+00:15:36.708 --> 00:15:38.749
+results in a bit, which is interesting.
+
+454
+00:15:38.989 --> 00:15:41.571
+In AWS, the other services where you could use
+
+455
+00:15:41.631 --> 00:15:43.912
+it are SageMaker, so SageMaker Studio and
+
+456
+00:15:43.952 --> 00:15:44.732
+Unified Studio.
+
+457
+00:15:45.093 --> 00:15:47.574
+AWS say that you can get 30% to 70% startup
+
+458
+00:15:47.614 --> 00:15:48.214
+time reductions.
+
+459
+00:15:49.555 --> 00:15:50.895
+EKS is an interesting one.
+
+460
+00:15:51.596 --> 00:15:53.977
+So Saatchi is a container D snapshotter.
+
+461
+00:15:54.037 --> 00:15:55.718
+So it can be deployed wherever you control
+
+462
+00:15:56.374 --> 00:15:57.274
+the container runtime.
+
+463
+00:15:57.995 --> 00:16:00.736
+AWS has also introduced something called Soci
+
+464
+00:16:00.796 --> 00:16:02.697
+Parallel Pull, which works with EKS and
+
+465
+00:16:02.817 --> 00:16:05.178
+optimizes concurrent layer downloading.
+
+466
+00:16:05.518 --> 00:16:07.419
+So it's the same tooling, the same ecosystem,
+
+467
+00:16:07.799 --> 00:16:09.600
+but it's a different optimization mechanism.
+
+468
+00:16:09.940 --> 00:16:12.681
+So on EKS, you can then benefit from pulling
+
+469
+00:16:13.361 --> 00:16:16.143
+parts of the image in separate parallel threads,
+
+470
+00:16:16.203 --> 00:16:16.543
+if you like.
+
+471
+00:16:17.103 --> 00:16:18.843
+Now, ECS on EC2 is a funny one.
+
+472
+00:16:19.484 --> 00:16:21.704
+Unfortunately, there's no native Soci support.
+
+473
+00:16:22.344 --> 00:16:23.465
+It's still not available there.
+
+474
+00:16:23.965 --> 00:16:26.845
+There's been a longstanding AWS roadmap request
+
+475
+00:16:27.045 --> 00:16:28.106
+for Soci integration.
+
+476
+00:16:29.046 --> 00:16:32.407
+And it depends on supporting containerd in ECS
+
+477
+00:16:32.467 --> 00:16:36.108
+and the ECS agent that drives ECS on EC2.
+
+478
+00:16:36.788 --> 00:16:38.368
+It's quite old and based on Docker,
+
+479
+00:16:38.648 --> 00:16:40.809
+and there doesn't seem to be a lot of movement
+
+480
+00:16:40.829 --> 00:16:41.869
+around evolving it.
+
+481
+00:16:42.849 --> 00:16:43.850
+We'll have to watch that space.
+
+482
+00:16:44.830 --> 00:16:45.510
+So for today,
+
+483
+00:16:46.060 --> 00:16:48.421
+Fargate is really the obvious place to start.
+
+484
+00:16:48.801 --> 00:16:50.702
+So before we go into our experiences,
+
+485
+00:16:51.042 --> 00:16:53.043
+everything we built, how does Soci work,
+
+486
+00:16:53.063 --> 00:16:53.363
+Luciano?
+
+487
+00:16:53.383 --> 00:16:54.284
+Do you want to break it down?
+
+488
+00:16:55.064 --> 00:16:57.385
+Yes, I think we already mentioned the high-level
+
+489
+00:16:57.405 --> 00:16:57.706
+idea.
+
+490
+00:16:57.746 --> 00:16:59.907
+So let's deep dive a little bit more.
+
+491
+00:17:00.527 --> 00:17:04.549
+So the idea is that if we take a closer
+
+492
+00:17:04.569 --> 00:17:06.470
+look at container layers, we basically need to
+
+493
+00:17:06.510 --> 00:17:08.451
+think about a container layer as an immutable
+
+494
+00:17:08.531 --> 00:17:10.011
+set of file system changes.
+
+495
+00:17:10.472 --> 00:17:12.212
+If you have in mind, for example,
+
+496
+00:17:12.252 --> 00:17:12.933
+a Docker file,
+
+497
+00:17:13.593 --> 00:17:15.795
+is defined, you know, you're kind of running
+
+498
+00:17:16.215 --> 00:17:17.996
+different, let's call them instructions.
+
+499
+00:17:18.496 --> 00:17:20.718
+And then each step is effectively building a
+
+500
+00:17:20.778 --> 00:17:22.979
+layer that will become part of the final
+
+501
+00:17:23.039 --> 00:17:23.720
+container image.
+
+502
+00:17:24.280 --> 00:17:26.002
+So, and those layers are kind of stacked
+
+503
+00:17:26.122 --> 00:17:26.542
+together.
+
+504
+00:17:26.562 --> 00:17:30.104
+And if you basically read all of them in
+
+505
+00:17:30.144 --> 00:17:32.086
+sequence, you are effectively building a file
+
+506
+00:17:32.126 --> 00:17:32.426
+system.
+
+507
+00:17:32.966 --> 00:17:34.427
+The idea of each layer is that they are
+
+508
+00:17:34.467 --> 00:17:37.589
+reusable, cacheable, and stored as a compressed
+
+509
+00:17:37.829 --> 00:17:38.249
+archive.
+
+510
+00:17:38.589 --> 00:17:41.090
+So it's effectively like a tar of all the files
+
+511
+00:17:41.130 --> 00:17:42.491
+in that layer that can be compressed,
+
+512
+00:17:42.531 --> 00:17:44.052
+and then you're kind of stacking up all these
+
+513
+00:17:44.112 --> 00:17:46.393
+layers to accumulate file system changes.
+
+514
+00:17:46.813 --> 00:17:49.875
+So again, rolling them back from the first layer
+
+515
+00:17:49.895 --> 00:17:52.176
+to the last gives you the file system that you
+
+516
+00:17:52.196 --> 00:17:53.357
+can use for your application.
+
+517
+00:17:54.134 --> 00:17:58.360
+Now imagine that one of these layers is called
+
+518
+00:17:58.500 --> 00:18:00.183
+layer.tar.gz.
+
+519
+00:18:00.663 --> 00:18:01.625
+What is the problem here?
+
+520
+00:18:02.065 --> 00:18:04.269
+We want to build an index that tells us,
+
+521
+00:18:04.749 --> 00:18:06.932
+if you ever need that file app.js,
+
+522
+00:18:06.972 --> 00:18:09.716
+for example, where can I find this file among
+
+523
+00:18:09.857 --> 00:18:10.477
+all these layers?
+
+524
+00:18:11.098 --> 00:18:13.081
+And of course, you want the last version of that
+
+525
+00:18:13.141 --> 00:18:14.803
+file, because of course, you might have a layer
+
+526
+00:18:14.844 --> 00:18:16.926
+that replaces a file at some point.
+
+527
+00:18:17.227 --> 00:18:19.150
+So you need to have an index that tells you
+
+528
+00:18:19.670 --> 00:18:22.915
+exactly how do you load efficiently only app.js
+
+529
+00:18:22.975 --> 00:18:25.719
+and not having to unpack all the layers and
+
+530
+00:18:25.779 --> 00:18:27.281
+rebuild the entire file system from scratch.
+
+531
+00:18:28.082 --> 00:18:30.045
+And it's not as simple as it might sound when
+
+532
+00:18:30.085 --> 00:18:32.128
+you bring compression into the mix,
+
+533
+00:18:32.709 --> 00:18:37.236
+because you have to use gzip with SOCI.
+
+534
+00:18:37.917 --> 00:18:40.160
+And if you say, give me that app.js,
+
+535
+00:18:40.942 --> 00:18:43.085
+it's somewhere in a compressed form.
+
+536
+00:18:43.485 --> 00:18:45.106
+in the middle of a layer.
+
+537
+00:18:45.567 --> 00:18:47.128
+So first of all, you need to know which layer,
+
+538
+00:18:47.628 --> 00:18:48.709
+and then you need to know, okay,
+
+539
+00:18:48.809 --> 00:18:51.090
+in this layer, there are just a bunch of bytes,
+
+540
+00:18:51.591 --> 00:18:54.312
+which bytes are relevant to me in a way that
+
+541
+00:18:54.352 --> 00:18:56.954
+I can decompress those bytes and get the full
+
+542
+00:18:57.014 --> 00:19:00.236
+file, and potentially not much else that I don't
+
+543
+00:19:00.256 --> 00:19:00.677
+care about.
+
+544
+00:19:01.774 --> 00:19:04.317
+And so again, the issue is, if I have to
+
+545
+00:19:04.357 --> 00:19:05.798
+phrase it differently, it's like you cannot
+
+546
+00:19:05.938 --> 00:19:08.881
+efficiently jump in a random place,
+
+547
+00:19:09.141 --> 00:19:11.083
+and I suppose in a gzip stream,
+
+548
+00:19:11.624 --> 00:19:13.846
+and be reassured, OK, this is exactly where I'm
+
+549
+00:19:13.866 --> 00:19:15.087
+going to find the file.
+
+550
+00:19:15.127 --> 00:19:16.969
+You probably need to kind of unwind the entire
+
+551
+00:19:17.029 --> 00:19:19.271
+stream until you find the specific file you're
+
+552
+00:19:19.291 --> 00:19:19.711
+looking for.
+
+553
+00:19:19.932 --> 00:19:21.593
+And this is where Soci does something a little
+
+554
+00:19:21.613 --> 00:19:24.436
+bit clever, in my opinion, that they call ZTOC,
+
+555
+00:19:24.556 --> 00:19:26.177
+or Z Table of Contents.
+
+556
+00:19:26.798 --> 00:19:27.739
+contents, I suppose.
+
+557
+00:19:29.600 --> 00:19:32.442
+The idea of this table of contents is that when
+
+558
+00:19:32.483 --> 00:19:35.085
+you create the index, you can effectively
+
+559
+00:19:35.505 --> 00:19:37.747
+inspect the stream, the gzip stream,
+
+560
+00:19:38.347 --> 00:19:41.590
+and see exactly which file starts at which byte.
+
+561
+00:19:42.250 --> 00:19:44.012
+And if you are taking a note of all of
+
+562
+00:19:44.072 --> 00:19:46.894
+that effectively, like you are bookkeeping and
+
+563
+00:19:47.815 --> 00:19:49.476
+tracking as, okay, I know that this file is
+
+564
+00:19:49.496 --> 00:19:50.397
+going to start at this byte,
+
+565
+00:19:51.037 --> 00:19:52.918
+then the index is effectively what's kind of
+
+566
+00:19:53.018 --> 00:19:54.599
+solving the problem for you later on,
+
+567
+00:19:54.680 --> 00:19:56.421
+because you can then look at the index and know
+
+568
+00:19:56.481 --> 00:20:00.584
+exactly at which byte you can read to get that
+
+569
+00:20:00.624 --> 00:20:01.264
+particular file.
+
+570
+00:20:01.904 --> 00:20:03.946
+So again, this is not something that is natively
+
+571
+00:20:03.986 --> 00:20:06.127
+supported by gzip, and that's why Soci needs to
+
+572
+00:20:06.207 --> 00:20:08.589
+add this additional structure.
+
+573
+00:20:08.749 --> 00:20:10.530
+So if gzip had something like a table of
+
+574
+00:20:10.570 --> 00:20:12.612
+contents, of course, they didn't have to come up
+
+575
+00:20:12.632 --> 00:20:13.172
+with all of this.
+
+576
+00:20:13.232 --> 00:20:15.794
+But because it doesn't exist, that's effectively
+
+577
+00:20:15.834 --> 00:20:16.975
+how they solved the problem.
+
+578
+00:20:17.615 --> 00:20:19.255
+So once you have something like that,
+
+579
+00:20:19.275 --> 00:20:22.356
+you can imagine that solving the give me the
+
+580
+00:20:22.436 --> 00:20:24.816
+app.js problem becomes much simpler,
+
+581
+00:20:24.896 --> 00:20:27.817
+because Soci can just see, OK, the entry point
+
+582
+00:20:27.937 --> 00:20:30.117
+is running Node.js with app.js.
+
+583
+00:20:30.157 --> 00:20:34.118
+So I need to unpack app.js to be able to
+
+584
+00:20:34.178 --> 00:20:35.078
+start that process.
+
+585
+00:20:35.578 --> 00:20:37.498
+So it's going to look at, first of all,
+
+586
+00:20:37.538 --> 00:20:39.739
+which layer contains the last version of that
+
+587
+00:20:39.779 --> 00:20:40.059
+file.
+
+588
+00:20:40.599 --> 00:20:42.339
+Then it's going to look at the TOC and figure
+
+589
+00:20:42.379 --> 00:20:44.560
+out what is the offset in the gzip stream that
+
+590
+00:20:44.620 --> 00:20:46.340
+I need to start unpacking for.
+
+591
+00:20:46.960 --> 00:20:48.444
+Of course there are other additional details
+
+592
+00:20:48.504 --> 00:20:50.589
+because it's not just the offset but you might
+
+593
+00:20:50.649 --> 00:20:52.373
+also need to know what is the length that you
+
+594
+00:20:52.393 --> 00:20:52.774
+need to read.
+
+595
+00:20:53.363 --> 00:20:54.584
+So it's going to read all of that.
+
+596
+00:20:54.924 --> 00:20:57.305
+It's going to fetch the information.
+
+597
+00:20:57.365 --> 00:21:00.367
+And if you deep dive, you might come across the
+
+598
+00:21:00.407 --> 00:21:02.088
+concept of spans because, of course,
+
+599
+00:21:02.468 --> 00:21:08.012
+compressed blobs are not covering precise files.
+
+600
+00:21:08.132 --> 00:21:08.992
+They are kind of blocks.
+
+601
+00:21:09.132 --> 00:21:10.613
+So you might need to read multiple blocks.
+
+602
+00:21:11.153 --> 00:21:12.734
+So of course, all of that information is in the
+
+603
+00:21:12.774 --> 00:21:13.115
+index.
+
+604
+00:21:13.155 --> 00:21:14.876
+So the index will tell you where to start,
+
+605
+00:21:14.936 --> 00:21:16.016
+how many blocks you need to read.
+
+606
+00:21:16.456 --> 00:21:17.697
+Then they can be decompressed.
+
+607
+00:21:17.857 --> 00:21:18.898
+You have your file available.
+
+608
+00:21:19.238 --> 00:21:22.380
+So again, interesting idea of Soci,
+
+609
+00:21:22.400 --> 00:21:24.161
+they didn't rewrite any technology,
+
+610
+00:21:24.181 --> 00:21:25.882
+they just layered more stuff on top,
+
+611
+00:21:26.042 --> 00:21:28.084
+which is a great idea because it makes things
+
+612
+00:21:28.264 --> 00:21:31.026
+incrementally adoptable without having to change
+
+613
+00:21:31.126 --> 00:21:32.406
+what's already out there.
+
+614
+00:21:33.007 --> 00:21:35.188
+And yeah, we'll probably have a link in the show
+
+615
+00:21:35.208 --> 00:21:37.890
+notes with a deep dive from AWS with more
+
+616
+00:21:37.950 --> 00:21:40.672
+details and more in-depth explanations if you're
+
+617
+00:21:40.712 --> 00:21:42.513
+curious, but I honestly found all this stuff
+
+618
+00:21:42.673 --> 00:21:44.734
+fascinating and that's why I wanted to share
+
+619
+00:21:45.094 --> 00:21:45.875
+this particular design.
+
+620
+00:21:46.115 --> 00:21:47.696
+Now, it's probably a good time to talk about
+
+621
+00:21:47.736 --> 00:21:50.898
+benchmarks if you really want to know how much
+
+622
+00:21:50.938 --> 00:21:52.859
+can you save and whether it could be worth to
+
+623
+00:21:52.879 --> 00:21:53.419
+you or not.
+
+624
+00:21:54.840 --> 00:21:57.441
+Yeah, we didn't want to just trust the AWS
+
+625
+00:21:57.481 --> 00:21:58.922
+benchmark, so we built our own.
+
+626
+00:21:59.182 --> 00:22:01.483
+And I think it's fairly comprehensive,
+
+627
+00:22:01.523 --> 00:22:03.384
+probably more comprehensive than it needed to
+
+628
+00:22:03.444 --> 00:22:03.564
+be.
+
+629
+00:22:04.365 --> 00:22:06.086
+And it's a bit like what we've done before for
+
+630
+00:22:06.106 --> 00:22:06.246
+other
+
+631
+00:22:07.978 --> 00:22:09.079
+optimization stories.
+
+632
+00:22:09.159 --> 00:22:11.580
+We built a CDK application, CDK application,
+
+633
+00:22:11.980 --> 00:22:14.142
+that deploys the infrastructure, repeatedly
+
+634
+00:22:14.522 --> 00:22:18.184
+launches ECS tasks, and measures performance in
+
+635
+00:22:18.364 --> 00:22:19.205
+a few different dimensions.
+
+636
+00:22:19.965 --> 00:22:23.047
+The workload was a Python application using the
+
+637
+00:22:23.107 --> 00:22:25.308
+Python 3.12 slim actually base image.
+
+638
+00:22:26.088 --> 00:22:29.410
+The application imports and uses its dependency.
+
+639
+00:22:29.450 --> 00:22:31.392
+So we're testing realistic files, we think,
+
+640
+00:22:31.492 --> 00:22:33.133
+rather than artificially bloated images.
+
+641
+00:22:33.733 --> 00:22:35.394
+And then we have two image variants.
+
+642
+00:22:35.414 --> 00:22:37.215
+A small one was just NumPy and Pandas.
+
+643
+00:22:37.634 --> 00:22:39.095
+and a large one, which has a lot of big
+
+644
+00:22:39.135 --> 00:22:41.336
+dependencies, PyTorch and Scikit-learn,
+
+645
+00:22:41.596 --> 00:22:43.637
+PyRO and Transformers.
+
+646
+00:22:44.478 --> 00:22:48.260
+So the variables we tested were, we did x86-64
+
+647
+00:22:48.520 --> 00:22:49.460
+and ARM64.
+
+648
+00:22:50.041 --> 00:22:52.082
+We had the two image sizes, and then we had
+
+649
+00:22:52.102 --> 00:22:55.303
+three compression values, gzip, zstandard and
+
+650
+00:22:55.464 --> 00:22:55.944
+uncompressed.
+
+651
+00:22:56.524 --> 00:22:58.785
+And then we had Soci, either enabled or
+
+652
+00:22:58.825 --> 00:23:00.126
+disabled, where supported.
+
+653
+00:23:01.407 --> 00:23:04.488
+We also tested in Fargate and ECS on EC2.
+
+654
+00:23:05.289 --> 00:23:07.290
+And just for kicks, we also tried
+
+655
+00:23:07.891 --> 00:23:12.311
+two different OSs for EC2, Amazon Linux 2023,
+
+656
+00:23:12.394 --> 00:23:13.255
+and Bottlerocket.
+
+657
+00:23:14.355 --> 00:23:16.016
+So not every combination is possible.
+
+658
+00:23:16.076 --> 00:23:19.198
+So for example, you can't combine Zstandard with
+
+659
+00:23:19.198 --> 00:23:22.170
+Soci, as Luciano mentioned, and you can't use
+
+660
+00:23:22.170 --> 00:23:23.481
+Soci with ECS on EC2.
+
+661
+00:23:23.882 --> 00:23:25.763
+But overall, that gives us 44 different
+
+662
+00:23:25.883 --> 00:23:26.543
+permutations.
+
+663
+00:23:26.944 --> 00:23:28.425
+We ran each one 30 times each,
+
+664
+00:23:29.245 --> 00:23:32.928
+and that gives us 1,320 task executions.
+
+665
+00:23:33.428 --> 00:23:35.229
+All of them were using one vCPU and two
+
+666
+00:23:35.249 --> 00:23:36.290
+gigabytes of memory.
+
+667
+00:23:37.692 --> 00:23:40.435
+So how we measured it is we used ECS timestamps
+
+668
+00:23:40.635 --> 00:23:41.997
+to calculate the pull time.
+
+669
+00:23:42.437 --> 00:23:46.041
+So you can get all of that information from ECS,
+
+670
+00:23:46.061 --> 00:23:49.805
+like how long it takes to do image retrieval,
+
+671
+00:23:50.166 --> 00:23:52.328
+the container startup time from task creation to
+
+672
+00:23:52.368 --> 00:23:53.409
+the actual container start.
+
+673
+00:23:53.910 --> 00:23:56.232
+But we also measured how long the application is
+
+674
+00:23:56.272 --> 00:23:57.453
+taking to load its dependencies.
+
+675
+00:23:57.934 --> 00:23:58.835
+So lazy loading can
+
+676
+00:23:59.218 --> 00:24:01.859
+dramatically reduce the initial image pull time
+
+677
+00:24:01.879 --> 00:24:02.279
+with Soci.
+
+678
+00:24:02.659 --> 00:24:05.280
+But if the first file access need to fetch data
+
+679
+00:24:05.300 --> 00:24:07.160
+over the network, some of that time may come
+
+680
+00:24:07.200 --> 00:24:07.620
+back later.
+
+681
+00:24:08.441 --> 00:24:10.061
+So it's not just about container starts,
+
+682
+00:24:10.101 --> 00:24:11.802
+but when the application can actually do work
+
+683
+00:24:11.842 --> 00:24:13.522
+and how fast that application work is.
+
+684
+00:24:15.283 --> 00:24:18.083
+We also verified which snapshot Fargate is
+
+685
+00:24:18.164 --> 00:24:18.344
+using.
+
+686
+00:24:18.384 --> 00:24:21.284
+So we're checking Soci versus overlay FS.
+
+687
+00:24:21.645 --> 00:24:23.185
+So we know Soci is really active.
+
+688
+00:24:24.646 --> 00:24:26.027
+When we talk about the different tool links,
+
+689
+00:24:26.067 --> 00:24:28.289
+some of it is not quite clear how to get
+
+690
+00:24:28.349 --> 00:24:29.930
+it to work in each case.
+
+691
+00:24:29.990 --> 00:24:32.533
+And so we're also just verifying that the build
+
+692
+00:24:32.553 --> 00:24:35.135
+process we're using is doing what we expect for
+
+693
+00:24:35.155 --> 00:24:35.655
+the benchmark.
+
+694
+00:24:36.276 --> 00:24:37.817
+So this repository, which you can access,
+
+695
+00:24:38.077 --> 00:24:38.938
+the link will be in the show notes,
+
+696
+00:24:39.559 --> 00:24:42.241
+includes the benchmark code, the workflow,
+
+697
+00:24:42.561 --> 00:24:45.103
+and there's also a visualization dashboard with
+
+698
+00:24:45.143 --> 00:24:46.665
+Plotly for exploring the results.
+
+699
+00:24:47.369 --> 00:24:48.269
+So what were the results?
+
+700
+00:24:48.770 --> 00:24:50.590
+Well, some interesting stuff, I think,
+
+701
+00:24:50.670 --> 00:24:50.930
+in here.
+
+702
+00:24:51.051 --> 00:24:52.431
+We're not going to go through it in painstaking
+
+703
+00:24:52.451 --> 00:24:52.731
+detail.
+
+704
+00:24:53.231 --> 00:24:55.732
+But let's start with our image sizes.
+
+705
+00:24:55.752 --> 00:24:58.814
+So we had around 70 megabytes compressed for the
+
+706
+00:24:58.854 --> 00:25:01.355
+small image and 3 gigabytes compressed for the
+
+707
+00:25:01.455 --> 00:25:01.875
+large image.
+
+708
+00:25:02.535 --> 00:25:04.556
+So first of all, how does compression affect it?
+
+709
+00:25:05.216 --> 00:25:07.878
+So looking at gzip versus zstandard versus
+
+710
+00:25:07.998 --> 00:25:08.498
+uncompressed,
+
+711
+00:25:09.489 --> 00:25:11.543
+The large image goes from about 6 gigabytes to 3
+
+712
+00:25:11.590 --> 00:25:13.491
+gigabytes with GZIP, and it's a little bit less
+
+713
+00:25:13.531 --> 00:25:15.973
+with Z-Standard, like 200 megabytes less.
+
+714
+00:25:16.633 --> 00:25:20.155
+Small goes from 250 megabytes to about 74 with
+
+715
+00:25:20.175 --> 00:25:22.456
+GZIP, and 67 with Z-Standard.
+
+716
+00:25:23.637 --> 00:25:25.538
+So in terms of performance just based on
+
+717
+00:25:25.578 --> 00:25:28.880
+compression, Zstandard is only about three to
+
+718
+00:25:28.940 --> 00:25:32.181
+five times faster than gzip on large Fargate
+
+719
+00:25:32.241 --> 00:25:33.322
+images in our experience.
+
+720
+00:25:33.732 --> 00:25:35.693
+Now, your mileage may vary, because it depends
+
+721
+00:25:36.033 --> 00:25:37.714
+what's actually in your image, how compressible
+
+722
+00:25:37.754 --> 00:25:38.654
+it is, et cetera.
+
+723
+00:25:39.814 --> 00:25:42.175
+So if you look at Soci for a second,
+
+724
+00:25:42.775 --> 00:25:44.481
+with the large image, we saw up to about 10
+
+725
+00:25:44.536 --> 00:25:46.657
+times improvement in container startup on
+
+726
+00:25:46.697 --> 00:25:47.037
+Fargate.
+
+727
+00:25:47.357 --> 00:25:49.898
+So an uncompressed image was about 160 seconds.
+
+728
+00:25:50.518 --> 00:25:53.079
+With gzip, you can get 120 seconds.
+
+729
+00:25:53.259 --> 00:25:55.040
+So already, that's a pretty good improvement.
+
+730
+00:25:55.220 --> 00:25:57.481
+But Soci, it goes way down to 16 seconds.
+
+731
+00:25:58.041 --> 00:25:59.962
+gzip with Soci, so combining the two,
+
+732
+00:26:01.022 --> 00:26:02.403
+was actually a bit slower than
+
+733
+00:26:03.217 --> 00:26:05.319
+Soci alone, 17.5 seconds.
+
+734
+00:26:05.439 --> 00:26:08.481
+So that I think is interesting.
+
+735
+00:26:08.581 --> 00:26:10.442
+For the small image, uncompressed,
+
+736
+00:26:10.504 --> 00:26:12.243
+19 seconds startup time.
+
+737
+00:26:13.344 --> 00:26:16.226
+With Soci, 13 seconds.
+
+738
+00:26:16.346 --> 00:26:18.147
+gzip actually just makes it slower for small
+
+739
+00:26:18.187 --> 00:26:18.347
+image.
+
+740
+00:26:18.387 --> 00:26:19.228
+We get 20 seconds.
+
+741
+00:26:19.708 --> 00:26:21.109
+And if you combine gzip with SOCI,
+
+742
+00:26:21.650 --> 00:26:22.430
+it's kind of in the middle.
+
+743
+00:26:22.951 --> 00:26:26.453
+It's better than just gzip alone, but not as
+
+744
+00:26:26.493 --> 00:26:28.254
+good as Soci on its own with an uncompressed
+
+745
+00:26:28.314 --> 00:26:28.534
+image.
+
+746
+00:26:28.855 --> 00:26:31.396
+So you can see the varying effects of combining
+
+747
+00:26:31.436 --> 00:26:32.397
+compression with Soci.
+
+748
+00:26:32.993 --> 00:26:34.734
+Again, your mileage will vary.
+
+749
+00:26:34.754 --> 00:26:36.255
+This is our image, our context.
+
+750
+00:26:36.315 --> 00:26:38.676
+A lot of these dependencies might have already
+
+751
+00:26:39.016 --> 00:26:40.356
+some compression involved in them.
+
+752
+00:26:41.117 --> 00:26:42.457
+So you might not get so much benefit.
+
+753
+00:26:42.637 --> 00:26:45.038
+But it's easy enough, I think, to experiment
+
+754
+00:26:45.078 --> 00:26:46.039
+with the different permutations.
+
+755
+00:26:47.580 --> 00:26:48.760
+So those are the primary findings.
+
+756
+00:26:49.040 --> 00:26:51.561
+And I think the 10x improvement will obviously
+
+757
+00:26:51.621 --> 00:26:53.102
+be attractive to a lot of people.
+
+758
+00:26:53.242 --> 00:26:55.143
+So it is possible, especially with larger
+
+759
+00:26:55.183 --> 00:26:55.483
+images.
+
+760
+00:26:56.143 --> 00:26:57.804
+Looking at Fargate versus ECS then,
+
+761
+00:26:58.645 --> 00:27:00.305
+when I say ECS, I mean ECS on EC2,
+
+762
+00:27:00.325 --> 00:27:01.666
+the old school ECS.
+
+763
+00:27:02.322 --> 00:27:04.283
+EC2 had a lot more variability in startup
+
+764
+00:27:04.303 --> 00:27:06.163
+timings, but I guess that's to be expected,
+
+765
+00:27:06.223 --> 00:27:08.424
+given that you need to account for instance
+
+766
+00:27:08.464 --> 00:27:10.764
+provisioning sometimes as well, provisioning the
+
+767
+00:27:10.844 --> 00:27:11.264
+ENI.
+
+768
+00:27:11.665 --> 00:27:12.905
+But once you start a warm instance,
+
+769
+00:27:13.185 --> 00:27:14.885
+startup times can be four times faster than
+
+770
+00:27:14.925 --> 00:27:15.306
+Fargate.
+
+771
+00:27:15.906 --> 00:27:17.646
+Obviously, you can have image caching locally in
+
+772
+00:27:17.666 --> 00:27:19.967
+your Docker agent, so that makes a lot of sense.
+
+773
+00:27:22.307 --> 00:27:24.168
+But when you add Soci, especially for large
+
+774
+00:27:24.208 --> 00:27:27.909
+images, you get very consistent low startup
+
+775
+00:27:27.949 --> 00:27:29.089
+times in Fargate.
+
+776
+00:27:29.649 --> 00:27:31.670
+You can get low startup times in EC2 as well,
+
+777
+00:27:32.063 --> 00:27:33.992
+but it relies on having a warm instance and
+
+778
+00:27:34.052 --> 00:27:34.353
+caching.
+
+779
+00:27:34.856 --> 00:27:35.740
+You might be curious about
+
+780
+00:27:36.288 --> 00:27:38.369
+Amazon Linux 2023 versus Bottlerocket.
+
+781
+00:27:39.029 --> 00:27:41.050
+Bottlerocket is an OS that's typically used for
+
+782
+00:27:41.070 --> 00:27:43.091
+a security perspective because it's got a very
+
+783
+00:27:43.251 --> 00:27:46.253
+minimal surface area, very lightweight base
+
+784
+00:27:46.333 --> 00:27:48.874
+image, or sorry, very lightweight OS.
+
+785
+00:27:49.434 --> 00:27:52.216
+But we actually saw cold instance startup times
+
+786
+00:27:52.276 --> 00:27:54.237
+on EC2 around two times faster.
+
+787
+00:27:54.677 --> 00:27:56.438
+I guess the AMI is just a lot smaller.
+
+788
+00:27:56.698 --> 00:27:59.439
+So that's something that can make a difference
+
+789
+00:27:59.499 --> 00:27:59.779
+on EC2.
+
+790
+00:27:59.799 --> 00:28:02.641
+Looking at x86, 64 versus ARM as well.
+
+791
+00:28:05.492 --> 00:28:07.633
+We actually saw Arm on Fargate showed about 10
+
+792
+00:28:07.633 --> 00:28:10.515
+to 15% improvement in Fargate startup times for
+
+793
+00:28:10.575 --> 00:28:11.896
+basically the same image, right?
+
+794
+00:28:11.916 --> 00:28:14.157
+You've got obviously multi-architecture images,
+
+795
+00:28:14.197 --> 00:28:15.018
+so they might vary.
+
+796
+00:28:15.098 --> 00:28:16.639
+They will vary in terms of the bytes that you're
+
+797
+00:28:16.659 --> 00:28:19.801
+shipping, but we saw pretty consistently that
+
+798
+00:28:20.041 --> 00:28:21.802
+Graviton processors for Fargate.
+
+799
+00:28:22.283 --> 00:28:23.384
+seem to be a bit faster for startup.
+
+800
+00:28:23.584 --> 00:28:25.625
+So lots of opportunity for optimization,
+
+801
+00:28:25.805 --> 00:28:26.666
+depending on your context.
+
+802
+00:28:26.946 --> 00:28:28.086
+So Satya used a big win.
+
+803
+00:28:28.327 --> 00:28:29.227
+How do we go about doing it,
+
+804
+00:28:29.247 --> 00:28:29.788
+Luciano?
+
+805
+00:28:30.228 --> 00:28:31.869
+Yeah, that's honestly the part that I found a
+
+806
+00:28:31.889 --> 00:28:34.130
+little bit frustrating, mostly because there is
+
+807
+00:28:34.410 --> 00:28:36.492
+a bunch of different tools that you might come
+
+808
+00:28:36.532 --> 00:28:36.872
+across.
+
+809
+00:28:36.972 --> 00:28:38.933
+And it can be a little bit confusing to figure
+
+810
+00:28:38.973 --> 00:28:41.795
+out exactly which ones should you use when and
+
+811
+00:28:41.835 --> 00:28:42.795
+for what, right?
+
+812
+00:28:43.216 --> 00:28:45.317
+So let's try to describe what's the high-level
+
+813
+00:28:45.337 --> 00:28:45.837
+workflow.
+
+814
+00:28:45.937 --> 00:28:47.818
+And then I can probably let you describe the
+
+815
+00:28:47.838 --> 00:28:49.339
+tools that you use, because you are more
+
+816
+00:28:49.359 --> 00:28:50.360
+familiar with some of them.
+
+817
+00:28:50.960 --> 00:28:53.223
+And yeah, the high level workflows that you can
+
+818
+00:28:53.384 --> 00:28:56.007
+build and push your normal container image as
+
+819
+00:28:56.027 --> 00:28:57.789
+you always do every time you need to use a
+
+820
+00:28:57.829 --> 00:28:58.430
+container, right?
+
+821
+00:28:58.470 --> 00:29:01.094
+So that means going to ECR and pushing your
+
+822
+00:29:01.154 --> 00:29:03.256
+image there and having it available.
+
+823
+00:29:04.122 --> 00:29:06.523
+Then you need to inspect the layers.
+
+824
+00:29:07.143 --> 00:29:09.464
+And there are tools that are Soci-aware,
+
+825
+00:29:09.524 --> 00:29:11.865
+so that they basically understand what the Soci
+
+826
+00:29:11.925 --> 00:29:13.346
+shape is going to look like at the end.
+
+827
+00:29:13.386 --> 00:29:15.067
+So they can do that process of,
+
+828
+00:29:15.227 --> 00:29:17.048
+given an image, let me inspect the layers.
+
+829
+00:29:17.588 --> 00:29:20.789
+And that allows the tool to generate the ZTOC,
+
+830
+00:29:21.049 --> 00:29:23.270
+so the table of contents from the compressed
+
+831
+00:29:23.310 --> 00:29:24.331
+streams for each layer.
+
+832
+00:29:25.131 --> 00:29:27.613
+And that is basically what gives you the Soci
+
+833
+00:29:27.733 --> 00:29:28.574
+index at the end.
+
+834
+00:29:28.894 --> 00:29:30.995
+Once you've done all of that, so you publish the
+
+835
+00:29:31.055 --> 00:29:33.177
+image, you create the index, then,
+
+836
+00:29:33.217 --> 00:29:35.138
+of course, you also need to publish the Soci
+
+837
+00:29:35.158 --> 00:29:36.539
+metadata in ECR.
+
+838
+00:29:36.559 --> 00:29:38.640
+So effectively, you are making that index also
+
+839
+00:29:38.660 --> 00:29:39.661
+available in ECR.
+
+840
+00:29:40.241 --> 00:29:42.543
+And that is what enables, for example,
+
+841
+00:29:42.583 --> 00:29:46.125
+Fargate to be able to use then that index when
+
+842
+00:29:46.145 --> 00:29:49.508
+you spin up images, when you spin up tasks that
+
+843
+00:29:49.588 --> 00:29:50.829
+use those images with Soci.
+
+844
+00:29:51.730 --> 00:29:53.671
+So again, I'll defer that to you,
+
+845
+00:29:53.731 --> 00:29:56.352
+Eoin, which tools did you use and which one you
+
+846
+00:29:56.372 --> 00:29:57.733
+think people should care more about?
+
+847
+00:29:59.154 --> 00:30:00.274
+Yeah, it's difficult to know.
+
+848
+00:30:00.294 --> 00:30:03.836
+So AWS provides the Soci purpose-built tool for
+
+849
+00:30:03.956 --> 00:30:05.637
+generating and inspecting the metadata.
+
+850
+00:30:06.157 --> 00:30:09.299
+There's also Crane, which is a popular enough
+
+851
+00:30:09.939 --> 00:30:12.240
+OCI tool for inspecting manifests,
+
+852
+00:30:12.300 --> 00:30:13.521
+layers, and registry contents.
+
+853
+00:30:13.921 --> 00:30:15.122
+There's another one called Skopeo.
+
+854
+00:30:16.414 --> 00:30:19.215
+which is useful for copying images and artifacts
+
+855
+00:30:19.255 --> 00:30:20.116
+between registries.
+
+856
+00:30:20.596 --> 00:30:21.936
+There's a whole suite of tools out there,
+
+857
+00:30:21.996 --> 00:30:23.997
+depending on which camp you're in and which
+
+858
+00:30:24.017 --> 00:30:24.557
+world you're in.
+
+859
+00:30:25.138 --> 00:30:27.659
+For our benchmarks, we used the Soci Convert
+
+860
+00:30:27.679 --> 00:30:31.060
+standalone to prepare the images and Skopeo to
+
+861
+00:30:31.100 --> 00:30:32.541
+publish them.
+
+862
+00:30:32.661 --> 00:30:34.662
+Soci actually only runs on Linux, but the way we
+
+863
+00:30:34.682 --> 00:30:36.682
+got around that, because we're Mac users when in
+
+864
+00:30:36.742 --> 00:30:38.883
+our development environments, was by running a
+
+865
+00:30:38.923 --> 00:30:41.865
+Docker container in privileged mode to be able
+
+866
+00:30:41.905 --> 00:30:45.266
+to run Soci Convert, and it worked pretty well.
+
+867
+00:30:46.577 --> 00:30:48.579
+And when you're doing Skopeo copy,
+
+868
+00:30:48.619 --> 00:30:50.440
+by the way, you need to do dash dash all.
+
+869
+00:30:50.520 --> 00:30:52.622
+We've discovered the hard way a lot of these
+
+870
+00:30:52.782 --> 00:30:54.744
+limitations because without the image,
+
+871
+00:30:54.764 --> 00:30:56.345
+the SOCI index might not be published and
+
+872
+00:30:56.385 --> 00:30:58.827
+Fargate will silently fall back to a normal
+
+873
+00:30:58.847 --> 00:30:59.048
+pull.
+
+874
+00:30:59.168 --> 00:31:01.209
+That's why it's a good idea to verify the
+
+875
+00:31:01.229 --> 00:31:03.171
+manifests that are pushed to make sure you've
+
+876
+00:31:03.211 --> 00:31:03.771
+got what you want.
+
+877
+00:31:04.292 --> 00:31:06.614
+So I guess I'd recommend starting with the Soci
+
+878
+00:31:06.634 --> 00:31:08.696
+tool and Crane maybe for inspection.
+
+879
+00:31:09.156 --> 00:31:11.478
+You don't need to learn the whole suite of tools
+
+880
+00:31:11.538 --> 00:31:15.081
+available across the OCI image ecosystem.
+
+881
+00:31:15.781 --> 00:31:17.041
+And if you want to automate all of this in
+
+882
+00:31:17.061 --> 00:31:18.862
+production, AWS actually has a solution,
+
+883
+00:31:19.062 --> 00:31:20.062
+the Soci Index Builder.
+
+884
+00:31:20.082 --> 00:31:22.282
+I haven't tried it, but apparently it can
+
+885
+00:31:22.383 --> 00:31:24.243
+generate indexes automatically when your images
+
+886
+00:31:24.303 --> 00:31:25.003
+are pushed to ECR.
+
+887
+00:31:25.143 --> 00:31:26.683
+That's quite a nice idea if you don't want to
+
+888
+00:31:27.024 --> 00:31:29.184
+worry about introducing all of this tool into
+
+889
+00:31:29.224 --> 00:31:30.404
+your CI pipelines.
+
+890
+00:31:31.205 --> 00:31:33.005
+So complete implementation is available in our
+
+891
+00:31:33.045 --> 00:31:33.865
+benchmark repository.
+
+892
+00:31:33.885 --> 00:31:35.305
+It does run a lot of tasks,
+
+893
+00:31:35.385 --> 00:31:37.566
+so be mindful of cost before you kick it off.
+
+894
+00:31:38.593 --> 00:31:39.613
+Yeah, that's a good one.
+
+895
+00:31:39.633 --> 00:31:41.094
+I think at this point, we can wrap up.
+
+896
+00:31:41.254 --> 00:31:43.454
+We shared most of the things we wanted to talk
+
+897
+00:31:43.494 --> 00:31:43.954
+about today.
+
+898
+00:31:43.974 --> 00:31:46.115
+So let's give it a quick recap.
+
+899
+00:31:46.775 --> 00:31:48.135
+So we started with the basics.
+
+900
+00:31:48.175 --> 00:31:49.916
+So we mentioned that smaller, well-optimized
+
+901
+00:31:49.936 --> 00:31:52.436
+container images and sensible compression is
+
+902
+00:31:52.477 --> 00:31:53.697
+probably the first thing you should try,
+
+903
+00:31:53.777 --> 00:31:53.977
+right?
+
+904
+00:31:54.037 --> 00:31:55.917
+Because it's probably going to give you lots of
+
+905
+00:31:55.977 --> 00:31:57.938
+value for your packs and your time.
+
+906
+00:31:58.498 --> 00:32:00.520
+Then, of course, you can consider ZSTD as a
+
+907
+00:32:00.560 --> 00:32:02.181
+compression mechanism, because it should give a
+
+908
+00:32:02.221 --> 00:32:04.924
+little bit of an extra edge in terms of less
+
+909
+00:32:04.964 --> 00:32:07.186
+bytes to download, faster to decompress,
+
+910
+00:32:07.246 --> 00:32:09.668
+so probably better startup times overall.
+
+911
+00:32:11.269 --> 00:32:12.911
+If you have tried all of that and you still
+
+912
+00:32:12.971 --> 00:32:14.712
+are not particularly happy with the startup
+
+913
+00:32:14.752 --> 00:32:16.914
+times, then that's probably a good time to start
+
+914
+00:32:16.934 --> 00:32:17.815
+to explore Soci.
+
+915
+00:32:17.835 --> 00:32:20.117
+So generally, that means you have larger images,
+
+916
+00:32:20.177 --> 00:32:22.259
+which might take longer, and especially in
+
+917
+00:32:22.279 --> 00:32:25.122
+Fargate, where one application don't need
+
+918
+00:32:25.902 --> 00:32:27.543
+or when application, I mean, don't need every
+
+919
+00:32:27.583 --> 00:32:28.364
+file immediately.
+
+920
+00:32:29.905 --> 00:32:31.446
+So yeah, we have seen, for example,
+
+921
+00:32:31.486 --> 00:32:34.208
+lots of cases for ML workflows where you might
+
+922
+00:32:34.248 --> 00:32:36.189
+have lots of files or big files.
+
+923
+00:32:36.289 --> 00:32:38.431
+I think those are cases where Soci could work
+
+924
+00:32:38.471 --> 00:32:38.831
+really well.
+
+925
+00:32:39.211 --> 00:32:41.893
+And the other thing is try to do your own
+
+926
+00:32:41.913 --> 00:32:43.814
+benchmarks and try to be comprehensive.
+
+927
+00:32:43.834 --> 00:32:45.856
+So of course, you should care about the startup
+
+928
+00:32:45.896 --> 00:32:46.176
+time.
+
+929
+00:32:46.216 --> 00:32:48.297
+But remember that this is not your only metric
+
+930
+00:32:48.337 --> 00:32:49.478
+because a faster startup
+
+931
+00:32:51.149 --> 00:32:54.030
+you will have slower time to access the files
+
+932
+00:32:54.090 --> 00:32:55.311
+the first time that they are accessed.
+
+933
+00:32:55.571 --> 00:32:58.152
+So just be sure what's the impact of that for
+
+934
+00:32:58.172 --> 00:32:59.172
+your particular application.
+
+935
+00:32:59.972 --> 00:33:02.873
+It might be good overall, in which case Soci is
+
+936
+00:33:02.913 --> 00:33:03.373
+a good win.
+
+937
+00:33:03.654 --> 00:33:05.774
+It might be bad, so you probably want to revert
+
+938
+00:33:06.235 --> 00:33:07.315
+and try something else instead.
+
+939
+00:33:08.334 --> 00:33:09.896
+I think in general, we particularly like the
+
+940
+00:33:09.916 --> 00:33:12.378
+idea of Soci just because it's a clever idea.
+
+941
+00:33:12.739 --> 00:33:14.721
+The incremental adoption makes it for a very
+
+942
+00:33:14.761 --> 00:33:15.542
+compelling story.
+
+943
+00:33:16.162 --> 00:33:18.785
+It doesn't require you to change anything,
+
+944
+00:33:18.825 --> 00:33:20.747
+but just maybe add a few extra steps in your
+
+945
+00:33:20.787 --> 00:33:21.268
+pipeline.
+
+946
+00:33:22.389 --> 00:33:24.891
+And if you're using Fargate, it's even enabled
+
+947
+00:33:24.932 --> 00:33:26.253
+by default, so you don't even need to do
+
+948
+00:33:26.493 --> 00:33:29.018
+anything in particular from kind of the
+
+949
+00:33:29.138 --> 00:33:30.481
+infrastructure point of view.
+
+950
+00:33:31.002 --> 00:33:33.587
+So I think all of these are great wins and
+
+951
+00:33:33.647 --> 00:33:36.693
+it's an optimization worth knowing and figuring
+
+952
+00:33:36.773 --> 00:33:38.516
+out when it might be worth using it or not.
+
+953
+00:33:39.289 --> 00:33:41.211
+Now, with that, I think we have a few questions
+
+954
+00:33:41.291 --> 00:33:43.052
+for you, because we're curious to hear your
+
+955
+00:33:43.092 --> 00:33:43.473
+stories.
+
+956
+00:33:43.693 --> 00:33:45.555
+So of course, make sure to reach out to us
+
+957
+00:33:45.615 --> 00:33:46.516
+and share your answers.
+
+958
+00:33:47.376 --> 00:33:48.998
+We are curious to know, in general,
+
+959
+00:33:49.038 --> 00:33:50.599
+what kind of workloads are they running?
+
+960
+00:33:50.639 --> 00:33:52.321
+What kind of production containers,
+
+961
+00:33:52.481 --> 00:33:53.241
+images do you have?
+
+962
+00:33:53.262 --> 00:33:55.163
+Have you ever measured how much time do you
+
+963
+00:33:55.203 --> 00:33:56.885
+spend downloading and unpacking them?
+
+964
+00:33:57.325 --> 00:33:59.607
+And if you have used Soci, was it beneficial to
+
+965
+00:33:59.647 --> 00:33:59.807
+you?
+
+966
+00:34:00.128 --> 00:34:01.709
+Or did you prefer to just stick with something
+
+967
+00:34:01.749 --> 00:34:03.290
+else, like Zstandard compression?
+
+968
+00:34:04.131 --> 00:34:06.612
+So that's a topic that we have been starting to
+
+969
+00:34:06.652 --> 00:34:09.012
+explore only more recently when we are doing
+
+970
+00:34:09.112 --> 00:34:10.873
+lots of optimization for certain customers.
+
+971
+00:34:10.893 --> 00:34:13.013
+So definitely sharing your knowledge with us
+
+972
+00:34:13.073 --> 00:34:15.214
+would be useful to us, and hopefully it goes
+
+973
+00:34:15.294 --> 00:34:16.014
+both ways, right?
+
+974
+00:34:16.274 --> 00:34:19.055
+And finally, one word of thank you to our usual
+
+975
+00:34:19.095 --> 00:34:20.255
+sponsor, fourTheorem.
+
+976
+00:34:20.775 --> 00:34:22.535
+fourTheorem is powering AWS Bites.
+
+977
+00:34:22.815 --> 00:34:23.976
+Thank you for supporting us.
+
+978
+00:34:24.476 --> 00:34:26.856
+So if you're looking to improve the performance,
+
+979
+00:34:26.876 --> 00:34:28.517
+scalability, or cost efficiency of your
+
+980
+00:34:28.537 --> 00:34:30.937
+container workloads on AWS, fourTheorem can help
+
+981
+00:34:30.977 --> 00:34:33.178
+you identify bottlenecks and optimize your
+
+982
+00:34:33.218 --> 00:34:33.638
+architecture.
+
+983
+00:34:34.058 --> 00:34:35.779
+So if you're curious about all of that and what
+
+984
+00:34:35.819 --> 00:34:38.581
+we do at fourTheorem, check out fourtheorem.com.
+
+985
+00:34:38.801 --> 00:34:40.282
+So that's everything for today.
+
+986
+00:34:40.442 --> 00:34:41.483
+Thank you for sticking with us.
+
+987
+00:34:41.603 --> 00:34:44.045
+Thank you for being patient while we were away
+
+988
+00:34:44.345 --> 00:34:46.527
+between this episode and the previous one.
+
+989
+00:34:46.767 --> 00:34:48.668
+Hopefully, we'll be a little bit more consistent
+
+990
+00:34:48.868 --> 00:34:49.429
+going forward.
+
+991
+00:34:49.489 --> 00:34:51.590
+But please send us your feedback and your love,
+
+992
+00:34:51.750 --> 00:34:53.852
+because that's what keeps us motivated.
+
+993
+00:34:54.532 --> 00:34:56.573
+So thank you again, and see you next time.

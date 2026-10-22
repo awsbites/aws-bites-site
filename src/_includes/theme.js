@@ -22,9 +22,13 @@
   // Resolve the theme before styles paint; do not store an implicit system choice.
   applyTheme()
   root.classList.remove('no-js')
-  document.addEventListener('DOMContentLoaded', () => {
+  let initializedButton
+  function initializeControl() {
+    const button = document.getElementById('toggle-theme')
+    if (!button || button === initializedButton) return
+    initializedButton = button
     applyTheme()
-    document.getElementById('toggle-theme')?.addEventListener('click', () => {
+    button.addEventListener('click', () => {
       preference = root.classList.contains('dark') ? 'light' : 'dark'
       applyTheme()
       try {
@@ -33,7 +37,16 @@
         /* The theme still works for this visit. */
       }
     })
-  })
+  }
+  // The header signals readiness before later scripts can delay DOMContentLoaded.
+  document.addEventListener('awsbites:theme-ready', initializeControl)
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeControl, {
+      once: true,
+    })
+  } else {
+    initializeControl()
+  }
   system.addEventListener('change', () => {
     if (!preference) applyTheme()
   })

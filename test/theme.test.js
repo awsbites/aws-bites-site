@@ -5,8 +5,14 @@ const vm = require('node:vm')
 
 const source = readFileSync(`${__dirname}/../src/_includes/theme.js`, 'utf8')
 
-function fixture({ stored = null, dark = false, blocked = false } = {}) {
+function fixture({
+  stored = null,
+  dark = false,
+  blocked = false,
+  loaded = false,
+} = {}) {
   const ready = []
+  const headerReady = []
   const events = new Map()
   const writes = []
   function element() {
@@ -43,7 +49,7 @@ function fixture({ stored = null, dark = false, blocked = false } = {}) {
     'toggle-light-icon': element(),
     'toggle-dark-icon': element(),
   }
-  let mounted = false
+  let mounted = loaded
   const system = {
     matches: dark,
     addEventListener(key, handler) {
@@ -69,12 +75,14 @@ function fixture({ stored = null, dark = false, blocked = false } = {}) {
     },
   }
   const document = {
+    readyState: loaded ? 'complete' : 'loading',
     documentElement: root,
     getElementById(id) {
       return mounted ? (id === 'toggle-theme' ? button : icons[id]) : null
     },
     addEventListener(key, handler) {
       if (key === 'DOMContentLoaded') ready.push(handler)
+      if (key === 'awsbites:theme-ready') headerReady.push(handler)
     },
   }
   vm.runInNewContext(source, { document, window })
@@ -85,6 +93,10 @@ function fixture({ stored = null, dark = false, blocked = false } = {}) {
     mount() {
       mounted = true
       for (const handler of ready) handler()
+    },
+    mountHeader() {
+      mounted = true
+      for (const handler of headerReady) handler()
     },
     click() {
       button.handlers.get('click')()
@@ -109,6 +121,26 @@ test('system theme is resolved before controls mount without persisting it', () 
   assert.deepEqual(page.writes, [])
   page.changeSystem(false)
   assert.equal(page.button.attributes.get('aria-pressed'), 'false')
+})
+
+test('header readiness reveals and binds the switcher before DOMContentLoaded', () => {
+  const page = fixture({ dark: true })
+  page.mountHeader()
+  assert.equal(page.button.classList.contains('hidden'), false)
+  assert.equal(page.button.attributes.get('aria-pressed'), 'true')
+  page.click()
+  assert.equal(page.root.classList.contains('dark'), false)
+  page.mount()
+  page.click()
+  assert.equal(page.root.classList.contains('dark'), true)
+  assert.equal(page.writes.length, 2)
+})
+
+test('a script initialized after DOMContentLoaded still reveals the switcher', () => {
+  const page = fixture({ loaded: true })
+  assert.equal(page.button.classList.contains('hidden'), false)
+  page.click()
+  assert.equal(page.root.classList.contains('dark'), true)
 })
 
 test('an explicit choice overrides system changes and is announced', () => {

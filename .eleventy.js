@@ -149,7 +149,7 @@ module.exports = function (eleventyConfig) {
   eleventyConfig.addShortcode('excerpt', (article) => extractExcerpt(article))
 
   eleventyConfig.addCollection('publishedEpisodes', function (collectionApi) {
-    // get episodes, sorted by publish date, descending
+    // Keep chronological order: previous is older, next is newer.
     return collectionApi.getFilteredByTag('episode')
       .filter(isPublishedEpisode)
       .sort((a, b) => a.data.publish_date - b.data.publish_date)
